@@ -19,7 +19,7 @@ var yellow800 = "#FFC600";
 var red800 = "#FF4040";
 
 Redoc.init(
-  "open-api.yaml",
+  "swagger.yaml",
   {
     theme: {
       spacing: {
