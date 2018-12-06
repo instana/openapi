@@ -17,6 +17,7 @@
 ## Links
 
 - Documentation(ReDoc): https://:instana.github.io/openapi/
+- SwaggerUI: https://:instana.github.io/openapi/swagger-ui/
 - Look full spec:
     + JSON https://:instana.github.io/openapi/swagger.json
     + YAML https://:instana.github.io/openapi/swagger.yaml
