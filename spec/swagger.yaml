@@ -8,7 +8,10 @@ info:
     name: © Instana
     url: http://instana.com
     email: support@instana.com
-  version: V1
+  x-logo:
+    url: https://instana.github.io/openapi/header-logo.svg
+    backgroundColor: '#031F29'
+    altText: instana logo
 tags:
 - name: Infrastructure Monitoring
   description: Infrastructure monitoring.
@@ -116,6 +119,8 @@ paths:
       tags:
       - Application Monitoring
       summary: Application Metrics
+      description:
+        $ref: 'https://raw.githubusercontent.com/instana/openapi/master/spec/description/infrastructure.md'
       operationId: getApplicationMetrics
       requestBody:
         content:
@@ -183,6 +188,47 @@ paths:
       - Application Monitoring
       summary: Get services
       operationId: getServices
+      parameters:
+      - name: nameFilter
+        in: query
+        schema:
+          type: string
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/applications/services:
+    get:
+      tags:
+      - Application Monitoring
+      summary: Get services in application context
+      operationId: getApplicationServices
       parameters:
       - name: nameFilter
         in: query
@@ -314,61 +360,6 @@ paths:
                   $ref: '#/components/schemas/ApplicationItem'
         400:
           description: Invalid query
-  /api/application-monitoring/applications/services:
-    get:
-      tags:
-      - Application Monitoring
-      summary: Get services in application context
-      operationId: getApplicationServices
-      parameters:
-      - name: nameFilter
-        in: query
-        schema:
-          type: string
-      - name: windowSize
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: to
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: page
-        in: query
-        schema:
-          type: integer
-          format: int32
-      - name: pageSize
-        in: query
-        schema:
-          type: integer
-          format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceItem'
-        400:
-          description: Invalid query
-  /api/application-monitoring/catalog/metrics:
-    get:
-      tags:
-      - Website Monitoring
-      summary: Get metric descriptions for beacon metrics
-      operationId: getMetricDefinitions_1
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/MetricDescription'
   /api/application-monitoring/catalog/tags:
     get:
       tags:
@@ -383,6 +374,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Tag'
+  /api/application-monitoring/catalog/metrics:
+    get:
+      tags:
+      - Website Monitoring
+      summary: Get metric descriptions for beacon metrics
+      operationId: getMetricDefinitions_1
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MetricDescription'
   /api/application-monitoring/settings/application:
     get:
       tags:
@@ -2788,17 +2793,6 @@ components:
           maxLength: 64
           minLength: 0
           type: string
-    MetricDescription:
-      type: object
-      properties:
-        metricId:
-          type: string
-        label:
-          type: string
-        formatter:
-          type: string
-        description:
-          type: string
     Tag:
       type: object
       properties:
@@ -2813,6 +2807,17 @@ components:
           - KEY_VALUE_PAIR
         category:
           type: string
+    MetricDescription:
+      type: object
+      properties:
+        metricId:
+          type: string
+        label:
+          type: string
+        formatter:
+          type: string
+        description:
+          type: string
     JsonNode:
       type: object
       properties:
@@ -2820,7 +2825,7 @@ components:
           type: boolean
         null:
           type: boolean
-        number:
+        double:
           type: boolean
         nodeType:
           type: string
@@ -2834,11 +2839,31 @@ components:
           - OBJECT
           - POJO
           - STRING
-        float:
+        number:
           type: boolean
         binary:
           type: boolean
+        boolean:
+          type: boolean
+        integralNumber:
+          type: boolean
+        floatingPointNumber:
+          type: boolean
+        short:
+          type: boolean
+        long:
+          type: boolean
+        bigDecimal:
+          type: boolean
+        bigInteger:
+          type: boolean
+        textual:
+          type: boolean
+        float:
+          type: boolean
         object:
+          type: boolean
+        int:
           type: boolean
         valueNode:
           type: boolean
@@ -2847,26 +2872,6 @@ components:
         missingNode:
           type: boolean
         pojo:
-          type: boolean
-        integralNumber:
-          type: boolean
-        floatingPointNumber:
-          type: boolean
-        short:
-          type: boolean
-        int:
-          type: boolean
-        long:
-          type: boolean
-        double:
-          type: boolean
-        bigDecimal:
-          type: boolean
-        bigInteger:
-          type: boolean
-        textual:
-          type: boolean
-        boolean:
           type: boolean
     FixedHttpPathSegmentMatchingRule:
       required:
