@@ -1,6 +1,7 @@
 var N050 = "#FAFBFC";
 var N100 = "#F7F9FA";
 var N400 = "#D4D8DB";
+var N500 = "#6A7C8F";
 var N900Primary = "#1B2733";
 
 var purple800 = "#BF73E6";
@@ -56,16 +57,16 @@ Redoc.init(
             backgroundColor: ({ colors }) => colors.success.main
           },
           error: {
-            color: ({ colors }) => colors.error.main,
+            color: () => N100,
             backgroundColor: ({ colors }) => colors.error.main
           },
           redirect: {
-            color: orange800,
-            backgroundColor: ({ colors }) => colors.responses.redirect.color
+            color: () => N100,
+            backgroundColor: () => N400
           },
           info: {
-            color: lightBlue800,
-            backgroundColor: ({ colors }) => colors.responses.info.color
+            color: () => N100,
+            backgroundColor: () => N400
           }
         },
         http: {
@@ -144,7 +145,7 @@ Redoc.init(
       rightPanel: {
         backgroundColor: navy900,
         width: "45%",
-        textColor: N100
+        textColor: N500
       },
       codeSample: {
         backgroundColor: ({ rightPanel }) => rightPanel.backgroundColor
