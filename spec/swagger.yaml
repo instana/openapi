@@ -1,13 +1,68 @@
 openapi: 3.0.1
 info:
   title: Introduction to Instana public APIs
-  description: The Instana REST API HTTP endpoints allow data retrieval, like traces
-    and metrics, as well as configuration, like service extraction and users.
+  description: "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event\
+    \ SDK REST Web Service, it is possible to integrate custom health checks and other\
+    \ event sources into Instana. Each one running the Instana Agent can be used to\
+    \ feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event`\
+    \ and accepts the following JSON via a POST request:\n\n```json\n{\n  \"title\"\
+    : <string>,\n  \"text\": <string>,\n  \"severity\": <integer> , -1, 5 or 10\n\
+    \  \"timestamp\": <integer>, timestamp in milliseconds from epoch\n  \"duration\"\
+    : <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for\
+    \ display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value\
+    \ of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning\
+    \ Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent,\
+    \ the event is treated as a change without severity. *Timestamp* is the timestamp\
+    \ of the event, but it is optional, in which case the current time is used. *Duration*\
+    \ can be used to mark a timespan for the event. It also is optional, in which\
+    \ case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe\
+    \ endpoint also accepts a batch of events, which then need to be given as an array:\n\
+    \n```json\n[\n  {\n    // event as above\n  },\n  {\n    // event as above\n \
+    \ }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor\
+    \ - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\n\
+    payload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\
+    \nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq =\
+    \ Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\n\
+    Net::HTTP.start(uri.hostname, uri.port) do |http|\n  http.request(req)\nend\n\
+    ```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event\
+    \ -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \"\
+    , \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\"\
+    : -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the\
+    \ standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters\
+    \ to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n\t-Uri\
+    \ http://localhost:42699/com.instana.plugin.generic.event\n\t-Method POST\n\t\
+    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create\
+    \ this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n\
+    \  -Uri http://localhost:42699/com.instana.plugin.generic.event\n  -Method Post\n\
+    \  -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to\
+    \ create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend\
+    \ REST API\nThe Instana API allows retrieval and configuration of key data points.\
+    \ Among others, this API enables automatic reaction and further analysis of identified\
+    \ incidents as well as reporting capabilities.\n\nThe API documentation referes\
+    \ to two crucial parameters that you need to know about before reading further:\n\
+    base: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`.\
+    \ This is the same URL that is used to access the Instana user interface.\napiToken:\
+    \ Requests against the Instana API require valid API tokens. An initial API token\
+    \ can be generated via the Instana user interface. Any additional API tokens can\
+    \ be generated via the API itself.\n### API Tokens\nIn order to use the REST API,\
+    \ you need to create an API token and assign permissions to it. API tokens are\
+    \ managed only by the account owner role, who can create multiple API tokens with\
+    \ varying permissions.\nAPI token management can found in Settings → Access Control\
+    \ → API Tokens.\n### Rate Limiting\nA rate limit is applied to API usage. Up to\
+    \ 5,000 calls per hour can be made. How many remaining calls can be made and when\
+    \ this call limit resets, can inspected via three headers that are part of the\
+    \ responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number\
+    \ of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many\
+    \ calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:**\
+    \ Time when the remaining calls will be reset to the limit. For compatibility\
+    \ reasons with other rate limited APIs, this date is not the date in milliseconds,\
+    \ but instead in seconds since 1970-01-01T00:00:00+00:00.\n"
   termsOfService: https://www.instana.com/terms-of-use/
   contact:
     name: © Instana
     url: http://instana.com
     email: support@instana.com
+  version: "12.18"
   x-logo:
     url: https://instana.github.io/openapi/header-logo.svg
     backgroundColor: '#031F29'
@@ -16,7 +71,7 @@ tags:
 - name: Infrastructure Monitoring
   description: Infrastructure monitoring.
 - name: Application Monitoring
-  description: Application monitoring based on traces.
+  description: Under Application are functions for Application Perspectives metrics.
 - name: Application Settings
   description: Settings for Application monitoring.
 - name: Website Monitoring
@@ -74,7 +129,7 @@ paths:
     post:
       tags:
       - Application Monitoring
-      summary: Trace Groups
+      summary: Trace Groups metrics
       operationId: getTraceGroups
       requestBody:
         content:
@@ -96,7 +151,7 @@ paths:
     post:
       tags:
       - Application Monitoring
-      summary: Call groups
+      summary: Call groups metrics
       operationId: getCallGroup
       requestBody:
         content:
@@ -119,8 +174,6 @@ paths:
       tags:
       - Application Monitoring
       summary: Application Metrics
-      description:
-        $ref: 'https://raw.githubusercontent.com/instana/openapi/master/spec/description/infrastructure.md'
       operationId: getApplicationMetrics
       requestBody:
         content:
@@ -227,7 +280,7 @@ paths:
     get:
       tags:
       - Application Monitoring
-      summary: Get services in application context
+      summary: Get applications/services
       operationId: getApplicationServices
       parameters:
       - name: nameFilter
@@ -360,25 +413,11 @@ paths:
                   $ref: '#/components/schemas/ApplicationItem'
         400:
           description: Invalid query
-  /api/application-monitoring/catalog/tags:
-    get:
-      tags:
-      - Website Monitoring
-      summary: All possible beacon tags for filtering and grouping
-      operationId: getTagsForWeb
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Tag'
   /api/application-monitoring/catalog/metrics:
     get:
       tags:
       - Website Monitoring
-      summary: Get metric descriptions for beacon metrics
+      summary: Metric descriptions
       operationId: getMetricDefinitions_1
       responses:
         default:
@@ -388,18 +427,32 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MetricDescription'
+  /api/application-monitoring/catalog/tags:
+    get:
+      tags:
+      - Website Monitoring
+      summary: Tag catalog
+      operationId: getTagsForWeb
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
   /api/application-monitoring/settings/application:
     get:
       tags:
       - Application Settings
-      summary: Get all application configurations
+      summary: All Application configurations
       operationId: getAll
       responses:
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     post:
       tags:
       - Application Settings
@@ -410,14 +463,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
         400:
           description: Invalid query
   /api/application-monitoring/settings/application/{id}:
     get:
       tags:
       - Application Settings
-      summary: Get single application configuration
+      summary: Application configuration
       operationId: getOne
       parameters:
       - name: id
@@ -430,7 +483,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
         400:
           description: Invalid query
     put:
@@ -449,7 +502,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
         400:
           description: Invalid query
     delete:
@@ -468,21 +521,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
         400:
           description: Invalid query
   /api/application-monitoring/settings/http-endpoint:
     get:
       tags:
       - Application Settings
-      summary: Get all endpoint configurations
+      summary: All Endpoint configurations
       operationId: getAll_1
       responses:
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     post:
       tags:
       - Application Settings
@@ -497,7 +550,7 @@ paths:
     get:
       tags:
       - Application Settings
-      summary: Get single endpoint configuration
+      summary: Endpoint configuration
       operationId: getOne_1
       parameters:
       - name: serviceId
@@ -510,7 +563,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Application Settings
@@ -565,30 +618,14 @@ paths:
     get:
       tags:
       - Application Settings
-      summary: Get all service extraction configurations
-      operationId: get_1
+      summary: All service configurations
+      operationId: getAll_2
       responses:
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
-    put:
-      tags:
-      - Application Settings
-      summary: Save extraction configuration
-      operationId: save_1
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ServiceExtractionConfigModel'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     post:
       tags:
       - Application Settings
@@ -599,12 +636,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
   /api/application-monitoring/settings/service/{id}:
     get:
       tags:
       - Application Settings
-      summary: Get single service configuration
+      summary: Service configuration
       operationId: getOne_2
       parameters:
       - name: id
@@ -617,7 +654,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Application Settings
@@ -634,7 +671,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     delete:
       tags:
       - Application Settings
@@ -651,7 +688,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
   /api/application-monitoring/settings/service/order:
     put:
       tags:
@@ -663,112 +700,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
-  /api/application-monitoring/settings/service/{ruleId}:
-    get:
-      tags:
-      - Application Settings
-      summary: Get single service extraction configuration
-      operationId: get
-      parameters:
-      - name: ruleId
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JsonNode'
-    put:
-      tags:
-      - Application Settings
-      summary: Insert service extraction configuration
-      operationId: save
-      parameters:
-      - name: ruleId
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JsonNode'
-    delete:
-      tags:
-      - Application Settings
-      summary: Delete extraction configuration
-      operationId: delete_3
-      parameters:
-      - name: ruleId
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JsonNode'
-  /api/application-monitoring/settings/service/type/{type}:
-    get:
-      tags:
-      - Application Settings
-      summary: Get service extraction configurations by type
-      operationId: getByType
-      parameters:
-      - name: type
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JsonNode'
-    put:
-      tags:
-      - Application Settings
-      summary: Diff extraction configuration types
-      operationId: diff
-      parameters:
-      - name: type
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JsonNode'
-  /api/application-monitoring/settings/service/type/upsert:
-    put:
-      tags:
-      - Application Settings
-      summary: Update service extraction configuration type
-      operationId: upsert
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
   /api/events/alerts/anomaly/{alertId}:
     get:
       tags:
       - Event
-      summary: Get single anomaly
-      operationId: get_2
+      summary: Anomaly
+      operationId: get
       parameters:
       - name: alertId
         in: path
@@ -780,7 +718,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
         400:
           description: Invalid query
     put:
@@ -801,13 +739,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/events/alerts/anomaly:
     get:
       tags:
       - Event
-      summary: get all anomalies
-      operationId: get_3
+      summary: All Anomalies
+      operationId: get_1
       responses:
         default:
           content:
@@ -815,7 +753,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
         400:
           description: Invalid query
   /api/events/alerts/{alertId}:
@@ -823,7 +761,7 @@ paths:
       tags:
       - Event
       summary: Delete alert
-      operationId: delete_4
+      operationId: delete_3
       parameters:
       - name: alertId
         in: path
@@ -835,31 +773,11 @@ paths:
           description: default response
           content:
             application/json: {}
-  /api/events/{eventId}:
-    get:
-      tags:
-      - Event
-      summary: get single event
-      operationId: getEvent
-      parameters:
-      - name: eventId
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JsonNode'
-        400:
-          description: Invalid query
   /api/events:
     get:
       tags:
       - Event
-      summary: get all alerts
+      summary: Fetch alerts
       operationId: getEvents
       parameters:
       - name: windowsize
@@ -884,15 +802,35 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
+        400:
+          description: Invalid query
+  /api/events/{eventId}:
+    get:
+      tags:
+      - Event
+      summary: Event
+      operationId: getEvent
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Json'
         400:
           description: Invalid query
   /api/events/settings/alerts/{id}:
     get:
       tags:
       - Event Settings
-      summary: Get single alerting configuration
-      operationId: get_4
+      summary: Alerting
+      operationId: get_2
       parameters:
       - name: id
         in: path
@@ -904,11 +842,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Event Settings
-      summary: Update alerting configuration
+      summary: Update alerting
       operationId: put_1
       parameters:
       - name: id
@@ -924,8 +862,8 @@ paths:
     delete:
       tags:
       - Event Settings
-      summary: Delete alerting configuration
-      operationId: delete_5
+      summary: Delete alerting
+      operationId: delete_4
       parameters:
       - name: id
         in: path
@@ -941,8 +879,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Get all alerting configurations
-      operationId: get_5
+      summary: All Alerting
+      operationId: get_3
       responses:
         default:
           content:
@@ -950,13 +888,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/events/settings/built-in-rules/{id}:
     get:
       tags:
       - Event Settings
-      summary: Get single built-in rule specification
-      operationId: get_6
+      summary: Built-in rule
+      operationId: get_4
       parameters:
       - name: id
         in: path
@@ -968,11 +906,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Event Settings
-      summary: Update built-in rule specification.
+      summary: Update built-in rule
       operationId: put_2
       parameters:
       - name: id
@@ -988,8 +926,8 @@ paths:
     delete:
       tags:
       - Event Settings
-      summary: Delete built-in rule specification.
-      operationId: delete_6
+      summary: Delete built-in rule
+      operationId: delete_5
       parameters:
       - name: id
         in: path
@@ -1005,8 +943,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Get all built-in rule specifications
-      operationId: get_7
+      summary: All built-in rules
+      operationId: get_5
       responses:
         default:
           content:
@@ -1014,12 +952,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/events/settings/built-in-rules/{id}/enable:
     post:
       tags:
       - Event Settings
-      summary: Enable built-in rule specification.
+      summary: Enable built-in rule
       operationId: enable
       parameters:
       - name: id
@@ -1036,7 +974,7 @@ paths:
     post:
       tags:
       - Event Settings
-      summary: Disable built-in rule specification.
+      summary: Disable built-in rule
       operationId: disable
       parameters:
       - name: id
@@ -1053,8 +991,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Get single health rule specification
-      operationId: get_8
+      summary: Health rule
+      operationId: get_6
       parameters:
       - name: id
         in: path
@@ -1066,11 +1004,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Event Settings
-      summary: Update health rule specification
+      summary: Update health rule
       operationId: put_3
       parameters:
       - name: id
@@ -1086,8 +1024,8 @@ paths:
     delete:
       tags:
       - Event Settings
-      summary: Delete health rule specification
-      operationId: delete_7
+      summary: Delete health rule
+      operationId: delete_6
       parameters:
       - name: id
         in: path
@@ -1103,8 +1041,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Get all health rule specifications
-      operationId: get_9
+      summary: All health rules
+      operationId: get_7
       responses:
         default:
           content:
@@ -1112,13 +1050,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/events/settings/integrations/{id}:
     get:
       tags:
       - Event Settings
-      summary: Get single integration channel configuration
-      operationId: get_10
+      summary: Integration channel
+      operationId: get_8
       parameters:
       - name: id
         in: path
@@ -1130,11 +1068,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Event Settings
-      summary: Update integration channel configuration
+      summary: Update integration channel
       operationId: put_4
       parameters:
       - name: id
@@ -1150,8 +1088,8 @@ paths:
     delete:
       tags:
       - Event Settings
-      summary: Delete integration channel configuration
-      operationId: delete_8
+      summary: Delete integration channel
+      operationId: delete_7
       parameters:
       - name: id
         in: path
@@ -1167,8 +1105,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Get all integration channel configurations
-      operationId: get_11
+      summary: All integration channels
+      operationId: get_9
       responses:
         default:
           content:
@@ -1176,12 +1114,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/events/settings/integrations/test/{id}:
     put:
       tags:
       - Event Settings
-      summary: Trigger test integration event message
+      summary: Test integration channel
       operationId: integrationTest
       parameters:
       - name: id
@@ -1198,8 +1136,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Single objective configuration
-      operationId: get_12
+      summary: Objective
+      operationId: get_10
       parameters:
       - name: objectiveId
         in: path
@@ -1213,11 +1151,11 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
     put:
       tags:
       - Event Settings
-      summary: Update objective configuration
+      summary: Update objective
       operationId: put_5
       parameters:
       - name: objectiveId
@@ -1233,8 +1171,8 @@ paths:
     delete:
       tags:
       - Event Settings
-      summary: Delete objective configuration
-      operationId: delete_9
+      summary: Delete objective
+      operationId: delete_8
       parameters:
       - name: objectiveId
         in: path
@@ -1250,8 +1188,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Get all objective configurations
-      operationId: get_13
+      summary: All objective
+      operationId: get_11
       responses:
         default:
           content:
@@ -1259,13 +1197,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/events/settings/rules/{ruleId}:
     get:
       tags:
       - Event Settings
-      summary: Get single rule configuration
-      operationId: get_14
+      summary: Rule
+      operationId: get_12
       parameters:
       - name: ruleId
         in: path
@@ -1277,11 +1215,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Event Settings
-      summary: Update rule configuration
+      summary: Update rule
       operationId: put_6
       parameters:
       - name: ruleId
@@ -1297,8 +1235,8 @@ paths:
     delete:
       tags:
       - Event Settings
-      summary: Delete rule configuration
-      operationId: delete_10
+      summary: Delete rule
+      operationId: delete_9
       parameters:
       - name: ruleId
         in: path
@@ -1314,8 +1252,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Get all rule configurations
-      operationId: get_15
+      summary: All rules
+      operationId: get_13
       responses:
         default:
           content:
@@ -1323,12 +1261,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/events/settings/rules/system-rules:
     get:
       tags:
       - Event Settings
-      summary: Get all system rule configurations
+      summary: System rules
       operationId: getSystemRules
       responses:
         default:
@@ -1337,13 +1275,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/events/settings/rule-bindings/{ruleBindingId}:
     get:
       tags:
       - Event Settings
-      summary: Get single rule binding
-      operationId: get_16
+      summary: Rule binding
+      operationId: get_14
       parameters:
       - name: ruleBindingId
         in: path
@@ -1355,7 +1293,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Event Settings
@@ -1376,7 +1314,7 @@ paths:
       tags:
       - Event Settings
       summary: Delete rule binding
-      operationId: delete_11
+      operationId: delete_10
       parameters:
       - name: ruleBindingId
         in: path
@@ -1392,8 +1330,8 @@ paths:
     get:
       tags:
       - Event Settings
-      summary: Get all rule bindings
-      operationId: get_17
+      summary: All rule bindings
+      operationId: get_15
       responses:
         default:
           content:
@@ -1401,12 +1339,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/infrastructure-monitoring/catalog/search:
     get:
       tags:
       - Infrastructure Monitoring
-      summary: Get available search fields for dynamic query
+      summary: Search fields
       operationId: getFields
       responses:
         default:
@@ -1420,7 +1358,7 @@ paths:
     get:
       tags:
       - Infrastructure Monitoring
-      summary: Get available plugin types
+      summary: Plugin types
       operationId: getPlugins
       responses:
         default:
@@ -1429,12 +1367,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/infrastructure-monitoring/catalog/metrics/{plugin}:
     get:
       tags:
       - Infrastructure Monitoring
-      summary: Get available metrics for plugin
+      summary: Available metrics
       operationId: getMetricsByPlugin
       parameters:
       - name: plugin
@@ -1458,7 +1396,7 @@ paths:
     get:
       tags:
       - Infrastructure Monitoring
-      summary: Get infrastructure view tree
+      summary: View tree
       operationId: getInfrastructureViewTree
       responses:
         default:
@@ -1472,7 +1410,7 @@ paths:
     get:
       tags:
       - Infrastructure Monitoring
-      summary: Get related hosts
+      summary: Related hosts
       operationId: getRelatedHosts
       parameters:
       - name: snapshotId
@@ -1492,7 +1430,7 @@ paths:
     get:
       tags:
       - Infrastructure Monitoring
-      summary: multiple snapshot by query or detail snapshot by id
+      summary: Find snapshots
       operationId: getSnapshots
       parameters:
       - name: query
@@ -1516,12 +1454,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/infrastructure-monitoring/metrics:
     post:
       tags:
       - Infrastructure Monitoring
-      summary: 'get infrastructure metrics '
+      summary: 'Infrastructure metrics '
       operationId: metrics
       requestBody:
         content:
@@ -1536,12 +1474,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/infrastructure-monitoring/monitoring-state:
     get:
       tags:
       - Infrastructure Monitoring
-      summary: get monitor host count
+      summary: host count
       operationId: getMonitoringState
       responses:
         default:
@@ -1553,7 +1491,7 @@ paths:
     get:
       tags:
       - Infrastructure Monitoring
-      summary: Detect installed software and version on host
+      summary: Installed software
       operationId: softwareVersions
       parameters:
       - name: time
@@ -1589,7 +1527,7 @@ paths:
     get:
       tags:
       - Settings
-      summary: Get all api tokes
+      summary: All API tokes
       operationId: getApiTokens
       responses:
         default:
@@ -1598,12 +1536,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/settings/api-tokens/{apiTokenId}:
     get:
       tags:
       - Settings
-      summary: Get single api token
+      summary: API token
       operationId: getApiToken
       parameters:
       - name: apiTokenId
@@ -1616,11 +1554,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Settings
-      summary: Update api token
+      summary: Update API token
       operationId: putApiToken
       parameters:
       - name: apiTokenId
@@ -1636,7 +1574,7 @@ paths:
     delete:
       tags:
       - Settings
-      summary: Delete api token
+      summary: Delete API token
       operationId: deleteApiToken
       parameters:
       - name: apiTokenId
@@ -1653,8 +1591,8 @@ paths:
     get:
       tags:
       - Settings
-      summary: Get AuditLog
-      operationId: get_18
+      summary: Audit log
+      operationId: get_16
       parameters:
       - name: offset
         in: query
@@ -1675,8 +1613,8 @@ paths:
     get:
       tags:
       - Settings
-      summary: Get single maintenance configuration
-      operationId: get_19
+      summary: Maintenance configuration
+      operationId: get_17
       parameters:
       - name: id
         in: path
@@ -1688,11 +1626,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Settings
-      summary: Update maintenance configuration
+      summary: Update maintenance
       operationId: put_8
       parameters:
       - name: id
@@ -1705,12 +1643,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     delete:
       tags:
       - Settings
-      summary: Delete maintenance configurations
-      operationId: delete_12
+      summary: Delete maintenance
+      operationId: delete_11
       parameters:
       - name: id
         in: path
@@ -1726,8 +1664,8 @@ paths:
     get:
       tags:
       - Settings
-      summary: Get all maintenance configurations
-      operationId: get_20
+      summary: All Maintenance configurations
+      operationId: get_18
       responses:
         default:
           content:
@@ -1735,7 +1673,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/settings/maintenance/schedule/{id}:
     put:
       tags:
@@ -1774,8 +1712,8 @@ paths:
     get:
       tags:
       - Settings
-      summary: Get single role
-      operationId: get_21
+      summary: Role
+      operationId: get_19
       parameters:
       - name: roleId
         in: path
@@ -1787,7 +1725,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JsonNode'
+                $ref: '#/components/schemas/Json'
     put:
       tags:
       - Settings
@@ -1808,7 +1746,7 @@ paths:
       tags:
       - Settings
       summary: Delete role
-      operationId: delete_13
+      operationId: delete_12
       parameters:
       - name: roleId
         in: path
@@ -1824,8 +1762,8 @@ paths:
     get:
       tags:
       - Settings
-      summary: Get all roles
-      operationId: get_22
+      summary: All roles
+      operationId: get_20
       responses:
         default:
           content:
@@ -1833,13 +1771,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/settings/synthetic-calls:
     get:
       tags:
       - Settings
-      summary: Get all synthetic call configurations
-      operationId: get_23
+      summary: Synthetic call configurations
+      operationId: get_21
       responses:
         default:
           content:
@@ -1847,7 +1785,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
     put:
       tags:
       - Settings
@@ -1862,7 +1800,7 @@ paths:
       tags:
       - Settings
       summary: Delete synthetic call configurations
-      operationId: delete_14
+      operationId: delete_13
       responses:
         default:
           description: default response
@@ -1872,7 +1810,7 @@ paths:
     put:
       tags:
       - Settings
-      summary: Set role to user
+      summary: Add user to role
       operationId: setRole
       parameters:
       - name: userId
@@ -1893,7 +1831,7 @@ paths:
     get:
       tags:
       - Settings
-      summary: Get all tenant user
+      summary: All tenant user
       operationId: getUsersIncludingInvitations
       responses:
         default:
@@ -1902,7 +1840,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
   /api/settings/users/{userId}:
     delete:
       tags:
@@ -1959,8 +1897,8 @@ paths:
     get:
       tags:
       - Settings
-      summary: Get all ui settings
-      operationId: get_24
+      summary: All ui settings
+      operationId: get_22
       responses:
         default:
           content:
@@ -1968,7 +1906,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/JsonNode'
+                  $ref: '#/components/schemas/Json'
     put:
       tags:
       - Settings
@@ -1983,7 +1921,7 @@ paths:
     post:
       tags:
       - Website Monitoring
-      summary: Grouping queries for beacons
+      summary: Beacon group metrics
       operationId: getBeaconGroups
       requestBody:
         content:
@@ -2001,11 +1939,11 @@ paths:
                   $ref: '#/components/schemas/WebsiteBeaconGroupsItem'
         400:
           description: Invalid query
-  /api/website-monitoring/analyze/analyze/beacons:
+  /api/website-monitoring/analyze/beacons:
     post:
       tags:
       - Website Monitoring
-      summary: Filtering of beacons
+      summary: Beacons
       operationId: getBeacons
       requestBody:
         content:
@@ -2027,8 +1965,8 @@ paths:
     get:
       tags:
       - Website Monitoring
-      summary: Page load results
-      operationId: get_25
+      summary: Page load
+      operationId: get_23
       parameters:
       - name: id
         in: path
@@ -2052,7 +1990,7 @@ paths:
     post:
       tags:
       - Website Monitoring
-      summary: metrics for website beacons
+      summary: Beacons metrics
       operationId: getBeaconMetrics
       requestBody:
         content:
@@ -2793,6 +2731,17 @@ components:
           maxLength: 64
           minLength: 0
           type: string
+    MetricDescription:
+      type: object
+      properties:
+        metricId:
+          type: string
+        label:
+          type: string
+        formatter:
+          type: string
+        description:
+          type: string
     Tag:
       type: object
       properties:
@@ -2807,72 +2756,8 @@ components:
           - KEY_VALUE_PAIR
         category:
           type: string
-    MetricDescription:
+    Json:
       type: object
-      properties:
-        metricId:
-          type: string
-        label:
-          type: string
-        formatter:
-          type: string
-        description:
-          type: string
-    JsonNode:
-      type: object
-      properties:
-        array:
-          type: boolean
-        null:
-          type: boolean
-        double:
-          type: boolean
-        nodeType:
-          type: string
-          enum:
-          - ARRAY
-          - BINARY
-          - BOOLEAN
-          - MISSING
-          - NULL
-          - NUMBER
-          - OBJECT
-          - POJO
-          - STRING
-        number:
-          type: boolean
-        binary:
-          type: boolean
-        boolean:
-          type: boolean
-        integralNumber:
-          type: boolean
-        floatingPointNumber:
-          type: boolean
-        short:
-          type: boolean
-        long:
-          type: boolean
-        bigDecimal:
-          type: boolean
-        bigInteger:
-          type: boolean
-        textual:
-          type: boolean
-        float:
-          type: boolean
-        object:
-          type: boolean
-        int:
-          type: boolean
-        valueNode:
-          type: boolean
-        containerNode:
-          type: boolean
-        missingNode:
-          type: boolean
-        pojo:
-          type: boolean
     FixedHttpPathSegmentMatchingRule:
       required:
       - type
@@ -2939,71 +2824,6 @@ components:
           type: string
       allOf:
       - $ref: '#/components/schemas/HttpPathSegmentMatchingRule'
-    EndpointExtractionRule:
-      required:
-      - extractSpecification
-      - matchSpecification
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        enabled:
-          type: boolean
-        comment:
-          type: string
-        matchSpecification:
-          type: object
-          additionalProperties:
-            type: object
-        extractSpecification:
-          $ref: '#/components/schemas/LabelExtractionSpecification'
-    LabelExtractionSpecification:
-      type: object
-      properties:
-        label:
-          type: string
-    ServiceExtractionConfigModel:
-      type: object
-      properties:
-        lastModificationTimestamp:
-          type: integer
-          format: int64
-        rules:
-          type: array
-          items:
-            $ref: '#/components/schemas/ServiceExtractionRule'
-    ServiceExtractionRule:
-      required:
-      - endpointRules
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        enabled:
-          type: boolean
-        ignoreService:
-          type: boolean
-        comment:
-          type: string
-        order:
-          type: integer
-          format: int64
-        type:
-          type: string
-        matchSpecification:
-          type: object
-          additionalProperties:
-            type: object
-        extractSpecification:
-          $ref: '#/components/schemas/LabelExtractionSpecification'
-        endpointRules:
-          type: array
-          items:
-            $ref: '#/components/schemas/EndpointExtractionRule'
     MetricInstance:
       required:
       - formatter
@@ -3016,6 +2836,7 @@ components:
           - BYTES
           - PERCENTAGE
           - MILLIS
+          - SECONDS
           - MICROS
           - MUSECONDS
           - RATE
