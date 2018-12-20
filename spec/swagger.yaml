@@ -1,0 +1,3521 @@
+openapi: 3.0.1
+info:
+  title: Introduction to Instana public APIs
+  description: The Instana REST API HTTP endpoints allow data retrieval, like traces
+    and metrics, as well as configuration, like service extraction and users.
+  termsOfService: https://www.instana.com/terms-of-use/
+  contact:
+    name: © Instana
+    url: http://instana.com
+    email: support@instana.com
+  version: V1
+tags:
+- name: Infrastructure Monitoring
+  description: Infrastructure monitoring.
+- name: Application Monitoring
+  description: Application monitoring based on traces.
+- name: Application Settings
+  description: Settings for Application monitoring.
+- name: Website Monitoring
+  description: Website/Browser monitoring based on beacons.
+- name: Event
+  description: Incidents, Issues, Changes and Alerting
+- name: Event Settings
+  description: Incidents, Issues, Changes and Alerting
+- name: Settings
+  description: Global settings.
+paths:
+  /api/application-monitoring/analyze/traces:
+    get:
+      tags:
+      - Application Monitoring
+      summary: Trace detail
+      operationId: getTrace
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: matrix
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullTrace'
+        400:
+          description: Invalid query
+    post:
+      tags:
+      - Application Monitoring
+      summary: Filtering traces
+      operationId: getTraces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTraces'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TraceItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/analyze/trace-groups:
+    post:
+      tags:
+      - Application Monitoring
+      summary: Trace Groups
+      operationId: getTraceGroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTraceGroups'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TraceGroupsItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/analyze/call-groups:
+    post:
+      tags:
+      - Application Monitoring
+      summary: Call groups
+      operationId: getCallGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetCallGroups'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CallGroupsItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/metrics/applications:
+    post:
+      tags:
+      - Application Monitoring
+      summary: Application Metrics
+      operationId: getApplicationMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetApplications'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/metrics/services:
+    post:
+      tags:
+      - Application Monitoring
+      summary: Service metrics
+      operationId: getServicesMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetServices'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/metrics/endpoints:
+    post:
+      tags:
+      - Application Monitoring
+      summary: Endpoint metrics
+      operationId: getEndpointsMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetEndpoints'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EndpointItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/services:
+    get:
+      tags:
+      - Application Monitoring
+      summary: Get services
+      operationId: getServices
+      parameters:
+      - name: nameFilter
+        in: query
+        schema:
+          type: string
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/applications/services/endpoints:
+    get:
+      tags:
+      - Application Monitoring
+      summary: Get endpoints
+      operationId: getEndpoints
+      parameters:
+      - name: nameFilter
+        in: query
+        schema:
+          type: string
+      - name: types
+        in: query
+        schema:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+      - name: technologies
+        in: query
+        schema:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EndpointItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/applications:
+    get:
+      tags:
+      - Application Monitoring
+      summary: Get applications
+      operationId: getApplications
+      parameters:
+      - name: nameFilter
+        in: query
+        schema:
+          type: string
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/applications/services:
+    get:
+      tags:
+      - Application Monitoring
+      summary: Get services in application context
+      operationId: getApplicationServices
+      parameters:
+      - name: nameFilter
+        in: query
+        schema:
+          type: string
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceItem'
+        400:
+          description: Invalid query
+  /api/application-monitoring/catalog/metrics:
+    get:
+      tags:
+      - Website Monitoring
+      summary: Get metric descriptions for beacon metrics
+      operationId: getMetricDefinitions_1
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MetricDescription'
+  /api/application-monitoring/catalog/tags:
+    get:
+      tags:
+      - Website Monitoring
+      summary: All possible beacon tags for filtering and grouping
+      operationId: getTagsForWeb
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+  /api/application-monitoring/settings/application:
+    get:
+      tags:
+      - Application Settings
+      summary: Get all application configurations
+      operationId: getAll
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    post:
+      tags:
+      - Application Settings
+      summary: Add application configuration
+      operationId: add
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+        400:
+          description: Invalid query
+  /api/application-monitoring/settings/application/{id}:
+    get:
+      tags:
+      - Application Settings
+      summary: Get single application configuration
+      operationId: getOne
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+        400:
+          description: Invalid query
+    put:
+      tags:
+      - Application Settings
+      summary: Update application configuration
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+        400:
+          description: Invalid query
+    delete:
+      tags:
+      - Application Settings
+      summary: Delete application configuration
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+        400:
+          description: Invalid query
+  /api/application-monitoring/settings/http-endpoint:
+    get:
+      tags:
+      - Application Settings
+      summary: Get all endpoint configurations
+      operationId: getAll_1
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    post:
+      tags:
+      - Application Settings
+      summary: Add endpoint configuration
+      operationId: add_1
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/application-monitoring/settings/http-endpoint/{serviceId}:
+    get:
+      tags:
+      - Application Settings
+      summary: Get single endpoint configuration
+      operationId: getOne_1
+      parameters:
+      - name: serviceId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Application Settings
+      summary: Update endpoint configuration
+      operationId: update_1
+      parameters:
+      - name: serviceId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Application Settings
+      summary: Delete endpoint configuration
+      operationId: delete_1
+      parameters:
+      - name: serviceId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/application-monitoring/settings/http-endpoint/testRules:
+    post:
+      tags:
+      - Application Settings
+      summary: Check endpoint Rules
+      operationId: testRules
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/HttpEndpointRule'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/application-monitoring/settings/service:
+    get:
+      tags:
+      - Application Settings
+      summary: Get all service extraction configurations
+      operationId: get_1
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Application Settings
+      summary: Save extraction configuration
+      operationId: save_1
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ServiceExtractionConfigModel'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    post:
+      tags:
+      - Application Settings
+      summary: Add service configuration
+      operationId: add_2
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+  /api/application-monitoring/settings/service/{id}:
+    get:
+      tags:
+      - Application Settings
+      summary: Get single service configuration
+      operationId: getOne_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Application Settings
+      summary: Update service configuration
+      operationId: update_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    delete:
+      tags:
+      - Application Settings
+      summary: Delete service configuration
+      operationId: delete_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+  /api/application-monitoring/settings/service/order:
+    put:
+      tags:
+      - Application Settings
+      summary: Order of service configuration
+      operationId: update_3
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+  /api/application-monitoring/settings/service/{ruleId}:
+    get:
+      tags:
+      - Application Settings
+      summary: Get single service extraction configuration
+      operationId: get
+      parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Application Settings
+      summary: Insert service extraction configuration
+      operationId: save
+      parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    delete:
+      tags:
+      - Application Settings
+      summary: Delete extraction configuration
+      operationId: delete_3
+      parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+  /api/application-monitoring/settings/service/type/{type}:
+    get:
+      tags:
+      - Application Settings
+      summary: Get service extraction configurations by type
+      operationId: getByType
+      parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Application Settings
+      summary: Diff extraction configuration types
+      operationId: diff
+      parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+  /api/application-monitoring/settings/service/type/upsert:
+    put:
+      tags:
+      - Application Settings
+      summary: Update service extraction configuration type
+      operationId: upsert
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+  /api/events/alerts/anomaly/{alertId}:
+    get:
+      tags:
+      - Event
+      summary: Get single anomaly
+      operationId: get_2
+      parameters:
+      - name: alertId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+        400:
+          description: Invalid query
+    put:
+      tags:
+      - Event
+      summary: Set anomaly
+      operationId: put
+      parameters:
+      - name: alertId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/events/alerts/anomaly:
+    get:
+      tags:
+      - Event
+      summary: get all anomalies
+      operationId: get_3
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+        400:
+          description: Invalid query
+  /api/events/alerts/{alertId}:
+    delete:
+      tags:
+      - Event
+      summary: Delete alert
+      operationId: delete_4
+      parameters:
+      - name: alertId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/{eventId}:
+    get:
+      tags:
+      - Event
+      summary: get single event
+      operationId: getEvent
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+        400:
+          description: Invalid query
+  /api/events:
+    get:
+      tags:
+      - Event
+      summary: get all alerts
+      operationId: getEvents
+      parameters:
+      - name: windowsize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: from
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+        400:
+          description: Invalid query
+  /api/events/settings/alerts/{id}:
+    get:
+      tags:
+      - Event Settings
+      summary: Get single alerting configuration
+      operationId: get_4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Event Settings
+      summary: Update alerting configuration
+      operationId: put_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Event Settings
+      summary: Delete alerting configuration
+      operationId: delete_5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/alerts:
+    get:
+      tags:
+      - Event Settings
+      summary: Get all alerting configurations
+      operationId: get_5
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/events/settings/built-in-rules/{id}:
+    get:
+      tags:
+      - Event Settings
+      summary: Get single built-in rule specification
+      operationId: get_6
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Event Settings
+      summary: Update built-in rule specification.
+      operationId: put_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Event Settings
+      summary: Delete built-in rule specification.
+      operationId: delete_6
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/built-in-rules:
+    get:
+      tags:
+      - Event Settings
+      summary: Get all built-in rule specifications
+      operationId: get_7
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/events/settings/built-in-rules/{id}/enable:
+    post:
+      tags:
+      - Event Settings
+      summary: Enable built-in rule specification.
+      operationId: enable
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/built-in-rules/{id}/disable:
+    post:
+      tags:
+      - Event Settings
+      summary: Disable built-in rule specification.
+      operationId: disable
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/health-rules/{id}:
+    get:
+      tags:
+      - Event Settings
+      summary: Get single health rule specification
+      operationId: get_8
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Event Settings
+      summary: Update health rule specification
+      operationId: put_3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Event Settings
+      summary: Delete health rule specification
+      operationId: delete_7
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/health-rules:
+    get:
+      tags:
+      - Event Settings
+      summary: Get all health rule specifications
+      operationId: get_9
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/events/settings/integrations/{id}:
+    get:
+      tags:
+      - Event Settings
+      summary: Get single integration channel configuration
+      operationId: get_10
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Event Settings
+      summary: Update integration channel configuration
+      operationId: put_4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Event Settings
+      summary: Delete integration channel configuration
+      operationId: delete_8
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/integrations:
+    get:
+      tags:
+      - Event Settings
+      summary: Get all integration channel configurations
+      operationId: get_11
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/events/settings/integrations/test/{id}:
+    put:
+      tags:
+      - Event Settings
+      summary: Trigger test integration event message
+      operationId: integrationTest
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/objectives/{objectiveId}:
+    get:
+      tags:
+      - Event Settings
+      summary: Single objective configuration
+      operationId: get_12
+      parameters:
+      - name: objectiveId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Event Settings
+      summary: Update objective configuration
+      operationId: put_5
+      parameters:
+      - name: objectiveId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Event Settings
+      summary: Delete objective configuration
+      operationId: delete_9
+      parameters:
+      - name: objectiveId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/objectives:
+    get:
+      tags:
+      - Event Settings
+      summary: Get all objective configurations
+      operationId: get_13
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/events/settings/rules/{ruleId}:
+    get:
+      tags:
+      - Event Settings
+      summary: Get single rule configuration
+      operationId: get_14
+      parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Event Settings
+      summary: Update rule configuration
+      operationId: put_6
+      parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Event Settings
+      summary: Delete rule configuration
+      operationId: delete_10
+      parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/rules:
+    get:
+      tags:
+      - Event Settings
+      summary: Get all rule configurations
+      operationId: get_15
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/events/settings/rules/system-rules:
+    get:
+      tags:
+      - Event Settings
+      summary: Get all system rule configurations
+      operationId: getSystemRules
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/events/settings/rule-bindings/{ruleBindingId}:
+    get:
+      tags:
+      - Event Settings
+      summary: Get single rule binding
+      operationId: get_16
+      parameters:
+      - name: ruleBindingId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Event Settings
+      summary: Update rule binding
+      operationId: put_7
+      parameters:
+      - name: ruleBindingId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Event Settings
+      summary: Delete rule binding
+      operationId: delete_11
+      parameters:
+      - name: ruleBindingId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/events/settings/rule-bindings:
+    get:
+      tags:
+      - Event Settings
+      summary: Get all rule bindings
+      operationId: get_17
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/infrastructure-monitoring/catalog/search:
+    get:
+      tags:
+      - Infrastructure Monitoring
+      summary: Get available search fields for dynamic query
+      operationId: getFields
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MetricInstance'
+  /api/infrastructure-monitoring/catalog/plugins:
+    get:
+      tags:
+      - Infrastructure Monitoring
+      summary: Get available plugin types
+      operationId: getPlugins
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/infrastructure-monitoring/catalog/metrics/{plugin}:
+    get:
+      tags:
+      - Infrastructure Monitoring
+      summary: Get available metrics for plugin
+      operationId: getMetricsByPlugin
+      parameters:
+      - name: plugin
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: filter
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MetricInstance'
+  /api/infrastructure-monitoring/graph/views:
+    get:
+      tags:
+      - Infrastructure Monitoring
+      summary: Get infrastructure view tree
+      operationId: getInfrastructureViewTree
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ViewComponent'
+  /api/infrastructure-monitoring/graph/related-hosts/{snapshotId}:
+    get:
+      tags:
+      - Infrastructure Monitoring
+      summary: Get related hosts
+      operationId: getRelatedHosts
+      parameters:
+      - name: snapshotId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+  /api/infrastructure-monitoring/snapshots:
+    get:
+      tags:
+      - Infrastructure Monitoring
+      summary: multiple snapshot by query or detail snapshot by id
+      operationId: getSnapshots
+      parameters:
+      - name: query
+        in: query
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/infrastructure-monitoring/metrics:
+    post:
+      tags:
+      - Infrastructure Monitoring
+      summary: 'get infrastructure metrics '
+      operationId: metrics
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/GetCombinedMetrics'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/infrastructure-monitoring/monitoring-state:
+    get:
+      tags:
+      - Infrastructure Monitoring
+      summary: get monitor host count
+      operationId: getMonitoringState
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoringState'
+  /api/infrastructure-monitoring/software/versions:
+    get:
+      tags:
+      - Infrastructure Monitoring
+      summary: Detect installed software and version on host
+      operationId: softwareVersions
+      parameters:
+      - name: time
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: origin
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: name
+        in: query
+        schema:
+          type: string
+      - name: version
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SoftwareVersion'
+  /api/settings/api-tokens:
+    get:
+      tags:
+      - Settings
+      summary: Get all api tokes
+      operationId: getApiTokens
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/settings/api-tokens/{apiTokenId}:
+    get:
+      tags:
+      - Settings
+      summary: Get single api token
+      operationId: getApiToken
+      parameters:
+      - name: apiTokenId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Settings
+      summary: Update api token
+      operationId: putApiToken
+      parameters:
+      - name: apiTokenId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            '*/*': {}
+    delete:
+      tags:
+      - Settings
+      summary: Delete api token
+      operationId: deleteApiToken
+      parameters:
+      - name: apiTokenId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            '*/*': {}
+  /api/settings/auditlog:
+    get:
+      tags:
+      - Settings
+      summary: Get AuditLog
+      operationId: get_18
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: query
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogResponse'
+  /api/settings/maintenance/{id}:
+    get:
+      tags:
+      - Settings
+      summary: Get single maintenance configuration
+      operationId: get_19
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Settings
+      summary: Update maintenance configuration
+      operationId: put_8
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    delete:
+      tags:
+      - Settings
+      summary: Delete maintenance configurations
+      operationId: delete_12
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/settings/maintenance:
+    get:
+      tags:
+      - Settings
+      summary: Get all maintenance configurations
+      operationId: get_20
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/settings/maintenance/schedule/{id}:
+    put:
+      tags:
+      - Settings
+      summary: Schedule maintenance
+      operationId: schedule
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/settings/maintenance/unschedule/{id}:
+    put:
+      tags:
+      - Settings
+      summary: Unschedule maintenance
+      operationId: unschedule
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/settings/roles/{roleId}:
+    get:
+      tags:
+      - Settings
+      summary: Get single role
+      operationId: get_21
+      parameters:
+      - name: roleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Settings
+      summary: Update role
+      operationId: put_9
+      parameters:
+      - name: roleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Settings
+      summary: Delete role
+      operationId: delete_13
+      parameters:
+      - name: roleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/settings/roles:
+    get:
+      tags:
+      - Settings
+      summary: Get all roles
+      operationId: get_22
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/settings/synthetic-calls:
+    get:
+      tags:
+      - Settings
+      summary: Get all synthetic call configurations
+      operationId: get_23
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Settings
+      summary: Update synthetic call configurations
+      operationId: update_4
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Settings
+      summary: Delete synthetic call configurations
+      operationId: delete_14
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/settings/users/{userId}/role:
+    put:
+      tags:
+      - Settings
+      summary: Set role to user
+      operationId: setRole
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: roleId
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/settings/users/overview:
+    get:
+      tags:
+      - Settings
+      summary: Get all tenant user
+      operationId: getUsersIncludingInvitations
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+  /api/settings/users/{userId}:
+    delete:
+      tags:
+      - Settings
+      summary: Remove user from tenant
+      operationId: removeUserFromTenant
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/settings/users/invitations:
+    post:
+      tags:
+      - Settings
+      summary: Send user invitation
+      operationId: sendInvitation
+      parameters:
+      - name: email
+        in: query
+        schema:
+          type: string
+      - name: roleId
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Settings
+      summary: Revoke pending user invitation
+      operationId: revokePendingInvitations
+      parameters:
+      - name: email
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/settings/ui:
+    get:
+      tags:
+      - Settings
+      summary: Get all ui settings
+      operationId: get_24
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JsonNode'
+    put:
+      tags:
+      - Settings
+      summary: Update ui setting
+      operationId: put_10
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /api/website-monitoring/analyze/beacon-groups:
+    post:
+      tags:
+      - Website Monitoring
+      summary: Grouping queries for beacons
+      operationId: getBeaconGroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetWebsiteBeaconGroups'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebsiteBeaconGroupsItem'
+        400:
+          description: Invalid query
+  /api/website-monitoring/analyze/analyze/beacons:
+    post:
+      tags:
+      - Website Monitoring
+      summary: Filtering of beacons
+      operationId: getBeacons
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetWebsiteBeacons'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebsiteBeaconsItem'
+        400:
+          description: Invalid query
+  /api/website-monitoring/page-load:
+    get:
+      tags:
+      - Website Monitoring
+      summary: Page load results
+      operationId: get_25
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: matrix
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebsiteMonitoringBeacon'
+        400:
+          description: Missing page id
+        404:
+          description: Website not found
+  /api/website-monitoring/metrics:
+    post:
+      tags:
+      - Website Monitoring
+      summary: metrics for website beacons
+      operationId: getBeaconMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetWebsiteMetrics'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        400:
+          description: Invalid query
+components:
+  schemas:
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+    Endpoint:
+      required:
+      - technologies
+      - type
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum:
+          - UNDEFINED
+          - RPC
+          - BATCH
+          - HTTP
+          - DATABASE
+          - MESSAGING
+          - PAGE
+          - PAGE_RESOURCE
+        serviceId:
+          type: string
+        technologies:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        isSynthetic:
+          type: boolean
+          writeOnly: true
+        synthetic:
+          type: boolean
+    FullTrace:
+      required:
+      - rootSpan
+      type: object
+      properties:
+        id:
+          type: string
+        totalErrorCount:
+          minimum: 0
+          type: integer
+          format: int32
+        rootSpan:
+          $ref: '#/components/schemas/Span'
+    PhysicalContext:
+      type: object
+      properties:
+        process:
+          $ref: '#/components/schemas/SnapshotPreview'
+        container:
+          $ref: '#/components/schemas/SnapshotPreview'
+        host:
+          $ref: '#/components/schemas/SnapshotPreview'
+        zone:
+          $ref: '#/components/schemas/SnapshotPreview'
+    Service:
+      required:
+      - technologies
+      - types
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        types:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+            - UNDEFINED
+            - RPC
+            - BATCH
+            - HTTP
+            - DATABASE
+            - MESSAGING
+            - PAGE
+            - PAGE_RESOURCE
+        technologies:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+    SnapshotPreview:
+      type: object
+      properties:
+        id:
+          type: string
+        time:
+          minimum: 1
+          type: integer
+          format: int64
+        label:
+          type: string
+        plugin:
+          type: string
+    Span:
+      required:
+      - childSpans
+      - data
+      - kind
+      - stackTrace
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        label:
+          maxLength: 128
+          minLength: 0
+          type: string
+        start:
+          minimum: 1
+          type: integer
+          format: int64
+        duration:
+          minimum: 0
+          type: integer
+          format: int64
+        errorCount:
+          minimum: 0
+          type: integer
+          format: int32
+        batchSize:
+          minimum: 0
+          type: integer
+          format: int32
+        batchSelfTime:
+          type: integer
+          format: int64
+        kind:
+          type: string
+          enum:
+          - ENTRY
+          - EXIT
+          - INTERMEDIATE
+        source:
+          $ref: '#/components/schemas/SpanRelation'
+        destination:
+          $ref: '#/components/schemas/SpanRelation'
+        stackTrace:
+          type: array
+          items:
+            $ref: '#/components/schemas/StackTraceItem'
+        childSpans:
+          type: array
+          items:
+            $ref: '#/components/schemas/Span'
+        data:
+          type: object
+          additionalProperties:
+            type: object
+    SpanRelation:
+      required:
+      - applications
+      type: object
+      properties:
+        applications:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+        service:
+          $ref: '#/components/schemas/Service'
+        endpoint:
+          $ref: '#/components/schemas/Endpoint'
+        physicalContext:
+          $ref: '#/components/schemas/PhysicalContext'
+    StackTraceItem:
+      type: object
+      properties:
+        file:
+          type: string
+        method:
+          type: string
+        line:
+          type: string
+    IngestionOffsetCursor:
+      type: object
+      properties:
+        ingestionTime:
+          minimum: 0
+          type: integer
+          format: int64
+        offset:
+          minimum: 0
+          type: integer
+          format: int32
+    Trace:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        startTime:
+          minimum: 1
+          type: integer
+          format: int64
+        duration:
+          minimum: 0
+          type: integer
+          format: int64
+        erroneous:
+          type: boolean
+        service:
+          $ref: '#/components/schemas/Service'
+        endpoint:
+          $ref: '#/components/schemas/Endpoint'
+    TraceItem:
+      required:
+      - cursor
+      - trace
+      type: object
+      properties:
+        trace:
+          $ref: '#/components/schemas/Trace'
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+    CursorPagination:
+      type: object
+      properties:
+        retrievalSize:
+          maximum: 50
+          minimum: 1
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        ingestionTime:
+          type: integer
+          format: int64
+    GetTraces:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+    TagFilter:
+      required:
+      - operator
+      - value
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        operator:
+          type: string
+          enum:
+          - EQUALS
+          - CONTAINS
+          - LESS_THAN
+          - GREATER_THAN
+          - NOT_EMPTY
+          - NOT_EQUAL
+          - NOT_CONTAIN
+          - IS_EMPTY
+    TimeFrame:
+      type: object
+      properties:
+        windowSize:
+          maximum: 2678400000
+          minimum: 0
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
+    TraceGroupsItem:
+      required:
+      - cursor
+      - metrics
+      type: object
+      properties:
+        name:
+          type: string
+        timestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    GetTraceGroups:
+      required:
+      - group
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/Group'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricConfiguration'
+    Group:
+      type: object
+      properties:
+        groupbyTag:
+          maxLength: 256
+          minLength: 0
+          type: string
+        groupbyTagSecondLevelKey:
+          maxLength: 256
+          minLength: 0
+          type: string
+    MetricConfiguration:
+      required:
+      - aggregation
+      type: object
+      properties:
+        metric:
+          type: string
+        granularity:
+          type: integer
+          format: int32
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - DISTINCT_COUNT
+    Order:
+      required:
+      - by
+      - direction
+      type: object
+      properties:
+        by:
+          type: string
+        direction:
+          type: string
+          enum:
+          - ASC
+          - DESC
+    CallGroupsItem:
+      required:
+      - cursor
+      - metrics
+      type: object
+      properties:
+        name:
+          type: string
+        timestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    GetCallGroups:
+      required:
+      - group
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/Group'
+        tagFilters:
+          maxItems: 10
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricConfiguration'
+    ApplicationItem:
+      required:
+      - application
+      - metrics
+      type: object
+      properties:
+        application:
+          $ref: '#/components/schemas/Application'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    AppDataMetricConfiguration:
+      required:
+      - aggregation
+      type: object
+      properties:
+        metric:
+          type: string
+        granularity:
+          type: integer
+          format: int32
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - DISTINCT_COUNT
+    GetApplications:
+      required:
+      - metrics
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/AppDataMetricConfiguration'
+        nameFilter:
+          type: string
+          writeOnly: true
+        applicationId:
+          type: string
+          writeOnly: true
+        serviceId:
+          type: string
+          writeOnly: true
+        endpointId:
+          type: string
+          writeOnly: true
+        endpointTypes:
+          maxItems: 8
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+            - UNDEFINED
+            - RPC
+            - BATCH
+            - HTTP
+            - DATABASE
+            - MESSAGING
+            - PAGE
+            - PAGE_RESOURCE
+        technologies:
+          maxItems: 20
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        name:
+          maxLength: 256
+          minLength: 0
+          type: string
+        application:
+          maxLength: 64
+          minLength: 0
+          type: string
+        service:
+          maxLength: 64
+          minLength: 0
+          type: string
+        endpoint:
+          maxLength: 64
+          minLength: 0
+          type: string
+    Pagination:
+      type: object
+      properties:
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          maximum: 200
+          minimum: 1
+          type: integer
+          format: int32
+    ServiceItem:
+      required:
+      - metrics
+      - service
+      type: object
+      properties:
+        service:
+          $ref: '#/components/schemas/Service'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    GetServices:
+      required:
+      - metrics
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/AppDataMetricConfiguration'
+        nameFilter:
+          type: string
+          writeOnly: true
+        applicationId:
+          type: string
+          writeOnly: true
+        serviceId:
+          type: string
+          writeOnly: true
+        endpointId:
+          type: string
+          writeOnly: true
+        endpointTypes:
+          maxItems: 8
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+            - UNDEFINED
+            - RPC
+            - BATCH
+            - HTTP
+            - DATABASE
+            - MESSAGING
+            - PAGE
+            - PAGE_RESOURCE
+        technologies:
+          maxItems: 20
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        name:
+          maxLength: 256
+          minLength: 0
+          type: string
+        application:
+          maxLength: 64
+          minLength: 0
+          type: string
+        service:
+          maxLength: 64
+          minLength: 0
+          type: string
+        endpoint:
+          maxLength: 64
+          minLength: 0
+          type: string
+    EndpointItem:
+      required:
+      - endpoint
+      - metrics
+      type: object
+      properties:
+        endpoint:
+          $ref: '#/components/schemas/Endpoint'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    GetEndpoints:
+      required:
+      - metrics
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/AppDataMetricConfiguration'
+        nameFilter:
+          type: string
+          writeOnly: true
+        applicationId:
+          type: string
+          writeOnly: true
+        serviceId:
+          type: string
+          writeOnly: true
+        endpointId:
+          type: string
+          writeOnly: true
+        endpointTypes:
+          maxItems: 8
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+            - UNDEFINED
+            - RPC
+            - BATCH
+            - HTTP
+            - DATABASE
+            - MESSAGING
+            - PAGE
+            - PAGE_RESOURCE
+        technologies:
+          maxItems: 20
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        name:
+          maxLength: 256
+          minLength: 0
+          type: string
+        application:
+          maxLength: 64
+          minLength: 0
+          type: string
+        service:
+          maxLength: 64
+          minLength: 0
+          type: string
+        endpoint:
+          maxLength: 64
+          minLength: 0
+          type: string
+    MetricDescription:
+      type: object
+      properties:
+        metricId:
+          type: string
+        label:
+          type: string
+        formatter:
+          type: string
+        description:
+          type: string
+    Tag:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+          - STRING
+          - NUMBER
+          - BOOLEAN
+          - KEY_VALUE_PAIR
+        category:
+          type: string
+    JsonNode:
+      type: object
+      properties:
+        array:
+          type: boolean
+        null:
+          type: boolean
+        number:
+          type: boolean
+        nodeType:
+          type: string
+          enum:
+          - ARRAY
+          - BINARY
+          - BOOLEAN
+          - MISSING
+          - NULL
+          - NUMBER
+          - OBJECT
+          - POJO
+          - STRING
+        float:
+          type: boolean
+        binary:
+          type: boolean
+        object:
+          type: boolean
+        valueNode:
+          type: boolean
+        containerNode:
+          type: boolean
+        missingNode:
+          type: boolean
+        pojo:
+          type: boolean
+        integralNumber:
+          type: boolean
+        floatingPointNumber:
+          type: boolean
+        short:
+          type: boolean
+        int:
+          type: boolean
+        long:
+          type: boolean
+        double:
+          type: boolean
+        bigDecimal:
+          type: boolean
+        bigInteger:
+          type: boolean
+        textual:
+          type: boolean
+        boolean:
+          type: boolean
+    FixedHttpPathSegmentMatchingRule:
+      required:
+      - type
+      type: object
+      properties:
+        name:
+          type: string
+      allOf:
+      - $ref: '#/components/schemas/HttpPathSegmentMatchingRule'
+    HttpEndpointRule:
+      required:
+      - pathSegments
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        pathSegments:
+          maxItems: 16
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/HttpPathSegmentMatchingRule'
+        testCases:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            type: string
+    HttpPathSegmentMatchingRule:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - UNSUPPORTED
+          - FIXED
+          - PARAMETER
+          - MATCH_ALL
+      discriminator:
+        propertyName: type
+    MatchAllHttpPathSegmentMatchingRule:
+      required:
+      - type
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/HttpPathSegmentMatchingRule'
+    PathParameterHttpPathSegmentMatchingRule:
+      required:
+      - type
+      type: object
+      properties:
+        name:
+          type: string
+      allOf:
+      - $ref: '#/components/schemas/HttpPathSegmentMatchingRule'
+    UnsupportedHttpPathSegmentMatchingRule:
+      required:
+      - type
+      type: object
+      properties:
+        unsupportedType:
+          type: string
+      allOf:
+      - $ref: '#/components/schemas/HttpPathSegmentMatchingRule'
+    EndpointExtractionRule:
+      required:
+      - extractSpecification
+      - matchSpecification
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        enabled:
+          type: boolean
+        comment:
+          type: string
+        matchSpecification:
+          type: object
+          additionalProperties:
+            type: object
+        extractSpecification:
+          $ref: '#/components/schemas/LabelExtractionSpecification'
+    LabelExtractionSpecification:
+      type: object
+      properties:
+        label:
+          type: string
+    ServiceExtractionConfigModel:
+      type: object
+      properties:
+        lastModificationTimestamp:
+          type: integer
+          format: int64
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceExtractionRule'
+    ServiceExtractionRule:
+      required:
+      - endpointRules
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        enabled:
+          type: boolean
+        ignoreService:
+          type: boolean
+        comment:
+          type: string
+        order:
+          type: integer
+          format: int64
+        type:
+          type: string
+        matchSpecification:
+          type: object
+          additionalProperties:
+            type: object
+        extractSpecification:
+          $ref: '#/components/schemas/LabelExtractionSpecification'
+        endpointRules:
+          type: array
+          items:
+            $ref: '#/components/schemas/EndpointExtractionRule'
+    MetricInstance:
+      required:
+      - formatter
+      type: object
+      properties:
+        formatter:
+          type: string
+          enum:
+          - NUMBER
+          - BYTES
+          - PERCENTAGE
+          - MILLIS
+          - MICROS
+          - MUSECONDS
+          - RATE
+          - BYTE_RATE
+          - UNDEFINED
+        label:
+          type: string
+        description:
+          type: string
+        metricId:
+          type: string
+        pluginId:
+          type: string
+        custom:
+          type: boolean
+    Connection:
+      type: object
+      properties:
+        id:
+          type: string
+        otherId:
+          type: string
+        bidirectional:
+          type: boolean
+    ViewComponent:
+      type: object
+      properties:
+        id:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: object
+        children:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewComponent'
+        outgoingConnections:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Connection'
+        incomingConnections:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Connection'
+    GetCombinedMetrics:
+      required:
+      - metrics
+      - plugin
+      type: object
+      properties:
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        plugin:
+          type: string
+        query:
+          type: string
+        snapshotIds:
+          type: array
+          writeOnly: true
+          items:
+            type: string
+        rollup:
+          type: integer
+          format: int32
+        metrics:
+          maxItems: 5
+          minItems: 1
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        snapshots:
+          maxItems: 30
+          minItems: 1
+          type: array
+          items:
+            type: string
+    MonitoringState:
+      type: object
+      properties:
+        hostCount:
+          type: integer
+          format: int32
+    SoftwareUser:
+      type: object
+      properties:
+        host:
+          type: string
+        container:
+          type: string
+        process:
+          type: string
+    SoftwareVersion:
+      required:
+      - origin
+      - usedBy
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        origin:
+          type: string
+        type:
+          type: string
+        usedBy:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/SoftwareUser'
+    AuditLogEntry:
+      required:
+      - actor
+      - meta
+      type: object
+      properties:
+        id:
+          type: string
+        action:
+          type: string
+        message:
+          type: string
+        actor:
+          $ref: '#/components/schemas/LogEntryActor'
+        timestamp:
+          type: integer
+          format: int64
+        meta:
+          type: object
+          additionalProperties:
+            type: object
+    AuditLogResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogEntry'
+    LogEntryActor:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - USER
+          - API_TOKEN
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+    WebsiteBeaconGroupsItem:
+      required:
+      - cursor
+      - metrics
+      type: object
+      properties:
+        name:
+          type: string
+        earliestTimestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    GetWebsiteBeaconGroups:
+      required:
+      - group
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/WebsiteBeaconTagGroup'
+        order:
+          $ref: '#/components/schemas/Order'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteMonitoringMetricsConfiguration'
+    WebsiteBeaconTagGroup:
+      type: object
+      properties:
+        groupbyTag:
+          maxLength: 256
+          minLength: 0
+          type: string
+        groupbyTagSecondLevelKey:
+          maxLength: 256
+          minLength: 0
+          type: string
+    WebsiteMonitoringMetricsConfiguration:
+      required:
+      - aggregation
+      type: object
+      properties:
+        metric:
+          type: string
+        granularity:
+          type: integer
+          format: int32
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - DISTINCT_COUNT
+    WebsiteBeaconsItem:
+      required:
+      - beacon
+      - cursor
+      type: object
+      properties:
+        beacon:
+          $ref: '#/components/schemas/WebsiteMonitoringBeacon'
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+    WebsiteMonitoringBeacon:
+      type: object
+      properties:
+        websiteId:
+          type: string
+        websiteLabel:
+          type: string
+        page:
+          type: string
+        phase:
+          type: string
+        timestamp:
+          minimum: 1
+          type: integer
+          format: int64
+        duration:
+          minimum: 0
+          type: integer
+          format: int64
+        batchSize:
+          minimum: 1
+          type: integer
+          format: int64
+        accurateTimingsAvailable:
+          type: boolean
+        deprecations:
+          maxItems: 16
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        pageLoadId:
+          type: string
+        beaconId:
+          type: string
+        backendTraceId:
+          type: string
+        type:
+          type: string
+        customEventName:
+          type: string
+        meta:
+          type: object
+          additionalProperties:
+            type: string
+        locationUrl:
+          type: string
+        locationOrigin:
+          type: string
+        locationPath:
+          type: string
+        errorCount:
+          minimum: 0
+          type: integer
+          format: int64
+        errorMessage:
+          type: string
+        errorId:
+          type: string
+        errorType:
+          type: string
+        stackTrace:
+          type: string
+        componentStack:
+          type: string
+        userIp:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        userEmail:
+          type: string
+        userLanguages:
+          maxItems: 5
+          minItems: 0
+          type: array
+          items:
+            type: string
+        deviceType:
+          type: string
+        browserName:
+          type: string
+        browserVersion:
+          type: string
+        osName:
+          type: string
+        osVersion:
+          type: string
+        windowHidden:
+          type: boolean
+        windowWidth:
+          minimum: -1
+          type: integer
+          format: int32
+        windowHeight:
+          minimum: -1
+          type: integer
+          format: int32
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        accuracyRadius:
+          minimum: -1
+          type: integer
+          format: int64
+        city:
+          type: string
+        subdivision:
+          type: string
+        subdivisionCode:
+          type: string
+        country:
+          type: string
+        countryCode:
+          type: string
+        continent:
+          type: string
+        continentCode:
+          type: string
+        httpCallUrl:
+          type: string
+        httpCallOrigin:
+          type: string
+        httpCallPath:
+          type: string
+        httpCallMethod:
+          type: string
+        httpCallStatus:
+          maximum: 599
+          minimum: -1
+          type: integer
+          format: int32
+        httpCallCorrelationAttempted:
+          type: boolean
+        httpCallAsynchronous:
+          type: boolean
+        initiator:
+          type: string
+        resourceType:
+          type: string
+        cacheInteraction:
+          type: string
+        encodedBodySize:
+          minimum: -1
+          type: integer
+          format: int64
+        decodedBodySize:
+          minimum: -1
+          type: integer
+          format: int64
+        transferSize:
+          minimum: -1
+          type: integer
+          format: int64
+        unloadTime:
+          minimum: -1
+          type: integer
+          format: int64
+        redirectTime:
+          minimum: -1
+          type: integer
+          format: int64
+        appCacheTime:
+          minimum: -1
+          type: integer
+          format: int64
+        dnsTime:
+          minimum: -1
+          type: integer
+          format: int64
+        tcpTime:
+          minimum: -1
+          type: integer
+          format: int64
+        sslTime:
+          minimum: -1
+          type: integer
+          format: int64
+        requestTime:
+          minimum: -1
+          type: integer
+          format: int64
+        responseTime:
+          minimum: -1
+          type: integer
+          format: int64
+        processingTime:
+          minimum: -1
+          type: integer
+          format: int64
+        onLoadTime:
+          minimum: -1
+          type: integer
+          format: int64
+        backendTime:
+          minimum: -1
+          type: integer
+          format: int64
+        frontendTime:
+          minimum: -1
+          type: integer
+          format: int64
+        domTime:
+          minimum: -1
+          type: integer
+          format: int64
+        childrenTime:
+          minimum: -1
+          type: integer
+          format: int64
+        firstPaintTime:
+          minimum: -1
+          type: integer
+          format: int64
+        firstContentfulPaintTime:
+          minimum: -1
+          type: integer
+          format: int64
+    GetWebsiteBeacons:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+    GetWebsiteMetrics:
+      type: object
+      properties:
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteMonitoringMetricsConfiguration'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
