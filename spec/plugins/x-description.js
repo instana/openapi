@@ -1,5 +1,3 @@
-var jpointer = require('json-pointer');
-var mergePatch = require('json-merge-patch');
 var path = require('path');
 var fs = require('fs');
 var basedir = 'spec/';
@@ -20,7 +18,9 @@ module.exports = {
       if (fileExist(fileName)) {
         delete parent['description'];
         var descrition = fs.readFileSync(fileName, 'utf-8');
-        parent.description = descrition;
+        if (!isStringEmpty(descrition)) {
+          parent.description = descrition;
+        }
       } else {
         console.error("file not exist: " + fileName);
       }
@@ -30,7 +30,9 @@ module.exports = {
   finish: function (swagger) {
   },
 }
-
+function isStringEmpty(string) {
+  return (string.length === 0 || !string.trim());
+}
 function fileExist(file) {
   try {
     return fs.statSync(file).isFile();
