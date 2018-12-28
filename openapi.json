@@ -2,7 +2,6 @@
   "openapi": "3.0.1",
   "info": {
     "title": "Introduction to Instana public APIs",
-    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n  \"title\": <string>,\n  \"text\": <string>,\n  \"severity\": <integer> , -1, 5 or 10\n  \"timestamp\": <integer>, timestamp in milliseconds from epoch\n  \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n  {\n    // event as above\n  },\n  {\n    // event as above\n  }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n  http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n\t-Uri http://localhost:42699/com.instana.plugin.generic.event\n\t-Method POST\n\t-Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n  -Uri http://localhost:42699/com.instana.plugin.generic.event\n  -Method Post\n  -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n",
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "contact": {
       "name": "© Instana",
@@ -14,7 +13,8 @@
       "url": "header-logo.svg",
       "backgroundColor": "#031F29",
       "altText": "instana logo"
-    }
+    },
+    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n"
   },
   "servers": [
     {
@@ -34,88 +34,67 @@
   ],
   "tags": [
     {
-      "name": "Infrastructure Metrics",
-      "description": "Infrastructure Metrics bla ble blub\n"
+      "name": "Infrastructure Metrics"
     },
     {
-      "name": "Infrastructure Resources",
-      "description": ""
+      "name": "Infrastructure Resources"
     },
     {
-      "name": "Infrastructure Catalog",
-      "description": ""
+      "name": "Infrastructure Catalog"
     },
     {
-      "name": "Application Metrics",
-      "description": ""
+      "name": "Application Metrics"
     },
     {
-      "name": "Application Catalog",
-      "description": ""
+      "name": "Application Catalog"
     },
     {
-      "name": "Application Resources",
-      "description": ""
+      "name": "Application Resources"
     },
     {
-      "name": "Application Analyze",
-      "description": ""
+      "name": "Application Analyze"
     },
     {
-      "name": "Application Settings",
-      "description": ""
+      "name": "Application Settings"
     },
     {
-      "name": "Website Metrics",
-      "description": ""
+      "name": "Website Metrics"
     },
     {
-      "name": "Website Catalog",
-      "description": ""
+      "name": "Website Catalog"
     },
     {
-      "name": "Website Analyze",
-      "description": ""
+      "name": "Website Analyze"
     },
     {
-      "name": "Alerts",
-      "description": ""
+      "name": "Alerts"
     },
     {
-      "name": "Events",
-      "description": ""
+      "name": "Events"
     },
     {
-      "name": "Event Settings",
-      "description": ""
+      "name": "Event Settings"
     },
     {
-      "name": "User",
-      "description": ""
+      "name": "User"
     },
     {
-      "name": "Audit Log",
-      "description": ""
+      "name": "Audit Log"
     },
     {
-      "name": "API Token",
-      "description": ""
+      "name": "API Token"
     },
     {
-      "name": "Maintenance Configuration",
-      "description": ""
+      "name": "Maintenance Configuration"
     },
     {
-      "name": "UI Settings",
-      "description": ""
+      "name": "UI Settings"
     },
     {
-      "name": "Synthetic Calls",
-      "description": ""
+      "name": "Synthetic Calls"
     },
     {
-      "name": "Health",
-      "description": "Basic health information"
+      "name": "Health"
     }
   ],
   "paths": {
@@ -424,13 +403,13 @@
         }
       }
     },
-    "/api/application-monitoring/applications/services": {
+    "/api/application-monitoring/applications": {
       "get": {
         "tags": [
           "Application Resources"
         ],
-        "summary": "Get applications/services",
-        "operationId": "getApplicationServices",
+        "summary": "Get applications",
+        "operationId": "getApplications",
         "parameters": [
           {
             "name": "nameFilter",
@@ -479,7 +458,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServiceItem"
+                    "$ref": "#/components/schemas/ApplicationItem"
                   }
                 }
               }
@@ -574,13 +553,13 @@
         }
       }
     },
-    "/api/application-monitoring/applications": {
+    "/api/application-monitoring/applications/services": {
       "get": {
         "tags": [
           "Application Resources"
         ],
-        "summary": "Get applications",
-        "operationId": "getApplications",
+        "summary": "Get applications/services",
+        "operationId": "getApplicationServices",
         "parameters": [
           {
             "name": "nameFilter",
@@ -629,7 +608,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ApplicationItem"
+                    "$ref": "#/components/schemas/ServiceItem"
                   }
                 }
               }
@@ -1415,36 +1394,6 @@
         }
       }
     },
-    "/api/events/{eventId}": {
-      "get": {
-        "tags": [
-          "Events"
-        ],
-        "summary": "Event",
-        "operationId": "getEvent",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Event"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/events": {
       "get": {
         "tags": [
@@ -1487,6 +1436,36 @@
                   "items": {
                     "$ref": "#/components/schemas/Event"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Event",
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
                 }
               }
             }
@@ -2447,7 +2426,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Test description"
       }
     },
     "/api/infrastructure-monitoring/catalog/metrics/{plugin}": {
@@ -2576,7 +2556,6 @@
           "Infrastructure Metrics"
         ],
         "summary": "Find snapshots",
-        "description": "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\n\n - **Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\n - Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.",
         "operationId": "getSnapshots",
         "parameters": [
           {
