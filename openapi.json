@@ -321,67 +321,6 @@
         }
       }
     },
-    "/api/application-monitoring/applications": {
-      "get": {
-        "tags": [
-          "Application Resources"
-        ],
-        "summary": "Get applications",
-        "operationId": "getApplications",
-        "parameters": [
-          {
-            "name": "nameFilter",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "windowSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "to",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/application-monitoring/applications/services/endpoints": {
       "get": {
         "tags": [
@@ -458,6 +397,67 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EndpointResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/application-monitoring/applications": {
+      "get": {
+        "tags": [
+          "Application Resources"
+        ],
+        "summary": "Get applications",
+        "operationId": "getApplications",
+        "parameters": [
+          {
+            "name": "nameFilter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "windowSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationResult"
                 }
               }
             }
@@ -587,29 +587,6 @@
         }
       }
     },
-    "/api/application-monitoring/catalog/tags": {
-      "get": {
-        "tags": [
-          "Application Catalog"
-        ],
-        "summary": "Tag catalog",
-        "operationId": "getTagsForApplication",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Tag"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/application-monitoring/catalog/metrics": {
       "get": {
         "tags": [
@@ -625,6 +602,29 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/MetricDescription"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/application-monitoring/catalog/tags": {
+      "get": {
+        "tags": [
+          "Application Catalog"
+        ],
+        "summary": "Tag catalog",
+        "operationId": "getTagsForApplication",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
                   }
                 }
               }
@@ -2390,7 +2390,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Json"
+                    "$ref": "#/components/schemas/PluginResult"
                   }
                 }
               }
@@ -2574,7 +2574,7 @@
         "operationId": "getInfrastructureMetrics",
         "requestBody": {
           "content": {
-            "*/*": {
+            "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/GetCombinedMetrics"
               }
@@ -2587,7 +2587,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MetricResult"
+                  "$ref": "#/components/schemas/InfrastructureMetricResult"
                 }
               }
             }
@@ -3092,6 +3092,36 @@
         ]
       }
     },
+    "/api/settings/roles": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "All roles",
+        "operationId": "getRoles",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Role"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureRoles"
+            ]
+          }
+        ]
+      }
+    },
     "/api/settings/roles/{roleId}": {
       "get": {
         "tags": [
@@ -3191,36 +3221,6 @@
             "description": "default response",
             "content": {
               "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureRoles"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/settings/roles": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "All roles",
-        "operationId": "getRoles",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Role"
-                  }
-                }
-              }
             }
           }
         },
@@ -3719,7 +3719,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MetricResult"
+                  "$ref": "#/components/schemas/WebsiteMetricResult"
                 }
               }
             }
@@ -4849,26 +4849,6 @@
           }
         }
       },
-      "Tag": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "STRING",
-              "NUMBER",
-              "BOOLEAN",
-              "KEY_VALUE_PAIR"
-            ]
-          },
-          "category": {
-            "type": "string"
-          }
-        }
-      },
       "MetricDescription": {
         "type": "object",
         "properties": {
@@ -4890,6 +4870,26 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "STRING",
+              "NUMBER",
+              "BOOLEAN",
+              "KEY_VALUE_PAIR"
+            ]
+          },
+          "category": {
+            "type": "string"
           }
         }
       },
@@ -6011,8 +6011,16 @@
           }
         }
       },
-      "Json": {
-        "type": "object"
+      "PluginResult": {
+        "type": "object",
+        "properties": {
+          "plugin": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
       },
       "MetricInstance": {
         "required": [
@@ -6142,6 +6150,17 @@
           }
         }
       },
+      "InfrastructureMetricResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricItem"
+            }
+          }
+        }
+      },
       "MetricItem": {
         "type": "object",
         "properties": {
@@ -6182,14 +6201,6 @@
                 }
               }
             }
-          }
-        }
-      },
-      "MetricResult": {
-        "type": "object",
-        "properties": {
-          "empty": {
-            "type": "boolean"
           }
         }
       },
@@ -6742,6 +6753,9 @@
           }
         }
       },
+      "Json": {
+        "type": "object"
+      },
       "BeaconGroupsResult": {
         "required": [
           "items"
@@ -7246,6 +7260,14 @@
             "items": {
               "$ref": "#/components/schemas/TagFilter"
             }
+          }
+        }
+      },
+      "WebsiteMetricResult": {
+        "type": "object",
+        "properties": {
+          "empty": {
+            "type": "boolean"
           }
         }
       },
