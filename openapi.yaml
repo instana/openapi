@@ -105,10 +105,8 @@ servers:
     variables:
       tenant:
         description: Customer tenant unit
-        default: tenant
       unit:
         description: Customer tenant name
-        default: unit
 tags:
   - name: Infrastructure Metrics
   - name: Infrastructure Resources
@@ -128,7 +126,6 @@ tags:
   - name: Audit Log
   - name: API Token
   - name: Maintenance Configuration
-  - name: UI Settings
   - name: Synthetic Calls
   - name: Health
 paths:
@@ -296,6 +293,80 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EndpointResult'
+  /api/application-monitoring/services:
+    get:
+      tags:
+        - Application Resources
+      summary: Get services
+      operationId: getServices
+      parameters:
+        - name: nameFilter
+          in: query
+          schema:
+            type: string
+        - name: windowSize
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: to
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResult'
+  /api/application-monitoring/applications:
+    get:
+      tags:
+        - Application Resources
+      summary: Get applications
+      operationId: getApplications
+      parameters:
+        - name: nameFilter
+          in: query
+          schema:
+            type: string
+        - name: windowSize
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: to
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResult'
   /api/application-monitoring/applications/services/endpoints:
     get:
       tags:
@@ -347,80 +418,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EndpointResult'
-  /api/application-monitoring/applications:
-    get:
-      tags:
-        - Application Resources
-      summary: Get applications
-      operationId: getApplications
-      parameters:
-        - name: nameFilter
-          in: query
-          schema:
-            type: string
-        - name: windowSize
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: to
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: page
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationResult'
-  /api/application-monitoring/services:
-    get:
-      tags:
-        - Application Resources
-      summary: Get services
-      operationId: getServices
-      parameters:
-        - name: nameFilter
-          in: query
-          schema:
-            type: string
-        - name: windowSize
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: to
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: page
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceResult'
   /api/application-monitoring/applications/services:
     get:
       tags:
@@ -933,7 +930,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Event'
+                $ref: '#/components/schemas/EventResult'
   /api/events:
     get:
       tags:
@@ -963,7 +960,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Event'
+                  $ref: '#/components/schemas/EventResult'
   /api/events/settings/alerts:
     get:
       tags:
@@ -1656,6 +1653,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SnapshotResult'
+      description: "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\r\n**Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\r\n- Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.\r\n"
   /api/infrastructure-monitoring/metrics:
     post:
       tags:
@@ -1974,23 +1972,6 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureCustomAlerts
-  /api/settings/roles:
-    get:
-      tags:
-        - User
-      summary: All roles
-      operationId: getRoles
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Role'
-      security:
-        - ApiKeyAuth:
-            - ConfigureRoles
   '/api/settings/roles/{roleId}':
     get:
       tags:
@@ -2053,6 +2034,23 @@ paths:
           description: default response
           content:
             application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureRoles
+  /api/settings/roles:
+    get:
+      tags:
+        - User
+      summary: All roles
+      operationId: getRoles
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
       security:
         - ApiKeyAuth:
             - ConfigureRoles
@@ -2207,34 +2205,21 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureUsers
-  /api/settings/ui:
+  /api/ui/settings:
     get:
-      tags:
-        - UI Settings
-      summary: All ui settings
       operationId: getUiSettings
       responses:
         default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Json'
-      security:
-        - ApiKeyAuth: []
+            application/json: {}
     put:
-      tags:
-        - UI Settings
-      summary: Update ui setting
       operationId: putUiSettings
       responses:
         default:
           description: default response
           content:
             application/json: {}
-      security:
-        - ApiKeyAuth: []
   /api/website-monitoring/analyze/beacon-groups:
     post:
       tags:
@@ -3467,78 +3452,40 @@ components:
           format: double
       allOf:
         - $ref: '#/components/schemas/AbstractAlertRule'
-    Event:
+    EventResult:
       type: object
       properties:
-        id:
-          maxLength: 64
-          minLength: 0
+        eventId:
           type: string
         start:
-          minimum: 1
-          type: integer
-          format: int64
-        triggeringTime:
-          minimum: 1
           type: integer
           format: int64
         end:
-          minimum: 1
           type: integer
           format: int64
-        type:
-          maxLength: 64
-          minLength: 0
-          type: string
-        state:
-          maxLength: 8
-          minLength: 0
-          type: string
         problem:
-          $ref: '#/components/schemas/Problem'
-        metadata:
-          type: object
-          additionalProperties:
-            type: object
-        affectedService:
-          maxLength: 64
-          minLength: 0
           type: string
-        entityId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        entityType:
-          type: string
-          enum:
-            - Entity10
-            - App20
-            - Service20
-            - Endpoint20
-        metricAccessId:
-          maxLength: 64
-          minLength: 0
-          type: string
-    Problem:
-      required:
-        - id
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
+        fixSuggestion:
           type: string
         severity:
           type: integer
           format: int32
-        problemText:
-          maxLength: 2048
-          minLength: 0
+        snapshotId:
           type: string
-        fixSuggestion:
-          maxLength: 65536
-          minLength: 0
+        affectedServiceSnapshotId:
           type: string
+        metrics:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+        recentEvents:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
     AlertingConfiguration:
       required:
         - alertName
@@ -4470,8 +4417,6 @@ components:
           format: int64
         emailConfirmed:
           type: boolean
-    Json:
-      type: object
     BeaconGroupsResult:
       required:
         - items
@@ -4896,7 +4841,6 @@ x-tagGroups:
       - Audit Log
       - API Token
       - Maintenance Configuration
-      - UI Settings
       - Synthetic Calls
   - name: Instana
     tags:
