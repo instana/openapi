@@ -85,3 +85,52 @@ A rate limit is applied to API usage. Up to 5,000 calls per hour can be made. Ho
 **X-RateLimit-Remaining:** How many calls may still be executed within the current hour.
 
 **X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.
+
+## Generating REST API clients for your environment
+
+The API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).
+
+OpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).
+
+To generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):
+
+```bash
+# Download the generator to your current working directory:
+wget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar
+
+# generate a client library that you can vendor into your repository
+java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \
+    -o pkg/instana/openapi \
+    --skip-validate-spec
+
+# (optional) format the Go code according to the Go code standard
+gofmt -s -w pkg/instana/openapi
+```
+
+The generated clients contain comprehensive READMEs. To use the client from the example above, you can start right away:
+
+```go
+import instana "./pkg/instana/openapi"
+
+// readTags will read all available application monitoring tags along with their type and category
+func readTags() {
+	configuration := instana.NewConfiguration()
+	configuration.Host = "tenant-unit.instana.io"
+	configuration.BasePath = "https://tenant-unit.instana.io"
+
+	client := instana.NewAPIClient(configuration)
+	auth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{
+		Key:    apiKey,
+		Prefix: "apiToken",
+	})
+
+	tags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)
+	if err != nil {
+		fmt.Fatalf("Error calling the API, aborting.")
+	}
+    
+	for _, tag := range tags {
+		fmt.Printf("%s (%s): %s\n", tag.Category, tag.Type, tag.Name)
+	}
+}
+```
