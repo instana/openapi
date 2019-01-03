@@ -86,7 +86,7 @@ A rate limit is applied to API usage. Up to 5,000 calls per hour can be made. Ho
 
 **X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.
 
-## Generating REST API clients for your environment
+## Generating REST API clients
 
 The API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).
 
