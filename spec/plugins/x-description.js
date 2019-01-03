@@ -22,7 +22,12 @@ module.exports = {
           parent.description = descrition;
         }
       } else {
-        console.error("file not exist: " + fileName);
+        try {
+          fs.writeFileSync(fileName);
+          console.error("file not exist and created, please commit to git: " + fileName);
+        } catch (e) {
+          console.log("Cannot write file " + fileName, e);
+        }
       }
     }
     delete parent[name];
