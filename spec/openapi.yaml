@@ -18,10 +18,8 @@ servers:
   variables:
     tenant:
       description: Customer tenant unit
-      default: tenant
     unit:
       description: Customer tenant name
-      default: unit
 tags:
 - name: Infrastructure Metrics
   x-description: tagInfrastructureMetrics
@@ -59,8 +57,6 @@ tags:
   x-description: tagAPIToken
 - name: Maintenance Configuration
   x-description: tagMaintenanceConfiguration
-- name: UI Settings
-  x-description: tagUISettings
 - name: Synthetic Calls
   x-description: tagSyntheticCalls
 - name: Health
@@ -101,9 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TraceItem'
+                $ref: '#/components/schemas/TraceResult'
       x-description: getTraces
   /api/application-monitoring/analyze/trace-groups:
     post:
@@ -122,9 +116,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TraceGroupsItem'
+                $ref: '#/components/schemas/TraceGroupsResult'
       x-description: getTraceGroups
   /api/application-monitoring/analyze/call-groups:
     post:
@@ -143,9 +135,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CallGroupsItem'
+                $ref: '#/components/schemas/CallGroupsResult'
       x-description: getCallGroup
   /api/application-monitoring/metrics/applications:
     post:
@@ -164,9 +154,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationItem'
+                $ref: '#/components/schemas/ApplicationResult'
   /api/application-monitoring/metrics/services:
     post:
       tags:
@@ -184,9 +172,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceItem'
+                $ref: '#/components/schemas/ServiceResult'
   /api/application-monitoring/metrics/endpoints:
     post:
       tags:
@@ -204,9 +190,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EndpointItem'
+                $ref: '#/components/schemas/EndpointResult'
   /api/application-monitoring/services:
     get:
       tags:
@@ -243,9 +227,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceItem'
+                $ref: '#/components/schemas/ServiceResult'
   /api/application-monitoring/applications:
     get:
       tags:
@@ -282,9 +264,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationItem'
+                $ref: '#/components/schemas/ApplicationResult'
   /api/application-monitoring/applications/services/endpoints:
     get:
       tags:
@@ -335,9 +315,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EndpointItem'
+                $ref: '#/components/schemas/EndpointResult'
   /api/application-monitoring/applications/services:
     get:
       tags:
@@ -374,9 +352,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceItem'
+                $ref: '#/components/schemas/ServiceResult'
   /api/application-monitoring/catalog/metrics:
     get:
       tags:
@@ -835,6 +811,24 @@ paths:
           description: default response
           content:
             application/json: {}
+  /api/events/{eventId}:
+    get:
+      tags:
+      - Events
+      summary: Event
+      operationId: getEvent
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResult'
   /api/events:
     get:
       tags:
@@ -864,25 +858,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Event'
-  /api/events/{eventId}:
-    get:
-      tags:
-      - Events
-      summary: Event
-      operationId: getEvent
-      parameters:
-      - name: eventId
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Event'
+                  $ref: '#/components/schemas/EventResult'
   /api/events/settings/alerts:
     get:
       tags:
@@ -1473,7 +1449,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Json'
+                  $ref: '#/components/schemas/PluginResult'
       x-description: getPlugins
   /api/infrastructure-monitoring/catalog/metrics/{plugin}:
     get:
@@ -1556,11 +1532,6 @@ paths:
       tags:
       - Infrastructure Metrics
       summary: Find snapshots
-      description: |-
-        These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:
-
-         - **Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.
-         - Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.
       operationId: getSnapshots
       parameters:
       - name: query
@@ -1582,19 +1553,17 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Json'
+                $ref: '#/components/schemas/SnapshotResult'
       x-description: getSnapshots
   /api/infrastructure-monitoring/metrics:
     post:
       tags:
       - Infrastructure Metrics
-      summary: 'Infrastructure metrics '
+      summary: Infrastructure metrics
       operationId: getInfrastructureMetrics
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
               $ref: '#/components/schemas/GetCombinedMetrics'
         required: true
@@ -1603,15 +1572,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Json'
+                $ref: '#/components/schemas/InfrastructureMetricResult'
       x-description: getInfrastructureMetrics
   /api/infrastructure-monitoring/monitoring-state:
     get:
       tags:
       - Infrastructure Resources
-      summary: Host count
+      summary: Monitored host count
       operationId: getMonitoringState
       responses:
         default:
@@ -1907,23 +1874,6 @@ paths:
       security:
       - ApiKeyAuth:
         - ConfigureCustomAlerts
-  /api/settings/roles:
-    get:
-      tags:
-      - User
-      summary: All roles
-      operationId: getRoles
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Role'
-      security:
-      - ApiKeyAuth:
-        - ConfigureRoles
   /api/settings/roles/{roleId}:
     get:
       tags:
@@ -1986,6 +1936,23 @@ paths:
           description: default response
           content:
             application/json: {}
+      security:
+      - ApiKeyAuth:
+        - ConfigureRoles
+  /api/settings/roles:
+    get:
+      tags:
+      - User
+      summary: All roles
+      operationId: getRoles
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
       security:
       - ApiKeyAuth:
         - ConfigureRoles
@@ -2140,34 +2107,21 @@ paths:
       security:
       - ApiKeyAuth:
         - ConfigureUsers
-  /api/settings/ui:
+  /api/ui/settings:
     get:
-      tags:
-      - UI Settings
-      summary: All ui settings
       operationId: getUiSettings
       responses:
         default:
+          description: default response
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Json'
-      security:
-      - ApiKeyAuth: []
+            application/json: {}
     put:
-      tags:
-      - UI Settings
-      summary: Update ui setting
       operationId: putUiSettings
       responses:
         default:
           description: default response
           content:
             application/json: {}
-      security:
-      - ApiKeyAuth: []
   /api/website-monitoring/analyze/beacon-groups:
     post:
       tags:
@@ -2185,9 +2139,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteBeaconGroupsItem'
+                $ref: '#/components/schemas/BeaconGroupsResult'
   /api/website-monitoring/analyze/beacons:
     post:
       tags:
@@ -2205,9 +2157,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteBeaconsItem'
+                $ref: '#/components/schemas/BeaconResult'
   /api/website-monitoring/catalog/metrics:
     get:
       tags:
@@ -2285,9 +2235,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                $ref: '#/components/schemas/WebsiteMetricResult'
 components:
   schemas:
     Application:
@@ -2522,6 +2470,25 @@ components:
           $ref: '#/components/schemas/Trace'
         cursor:
           $ref: '#/components/schemas/IngestionOffsetCursor'
+    TraceResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
     CursorPagination:
       type: object
       properties:
@@ -2603,6 +2570,25 @@ components:
               type: array
               items:
                 type: number
+    TraceGroupsResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
     GetTraceGroups:
       required:
       - group
@@ -2699,6 +2685,25 @@ components:
               type: array
               items:
                 type: number
+    CallGroupsResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CallGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
     GetCallGroups:
       required:
       - group
@@ -2740,6 +2745,27 @@ components:
               type: array
               items:
                 type: number
+    ApplicationResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationItem'
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          minimum: 1
+          type: integer
+          format: int32
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
     AppDataMetricConfiguration:
       required:
       - aggregation
@@ -2849,6 +2875,27 @@ components:
               type: array
               items:
                 type: number
+    ServiceResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceItem'
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          minimum: 1
+          type: integer
+          format: int32
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
     GetServices:
       required:
       - metrics
@@ -2921,6 +2968,27 @@ components:
               type: array
               items:
                 type: number
+    EndpointResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EndpointItem'
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          minimum: 1
+          type: integer
+          format: int32
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
     GetEndpoints:
       required:
       - metrics
@@ -3286,78 +3354,40 @@ components:
           format: double
       allOf:
       - $ref: '#/components/schemas/AbstractAlertRule'
-    Event:
+    EventResult:
       type: object
       properties:
-        id:
-          maxLength: 64
-          minLength: 0
+        eventId:
           type: string
         start:
-          minimum: 1
-          type: integer
-          format: int64
-        triggeringTime:
-          minimum: 1
           type: integer
           format: int64
         end:
-          minimum: 1
           type: integer
           format: int64
-        type:
-          maxLength: 64
-          minLength: 0
-          type: string
-        state:
-          maxLength: 8
-          minLength: 0
-          type: string
         problem:
-          $ref: '#/components/schemas/Problem'
-        metadata:
-          type: object
-          additionalProperties:
-            type: object
-        affectedService:
-          maxLength: 64
-          minLength: 0
           type: string
-        entityId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        entityType:
-          type: string
-          enum:
-          - Entity10
-          - App20
-          - Service20
-          - Endpoint20
-        metricAccessId:
-          maxLength: 64
-          minLength: 0
-          type: string
-    Problem:
-      required:
-      - id
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
+        fixSuggestion:
           type: string
         severity:
           type: integer
           format: int32
-        problemText:
-          maxLength: 2048
-          minLength: 0
+        snapshotId:
           type: string
-        fixSuggestion:
-          maxLength: 65536
-          minLength: 0
+        affectedServiceSnapshotId:
           type: string
+        metrics:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+        recentEvents:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
     AlertingConfiguration:
       required:
       - alertName
@@ -3780,8 +3810,13 @@ components:
           minimum: 1
           type: integer
           format: int64
-    Json:
+    PluginResult:
       type: object
+      properties:
+        plugin:
+          type: string
+        label:
+          type: string
     MetricInstance:
       required:
       - formatter
@@ -3842,6 +3877,70 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Connection'
+    SnapshotItem:
+      type: object
+      properties:
+        snapshotId:
+          type: string
+        plugin:
+          type: string
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
+        tags:
+          type: array
+          items:
+            type: string
+        label:
+          type: string
+        host:
+          type: string
+    SnapshotResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotItem'
+    InfrastructureMetricResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricItem'
+    MetricItem:
+      type: object
+      properties:
+        snapshotId:
+          type: string
+        plugin:
+          type: string
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
+        tags:
+          type: array
+          items:
+            type: string
+        label:
+          type: string
+        host:
+          type: string
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
     GetCombinedMetrics:
       required:
       - metrics
@@ -4220,6 +4319,25 @@ components:
           format: int64
         emailConfirmed:
           type: boolean
+    BeaconGroupsResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteBeaconGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
     WebsiteBeaconGroupsItem:
       required:
       - cursor
@@ -4303,6 +4421,25 @@ components:
           - P98
           - P99
           - DISTINCT_COUNT
+    BeaconResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteBeaconsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
     WebsiteBeaconsItem:
       required:
       - beacon
@@ -4549,6 +4686,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
+    WebsiteMetricResult:
+      type: object
+      properties:
+        empty:
+          type: boolean
     GetWebsiteMetrics:
       type: object
       properties:
@@ -4604,7 +4746,6 @@ x-tagGroups:
   - Audit Log
   - API Token
   - Maintenance Configuration
-  - UI Settings
   - Synthetic Calls
 - name: Instana
   tags:
