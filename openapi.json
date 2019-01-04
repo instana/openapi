@@ -216,36 +216,6 @@
         }
       }
     },
-    "/api/application-monitoring/analyze/call-groups": {
-      "post": {
-        "tags": [
-          "Application Analyze"
-        ],
-        "summary": "Call group metrics",
-        "operationId": "getCallGroup",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetCallGroups"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallGroupsResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/application-monitoring/metrics/applications": {
       "post": {
         "tags": [
@@ -1379,36 +1349,6 @@
         }
       }
     },
-    "/api/events/{eventId}": {
-      "get": {
-        "tags": [
-          "Events"
-        ],
-        "summary": "Event",
-        "operationId": "getEvent",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/events": {
       "get": {
         "tags": [
@@ -1458,22 +1398,29 @@
         }
       }
     },
-    "/api/events/settings/alerts": {
+    "/api/events/{eventId}": {
       "get": {
         "tags": [
-          "Event Settings"
+          "Events"
         ],
-        "summary": "All Alerting",
-        "operationId": "getAlerts",
+        "summary": "Event",
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AlertingConfiguration"
-                  }
+                  "$ref": "#/components/schemas/EventResult"
                 }
               }
             }
@@ -1581,13 +1528,13 @@
         }
       }
     },
-    "/api/events/settings/built-in-rules": {
+    "/api/events/settings/alerts": {
       "get": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "All built-in rules",
-        "operationId": "getBuildInRules",
+        "summary": "All Alerting",
+        "operationId": "getAlerts",
         "responses": {
           "default": {
             "content": {
@@ -1595,7 +1542,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BuiltInRuleSpecification"
+                    "$ref": "#/components/schemas/AlertingConfiguration"
                   }
                 }
               }
@@ -1718,6 +1665,29 @@
             "description": "default response",
             "content": {
               "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/events/settings/built-in-rules": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All built-in rules",
+        "operationId": "getBuildInRules",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BuiltInRuleSpecification"
+                  }
+                }
+              }
             }
           }
         }
@@ -3108,6 +3078,36 @@
         ]
       }
     },
+    "/api/settings/roles": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "All roles",
+        "operationId": "getRoles",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Role"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureRoles"
+            ]
+          }
+        ]
+      }
+    },
     "/api/settings/roles/{roleId}": {
       "get": {
         "tags": [
@@ -3207,36 +3207,6 @@
             "description": "default response",
             "content": {
               "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureRoles"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/settings/roles": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "All roles",
-        "operationId": "getRoles",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Role"
-                  }
-                }
-              }
             }
           }
         },
@@ -4317,101 +4287,6 @@
               "ASC",
               "DESC"
             ]
-          }
-        }
-      },
-      "CallGroupsItem": {
-        "required": [
-          "cursor",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "timestamp": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "CallGroupsResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CallGroupsItem"
-            }
-          },
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "GetCallGroups": {
-        "required": [
-          "group"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "group": {
-            "$ref": "#/components/schemas/Group"
-          },
-          "tagFilters": {
-            "maxItems": 10,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricConfiguration"
-            }
           }
         }
       },
@@ -6843,9 +6718,9 @@
           "type": {
             "type": "string",
             "enum": [
-              "PAGE_LOAD",
-              "PAGE_RESOURCE",
-              "HTTP_REQUEST",
+              "PAGELOAD",
+              "PAGERESOURCE",
+              "HTTPREQUEST",
               "ERROR"
             ]
           },
@@ -7275,9 +7150,9 @@
           "type": {
             "type": "string",
             "enum": [
-              "PAGE_LOAD",
-              "PAGE_RESOURCE",
-              "HTTP_REQUEST",
+              "PAGELOAD",
+              "PAGERESOURCE",
+              "HTTPREQUEST",
               "ERROR"
             ]
           },
@@ -7319,9 +7194,9 @@
           "type": {
             "type": "string",
             "enum": [
-              "PAGE_LOAD",
-              "PAGE_RESOURCE",
-              "HTTP_REQUEST",
+              "PAGELOAD",
+              "PAGERESOURCE",
+              "HTTPREQUEST",
               "ERROR"
             ]
           },
