@@ -2,34 +2,149 @@
   "openapi": "3.0.1",
   "info": {
     "title": "Introduction to Instana public APIs",
-    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n  \"title\": <string>,\n  \"text\": <string>,\n  \"severity\": <integer> , -1, 5 or 10\n  \"timestamp\": <integer>, timestamp in milliseconds from epoch\n  \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n  {\n    // event as above\n  },\n  {\n    // event as above\n  }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n  http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n\t-Uri http://localhost:42699/com.instana.plugin.generic.event\n\t-Method POST\n\t-Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n  -Uri http://localhost:42699/com.instana.plugin.generic.event\n  -Method Post\n  -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n",
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "contact": {
       "name": "© Instana",
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.145.509",
+    "version": "1.145.732",
     "x-logo": {
-      "url": "https://instana.github.io/openapi/header-logo.svg",
+      "url": "header-logo.svg",
       "backgroundColor": "#031F29",
       "altText": "instana logo"
-    }
+    },
+    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\nTo generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):\n\n```bash\n# Download the generator to your current working directory:\nwget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar\n\n# generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n# (optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs. To use the client from the example above, you can start right away:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n    \n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n"
   },
   "servers": [
     {
       "url": "https://{unit}-{tenant}.instana.io",
+      "description": "Instana Backend",
       "variables": {
         "tenant": {
-          "description": "Customer tenant unit"
+          "description": "Customer tenant unit",
+          "default": "tenant"
         },
         "unit": {
-          "description": "Customer tenant name"
+          "description": "Customer tenant name",
+          "default": "unit"
         }
       }
     }
   ],
+  "tags": [
+    {
+      "name": "Infrastructure Metrics",
+      "description": "undefined"
+    },
+    {
+      "name": "Infrastructure Resources",
+      "description": "undefined"
+    },
+    {
+      "name": "Infrastructure Catalog",
+      "description": "undefined"
+    },
+    {
+      "name": "Application Metrics",
+      "description": "undefined"
+    },
+    {
+      "name": "Application Catalog",
+      "description": "undefined"
+    },
+    {
+      "name": "Application Resources",
+      "description": "undefined"
+    },
+    {
+      "name": "Application Analyze",
+      "description": "undefined"
+    },
+    {
+      "name": "Application Settings",
+      "description": "undefined"
+    },
+    {
+      "name": "Website Metrics",
+      "description": "undefined"
+    },
+    {
+      "name": "Website Catalog",
+      "description": "undefined"
+    },
+    {
+      "name": "Website Analyze",
+      "description": "undefined"
+    },
+    {
+      "name": "Alerts",
+      "description": "undefined"
+    },
+    {
+      "name": "Events",
+      "description": "undefined"
+    },
+    {
+      "name": "Event Settings",
+      "description": "undefined"
+    },
+    {
+      "name": "User",
+      "description": "undefined"
+    },
+    {
+      "name": "Audit Log",
+      "description": "undefined"
+    },
+    {
+      "name": "API Token",
+      "description": "undefined"
+    },
+    {
+      "name": "Maintenance Configuration",
+      "description": "undefined"
+    },
+    {
+      "name": "Synthetic Calls",
+      "description": "undefined"
+    },
+    {
+      "name": "Health",
+      "description": "undefined"
+    }
+  ],
   "paths": {
+    "/api/application-monitoring/analyze/trace-groups": {
+      "post": {
+        "tags": [
+          "Application Analyze"
+        ],
+        "summary": "Trace group metrics",
+        "operationId": "getTraceGroups",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetTraceGroups"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceGroupsResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/application-monitoring/analyze/traces": {
       "get": {
         "tags": [
@@ -81,10 +196,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TraceItem"
-                  }
+                  "$ref": "#/components/schemas/TraceResult"
                 }
               }
             }
@@ -104,72 +216,6 @@
             "source": "$form = new \\API\\Entities\\Echo();\n$form->setMessage(\"Hello World!\");\ntry {\n    $pet = $client->echo()->post($form);\n} catch (UnprocessableEntityException $e) {\n    var_dump($e->getErrors());\n}\n"
           }
         ]
-      }
-    },
-    "/api/application-monitoring/analyze/trace-groups": {
-      "post": {
-        "tags": [
-          "Application Analyze"
-        ],
-        "summary": "Trace Groups metrics",
-        "operationId": "getTraceGroups",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetTraceGroups"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TraceGroupsItem"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/application-monitoring/analyze/call-groups": {
-      "post": {
-        "tags": [
-          "Application Analyze"
-        ],
-        "summary": "Call groups metrics",
-        "operationId": "getCallGroup",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetCallGroups"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CallGroupsItem"
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/application-monitoring/metrics/applications": {
@@ -194,10 +240,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ApplicationItem"
-                  }
+                  "$ref": "#/components/schemas/ApplicationMetricResult"
                 }
               }
             }
@@ -227,10 +270,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ServiceItem"
-                  }
+                  "$ref": "#/components/schemas/ServiceMetricResult"
                 }
               }
             }
@@ -260,10 +300,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EndpointItem"
-                  }
+                  "$ref": "#/components/schemas/EndpointMetricResult"
                 }
               }
             }
@@ -324,10 +361,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ApplicationItem"
-                  }
+                  "$ref": "#/components/schemas/ApplicationResult"
                 }
               }
             }
@@ -410,10 +444,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EndpointItem"
-                  }
+                  "$ref": "#/components/schemas/EndpointResult"
                 }
               }
             }
@@ -474,10 +505,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ServiceItem"
-                  }
+                  "$ref": "#/components/schemas/ServiceResult"
                 }
               }
             }
@@ -538,10 +566,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ServiceItem"
-                  }
+                  "$ref": "#/components/schemas/ServiceResult"
                 }
               }
             }
@@ -626,7 +651,7 @@
           "Application Settings"
         ],
         "summary": "Add application configuration",
-        "operationId": "add",
+        "operationId": "addApplicationConfig",
         "requestBody": {
           "content": {
             "*/*": {
@@ -806,7 +831,7 @@
           "Application Settings"
         ],
         "summary": "Add endpoint configuration",
-        "operationId": "add_1",
+        "operationId": "add",
         "requestBody": {
           "content": {
             "*/*": {
@@ -1326,36 +1351,6 @@
         }
       }
     },
-    "/api/events/{eventId}": {
-      "get": {
-        "tags": [
-          "Events"
-        ],
-        "summary": "Event",
-        "operationId": "getEvent",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Event"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/events": {
       "get": {
         "tags": [
@@ -1396,8 +1391,38 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Event"
+                    "$ref": "#/components/schemas/EventResult"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Event",
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResult"
                 }
               }
             }
@@ -1793,29 +1818,6 @@
         }
       }
     },
-    "/api/events/settings/integrations": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All integration channels",
-        "operationId": "getIntegrations",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AbstractIntegration"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/events/settings/integrations/{id}": {
       "get": {
         "tags": [
@@ -1916,6 +1918,29 @@
         }
       }
     },
+    "/api/events/settings/integrations": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All integration channels",
+        "operationId": "getIntegrations",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AbstractIntegration"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/events/settings/integrations/test/{id}": {
       "put": {
         "tags": [
@@ -1938,6 +1963,29 @@
             "description": "default response",
             "content": {
               "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/events/settings/objectives": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All objective",
+        "operationId": "getObjectives",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Objective"
+                  }
+                }
+              }
             }
           }
         }
@@ -2041,29 +2089,6 @@
             "description": "default response",
             "content": {
               "application/json": {}
-            }
-          }
-        }
-      }
-    },
-    "/api/events/settings/objectives": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All objective",
-        "operationId": "getObjectives",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Objective"
-                  }
-                }
-              }
             }
           }
         }
@@ -2407,7 +2432,7 @@
         "tags": [
           "Infrastructure Catalog"
         ],
-        "summary": "Plugin types",
+        "summary": "Available Plugins",
         "operationId": "getPlugins",
         "responses": {
           "default": {
@@ -2416,36 +2441,14 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Json"
+                    "$ref": "#/components/schemas/PluginResult"
                   }
                 }
               }
             }
           }
-        }
-      }
-    },
-    "/api/infrastructure-monitoring/graph/views": {
-      "get": {
-        "tags": [
-          "Infrastructure Resources"
-        ],
-        "summary": "View tree",
-        "operationId": "getInfrastructureViewTree",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ViewComponent"
-                  }
-                }
-              }
-            }
-          }
-        }
+        },
+        "description": "Test description"
       }
     },
     "/api/infrastructure-monitoring/graph/related-hosts/{snapshotId}": {
@@ -2481,13 +2484,65 @@
         }
       }
     },
+    "/api/infrastructure-monitoring/graph/views": {
+      "get": {
+        "tags": [
+          "Infrastructure Resources"
+        ],
+        "summary": "View tree",
+        "operationId": "getInfrastructureViewTree",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ViewComponent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/infrastructure-monitoring/metrics": {
+      "post": {
+        "tags": [
+          "Infrastructure Metrics"
+        ],
+        "summary": "Infrastructure metrics",
+        "operationId": "getInfrastructureMetrics",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetCombinedMetrics"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureMetricResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/infrastructure-monitoring/snapshots": {
       "get": {
         "tags": [
           "Infrastructure Metrics"
         ],
         "summary": "Find snapshots",
-        "description": "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\n\n - **Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\n - Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.",
         "operationId": "getSnapshots",
         "parameters": [
           {
@@ -2519,48 +2574,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Json"
-                  }
+                  "$ref": "#/components/schemas/SnapshotResult"
                 }
               }
             }
           }
-        }
-      }
-    },
-    "/api/infrastructure-monitoring/metrics": {
-      "post": {
-        "tags": [
-          "Infrastructure Metrics"
-        ],
-        "summary": "Infrastructure metrics ",
-        "operationId": "getMetrics",
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "$ref": "#/components/schemas/GetCombinedMetrics"
-              }
-            }
-          },
-          "required": true
         },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Json"
-                  }
-                }
-              }
-            }
-          }
-        }
+        "description": "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\r\n**Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\r\n- Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.\r\n"
       }
     },
     "/api/infrastructure-monitoring/monitoring-state": {
@@ -2568,7 +2588,7 @@
         "tags": [
           "Infrastructure Resources"
         ],
-        "summary": "Host count",
+        "summary": "Monitored host count",
         "operationId": "getMonitoringState",
         "responses": {
           "default": {
@@ -2651,8 +2671,7 @@
           "Health"
         ],
         "summary": "Basic health traffic light",
-        "description": "The returned JSON object will provide a health property which contains a simple traffic light (GREEN/YELLO/RED). For any non-Green-state a listof reasons will be provided in the messages array.\n\nPossible messages:\n\n- No data being processed\n- No data arriving from agents\n",
-        "operationId": "getMonitoringState_1",
+        "operationId": "getHealthState",
         "responses": {
           "default": {
             "content": {
@@ -2663,37 +2682,8 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/settings/api-tokens": {
-      "get": {
-        "tags": [
-          "API Token"
-        ],
-        "summary": "All API tokes",
-        "operationId": "getApiTokens",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ApiToken"
-                  }
-                }
-              }
-            }
-          }
         },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureApiTokens"
-            ]
-          }
-        ]
+        "description": "The returned JSON object will provide a health property which contains a simple traffic light (GREEN/YELLO/RED). For any non-Green-state a list \nof reasons will be provided in the messages array.\n\nPossible messages:\n* No data being processed\n* No data arriving from agents\n"
       }
     },
     "/api/settings/api-tokens/{apiTokenId}": {
@@ -2795,6 +2785,36 @@
             "description": "default response",
             "content": {
               "*/*": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureApiTokens"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/api-tokens": {
+      "get": {
+        "tags": [
+          "API Token"
+        ],
+        "summary": "All API tokes",
+        "operationId": "getApiTokens",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiToken"
+                  }
+                }
+              }
             }
           }
         },
@@ -3461,39 +3481,9 @@
         ]
       }
     },
-    "/api/settings/ui": {
+    "/api/ui/settings": {
       "get": {
-        "tags": [
-          "UI Settings"
-        ],
-        "summary": "All ui settings",
         "operationId": "getUiSettings",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Json"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "UI Settings"
-        ],
-        "summary": "Update ui setting",
-        "operationId": "putUiSettings",
         "responses": {
           "default": {
             "description": "default response",
@@ -3501,42 +3491,15 @@
               "application/json": {}
             }
           }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/api/website-monitoring/analyze/beacon-groups": {
-      "post": {
-        "tags": [
-          "Website Analyze"
-        ],
-        "summary": "Beacon group metrics",
-        "operationId": "getBeaconGroups",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetWebsiteBeaconGroups"
-              }
-            }
-          },
-          "required": true
-        },
+        }
+      },
+      "put": {
+        "operationId": "putUiSettings",
         "responses": {
           "default": {
+            "description": "default response",
             "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
-                  }
-                }
-              }
+              "application/json": {}
             }
           }
         }
@@ -3564,10 +3527,37 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WebsiteBeaconsItem"
-                  }
+                  "$ref": "#/components/schemas/BeaconResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/website-monitoring/analyze/beacon-groups": {
+      "post": {
+        "tags": [
+          "Website Analyze"
+        ],
+        "summary": "Beacon group metrics",
+        "operationId": "getBeaconGroups",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetWebsiteBeaconGroups"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeaconGroupsResult"
                 }
               }
             }
@@ -3614,6 +3604,36 @@
                   "items": {
                     "$ref": "#/components/schemas/Tag"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/website-monitoring/metrics": {
+      "post": {
+        "tags": [
+          "Website Metrics"
+        ],
+        "summary": "Beacons metrics",
+        "operationId": "getBeaconMetrics",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetWebsiteMetrics"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebsiteMetricResult"
                 }
               }
             }
@@ -3670,88 +3690,10 @@
           }
         }
       }
-    },
-    "/api/website-monitoring/metrics": {
-      "post": {
-        "tags": [
-          "Website Metrics"
-        ],
-        "summary": "Beacons metrics",
-        "operationId": "getBeaconMetrics",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetWebsiteMetrics"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
     "schemas": {
-      "Endpoint": {
-        "required": [
-          "technologies",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "UNDEFINED",
-              "RPC",
-              "BATCH",
-              "HTTP",
-              "DATABASE",
-              "MESSAGING",
-              "PAGE",
-              "PAGE_RESOURCE"
-            ]
-          },
-          "serviceId": {
-            "type": "string"
-          },
-          "technologies": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "isSynthetic": {
-            "type": "boolean",
-            "writeOnly": true
-          },
-          "synthetic": {
-            "type": "boolean"
-          }
-        }
-      },
       "IngestionOffsetCursor": {
         "type": "object",
         "properties": {
@@ -3764,171 +3706,6 @@
             "minimum": 0,
             "type": "integer",
             "format": "int32"
-          }
-        }
-      },
-      "Service": {
-        "required": [
-          "technologies",
-          "types"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "types": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "UNDEFINED",
-                "RPC",
-                "BATCH",
-                "HTTP",
-                "DATABASE",
-                "MESSAGING",
-                "PAGE",
-                "PAGE_RESOURCE"
-              ]
-            }
-          },
-          "technologies": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "Trace": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "startTime": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
-          },
-          "duration": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "erroneous": {
-            "type": "boolean"
-          },
-          "service": {
-            "$ref": "#/components/schemas/Service"
-          },
-          "endpoint": {
-            "$ref": "#/components/schemas/Endpoint"
-          }
-        }
-      },
-      "TraceItem": {
-        "required": [
-          "cursor",
-          "trace"
-        ],
-        "type": "object",
-        "properties": {
-          "trace": {
-            "$ref": "#/components/schemas/Trace"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          }
-        }
-      },
-      "CursorPagination": {
-        "type": "object",
-        "properties": {
-          "retrievalSize": {
-            "maximum": 50,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "offset": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "ingestionTime": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "GetTraces": {
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "tagFilters": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          }
-        }
-      },
-      "TagFilter": {
-        "required": [
-          "operator",
-          "value"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          },
-          "operator": {
-            "type": "string",
-            "enum": [
-              "EQUALS",
-              "CONTAINS",
-              "LESS_THAN",
-              "GREATER_THAN",
-              "NOT_EMPTY",
-              "NOT_EQUAL",
-              "NOT_CONTAIN",
-              "IS_EMPTY"
-            ]
-          }
-        }
-      },
-      "TimeFrame": {
-        "type": "object",
-        "properties": {
-          "windowSize": {
-            "maximum": 2678400000,
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "to": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
@@ -3961,6 +3738,52 @@
                 }
               }
             }
+          }
+        }
+      },
+      "TraceGroupsResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceGroupsItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CursorPagination": {
+        "type": "object",
+        "properties": {
+          "retrievalSize": {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ingestionTime": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -4066,70 +3889,220 @@
           }
         }
       },
-      "CallGroupsItem": {
+      "TagFilter": {
         "required": [
-          "cursor",
-          "metrics"
+          "operator",
+          "value"
         ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
-          "timestamp": {
+          "value": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "EQUALS",
+              "CONTAINS",
+              "LESS_THAN",
+              "GREATER_THAN",
+              "NOT_EMPTY",
+              "NOT_EQUAL",
+              "NOT_CONTAIN",
+              "IS_EMPTY"
+            ]
+          }
+        }
+      },
+      "TimeFrame": {
+        "type": "object",
+        "properties": {
+          "windowSize": {
+            "maximum": 2678400000,
             "minimum": 0,
             "type": "integer",
             "format": "int64"
           },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Endpoint": {
+        "required": [
+          "technologies",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
           },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "UNDEFINED",
+              "RPC",
+              "BATCH",
+              "HTTP",
+              "DATABASE",
+              "MESSAGING",
+              "PAGE",
+              "PAGE_RESOURCE"
+            ]
+          },
+          "serviceId": {
+            "type": "string"
+          },
+          "technologies": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isSynthetic": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "synthetic": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Service": {
+        "required": [
+          "technologies",
+          "types"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "types": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNDEFINED",
+                "RPC",
+                "BATCH",
+                "HTTP",
+                "DATABASE",
+                "MESSAGING",
+                "PAGE",
+                "PAGE_RESOURCE"
+              ]
+            }
+          },
+          "technologies": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         }
       },
-      "GetCallGroups": {
+      "Trace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "startTime": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          },
+          "duration": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "erroneous": {
+            "type": "boolean"
+          },
+          "service": {
+            "$ref": "#/components/schemas/Service"
+          },
+          "endpoint": {
+            "$ref": "#/components/schemas/Endpoint"
+          }
+        }
+      },
+      "TraceItem": {
         "required": [
-          "group"
+          "cursor",
+          "trace"
         ],
+        "type": "object",
+        "properties": {
+          "trace": {
+            "$ref": "#/components/schemas/Trace"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          }
+        }
+      },
+      "TraceResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetTraces": {
         "type": "object",
         "properties": {
           "pagination": {
             "$ref": "#/components/schemas/CursorPagination"
           },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
           "timeFrame": {
             "$ref": "#/components/schemas/TimeFrame"
           },
-          "group": {
-            "$ref": "#/components/schemas/Group"
-          },
           "tagFilters": {
-            "maxItems": 10,
+            "maxItems": 32,
             "minItems": 0,
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricConfiguration"
             }
           }
         }
@@ -4343,6 +4316,35 @@
           }
         }
       },
+      "ApplicationMetricResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationItem"
+            }
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "AppDataMetricConfiguration": {
         "required": [
           "aggregation"
@@ -4488,6 +4490,35 @@
           }
         }
       },
+      "ServiceMetricResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceItem"
+            }
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "GetServices": {
         "required": [
           "metrics"
@@ -4585,6 +4616,35 @@
           }
         }
       },
+      "EndpointMetricResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EndpointItem"
+            }
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "GetEndpoints": {
         "required": [
           "metrics"
@@ -4658,6 +4718,75 @@
           }
         }
       },
+      "ApplicationResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Application"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "EndpointResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Endpoint"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ServiceResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Service"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "MetricDescription": {
         "type": "object",
         "properties": {
@@ -4672,6 +4801,13 @@
           },
           "description": {
             "type": "string"
+          },
+          "aggregations": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -5114,98 +5250,53 @@
           }
         ]
       },
-      "Event": {
+      "EventResult": {
         "type": "object",
         "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
+          "eventId": {
             "type": "string"
           },
           "start": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
-          },
-          "triggeringTime": {
-            "minimum": 1,
             "type": "integer",
             "format": "int64"
           },
           "end": {
-            "minimum": 1,
             "type": "integer",
             "format": "int64"
           },
-          "type": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "state": {
-            "maxLength": 8,
-            "minLength": 0,
-            "type": "string"
-          },
           "problem": {
-            "$ref": "#/components/schemas/Problem"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object"
-            }
-          },
-          "affectedService": {
-            "maxLength": 64,
-            "minLength": 0,
             "type": "string"
           },
-          "entityId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "entityType": {
-            "type": "string",
-            "enum": [
-              "Entity10",
-              "App20",
-              "Service20",
-              "Endpoint20"
-            ]
-          },
-          "metricAccessId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          }
-        }
-      },
-      "Problem": {
-        "required": [
-          "id"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
+          "fixSuggestion": {
             "type": "string"
           },
           "severity": {
             "type": "integer",
             "format": "int32"
           },
-          "problemText": {
-            "maxLength": 2048,
-            "minLength": 0,
+          "snapshotId": {
             "type": "string"
           },
-          "fixSuggestion": {
-            "maxLength": 65536,
-            "minLength": 0,
+          "affectedServiceSnapshotId": {
             "type": "string"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object"
+              }
+            }
+          },
+          "recentEvents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object"
+              }
+            }
           }
         }
       },
@@ -5850,8 +5941,16 @@
           }
         }
       },
-      "Json": {
-        "type": "object"
+      "PluginResult": {
+        "type": "object",
+        "properties": {
+          "plugin": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
       },
       "Connection": {
         "type": "object",
@@ -5902,6 +6001,60 @@
           }
         }
       },
+      "InfrastructureMetricResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricItem"
+            }
+          }
+        }
+      },
+      "MetricItem": {
+        "type": "object",
+        "properties": {
+          "snapshotId": {
+            "type": "string"
+          },
+          "plugin": {
+            "type": "string"
+          },
+          "from": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
       "GetCombinedMetrics": {
         "required": [
           "metrics",
@@ -5919,8 +6072,9 @@
             "type": "string"
           },
           "snapshotIds": {
+            "maxItems": 30,
+            "minItems": 1,
             "type": "array",
-            "writeOnly": true,
             "items": {
               "type": "string"
             }
@@ -5937,13 +6091,47 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "SnapshotItem": {
+        "type": "object",
+        "properties": {
+          "snapshotId": {
+            "type": "string"
           },
-          "snapshots": {
-            "maxItems": 30,
-            "minItems": 1,
+          "plugin": {
+            "type": "string"
+          },
+          "from": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tags": {
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          }
+        }
+      },
+      "SnapshotResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SnapshotItem"
             }
           }
         }
@@ -6451,118 +6639,30 @@
           }
         }
       },
-      "WebsiteBeaconGroupsItem": {
+      "BeaconResult": {
         "required": [
-          "cursor",
-          "metrics"
+          "items"
         ],
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteBeaconsItem"
+            }
           },
-          "earliestTimestamp": {
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
             "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "GetWebsiteBeaconGroups": {
-        "required": [
-          "group"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "group": {
-            "$ref": "#/components/schemas/WebsiteBeaconTagGroup"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "tagFilters": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
-            }
-          }
-        }
-      },
-      "WebsiteBeaconTagGroup": {
-        "type": "object",
-        "properties": {
-          "groupbyTag": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "groupbyTagSecondLevelKey": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          }
-        }
-      },
-      "WebsiteMonitoringMetricsConfiguration": {
-        "required": [
-          "aggregation"
-        ],
-        "type": "object",
-        "properties": {
-          "metric": {
-            "type": "string"
-          },
-          "granularity": {
             "type": "integer",
             "format": "int32"
           },
-          "aggregation": {
-            "type": "string",
-            "enum": [
-              "SUM",
-              "MEAN",
-              "MAX",
-              "MIN",
-              "P25",
-              "P50",
-              "P75",
-              "P90",
-              "P95",
-              "P98",
-              "P99",
-              "DISTINCT_COUNT"
-            ]
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -6886,6 +6986,9 @@
         }
       },
       "GetWebsiteBeacons": {
+        "required": [
+          "type"
+        ],
         "type": "object",
         "properties": {
           "pagination": {
@@ -6893,6 +6996,15 @@
           },
           "timeFrame": {
             "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PAGELOAD",
+              "RESOURCELOAD",
+              "HTTPREQUEST",
+              "ERROR"
+            ]
           },
           "tagFilters": {
             "maxItems": 32,
@@ -6904,7 +7016,170 @@
           }
         }
       },
+      "BeaconGroupsResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WebsiteBeaconGroupsItem": {
+        "required": [
+          "cursor",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "earliestTimestamp": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "GetWebsiteBeaconGroups": {
+        "required": [
+          "group",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "group": {
+            "$ref": "#/components/schemas/WebsiteBeaconTagGroup"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PAGELOAD",
+              "RESOURCELOAD",
+              "HTTPREQUEST",
+              "ERROR"
+            ]
+          },
+          "tagFilters": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
+            }
+          }
+        }
+      },
+      "WebsiteBeaconTagGroup": {
+        "type": "object",
+        "properties": {
+          "groupbyTag": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "groupbyTagSecondLevelKey": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "WebsiteMonitoringMetricsConfiguration": {
+        "required": [
+          "aggregation"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "DISTINCT_COUNT"
+            ]
+          }
+        }
+      },
+      "WebsiteMetricResult": {
+        "type": "object",
+        "properties": {
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
       "GetWebsiteMetrics": {
+        "required": [
+          "type"
+        ],
         "type": "object",
         "properties": {
           "timeFrame": {
@@ -6917,6 +7192,15 @@
             "items": {
               "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
             }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PAGELOAD",
+              "RESOURCELOAD",
+              "HTTPREQUEST",
+              "ERROR"
+            ]
           },
           "tagFilters": {
             "maxItems": 32,
@@ -6980,7 +7264,6 @@
         "Audit Log",
         "API Token",
         "Maintenance Configuration",
-        "UI Settings",
         "Synthetic Calls"
       ]
     },
