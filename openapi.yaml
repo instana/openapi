@@ -24,45 +24,25 @@ servers:
         default: unit
 tags:
   - name: Infrastructure Metrics
-    description: undefined
   - name: Infrastructure Resources
-    description: undefined
   - name: Infrastructure Catalog
-    description: undefined
   - name: Application Metrics
-    description: undefined
   - name: Application Catalog
-    description: undefined
   - name: Application Resources
-    description: undefined
   - name: Application Analyze
-    description: undefined
   - name: Application Settings
-    description: undefined
   - name: Website Metrics
-    description: undefined
   - name: Website Catalog
-    description: undefined
   - name: Website Analyze
-    description: undefined
   - name: Alerts
-    description: undefined
   - name: Events
-    description: undefined
   - name: Event Settings
-    description: undefined
   - name: User
-    description: undefined
   - name: Audit Log
-    description: undefined
   - name: API Token
-    description: undefined
   - name: Maintenance Configuration
-    description: undefined
   - name: Synthetic Calls
-    description: undefined
   - name: Health
-    description: undefined
 paths:
   /api/application-monitoring/analyze/trace-groups:
     post:
@@ -119,43 +99,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/TraceResult'
       x-code-samples:
-        - lang: 'C#'
-          source: |
-            API.v1.Echo echo = new API.v1.Echo();
-            echo.message = "Hello World!");
-            EchoResponse response = echo.post();
-            if (response.statusCode == HttpStatusCode.Created)
-            {
-              // Success
-            }
-            else
-            {
-              // Something wrong -- check response for errors
-              Console.WriteLine(response.getRawResponse());
-            }
         - lang: JAVA
           source: |
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost httpPost = new HttpPost("http://www.example.com");
-
-            String json = "{"id":1,"name":"John"}";
+            String url = "https://unit-tenant.instana.com/api/application-monitoring/analyse/traces";
+            HttpPost httpPost = new HttpPost(url);
+            String json = "{"
+                        + "\"pagination\":{\"retrievalSize\":20,\"offset\":0},"
+                        + "\"timeFrame\":{\"windowSize\":3600000}"
+                        + "}"
             StringEntity entity = new StringEntity(json);
             httpPost.setEntity(entity);
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "application/json");
+            httpPost.setHeader("Authorization", "apiToken xxxxxxxx");
 
             CloseableHttpResponse response = client.execute(httpPost);
+
             assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+            String traceResult = EntityUtils.toString(response.getEntity());
             client.close();
-        - lang: PHP
-          source: |
-            $form = new \API\Entities\Echo();
-            $form->setMessage("Hello World!");
-            try {
-                $pet = $client->echo()->post($form);
-            } catch (UnprocessableEntityException $e) {
-                var_dump($e->getErrors());
-            }
   /api/application-monitoring/metrics/applications:
     post:
       tags:
@@ -1508,7 +1471,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PluginResult'
-      description: Test description
   '/api/infrastructure-monitoring/graph/related-hosts/{snapshotId}':
     get:
       tags:
