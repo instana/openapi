@@ -8,7 +8,7 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.145.732",
+    "version": "1.146.18",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#031F29",
@@ -22,12 +22,10 @@
       "description": "Instana Backend",
       "variables": {
         "tenant": {
-          "description": "Customer tenant unit",
-          "default": "tenant"
+          "description": "Customer tenant unit"
         },
         "unit": {
-          "description": "Customer tenant name",
-          "default": "unit"
+          "description": "Customer tenant name"
         }
       }
     }
@@ -118,6 +116,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TraceGroupsResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/application-monitoring/analyze/call-groups": {
+      "post": {
+        "tags": [
+          "Application Analyze"
+        ],
+        "summary": "Call group metrics",
+        "operationId": "getCallGroup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetCallGroups"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallGroupsResult"
                 }
               }
             }
@@ -1323,6 +1351,36 @@
         }
       }
     },
+    "/api/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Event",
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/events": {
       "get": {
         "tags": [
@@ -1365,36 +1423,6 @@
                   "items": {
                     "$ref": "#/components/schemas/EventResult"
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/events/{eventId}": {
-      "get": {
-        "tags": [
-          "Events"
-        ],
-        "summary": "Event",
-        "operationId": "getEvent",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventResult"
                 }
               }
             }
@@ -1613,13 +1641,13 @@
         }
       }
     },
-    "/api/events/settings/built-in-rules/{id}/enable": {
+    "/api/events/settings/built-in-rules/{id}/disable": {
       "post": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "Enable built-in rule",
-        "operationId": "enableBuildInRule",
+        "summary": "Disable built-in rule",
+        "operationId": "disableBuildInRule",
         "parameters": [
           {
             "name": "id",
@@ -1640,13 +1668,13 @@
         }
       }
     },
-    "/api/events/settings/built-in-rules/{id}/disable": {
+    "/api/events/settings/built-in-rules/{id}/enable": {
       "post": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "Disable built-in rule",
-        "operationId": "disableBuildInRule",
+        "summary": "Enable built-in rule",
+        "operationId": "enableBuildInRule",
         "parameters": [
           {
             "name": "id",
@@ -3900,6 +3928,101 @@
           "to": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "CallGroupsItem": {
+        "required": [
+          "cursor",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "timestamp": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CallGroupsResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CallGroupsItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetCallGroups": {
+        "required": [
+          "group"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "group": {
+            "$ref": "#/components/schemas/Group"
+          },
+          "tagFilters": {
+            "maxItems": 10,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricConfiguration"
+            }
           }
         }
       },
