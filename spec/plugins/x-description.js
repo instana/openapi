@@ -23,7 +23,7 @@ module.exports = {
         }
       } else {
         try {
-          fs.writeFileSync(fileName);
+          fs.writeFileSync(fileName,'');
           console.error("file not exist and created, please commit to git: " + fileName);
         } catch (e) {
           console.log("Cannot write file " + fileName, e);
