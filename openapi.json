@@ -8,7 +8,7 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.146.18",
+    "version": "1.147.0",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#031F29",
@@ -90,6 +90,9 @@
     },
     {
       "name": "Health"
+    },
+    {
+      "name": "Usage"
     }
   ],
   "paths": {
@@ -116,36 +119,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TraceGroupsResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/application-monitoring/analyze/call-groups": {
-      "post": {
-        "tags": [
-          "Application Analyze"
-        ],
-        "summary": "Call group metrics",
-        "operationId": "getCallGroup",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetCallGroups"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallGroupsResult"
                 }
               }
             }
@@ -192,8 +165,42 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "x-example": "GetTraces"
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceResult"
+                }
+              }
+            },
+            "x-example": "TraceResult"
+          }
+        },
+        "x-code-samples": [
+          {
+            "lang": "JAVA",
+            "source": "CloseableHttpClient client = HttpClients.createDefault();\nString url = \"https://unit-tenant.instana.com/api/application-monitoring/analyse/traces\";\nHttpPost httpPost = new HttpPost(url);\nString json = \"{\"\n            + \"\\\"pagination\\\":{\\\"retrievalSize\\\":20,\\\"offset\\\":0},\"\n            + \"\\\"timeFrame\\\":{\\\"windowSize\\\":3600000}\"\n            + \"}\"\nStringEntity entity = new StringEntity(json);\nhttpPost.setEntity(entity);\nhttpPost.setHeader(\"Accept\", \"application/json\");\nhttpPost.setHeader(\"Content-type\", \"application/json\");\nhttpPost.setHeader(\"Authorization\", \"apiToken xxxxxxxx\");\n\nCloseableHttpResponse response = client.execute(httpPost);\n\nassertThat(response.getStatusLine().getStatusCode(), equalTo(200));\nString traceResult = EntityUtils.toString(response.getEntity());\nclient.close();\n"
+          }
+        ]
+      }
+    },
+    "/api/application-monitoring/analyze/call-groups": {
+      "post": {
+        "tags": [
+          "Application Analyze"
+        ],
+        "summary": "Call group metrics",
+        "operationId": "getCallGroup",
+        "requestBody": {
+          "content": {
+            "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetTraces"
+                "$ref": "#/components/schemas/GetCallGroups"
               }
             }
           },
@@ -204,18 +211,12 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TraceResult"
+                  "$ref": "#/components/schemas/CallGroupsResult"
                 }
               }
             }
           }
-        },
-        "x-code-samples": [
-          {
-            "lang": "JAVA",
-            "source": "CloseableHttpClient client = HttpClients.createDefault();\nString url = \"https://unit-tenant.instana.com/api/application-monitoring/analyse/traces\";\nHttpPost httpPost = new HttpPost(url);\nString json = \"{\"\n            + \"\\\"pagination\\\":{\\\"retrievalSize\\\":20,\\\"offset\\\":0},\"\n            + \"\\\"timeFrame\\\":{\\\"windowSize\\\":3600000}\"\n            + \"}\"\nStringEntity entity = new StringEntity(json);\nhttpPost.setEntity(entity);\nhttpPost.setHeader(\"Accept\", \"application/json\");\nhttpPost.setHeader(\"Content-type\", \"application/json\");\nhttpPost.setHeader(\"Authorization\", \"apiToken xxxxxxxx\");\n\nCloseableHttpResponse response = client.execute(httpPost);\n\nassertThat(response.getStatusLine().getStatusCode(), equalTo(200));\nString traceResult = EntityUtils.toString(response.getEntity());\nclient.close();\n"
-          }
-        ]
+        }
       }
     },
     "/api/application-monitoring/metrics/applications": {
@@ -620,65 +621,6 @@
         }
       }
     },
-    "/api/application-monitoring/settings/application": {
-      "get": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "All Application configurations",
-        "operationId": "getApplicationConfigs",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationConfig"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "Add application configuration",
-        "operationId": "addApplicationConfig",
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "$ref": "#/components/schemas/ApplicationConfig"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      }
-    },
     "/api/application-monitoring/settings/application/{id}": {
       "get": {
         "tags": [
@@ -773,6 +715,65 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/application-monitoring/settings/application": {
+      "get": {
+        "tags": [
+          "Application Settings"
+        ],
+        "summary": "All Application configurations",
+        "operationId": "getApplicationConfigs",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationConfig"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Application Settings"
+        ],
+        "summary": "Add application configuration",
+        "operationId": "addApplicationConfig",
         "requestBody": {
           "content": {
             "*/*": {
@@ -1641,13 +1642,13 @@
         }
       }
     },
-    "/api/events/settings/built-in-rules/{id}/disable": {
+    "/api/events/settings/built-in-rules/{id}/enable": {
       "post": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "Disable built-in rule",
-        "operationId": "disableBuildInRule",
+        "summary": "Enable built-in rule",
+        "operationId": "enableBuildInRule",
         "parameters": [
           {
             "name": "id",
@@ -1668,13 +1669,13 @@
         }
       }
     },
-    "/api/events/settings/built-in-rules/{id}/enable": {
+    "/api/events/settings/built-in-rules/{id}/disable": {
       "post": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "Enable built-in rule",
-        "operationId": "enableBuildInRule",
+        "summary": "Disable built-in rule",
+        "operationId": "disableBuildInRule",
         "parameters": [
           {
             "name": "id",
@@ -2418,7 +2419,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MetricInstance"
+                    "$ref": "#/components/schemas/SearchFieldResult"
                   }
                 }
               }
@@ -2566,6 +2567,15 @@
               "type": "integer",
               "format": "int64"
             }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "matrix",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2683,6 +2693,254 @@
           }
         },
         "description": "The returned JSON object will provide a health property which contains a simple traffic light (GREEN/YELLO/RED). For any non-Green-state a list \nof reasons will be provided in the messages array.\n\nPossible messages:\n* No data being processed\n* No data arriving from agents\n"
+      }
+    },
+    "/api/instana/usage/api/{month}/{year}": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "API usage month / year",
+        "operationId": "getUsageForCustomer",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/instana/usage/api": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "API usage by customer",
+        "operationId": "getUsageForCustomer_1",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/instana/usage/api/{day}/{month}/{year}": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "API usage day / month / year",
+        "operationId": "getUsageForCustomerPerDay",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/instana/usage/hosts/{day}/{month}/{year}": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "Host count day / month / year",
+        "operationId": "getHostsForCustomer",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/instana/usage/hosts/{month}/{year}": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "Host count month / year",
+        "operationId": "getHostsForCustomer_1",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
       }
     },
     "/api/settings/api-tokens/{apiTokenId}": {
@@ -3480,25 +3738,31 @@
         ]
       }
     },
-    "/api/ui/settings": {
-      "get": {
-        "operationId": "getUiSettings",
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
+    "/api/website-monitoring/analyze/beacon-groups": {
+      "post": {
+        "tags": [
+          "Website Analyze"
+        ],
+        "summary": "Beacon group metrics",
+        "operationId": "getBeaconGroups",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetWebsiteBeaconGroups"
+              }
             }
-          }
-        }
-      },
-      "put": {
-        "operationId": "putUiSettings",
+          },
+          "required": true
+        },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeaconGroupsResult"
+                }
+              }
             }
           }
         }
@@ -3527,36 +3791,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BeaconResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/website-monitoring/analyze/beacon-groups": {
-      "post": {
-        "tags": [
-          "Website Analyze"
-        ],
-        "summary": "Beacon group metrics",
-        "operationId": "getBeaconGroups",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetWebsiteBeaconGroups"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BeaconGroupsResult"
                 }
               }
             }
@@ -3931,101 +4165,6 @@
           }
         }
       },
-      "CallGroupsItem": {
-        "required": [
-          "cursor",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "timestamp": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "CallGroupsResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CallGroupsItem"
-            }
-          },
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "GetCallGroups": {
-        "required": [
-          "group"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "group": {
-            "$ref": "#/components/schemas/Group"
-          },
-          "tagFilters": {
-            "maxItems": 10,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricConfiguration"
-            }
-          }
-        }
-      },
       "Endpoint": {
         "required": [
           "technologies",
@@ -4197,6 +4336,101 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TagFilter"
+            }
+          }
+        }
+      },
+      "CallGroupsItem": {
+        "required": [
+          "cursor",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "timestamp": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CallGroupsResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CallGroupsItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetCallGroups": {
+        "required": [
+          "group"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "group": {
+            "$ref": "#/components/schemas/Group"
+          },
+          "tagFilters": {
+            "maxItems": 10,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricConfiguration"
             }
           }
         }
@@ -6035,6 +6269,29 @@
           }
         }
       },
+      "SearchFieldResult": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "termType": {
+            "type": "string"
+          },
+          "fixedValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "PluginResult": {
         "type": "object",
         "properties": {
@@ -6297,6 +6554,33 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "UsageResult": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageResultItems"
+            }
+          }
+        }
+      },
+      "UsageResultItems": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "sims": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -6733,6 +7017,158 @@
           }
         }
       },
+      "BeaconGroupsResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WebsiteBeaconGroupsItem": {
+        "required": [
+          "cursor",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "earliestTimestamp": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "GetWebsiteBeaconGroups": {
+        "required": [
+          "group",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "group": {
+            "$ref": "#/components/schemas/WebsiteBeaconTagGroup"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PAGELOAD",
+              "RESOURCELOAD",
+              "HTTPREQUEST",
+              "ERROR"
+            ]
+          },
+          "tagFilters": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
+            }
+          }
+        }
+      },
+      "WebsiteBeaconTagGroup": {
+        "type": "object",
+        "properties": {
+          "groupbyTag": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "groupbyTagSecondLevelKey": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "WebsiteMonitoringMetricsConfiguration": {
+        "required": [
+          "aggregation"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "DISTINCT_COUNT"
+            ]
+          }
+        }
+      },
       "BeaconResult": {
         "required": [
           "items"
@@ -7110,158 +7546,6 @@
           }
         }
       },
-      "BeaconGroupsResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
-            }
-          },
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "WebsiteBeaconGroupsItem": {
-        "required": [
-          "cursor",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "earliestTimestamp": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "GetWebsiteBeaconGroups": {
-        "required": [
-          "group",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "group": {
-            "$ref": "#/components/schemas/WebsiteBeaconTagGroup"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "PAGELOAD",
-              "RESOURCELOAD",
-              "HTTPREQUEST",
-              "ERROR"
-            ]
-          },
-          "tagFilters": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
-            }
-          }
-        }
-      },
-      "WebsiteBeaconTagGroup": {
-        "type": "object",
-        "properties": {
-          "groupbyTag": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "groupbyTagSecondLevelKey": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          }
-        }
-      },
-      "WebsiteMonitoringMetricsConfiguration": {
-        "required": [
-          "aggregation"
-        ],
-        "type": "object",
-        "properties": {
-          "metric": {
-            "type": "string"
-          },
-          "granularity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "aggregation": {
-            "type": "string",
-            "enum": [
-              "SUM",
-              "MEAN",
-              "MAX",
-              "MIN",
-              "P25",
-              "P50",
-              "P75",
-              "P90",
-              "P95",
-              "P98",
-              "P99",
-              "DISTINCT_COUNT"
-            ]
-          }
-        }
-      },
       "WebsiteMetricResult": {
         "type": "object",
         "properties": {
@@ -7329,8 +7613,8 @@
       "name": "Application Monitoring",
       "tags": [
         "Application Metrics",
-        "Application Catalog",
         "Application Resources",
+        "Application Catalog",
         "Application Analyze",
         "Application Settings"
       ]
@@ -7364,7 +7648,8 @@
     {
       "name": "Instana",
       "tags": [
-        "Health"
+        "Health",
+        "Usage"
       ]
     }
   ]
