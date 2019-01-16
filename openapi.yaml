@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: 'http://instana.com'
     email: support@instana.com
-  version: 1.147.0
+  version: 1.147.74
   x-logo:
     url: header-logo.svg
     backgroundColor: '#031F29'
@@ -61,6 +61,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TraceGroupsResult'
+  /api/application-monitoring/analyze/call-groups:
+    post:
+      tags:
+        - Application Analyze
+      summary: Call group metrics
+      operationId: getCallGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetCallGroups'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallGroupsResult'
   /api/application-monitoring/analyze/traces:
     get:
       tags:
@@ -88,7 +106,9 @@ paths:
       requestBody:
         content:
           application/json:
-            x-example: GetTraces
+            schema:
+              $ref: '#/components/schemas/GetTraces'
+        required: true
       responses:
         default:
           content:
@@ -117,24 +137,6 @@ paths:
             assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
             String traceResult = EntityUtils.toString(response.getEntity());
             client.close();
-  /api/application-monitoring/analyze/call-groups:
-    post:
-      tags:
-        - Application Analyze
-      summary: Call group metrics
-      operationId: getCallGroup
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetCallGroups'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CallGroupsResult'
   /api/application-monitoring/metrics/applications:
     post:
       tags:
@@ -189,6 +191,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EndpointMetricResult'
+  /api/application-monitoring/applications/services:
+    get:
+      tags:
+        - Application Resources
+      summary: Get applications/services
+      operationId: getApplicationServices
+      parameters:
+        - name: nameFilter
+          in: query
+          schema:
+            type: string
+        - name: windowSize
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: to
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResult'
   /api/application-monitoring/applications:
     get:
       tags:
@@ -277,43 +316,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EndpointResult'
-  /api/application-monitoring/applications/services:
-    get:
-      tags:
-        - Application Resources
-      summary: Get applications/services
-      operationId: getApplicationServices
-      parameters:
-        - name: nameFilter
-          in: query
-          schema:
-            type: string
-        - name: windowSize
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: to
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: page
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceResult'
   /api/application-monitoring/services:
     get:
       tags:
@@ -809,24 +811,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  '/api/events/{eventId}':
-    get:
-      tags:
-        - Events
-      summary: Event
-      operationId: getEvent
-      parameters:
-        - name: eventId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventResult'
   /api/events:
     get:
       tags:
@@ -857,6 +841,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EventResult'
+  '/api/events/{eventId}':
+    get:
+      tags:
+        - Events
+      summary: Event
+      operationId: getEvent
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResult'
   '/api/events/settings/alerts/{id}':
     get:
       tags:
@@ -1649,7 +1651,7 @@ paths:
       tags:
         - Usage
       summary: API usage month / year
-      operationId: getUsageForCustomer
+      operationId: getUsagePerMonth
       parameters:
         - name: month
           in: path
@@ -1663,23 +1665,6 @@ paths:
           schema:
             type: integer
             format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-        - ApiKeyAuth:
-            - CanSeeUsageInformation
-  /api/instana/usage/api:
-    get:
-      tags:
-        - Usage
-      summary: API usage by customer
-      operationId: getUsageForCustomer_1
       responses:
         default:
           content:
@@ -1696,43 +1681,7 @@ paths:
       tags:
         - Usage
       summary: API usage day / month / year
-      operationId: getUsageForCustomerPerDay
-      parameters:
-        - name: day
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-        - name: month
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-        - name: year
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-        - ApiKeyAuth:
-            - CanSeeUsageInformation
-  '/api/instana/usage/hosts/{day}/{month}/{year}':
-    get:
-      tags:
-        - Usage
-      summary: Host count day / month / year
-      operationId: getHostsForCustomer
+      operationId: getUsagePerDay
       parameters:
         - name: day
           in: path
@@ -1768,7 +1717,7 @@ paths:
       tags:
         - Usage
       summary: Host count month / year
-      operationId: getHostsForCustomer_1
+      operationId: getHostsPerMonth
       parameters:
         - name: month
           in: path
@@ -1782,6 +1731,59 @@ paths:
           schema:
             type: integer
             format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+        - ApiKeyAuth:
+            - CanSeeUsageInformation
+  '/api/instana/usage/hosts/{day}/{month}/{year}':
+    get:
+      tags:
+        - Usage
+      summary: Host count day / month / year
+      operationId: getHostsPerDay
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+        - ApiKeyAuth:
+            - CanSeeUsageInformation
+  /api/instana/usage/api:
+    get:
+      tags:
+        - Usage
+      summary: API usage by customer
+      operationId: getAllUsage
       responses:
         default:
           content:
@@ -2543,6 +2545,72 @@ components:
         to:
           type: integer
           format: int64
+    CallGroupsItem:
+      required:
+        - cursor
+        - metrics
+      type: object
+      properties:
+        name:
+          type: string
+        timestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    CallGroupsResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CallGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    GetCallGroups:
+      required:
+        - group
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/Group'
+        tagFilters:
+          maxItems: 10
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricConfiguration'
     Endpoint:
       required:
         - technologies
@@ -2668,72 +2736,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
-    CallGroupsItem:
-      required:
-        - cursor
-        - metrics
-      type: object
-      properties:
-        name:
-          type: string
-        timestamp:
-          minimum: 0
-          type: integer
-          format: int64
-        cursor:
-          $ref: '#/components/schemas/IngestionOffsetCursor'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    CallGroupsResult:
-      required:
-        - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CallGroupsItem'
-        canLoadMore:
-          type: boolean
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-        totalRepresentedItemCount:
-          minimum: 0
-          type: integer
-          format: int32
-    GetCallGroups:
-      required:
-        - group
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/CursorPagination'
-        order:
-          $ref: '#/components/schemas/Order'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        group:
-          $ref: '#/components/schemas/Group'
-        tagFilters:
-          maxItems: 10
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/MetricConfiguration'
     Application:
       type: object
       properties:
@@ -3178,6 +3180,22 @@ components:
           type: array
           items:
             type: string
+    ServiceResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        totalHits:
+          type: integer
+          format: int32
     ApplicationResult:
       type: object
       properties:
@@ -3201,22 +3219,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Endpoint'
-        page:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        totalHits:
-          type: integer
-          format: int32
-    ServiceResult:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/Service'
         page:
           type: integer
           format: int32
