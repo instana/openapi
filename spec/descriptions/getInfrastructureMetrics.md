@@ -16,7 +16,7 @@ To make the it easy to get started this endpoint has two modes that can be used 
 1. Search for metrics for snapshotIds
   For advanced usecases, pagination for example, its recomended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute
 
-*metrics*
+*metrics* id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"
 
 Once you have selected the plugin you can define up to five metrics you want to retrieve with the call.
 Please use our [metrics catalog call](https://instana.github.io/openapi/#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.
