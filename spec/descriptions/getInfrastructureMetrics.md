@@ -7,7 +7,7 @@ This endpoint retrieves the metrics for infrastructure components.
 
 The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](https://instana.github.io/openapi/#operation/getPlugins) were we have data for you.
 
-*query or snapshotIds:* choose between dynamic focus query or snapshotid (a unique identifier the metrics are assigned to)
+*query or snapshotIds:* choose between dynamic focus query or [snapshotid](https://instana.github.io/openapi/#operation/getSnapshots) (a unique identifier the metrics are assigned to)
 
 To make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:
 1. Search metrics with a query
