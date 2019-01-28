@@ -4,7 +4,6 @@ This endpoint retrieves the metrics for infrastructure components.
 
 *plugin:* Plugins are entites for which we collect metrics, for example : "Host", "Cassandra node", "Cassandra Connection".
 
-
 The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](https://instana.github.io/openapi/#operation/getPlugins) were we have data for you.
 
 *query or snapshotIds:* choose between dynamic focus query or [snapshotid](https://instana.github.io/openapi/#operation/getSnapshots) (a unique identifier the metrics are assigned to)
@@ -23,10 +22,10 @@ Please use our [metrics catalog call](https://instana.github.io/openapi/#operati
 
 **Optional Paramters:**
 
-*timeFrame* As in our UI you can specifiy the timeframe for metrics retrieval. 
-
+*timeFrame* As in our UI you can specifiy the timeframe for metrics retrieval.
 ```
-       windowSize      to
+  windowSize           to
+     (ms)       (unix-timestamp)
 <----------------------|
 ```
 
@@ -39,27 +38,45 @@ The available rollup is depending on two factors:
 1. Size of the selected windowSize
 
 	The limitation is that we only return 600 Datapoints per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s
-Valid rollups are 1s, 5s, 1min, 5min, 1hour
+	
+Valid rollups are:
+
+| rollup  | value |
+| ------------- | ------------- |
+| 1 second  | 1 |
+| 5 seconds  | 5  |
+| 1 minute  | 60 |
+| 5 minutes  | 300  |
+| 1 hour  | 3600  |
+
 
 **Defaults:**
+
 "timeFrame": {
-	"windowSize": 600,
-	"to": <- The current timestamp
+	"windowSize": 60000,
+	"to": {current timestamp}
 }
 
-rollup: 1s 
+rollup: 1
 
 **Limits:**
 
 500 Calls per Hour
 1000 Calls per Hour
 
-30 Found items
-600 Datapoints per Metric
-Retrieving metrics [below](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter (See under Tips:)
-Exaple:
+To keep the response size reasonable the limit is set to 30 retrieved items.[1]
 
+A maximum of 600 datapoints are returned per metric.
+
+You can only retrieve metrics [below](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter.[2]
+
+Example:
+```
+query=entity.selfType:java
+plugin=host
+metric=cpu.steal
+```
 **Tips:**
 
-Pagination
-Applicaton filter
+[1] Pagination
+[2] Applicaton filter
