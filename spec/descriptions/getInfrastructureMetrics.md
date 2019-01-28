@@ -23,9 +23,12 @@ Please use our [metrics catalog call](https://instana.github.io/openapi/#operati
 
 **Optional Paramters:**
 
-As in our UI you can specifiy the timewindow for wich 
+*timeFrame* As in our UI you can specifiy the timeframe for metrics retrieval. 
 
-*timeFrame*
+```
+       windowSize      to
+<----------------------|
+```
 
 *rollup:* Depending on the selected timeFrame its possible to selected the rollup.
 
