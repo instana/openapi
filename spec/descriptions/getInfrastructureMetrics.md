@@ -10,7 +10,8 @@ The available plugins are depending on the system you are monitoring. Therefore 
 
 To make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:
 1. Search metrics with a query
-  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result. 
+  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.
+  To get usable search paramters you can either query the search [catalog endpoint](https://instana.github.io/openapi/#operation/getSearchFields) or use the UI
   
 1. Search for metrics for snapshotIds
   For advanced usecases, pagination for example, its recomended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute
