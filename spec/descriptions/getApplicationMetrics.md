@@ -9,7 +9,9 @@ This endpoint retrieves the metrics for defined applications.
 
 **Optional Paramters:**
 
-*pagination:*
+*pagination* If you configure many applications and do not apply any filters. The query will return all AP without restrictions, that may lead that you need pagination. 
+1. *page*
+1. *pageSize*
 
 *order*
 
