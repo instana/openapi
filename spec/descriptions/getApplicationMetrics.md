@@ -17,6 +17,11 @@ This endpoint retrieves the metrics for defined applications.
 
 *nameFilter|applicationid|serviceId|endpointId*
 
+* *nameFilter*
+* *applicationid*
+* *serviceId*
+* *endpointId*
+
 *endpointTypes*
 
 *technologies*
