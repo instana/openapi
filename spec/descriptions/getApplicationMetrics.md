@@ -22,7 +22,7 @@ To narrow down the result set you have four options to search for an application
 
 *nameFilter| applicationid| serviceId| endpointId*
 
-* *nameFilter:* filter by name with a contains semantic.
+* *nameFilter:* filter by name with "contains" semantic.
 
 * *applicationid:* search directly for an application by id 
 
@@ -32,11 +32,13 @@ To narrow down the result set you have four options to search for an application
 
 **Defaults:**
 
-*order* the default order is by application label ascending.
+*order* 
+* the default order is by application label ascending.
 
 *timeFrame*
 
-*nameFilter| applicationid| serviceId| endpointId* no filters are applied in the default call
+*nameFilter| applicationid| serviceId| endpointId* 
+* no filters are applied in the default call
 
 **Limits:**
 
