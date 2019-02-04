@@ -13,7 +13,9 @@ This endpoint retrieves the metrics for defined applications.
 1. *page*
 1. *pageSize*
 
+You can order the returned items alphanumerical by label, either ascending or descending
 *order*
+1. *direction* either ascending or descending
 
 *timeFrame*
 
