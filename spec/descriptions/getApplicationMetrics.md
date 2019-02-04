@@ -17,12 +17,17 @@ This endpoint retrieves the metrics for defined applications.
 
 *timeFrame*
 
-*nameFilter|applicationid|serviceId|endpointId*
+*nameFilter| applicationid| serviceId| endpointId*
 
-* *nameFilter*
-* *applicationid*
-* *serviceId*
-* *endpointId*
+To narrow down the result set you have four options to search for an application.
+
+* *nameFilter:* filter by name with a contains semantic.
+
+* *applicationid:* search directly for an application by id 
+
+* *serviceId:* search for applications that include a particular service by service id
+
+* *endpointId:* search for applications that include a particular endpoint by endpoint id
 
 *endpointTypes*
 
