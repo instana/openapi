@@ -17,9 +17,10 @@ This endpoint retrieves the metrics for defined applications.
 
 *timeFrame*
 
-*nameFilter| applicationid| serviceId| endpointId*
 
 To narrow down the result set you have four options to search for an application.
+
+*nameFilter| applicationid| serviceId| endpointId*
 
 * *nameFilter:* filter by name with a contains semantic.
 
@@ -29,11 +30,13 @@ To narrow down the result set you have four options to search for an application
 
 * *endpointId:* search for applications that include a particular endpoint by endpoint id
 
-*endpointTypes*
-
-*technologies*
-
 **Defaults:**
+
+*order* the default order is by application label ascending.
+
+*timeFrame*
+
+*nameFilter| applicationid| serviceId| endpointId* no filters are applied in the default call
 
 **Limits:**
 
