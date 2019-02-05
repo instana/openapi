@@ -26,7 +26,7 @@ The endpoints of this group retrieve the metrics for defined applications, disco
 1. *by* if the granularity is set to 1 you can use the metric name eg. "latency.p95" to order by that value
 1. *direction* either ascending or descending
 
-*timeFrame* As in our UI you can specify the timeframe for metrics retrieval.
+**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
 ```
   windowSize           to
      (ms)       (unix-timestamp)
