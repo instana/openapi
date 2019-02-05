@@ -4,9 +4,9 @@ This endpoint retrieves the metrics for infrastructure components.
 
 **plugin:** Plugins are entities' for which we collect metrics, for example : "Host", "Cassandra node", "Cassandra Connection".
 
-The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](https://instana.github.io/openapi/#operation/getPlugins) were we have data for you.
+The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) were we have data for you.
 
-**query or snapshotIds:** choose between dynamic focus query or [snapshotId](https://instana.github.io/openapi/#operation/getSnapshots) (a unique identifier the metrics are assigned to)
+**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)
 
 To make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:
 1. Search metrics with a query
@@ -19,7 +19,7 @@ To make the it easy to get started this endpoint has two modes that can be used 
 **metrics:** Id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"
 
 Once you have selected the plugin you can define up to five metrics you want to retrieve with the call.
-Please use our [metrics catalog call](https://instana.github.io/openapi/#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.
+Please use our [metrics catalog call](#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.
 
 ## Optional Parameters:
 
@@ -83,7 +83,7 @@ metric=cpu.steal
 ## Tips:
 
 [1] **Pagination**
-Sometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](https://instana.github.io/openapi/#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](https://instana.github.io/openapi/#operation/getInfrastructureMetrics) with the returned snapshotIds
+Sometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds
 
 
 [2] **Application filter**
