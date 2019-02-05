@@ -68,7 +68,7 @@ Valid rollups are:
 500 Calls per Hour
 1000 Calls per Hour
 
-To keep the response size reasonable the limit is set to 30 retrieved items.[1]
+To keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]
 
 A maximum of 600 data points are returned per metric.
 
@@ -82,7 +82,12 @@ metric=cpu.steal
 ```
 ## Tips:
 
-[1] Pagination
+[1] **Pagination**
+Sometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](https://instana.github.io/openapi/#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](https://instana.github.io/openapi/#operation/getInfrastructureMetrics) with the returned snapshotids
 
-[2] Application filter
-You can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. 
+
+[2] **Application filter**
+You can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name 
+```
+query=entity.application.name:"Java Applications"
+```
