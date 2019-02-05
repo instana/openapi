@@ -1,47 +1,65 @@
-This endpoint retrieves the metrics for defined applications.
+The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.
 
-**Manditory Paramters:**
+## Mandatory Parameters:
 
-*metrics* A list of metric objects that define which metric should be returned, with the defined aggregation and granularity. Each metrics objects consists of three items:
+**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
 1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](https://instana.github.io/openapi/#operation/getMetricDefinitions)
-1. *aggregation* depending on the selected metric diffrent aggregations are available e.g. SUM, MEAN, P95. The aformentioned [catalogue endpoint](https://instana.github.io/openapi/#operation/getMetricDefinitions) gives you the metrics with the available aggregations.
-1. *granularity* defines how many samples are returned. The value can be selected freely between 1 - selected windowSize.
+2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](https://instana.github.io/openapi/#operation/getMetricDefinitions) gives you the metrics with the available aggregations.
 
-**Optional Paramters:**
+## Optional Parameters:
 
-*pagination* If you configure many applications and do not apply any filters. The query will return all AP without restrictions, that may lead that you need pagination. 
+**metrics** Default you will get an aggregated metric with for the selected timeFrame 
+
+* *granularity* 
+  * if it is not set you will get a an aggregated value for the selected timeframe. 
+  * if the granularity is set you will get data points with the specified granularity in seconds
+    * The value can be selected freely between 1 - selected windowSize.
+ 
+   
+**pagination**
 1. *page*
-1. *pageSize*
+2. *pageSize*
 
-You can order the returned items alphanumerical by label, either ascending or descending
-*order*
+
+
+**order** You can order the returned items alphanumerical by label, either ascending or descending
+1. *by* if the granularity is set to 1 you can use the metric name eg. "latency.p95" to order by that value
 1. *direction* either ascending or descending
 
-*timeFrame*
-
+*timeFrame* As in our UI you can specify the timeframe for metrics retrieval.
+```
+  windowSize           to
+     (ms)       (unix-timestamp)
+<----------------------|
+```
 
 To narrow down the result set you have four options to search for an application.
 
-*nameFilter| applicationid| serviceId| endpointId*
+**nameFilter | applicationId | serviceId | endpointId**
 
 * *nameFilter:* filter by name with "contains" semantic.
 
-* *applicationid:* search directly for an application by id 
+* *applicationId:* search directly for an application by id 
 
 * *serviceId:* search for applications that include a particular service by service id
 
 * *endpointId:* search for applications that include a particular endpoint by endpoint id
 
-**Defaults:**
+## Defaults:
 
-*order* 
-* the default order is by application label ascending.
+**metrics**
+* *granularity:* 1
 
-*timeFrame*
+**order**
+* by application label ascending.
 
-*nameFilter| applicationid| serviceId| endpointId* 
+**timeFrame**
+```
+"timeFrame": {
+	"windowSize": 60000,
+	"to": {current timestamp}
+}
+```
+
+**nameFilter | applicationId | serviceId | endpointId**
 * no filters are applied in the default call
-
-**Limits:**
-
-**Tips:**
