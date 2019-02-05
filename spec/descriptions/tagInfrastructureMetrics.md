@@ -83,7 +83,7 @@ metric=cpu.steal
 ## Tips:
 
 [1] **Pagination**
-Sometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](https://instana.github.io/openapi/#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](https://instana.github.io/openapi/#operation/getInfrastructureMetrics) with the returned snapshotids
+Sometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](https://instana.github.io/openapi/#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](https://instana.github.io/openapi/#operation/getInfrastructureMetrics) with the returned snapshotIds
 
 
 [2] **Application filter**
