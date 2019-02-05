@@ -53,12 +53,15 @@ Valid rollups are:
 
 **Defaults:**
 
+*timeframe*
+```
 "timeFrame": {
 	"windowSize": 60000,
 	"to": {current timestamp}
 }
+```
 
-rollup: 1
+*rollup*: 1
 
 **Limits:**
 
