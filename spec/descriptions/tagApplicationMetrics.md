@@ -3,8 +3,8 @@ The endpoints of this group retrieve the metrics for defined applications, disco
 ## Mandatory Parameters:
 
 **metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
-1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](https://instana.github.io/openapi/#operation/getMetricDefinitions)
-2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](https://instana.github.io/openapi/#operation/getMetricDefinitions) gives you the metrics with the available aggregations.
+1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)
+2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.
 
 ## Optional Parameters:
 
@@ -39,11 +39,11 @@ To narrow down the result set you have four options to search for an application
 
 * *nameFilter:* filter by name with "contains" semantic.
 
-* *applicationId:* search directly for an application by id 
+* *applicationId:* search directly for an application by applicationId 
 
-* *serviceId:* search for applications that include a particular service by service id
+* *serviceId:* search for applications that include a particular service by serviceId
 
-* *endpointId:* search for applications that include a particular endpoint by endpoint id
+* *endpointId:* search for applications that include a particular endpoint by endpointId
 
 ## Defaults:
 
