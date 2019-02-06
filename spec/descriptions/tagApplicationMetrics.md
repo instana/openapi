@@ -14,13 +14,10 @@ The endpoints of this group retrieve the metrics for defined applications, disco
   * if it is not set you will get a an aggregated value for the selected timeframe. 
   * if the granularity is set you will get data points with the specified granularity in seconds
     * The value can be selected freely between 1 - selected windowSize.
- 
    
-**pagination**
-1. *page*
-2. *pageSize*
-
-
+**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
+1. *page* select the page number you want to retrieve
+2. *pageSize* set the number of applications you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
 1. *by* if the granularity is set to 1 you can use the metric name eg. "latency.p95" to order by that value
