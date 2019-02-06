@@ -8,7 +8,7 @@ The available plugins are depending on the system you are monitoring. Therefore 
 
 **query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)
 
-To make the easy to get started this endpoint has two modes that can be used for metrics retrieval:
+To make it easy to get started this endpoint has two modes that can be used for metrics retrieval:
 1. Search metrics with a query
   You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.
   To get usable search parameters you can either query the search [catalog endpoint](https://instana.github.io/openapi/#operation/getSearchFields) or use the UI
