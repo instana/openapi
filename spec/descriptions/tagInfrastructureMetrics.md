@@ -14,7 +14,7 @@ To make it easy to get started this endpoint has two modes that can be used for 
   To get usable search parameters you can either query the search [catalog endpoint](https://instana.github.io/openapi/#operation/getSearchFields) or use the UI
 
 1. Search metrics with snapshotIds
-  for advanced use cases, pagination for example. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute
+  for advanced use cases, like pagination. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute
 
 **metrics:** Id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"
 
