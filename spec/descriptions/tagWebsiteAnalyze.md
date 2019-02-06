@@ -1,11 +1,14 @@
 The following four endpoints expose our analyze functionality.
 
-## Mandatory Parameters (only for group Endpoints):
+## Mandatory Parameters :
 
-**group** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call
+**type** 
+
+**group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call
 * *groupByTag* select a tag by which the beacons are grouped 
   * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForWeb)
 * *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.
+
 
 ## Optional Parameters:
 
