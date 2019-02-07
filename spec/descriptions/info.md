@@ -80,24 +80,34 @@ apiToken: Requests against the Instana API require valid API tokens. An initial 
 
 ### Example of a REST API call with Curl
 
-If you want to get all Events in the last 5 minutes for example, you can use the following REST call.
+This is an example to get the metrics of traces grouped by a certain tag.
+First you can checkout all possible group tags and metrics with:
 
 ```bash
 curl --request GET \
-  --url https://test-instana.instana.io/api/events \
+  --url https://test-instana.instana.io/api/application-monitoring/catalog/tags \
+  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'
+
+curl --request GET \
+    --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \
+    --header 'authorization: apiToken xxxxxxxxxxxxxxxx'
+```
+
+Then you are able to use a groupbyTag and up to five metrics to get a list of items with the metrics.
+
+```bash
+curl --request POST \
+  --url https://test-instana.instana.io/api/application-monitoring/analyze/trace-groups \
   --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \
   --header 'content-type: application/json' \
   --data '{
-	   "windowsize":"300000"
+    "group":{
+      "groupbyTag":"trace.name"
+    },
+    "metrics":[{
+      "metric":"traces", "aggregation":"SUM","granularity":1
+    }]
   }'
-```
-
-Another example would be to get all the infrastructure with all the software that is installed with a simple REST call.
-
-```bash
-curl --request GET \
-  --url https://test-instana.instana.io/api/infrastructure-monitoring/software/versions \
-  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'
 ```
 
 
