@@ -77,6 +77,44 @@ The Instana API allows retrieval and configuration of key data points. Among oth
 The API documentation referes to two crucial parameters that you need to know about before reading further:
 base: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.
 apiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.
+
+### Example
+Here is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.
+
+```bash
+curl --request GET \
+  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \
+  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'
+```
+
+Next we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.
+
+```bash
+curl --request POST \
+  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \
+  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \
+  --header 'content-type: application/json' \
+  --data '{
+  "group":{
+      "groupbyTag":"endpoint.name"
+  },
+  "tagFilters":[
+  	{
+  		"name":"call.error.count",
+  		"value":"0",
+  		"operator":"GREATER_THAN"
+  	}
+  ],
+  "metrics":[
+  	{
+  		"metric":"errors",
+  		"aggregation":"MEAN"
+  	}
+  ]
+  }'
+```
+
+
 ### Rate Limiting
 A rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.
 
@@ -128,7 +166,7 @@ func readTags() {
 	if err != nil {
 		fmt.Fatalf("Error calling the API, aborting.")
 	}
-    
+
 	for _, tag := range tags {
 		fmt.Printf("%s (%s): %s\n", tag.Category, tag.Type, tag.Name)
 	}
