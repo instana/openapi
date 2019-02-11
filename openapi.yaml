@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: 'http://instana.com'
     email: support@instana.com
-  version: 1.147.74
+  version: 1.148.22
   x-logo:
     url: header-logo.svg
     backgroundColor: '#031F29'
@@ -18,20 +18,32 @@ servers:
     variables:
       tenant:
         description: Customer tenant unit
+        default: tenant
       unit:
         description: Customer tenant name
+        default: unit
 tags:
   - name: Infrastructure Metrics
+    description: "This endpoint retrieves the metrics for infrastructure components.\r\n\r\n## Mandatory Parameters:\r\n\r\n**plugin:** Plugins are entities' for which we collect metrics, for example : \"Host\", \"Cassandra node\", \"Cassandra Connection\".\r\n\r\nThe available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) were we have data for you.\r\n\r\n**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)\r\n\r\nTo make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:\r\n1. Search metrics with a query\r\n  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.\r\n  To get usable search parameters you can either query the search [catalog endpoint](#operation/getSearchFields) or use the UI\r\n\r\n1. Search for metrics for snapshotIds\r\n  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute\r\n\r\n**metrics:** Id of the exact metric you want to retrieve, eg. \"cpu.user\", \"clientrequests.read.mean\"\r\n\r\nOnce you have selected the plugin you can define up to five metrics you want to retrieve with the call.\r\nPlease use our [metrics catalog call](#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.\r\n\r\n## Optional Parameters:\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\n**rollup:** Depending on the selected timeFrame its possible to selected the rollup.\r\n\r\nThe available rollup is depending on two factors:\r\n1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)\r\n\r\n\tFor example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min\r\n1. Size of the selected windowSize\r\n\r\n\tThe limitation is that we only return 600 Data points per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s\r\n\r\nValid rollups are:\r\n\r\n| rollup  | value |\r\n| ------------- | ------------- |\r\n| 1 second  | 1 |\r\n| 5 seconds  | 5  |\r\n| 1 minute  | 60 |\r\n| 5 minutes  | 300  |\r\n| 1 hour  | 3600  |\r\n\r\n\r\n## Defaults:\r\n\r\n**timeframe:**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**rollup**: 1\r\n\r\n## Limits:\r\n\r\n500 Calls per Hour\r\n1000 Calls per Hour\r\n\r\nTo keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]\r\n\r\nA maximum of 600 data points are returned per metric.\r\n\r\nYou can only retrieve metrics [above](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter. Work around can be found under [2]\r\n\r\nThe following example will return an empty result, because the selected plugin \"host\" is below the dynamic focus filter \"java\" :\r\n```\r\nquery=entity.selfType:java\r\nplugin=host\r\nmetric=cpu.steal\r\n```\r\n## Tips:\r\n\r\n[1] **Pagination**\r\nSometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds\r\n\r\n\r\n[2] **Application filter**\r\nYou can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name\r\n```\r\nquery=entity.application.name:\"Java Applications\"\r\n```\r\n"
   - name: Infrastructure Resources
   - name: Infrastructure Catalog
+    description: |
+      The endpoints of this group retrieve all available resources to query infrastructure metrics.
   - name: Application Metrics
+    description: "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n\r\n## Mandatory Parameters:\r\n\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\r\n\r\n## Optional Parameters:\r\n\r\n**metrics** Default you will get an aggregated metric with for the selected timeFrame \r\n\r\n* *granularity* \r\n  * if it is not set you will get a an aggregated value for the selected timeframe. \r\n  * if the granularity is set you will get data points with the specified granularity in seconds\r\n    * The value can be selected freely between 1 - selected windowSize.\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n\r\n## Defaults:\r\n\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
   - name: Application Catalog
+    description: |
+      The endpoints of this group retrieve all available resources to query application metrics.
   - name: Application Resources
   - name: Application Analyze
+    description: "The following four endpoints expose our analyze functionality.\n\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \n\nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Mandatory Parameters (only for group Endpoints):\n\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForApplication)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getTagsForApplication)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\n3. *granularity* \n   * if it is not set you will get a an aggregated value for the selected timeframe. \n   * if the granularity is set you will get data points with the specified granularity in seconds\n   * The value can be selected freely between 1 - selected windowSize.\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
   - name: Application Settings
   - name: Website Metrics
   - name: Website Catalog
+    description: |
+      The endpoints of this group retrieve all available resources to query website metrics.
   - name: Website Analyze
+    description: "The following four endpoints expose our analyze functionality.\n\n## Mandatory Parameters :\n\n**type** \n\n**group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the beacons are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForWeb)\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.\n\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getTagsForApplication)\n* *name* The name of the tag as returned by the catalog, e.g `beacon.meta`, `beacon.http.path`\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" of you are using meta tags `beacon.meta` you can filter for those by setting `yourMetaTagName=foo` in the value field, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\n3. *granularity* \n   * if it is not set you will get a an aggregated value for the selected timeframe. \n   * if the granularity is set you will get data points with the specified granularity in seconds\n   * The value can be selected freely between 1 - selected windowSize.\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
   - name: Alerts
   - name: Events
   - name: Event Settings
@@ -43,24 +55,6 @@ tags:
   - name: Health
   - name: Usage
 paths:
-  /api/application-monitoring/analyze/trace-groups:
-    post:
-      tags:
-        - Application Analyze
-      summary: Trace group metrics
-      operationId: getTraceGroups
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetTraceGroups'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TraceGroupsResult'
   /api/application-monitoring/analyze/call-groups:
     post:
       tags:
@@ -79,6 +73,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CallGroupsResult'
+      description: "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
   /api/application-monitoring/analyze/traces:
     get:
       tags:
@@ -137,6 +132,25 @@ paths:
             assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
             String traceResult = EntityUtils.toString(response.getEntity());
             client.close();
+      description: "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
+  /api/application-monitoring/analyze/trace-groups:
+    post:
+      tags:
+        - Application Analyze
+      summary: Trace group metrics
+      operationId: getTraceGroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTraceGroups'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceGroupsResult'
   /api/application-monitoring/metrics/applications:
     post:
       tags:
@@ -191,43 +205,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EndpointMetricResult'
-  /api/application-monitoring/applications/services:
-    get:
-      tags:
-        - Application Resources
-      summary: Get applications/services
-      operationId: getApplicationServices
-      parameters:
-        - name: nameFilter
-          in: query
-          schema:
-            type: string
-        - name: windowSize
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: to
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: page
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceResult'
   /api/application-monitoring/applications:
     get:
       tags:
@@ -316,6 +293,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EndpointResult'
+  /api/application-monitoring/applications/services:
+    get:
+      tags:
+        - Application Resources
+      summary: Get applications/services
+      operationId: getApplicationServices
+      parameters:
+        - name: nameFilter
+          in: query
+          schema:
+            type: string
+        - name: windowSize
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: to
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResult'
   /api/application-monitoring/services:
     get:
       tags:
@@ -353,12 +367,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceResult'
+  /api/application-monitoring/catalog/tags:
+    get:
+      tags:
+        - Application Catalog
+      summary: Tag catalog
+      operationId: getApplicationCatalogTags
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PluginResult'
+      description: "This endpoint retrieves all available tags for your monitored system.\n\nThese tags can be used to group metric results.\n```\n\"group\": {\n  \"groupbyTag\": \"service.name\"\n}\n```\n\nThese tags can be used to filter metric results.\n```\n\"tagFilters\": [{\n\t\"name\": \"application.name\",\n\t\"operator\": \"EQUALS\",\n\t\"value\": \"example\"\n}]\n```\n"
   /api/application-monitoring/catalog/metrics:
     get:
       tags:
         - Application Catalog
-      summary: Metric descriptions
-      operationId: getMetricDefinitions
+      summary: Metric catalog
+      operationId: getApplicationCatalogMetrics
       responses:
         default:
           content:
@@ -367,20 +396,42 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MetricDescription'
-  /api/application-monitoring/catalog/tags:
+      description: |
+        This endpoint retrieves all available metric definitions for application monitoring.
+  /api/application-monitoring/settings/application:
     get:
       tags:
-        - Application Catalog
-      summary: Tag catalog
-      operationId: getTagsForApplication
+        - Application Settings
+      summary: All Application configurations
+      operationId: getApplicationConfigs
       responses:
         default:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Tag'
+                $ref: '#/components/schemas/ApplicationConfig'
+      security:
+        - ApiKeyAuth:
+            - ConfigureServiceMapping
+    post:
+      tags:
+        - Application Settings
+      summary: Add application configuration
+      operationId: addApplicationConfig
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ApplicationConfig'
+        required: true
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureServiceMapping
   '/api/application-monitoring/settings/application/{id}':
     get:
       tags:
@@ -438,46 +489,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ApplicationConfig'
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-      security:
-        - ApiKeyAuth:
-            - ConfigureServiceMapping
-  /api/application-monitoring/settings/application:
-    get:
-      tags:
-        - Application Settings
-      summary: All Application configurations
-      operationId: getApplicationConfigs
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationConfig'
-      security:
-        - ApiKeyAuth:
-            - ConfigureServiceMapping
-    post:
-      tags:
-        - Application Settings
-      summary: Add application configuration
-      operationId: addApplicationConfig
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ApplicationConfig'
-        required: true
       responses:
         default:
           description: default response
@@ -577,12 +588,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/HttpEndpointConfig'
-        required: true
       responses:
         default:
           description: default response
@@ -669,12 +674,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ServiceConfig'
-        required: true
       responses:
         default:
           description: default response
@@ -800,17 +799,29 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/AnomalyAlert'
-        required: true
       responses:
         default:
           description: default response
           content:
             application/json: {}
+  '/api/events/{eventId}':
+    get:
+      tags:
+        - Events
+      summary: Event
+      operationId: getEvent
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResult'
   /api/events:
     get:
       tags:
@@ -841,24 +852,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EventResult'
-  '/api/events/{eventId}':
-    get:
-      tags:
-        - Events
-      summary: Event
-      operationId: getEvent
-      parameters:
-        - name: eventId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventResult'
   '/api/events/settings/alerts/{id}':
     get:
       tags:
@@ -910,12 +903,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/AlertingConfiguration'
-        required: true
       responses:
         default:
           description: default response
@@ -935,60 +922,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AlertingConfiguration'
-  '/api/events/settings/built-in-rules/{id}':
-    get:
-      tags:
-        - Event Settings
-      summary: Built-in rule
-      operationId: getBuildInRule
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BuiltInRuleSpecification'
-    delete:
-      tags:
-        - Event Settings
-      summary: Delete built-in rule
-      operationId: deleteBuildInRule
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/BuiltInRuleSpecification'
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /api/events/settings/built-in-rules:
-    get:
-      tags:
-        - Event Settings
-      summary: All built-in rules
-      operationId: getBuildInRules
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BuiltInRuleSpecification'
   '/api/events/settings/built-in-rules/{id}/enable':
     post:
       tags:
@@ -1023,12 +956,12 @@ paths:
           description: default response
           content:
             application/json: {}
-  '/api/events/settings/health-rules/{id}':
+  '/api/events/settings/built-in-rules/{id}':
     get:
       tags:
         - Event Settings
-      summary: Health rule
-      operationId: getHealthRule
+      summary: Built-in rule
+      operationId: getBuildInRule
       parameters:
         - name: id
           in: path
@@ -1040,57 +973,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthRule'
-    put:
-      tags:
-        - Event Settings
-      summary: Update health rule
-      operationId: putHealthRule
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/HealthRule'
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
+                $ref: '#/components/schemas/BuiltInRuleSpecification'
     delete:
       tags:
         - Event Settings
-      summary: Delete health rule
-      operationId: deleteHealthRule
+      summary: Delete built-in rule
+      operationId: deleteBuildInRule
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/HealthRule'
-        required: true
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /api/events/settings/health-rules:
+  /api/events/settings/built-in-rules:
     get:
       tags:
         - Event Settings
-      summary: All health rules
-      operationId: getHealthRules
+      summary: All built-in rules
+      operationId: getBuildInRules
       responses:
         default:
           content:
@@ -1098,7 +1003,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/HealthRule'
+                  $ref: '#/components/schemas/BuiltInRuleSpecification'
   '/api/events/settings/integrations/{id}':
     get:
       tags:
@@ -1150,12 +1055,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/AbstractIntegration'
-        required: true
       responses:
         default:
           description: default response
@@ -1187,84 +1086,6 @@ paths:
           required: true
           schema:
             type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /api/events/settings/objectives:
-    get:
-      tags:
-        - Event Settings
-      summary: All objective
-      operationId: getObjectives
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Objective'
-  '/api/events/settings/objectives/{objectiveId}':
-    get:
-      tags:
-        - Event Settings
-      summary: Objective
-      operationId: getObjective
-      parameters:
-        - name: objectiveId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Objective'
-    put:
-      tags:
-        - Event Settings
-      summary: Update objective
-      operationId: putObjective
-      parameters:
-        - name: objectiveId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/Objective'
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Event Settings
-      summary: Delete objective
-      operationId: deleteObjective
-      parameters:
-        - name: objectiveId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/Objective'
-        required: true
       responses:
         default:
           description: default response
@@ -1321,12 +1142,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/Rule'
-        required: true
       responses:
         default:
           description: default response
@@ -1411,12 +1226,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/RuleBinding'
-        required: true
       responses:
         default:
           description: default response
@@ -1436,12 +1245,51 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RuleBinding'
+  /api/infrastructure-monitoring/catalog/search:
+    get:
+      tags:
+        - Infrastructure Catalog
+      summary: Search field catalog
+      operationId: getInfrastructureCatalogSearchFields
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchFieldResult'
+      description: |
+        This endpoint retrieves all available search keywords for dynamic focus queries.
+
+        These search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.
+        Some fields contain a set of possible fixed values, in this case a deviant value is invalid.
+
+        ```
+        ?query={keyword}:{value}
+        ```
+  /api/infrastructure-monitoring/catalog/plugins:
+    get:
+      tags:
+        - Infrastructure Catalog
+      summary: Plugin catalog
+      operationId: getInfrastructureCatalogPlugins
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PluginResult'
+      description: |
+        This endpoint retrieves all available plugin ids for your monitored system.
   '/api/infrastructure-monitoring/catalog/metrics/{plugin}':
     get:
       tags:
         - Infrastructure Catalog
-      summary: Available metrics
-      operationId: getMetricsByPlugin
+      summary: Metric catalog
+      operationId: getInfrastructureCatalogMetrics
       parameters:
         - name: plugin
           in: path
@@ -1460,35 +1308,31 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MetricInstance'
-  /api/infrastructure-monitoring/catalog/search:
+      description: |
+        This endpoint retrieves all available metric definitions of the requested plugin.
+
+        ### Path Parameters:
+
+        **plugin** The plugin id from [available plugins](#operation/getInfrastructureCatalogPlugins)
+
+        ### Optional Parameters:
+
+        **filter** You can restrict the returned metric definitions by passing a filter.
+
+        * `custom` to retrieve custom metric definitions only.
+        * `builtin` to retrieve built-in metric definitions only.
+  /api/infrastructure-monitoring/graph/views:
     get:
       tags:
-        - Infrastructure Catalog
-      summary: Search fields
-      description: 'This endpoints provides a list of available search fields. These search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.'
-      operationId: getSearchFields
+        - Infrastructure Resources
+      summary: View tree
+      operationId: getInfrastructureViewTree
       responses:
         default:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SearchFieldResult'
-  /api/infrastructure-monitoring/catalog/plugins:
-    get:
-      tags:
-        - Infrastructure Catalog
-      summary: Available Plugins
-      operationId: getPlugins
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PluginResult'
+                $ref: '#/components/schemas/TreeNodeResult'
   '/api/infrastructure-monitoring/graph/related-hosts/{snapshotId}':
     get:
       tags:
@@ -1509,26 +1353,17 @@ paths:
                 type: array
                 items:
                   type: string
-  /api/infrastructure-monitoring/graph/views:
-    get:
-      tags:
-        - Infrastructure Resources
-      summary: View tree
-      operationId: getInfrastructureViewTree
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ViewComponent'
   /api/infrastructure-monitoring/metrics:
     post:
       tags:
         - Infrastructure Metrics
       summary: Infrastructure metrics
       operationId: getInfrastructureMetrics
+      parameters:
+        - name: context
+          in: query
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:
@@ -1562,12 +1397,14 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: id
-          in: path
-          required: true
-          style: matrix
+        - name: plugin
+          in: query
           schema:
             type: string
+        - name: context
+          in: query
+          schema:
+            type: boolean
       responses:
         default:
           content:
@@ -1575,6 +1412,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/SnapshotResult'
       description: "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\r\n**Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\r\n- Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.\r\n"
+  '/api/infrastructure-monitoring/snapshots/{id}':
+    get:
+      tags:
+        - Infrastructure Metrics
+      summary: Get snapshot details
+      operationId: getSnapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: time
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotItem'
   /api/infrastructure-monitoring/monitoring-state:
     get:
       tags:
@@ -1893,6 +1753,11 @@ paths:
           in: query
           schema:
             type: string
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            format: int32
       responses:
         default:
           content:
@@ -2155,12 +2020,12 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureServiceMapping
-  /api/settings/users/overview:
+  /api/settings/users:
     get:
       tags:
         - User
-      summary: All tenant user
-      operationId: getUsersIncludingInvitations
+      summary: All tenant users (excluding pending invitations)
+      operationId: getUsers
       responses:
         default:
           content:
@@ -2172,27 +2037,23 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureUsers
-  '/api/settings/users/{userId}':
-    delete:
+  /api/settings/users/invitations:
+    get:
       tags:
         - User
-      summary: Remove user from tenant
-      operationId: removeUserFromTenant
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
+      summary: All pending invitations for one tenant
+      operationId: getInvitations
       responses:
         default:
-          description: default response
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
       security:
         - ApiKeyAuth:
             - ConfigureUsers
-  /api/settings/users/invitations:
     post:
       tags:
         - User
@@ -2223,6 +2084,43 @@ paths:
       parameters:
         - name: email
           in: query
+          schema:
+            type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureUsers
+  /api/settings/users/overview:
+    get:
+      tags:
+        - User
+      summary: All tenant users including pending invitations
+      operationId: getUsersIncludingInvitations
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+      security:
+        - ApiKeyAuth:
+            - ConfigureUsers
+  '/api/settings/users/{userId}':
+    delete:
+      tags:
+        - User
+      summary: Remove user from tenant
+      operationId: removeUserFromTenant
+      parameters:
+        - name: userId
+          in: path
+          required: true
           schema:
             type: string
       responses:
@@ -2293,12 +2191,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BeaconResult'
+  /api/website-monitoring/catalog/tags:
+    get:
+      tags:
+        - Website Catalog
+      summary: Tag catalog
+      operationId: getWebsiteCatalogTags
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MetricInstance'
+      description: "This endpoint retrieves all available tags for your monitored system.\n\nThese tags can be used to group metric results.\n```\n\"group\": {\n  \"groupbyTag\": \"beacon.page.name\"\n}\n```\n\nThese tags can be used to filter metric results.\n```\n\"tagFilters\": [{\n\t\"name\": \"beacon.website.name\",\n\t\"operator\": \"EQUALS\",\n\t\"value\": \"example\"\n}]\n```\n"
   /api/website-monitoring/catalog/metrics:
     get:
       tags:
         - Website Catalog
-      summary: Metric descriptions
-      operationId: getMetricDefinitions_1
+      summary: Metric catalog
+      operationId: getWebsiteCatalogMetrics
       responses:
         default:
           content:
@@ -2307,38 +2220,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MetricDescription'
-  /api/website-monitoring/catalog/tags:
-    get:
-      tags:
-        - Website Catalog
-      summary: Tag catalog
-      operationId: getTagsForWeb
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Tag'
-  /api/website-monitoring/metrics:
-    post:
-      tags:
-        - Website Metrics
-      summary: Beacons metrics
-      operationId: getBeaconMetrics
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetWebsiteMetrics'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebsiteMetricResult'
+      description: |
+        This endpoint retrieves all available metric definitions for website monitoring.
   /api/website-monitoring/page-load:
     get:
       tags:
@@ -2371,20 +2254,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/WebsiteMonitoringBeacon'
+  /api/website-monitoring/metrics:
+    post:
+      tags:
+        - Website Metrics
+      summary: Beacons metrics
+      operationId: getBeaconMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetWebsiteMetrics'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteMetricResult'
 components:
   schemas:
-    IngestionOffsetCursor:
-      type: object
-      properties:
-        ingestionTime:
-          minimum: 0
-          type: integer
-          format: int64
-        offset:
-          minimum: 0
-          type: integer
-          format: int32
-    TraceGroupsItem:
+    CallGroupsItem:
       required:
         - cursor
         - metrics
@@ -2406,7 +2296,7 @@ components:
               type: array
               items:
                 type: number
-    TraceGroupsResult:
+    CallGroupsResult:
       required:
         - items
       type: object
@@ -2414,7 +2304,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/TraceGroupsItem'
+            $ref: '#/components/schemas/CallGroupsItem'
         canLoadMore:
           type: boolean
         totalHits:
@@ -2425,7 +2315,20 @@ components:
           minimum: 0
           type: integer
           format: int32
+    IngestionOffsetCursor:
+      type: object
+      properties:
+        ingestionTime:
+          minimum: 0
+          type: integer
+          format: int64
+        offset:
+          minimum: 0
+          type: integer
+          format: int32
     CursorPagination:
+      required:
+        - ingestionTime
       type: object
       properties:
         retrievalSize:
@@ -2439,7 +2342,7 @@ components:
         ingestionTime:
           type: integer
           format: int64
-    GetTraceGroups:
+    GetCallGroups:
       required:
         - group
       type: object
@@ -2453,7 +2356,7 @@ components:
         group:
           $ref: '#/components/schemas/Group'
         tagFilters:
-          maxItems: 32
+          maxItems: 10
           minItems: 0
           type: array
           items:
@@ -2545,72 +2448,6 @@ components:
         to:
           type: integer
           format: int64
-    CallGroupsItem:
-      required:
-        - cursor
-        - metrics
-      type: object
-      properties:
-        name:
-          type: string
-        timestamp:
-          minimum: 0
-          type: integer
-          format: int64
-        cursor:
-          $ref: '#/components/schemas/IngestionOffsetCursor'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    CallGroupsResult:
-      required:
-        - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CallGroupsItem'
-        canLoadMore:
-          type: boolean
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-        totalRepresentedItemCount:
-          minimum: 0
-          type: integer
-          format: int32
-    GetCallGroups:
-      required:
-        - group
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/CursorPagination'
-        order:
-          $ref: '#/components/schemas/Order'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        group:
-          $ref: '#/components/schemas/Group'
-        tagFilters:
-          maxItems: 10
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/MetricConfiguration'
     Endpoint:
       required:
         - technologies
@@ -2628,6 +2465,7 @@ components:
             - RPC
             - BATCH
             - HTTP
+            - INTERNAL
             - DATABASE
             - MESSAGING
             - PAGE
@@ -2664,6 +2502,7 @@ components:
               - RPC
               - BATCH
               - HTTP
+              - INTERNAL
               - DATABASE
               - MESSAGING
               - PAGE
@@ -2736,6 +2575,72 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
+    TraceGroupsItem:
+      required:
+        - cursor
+        - metrics
+      type: object
+      properties:
+        name:
+          type: string
+        timestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    TraceGroupsResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    GetTraceGroups:
+      required:
+        - group
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/Group'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricConfiguration'
     Application:
       type: object
       properties:
@@ -2952,18 +2857,15 @@ components:
           minLength: 0
           type: string
         serviceId:
-          maxLength: 64
-          minLength: 0
           type: string
+          writeOnly: true
         endpointId:
-          maxLength: 64
-          minLength: 0
           type: string
+          writeOnly: true
         endpointTypes:
-          maxItems: 8
-          minItems: 0
           uniqueItems: true
           type: array
+          writeOnly: true
           items:
             type: string
             enum:
@@ -2971,15 +2873,15 @@ components:
               - RPC
               - BATCH
               - HTTP
+              - INTERNAL
               - DATABASE
               - MESSAGING
               - PAGE
               - PAGE_RESOURCE
         technologies:
-          maxItems: 20
-          minItems: 0
           uniqueItems: true
           type: array
+          writeOnly: true
           items:
             type: string
     Pagination:
@@ -3060,26 +2962,6 @@ components:
           maxLength: 64
           minLength: 0
           type: string
-        endpointId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        endpointTypes:
-          maxItems: 8
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-            enum:
-              - UNDEFINED
-              - RPC
-              - BATCH
-              - HTTP
-              - DATABASE
-              - MESSAGING
-              - PAGE
-              - PAGE_RESOURCE
         technologies:
           maxItems: 20
           minItems: 0
@@ -3169,33 +3051,13 @@ components:
               - RPC
               - BATCH
               - HTTP
+              - INTERNAL
               - DATABASE
               - MESSAGING
               - PAGE
               - PAGE_RESOURCE
-        technologies:
-          maxItems: 20
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-    ServiceResult:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/Service'
-        page:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        totalHits:
-          type: integer
-          format: int32
+        excludeSynthetic:
+          type: boolean
     ApplicationResult:
       type: object
       properties:
@@ -3228,6 +3090,29 @@ components:
         totalHits:
           type: integer
           format: int32
+    ServiceResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        totalHits:
+          type: integer
+          format: int32
+    PluginResult:
+      type: object
+      properties:
+        plugin:
+          type: string
+        label:
+          type: string
     MetricDescription:
       type: object
       properties:
@@ -3244,23 +3129,10 @@ components:
           type: array
           items:
             type: string
-    Tag:
-      type: object
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-          enum:
-            - STRING
-            - NUMBER
-            - BOOLEAN
-            - KEY_VALUE_PAIR
-        category:
-          type: string
     ApplicationConfig:
       required:
         - matchSpecification
+        - scope
       type: object
       properties:
         id:
@@ -3273,6 +3145,12 @@ components:
           type: string
         matchSpecification:
           $ref: '#/components/schemas/MatchExpressionDTO'
+        scope:
+          type: string
+          enum:
+            - INCLUDE_NO_DOWNSTREAM
+            - INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+            - INCLUDE_ALL_DOWNSTREAM
     BinaryOperatorDTO:
       required:
         - conjunction
@@ -3705,24 +3583,6 @@ components:
           maxLength: 256
           minLength: 0
           type: string
-    HealthRule:
-      required:
-        - description
-        - plugin
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
-          type: string
-        description:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        plugin:
-          maxLength: 256
-          minLength: 0
-          type: string
     AbstractIntegration:
       required:
         - kind
@@ -3837,72 +3697,6 @@ components:
             type: string
       allOf:
         - $ref: '#/components/schemas/AbstractIntegration'
-    Objective:
-      required:
-        - match
-        - name
-        - rule
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        enabled:
-          type: boolean
-        match:
-          $ref: '#/components/schemas/ObjectiveMatch'
-        rule:
-          $ref: '#/components/schemas/ObjectiveRule'
-        lastUpdated:
-          type: integer
-          format: int64
-    ObjectiveMatch:
-      required:
-        - filteringQuery
-        - timePattern
-        - timeZoneId
-      type: object
-      properties:
-        filteringQuery:
-          type: string
-        timePattern:
-          type: string
-        allowedIssueTypes:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-        timeZoneId:
-          type: string
-    ObjectiveRule:
-      required:
-        - reductionOperation
-        - thresholds
-      type: object
-      properties:
-        reductionOperation:
-          type: string
-        thresholds:
-          uniqueItems: true
-          type: array
-          items:
-            $ref: '#/components/schemas/ObjectiveThreshold'
-    ObjectiveThreshold:
-      required:
-        - message
-        - severity
-        - value
-      type: object
-      properties:
-        value:
-          type: integer
-          format: int64
-        severity:
-          type: integer
-          format: int32
-        message:
-          type: string
     Rule:
       required:
         - conditionOperator
@@ -3993,6 +3787,21 @@ components:
           minimum: 1
           type: integer
           format: int64
+    SearchFieldResult:
+      type: object
+      properties:
+        keyword:
+          type: string
+        description:
+          type: string
+        context:
+          type: string
+        termType:
+          type: string
+        fixedValues:
+          type: array
+          items:
+            type: string
     MetricInstance:
       required:
         - formatter
@@ -4020,61 +3829,39 @@ components:
           type: string
         custom:
           type: boolean
-    SearchFieldResult:
-      type: object
-      properties:
-        keyword:
-          type: string
-        description:
-          type: string
-        context:
-          type: string
-        termType:
-          type: string
-        fixedValues:
-          type: array
-          items:
-            type: string
-    PluginResult:
-      type: object
-      properties:
-        plugin:
-          type: string
-        label:
-          type: string
     Connection:
       type: object
       properties:
+        connectedSnapshotId:
+          type: string
         id:
           type: string
-        otherId:
-          type: string
-        bidirectional:
-          type: boolean
-    ViewComponent:
+    TreeNode:
       type: object
       properties:
-        id:
+        snapshotId:
           type: string
-        metadata:
-          type: object
-          additionalProperties:
-            type: object
+        type:
+          type: string
         children:
-          uniqueItems: true
           type: array
           items:
-            $ref: '#/components/schemas/ViewComponent'
-        outgoingConnections:
-          uniqueItems: true
-          type: array
-          items:
-            $ref: '#/components/schemas/Connection'
-        incomingConnections:
-          uniqueItems: true
+            $ref: '#/components/schemas/TreeNode'
+        incomingConnection:
           type: array
           items:
             $ref: '#/components/schemas/Connection'
+        outgoingConnection:
+          type: array
+          items:
+            $ref: '#/components/schemas/Connection'
+    TreeNodeResult:
+      type: object
+      properties:
+        tree:
+          type: array
+          items:
+            $ref: '#/components/schemas/TreeNode'
     InfrastructureMetricResult:
       type: object
       properties:
@@ -4434,6 +4221,33 @@ components:
           $ref: '#/components/schemas/MatchExpressionDTO'
         enabled:
           type: boolean
+    LdapProvider:
+      type: object
+      properties:
+        url:
+          type: string
+        base:
+          type: string
+        userDnMapping:
+          type: string
+        groupQuery:
+          type: string
+        userQueryTemplate:
+          type: string
+        emailField:
+          type: string
+        groupMemberField:
+          type: string
+        roUser:
+          type: string
+        userField:
+          type: string
+        emptyPass:
+          type: boolean
+        groupMemberFieldConfigured:
+          type: boolean
+        valid:
+          type: boolean
     SAMLProvider:
       type: object
       properties:
@@ -4476,6 +4290,8 @@ components:
             $ref: '#/components/schemas/SSOProvider'
         samlProvider:
           $ref: '#/components/schemas/SAMLProvider'
+        ldapProvider:
+          $ref: '#/components/schemas/LdapProvider'
         createdDate:
           type: integer
           format: int64
