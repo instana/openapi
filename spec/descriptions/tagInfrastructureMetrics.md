@@ -4,7 +4,7 @@ This endpoint retrieves the metrics for infrastructure components.
 
 **plugin:** Plugins are entities' for which we collect metrics, for example : "Host", "Cassandra node", "Cassandra Connection".
 
-The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) were we have data for you.
+The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) where we have data for you.
 
 **query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)
 
