@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: http://instana.com
     email: support@instana.com
-  version: 1.148.22
+  version: 1.148.40
   x-description: info
   x-logo:
     url: header-logo.svg
@@ -388,40 +388,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/MetricDescription'
       x-description: getApplicationCatalogMetrics
-  /api/application-monitoring/settings/application:
-    get:
-      tags:
-      - Application Settings
-      summary: All Application configurations
-      operationId: getApplicationConfigs
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationConfig'
-      security:
-      - ApiKeyAuth:
-        - ConfigureServiceMapping
-    post:
-      tags:
-      - Application Settings
-      summary: Add application configuration
-      operationId: addApplicationConfig
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ApplicationConfig'
-        required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-      security:
-      - ApiKeyAuth:
-        - ConfigureServiceMapping
   /api/application-monitoring/settings/application/{id}:
     get:
       tags:
@@ -479,6 +445,40 @@ paths:
         required: true
         schema:
           type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+      - ApiKeyAuth:
+        - ConfigureServiceMapping
+  /api/application-monitoring/settings/application:
+    get:
+      tags:
+      - Application Settings
+      summary: All Application configurations
+      operationId: getApplicationConfigs
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationConfig'
+      security:
+      - ApiKeyAuth:
+        - ConfigureServiceMapping
+    post:
+      tags:
+      - Application Settings
+      summary: Add application configuration
+      operationId: addApplicationConfig
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ApplicationConfig'
+        required: true
       responses:
         default:
           description: default response
@@ -1984,12 +1984,12 @@ paths:
       security:
       - ApiKeyAuth:
         - ConfigureServiceMapping
-  /api/settings/users:
+  /api/settings/users/overview:
     get:
       tags:
       - User
-      summary: All tenant users (excluding pending invitations)
-      operationId: getUsers
+      summary: All tenant users including pending invitations
+      operationId: getUsersIncludingInvitations
       responses:
         default:
           content:
@@ -1998,6 +1998,26 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+      security:
+      - ApiKeyAuth:
+        - ConfigureUsers
+  /api/settings/users/{userId}:
+    delete:
+      tags:
+      - User
+      summary: Remove user from tenant
+      operationId: removeUserFromTenant
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
       security:
       - ApiKeyAuth:
         - ConfigureUsers
@@ -2058,12 +2078,12 @@ paths:
       security:
       - ApiKeyAuth:
         - ConfigureUsers
-  /api/settings/users/overview:
+  /api/settings/users:
     get:
       tags:
       - User
-      summary: All tenant users including pending invitations
-      operationId: getUsersIncludingInvitations
+      summary: All tenant users (excluding pending invitations)
+      operationId: getUsers
       responses:
         default:
           content:
@@ -2072,26 +2092,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-      security:
-      - ApiKeyAuth:
-        - ConfigureUsers
-  /api/settings/users/{userId}:
-    delete:
-      tags:
-      - User
-      summary: Remove user from tenant
-      operationId: removeUserFromTenant
-      parameters:
-      - name: userId
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
       security:
       - ApiKeyAuth:
         - ConfigureUsers
