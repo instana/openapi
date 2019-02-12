@@ -8,13 +8,13 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.148.22",
+    "version": "1.148.40",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#031F29",
       "altText": "instana logo"
     },
-    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\nTo generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):\n\n```bash\n# Download the generator to your current working directory:\nwget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar\n\n# generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n# (optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs. To use the client from the example above, you can start right away:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n    \n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n"
+    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n\n### Example\nHere is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.\n\n```bash\ncurl --request GET \\\n  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'\n```\n\nNext we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.\n\n```bash\ncurl --request POST \\\n  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"group\":{\n      \"groupbyTag\":\"endpoint.name\"\n  },\n  \"tagFilters\":[\n  \t{\n  \t\t\"name\":\"call.error.count\",\n  \t\t\"value\":\"0\",\n  \t\t\"operator\":\"GREATER_THAN\"\n  \t}\n  ],\n  \"metrics\":[\n  \t{\n  \t\t\"metric\":\"errors\",\n  \t\t\"aggregation\":\"MEAN\"\n  \t}\n  ]\n  }'\n```\n\n\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\nTo generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):\n\n```bash\n# Download the generator to your current working directory:\nwget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar\n\n# generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n# (optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs. To use the client from the example above, you can start right away:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n\n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n"
   },
   "servers": [
     {
@@ -35,7 +35,7 @@
   "tags": [
     {
       "name": "Infrastructure Metrics",
-      "description": "This endpoint retrieves the metrics for infrastructure components.\r\n\r\n## Mandatory Parameters:\r\n\r\n**plugin:** Plugins are entities' for which we collect metrics, for example : \"Host\", \"Cassandra node\", \"Cassandra Connection\".\r\n\r\nThe available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) were we have data for you.\r\n\r\n**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)\r\n\r\nTo make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:\r\n1. Search metrics with a query\r\n  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.\r\n  To get usable search parameters you can either query the search [catalog endpoint](#operation/getSearchFields) or use the UI\r\n\r\n1. Search for metrics for snapshotIds\r\n  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute\r\n\r\n**metrics:** Id of the exact metric you want to retrieve, eg. \"cpu.user\", \"clientrequests.read.mean\"\r\n\r\nOnce you have selected the plugin you can define up to five metrics you want to retrieve with the call.\r\nPlease use our [metrics catalog call](#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.\r\n\r\n## Optional Parameters:\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\n**rollup:** Depending on the selected timeFrame its possible to selected the rollup.\r\n\r\nThe available rollup is depending on two factors:\r\n1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)\r\n\r\n\tFor example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min\r\n1. Size of the selected windowSize\r\n\r\n\tThe limitation is that we only return 600 Data points per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s\r\n\r\nValid rollups are:\r\n\r\n| rollup  | value |\r\n| ------------- | ------------- |\r\n| 1 second  | 1 |\r\n| 5 seconds  | 5  |\r\n| 1 minute  | 60 |\r\n| 5 minutes  | 300  |\r\n| 1 hour  | 3600  |\r\n\r\n\r\n## Defaults:\r\n\r\n**timeframe:**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**rollup**: 1\r\n\r\n## Limits:\r\n\r\n500 Calls per Hour\r\n1000 Calls per Hour\r\n\r\nTo keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]\r\n\r\nA maximum of 600 data points are returned per metric.\r\n\r\nYou can only retrieve metrics [above](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter. Work around can be found under [2]\r\n\r\nThe following example will return an empty result, because the selected plugin \"host\" is below the dynamic focus filter \"java\" :\r\n```\r\nquery=entity.selfType:java\r\nplugin=host\r\nmetric=cpu.steal\r\n```\r\n## Tips:\r\n\r\n[1] **Pagination**\r\nSometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds\r\n\r\n\r\n[2] **Application filter**\r\nYou can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name\r\n```\r\nquery=entity.application.name:\"Java Applications\"\r\n```\r\n"
+      "description": "This endpoint retrieves the metrics for infrastructure components.\r\n\r\n## Mandatory Parameters:\r\n\r\n**plugin:** Plugins are entities' for which we collect metrics, for example : \"Host\", \"Cassandra node\", \"Cassandra Connection\".\r\n\r\nThe available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) where we have data for you.\r\n\r\n**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)\r\n\r\nTo make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:\r\n1. Search metrics with a query\r\n  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.\r\n  To get usable search parameters you can either query the search [catalog endpoint](#operation/getSearchFields) or use the UI\r\n\r\n1. Search for metrics for snapshotIds\r\n  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute\r\n\r\n**metrics:** Id of the exact metric you want to retrieve, eg. \"cpu.user\", \"clientrequests.read.mean\"\r\n\r\nOnce you have selected the plugin you can define up to five metrics you want to retrieve with the call.\r\nPlease use our [metrics catalog call](#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.\r\n\r\n## Optional Parameters:\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\n**rollup:** Depending on the selected timeFrame its possible to selected the rollup.\r\n\r\nThe available rollup is depending on two factors:\r\n1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)\r\n\r\n\tFor example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min\r\n1. Size of the selected windowSize\r\n\r\n\tThe limitation is that we only return 600 Data points per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s\r\n\r\nValid rollups are:\r\n\r\n| rollup  | value |\r\n| ------------- | ------------- |\r\n| 1 second  | 1 |\r\n| 5 seconds  | 5  |\r\n| 1 minute  | 60 |\r\n| 5 minutes  | 300  |\r\n| 1 hour  | 3600  |\r\n\r\n\r\n## Defaults:\r\n\r\n**timeframe:**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**rollup**: 1\r\n\r\n## Limits:\r\n\r\n500 Calls per Hour\r\n1000 Calls per Hour\r\n\r\nTo keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]\r\n\r\nA maximum of 600 data points are returned per metric.\r\n\r\nYou can only retrieve metrics [above](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter. Work around can be found under [2]\r\n\r\nThe following example will return an empty result, because the selected plugin \"host\" is below the dynamic focus filter \"java\" :\r\n```\r\nquery=entity.selfType:java\r\nplugin=host\r\nmetric=cpu.steal\r\n```\r\n## Tips:\r\n\r\n[1] **Pagination**\r\nSometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds\r\n\r\n\r\n[2] **Application filter**\r\nYou can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name\r\n```\r\nquery=entity.application.name:\"Java Applications\"\r\n```\r\n"
     },
     {
       "name": "Infrastructure Resources"
@@ -637,65 +637,6 @@
         "description": "This endpoint retrieves all available metric definitions for application monitoring.\n"
       }
     },
-    "/api/application-monitoring/settings/application": {
-      "get": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "All Application configurations",
-        "operationId": "getApplicationConfigs",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationConfig"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "Add application configuration",
-        "operationId": "addApplicationConfig",
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "$ref": "#/components/schemas/ApplicationConfig"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      }
-    },
     "/api/application-monitoring/settings/application/{id}": {
       "get": {
         "tags": [
@@ -790,6 +731,65 @@
             }
           }
         ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/application-monitoring/settings/application": {
+      "get": {
+        "tags": [
+          "Application Settings"
+        ],
+        "summary": "All Application configurations",
+        "operationId": "getApplicationConfigs",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationConfig"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Application Settings"
+        ],
+        "summary": "Add application configuration",
+        "operationId": "addApplicationConfig",
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationConfig"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "default": {
             "description": "default response",
@@ -3298,13 +3298,13 @@
         ]
       }
     },
-    "/api/settings/users": {
+    "/api/settings/users/overview": {
       "get": {
         "tags": [
           "User"
         ],
-        "summary": "All tenant users (excluding pending invitations)",
-        "operationId": "getUsers",
+        "summary": "All tenant users including pending invitations",
+        "operationId": "getUsersIncludingInvitations",
         "responses": {
           "default": {
             "content": {
@@ -3316,6 +3316,40 @@
                   }
                 }
               }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureUsers"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/users/{userId}": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Remove user from tenant",
+        "operationId": "removeUserFromTenant",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
             }
           }
         },
@@ -3427,13 +3461,13 @@
         ]
       }
     },
-    "/api/settings/users/overview": {
+    "/api/settings/users": {
       "get": {
         "tags": [
           "User"
         ],
-        "summary": "All tenant users including pending invitations",
-        "operationId": "getUsersIncludingInvitations",
+        "summary": "All tenant users (excluding pending invitations)",
+        "operationId": "getUsers",
         "responses": {
           "default": {
             "content": {
@@ -3445,40 +3479,6 @@
                   }
                 }
               }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureUsers"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/settings/users/{userId}": {
-      "delete": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Remove user from tenant",
-        "operationId": "removeUserFromTenant",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
             }
           }
         },
