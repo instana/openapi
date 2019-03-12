@@ -28,7 +28,7 @@ Furthermore you can [search and filter all traces](#operation/getTraces) and ret
 <----------------------|
 ```
 
-**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getTagsForApplication)
+**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getApplicationCatalogTags)
 * *name* The name of the tag as returned by the catalog
 * *value* The filter value of the tag, possible types are:
   * "STRING" alphanumerical values, valid operators: "EQUALS", "CONTAINS", "NOT_EQUAL", "NOT_CONTAIN", "NOT_EMPTY",  "IS_EMPTY"
@@ -41,7 +41,7 @@ Furthermore you can [search and filter all traces](#operation/getTraces) and ret
    * Latency Mean
    * Error Rate
    * Traces Sum
-2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.
+2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.
 3. *granularity* 
    * if it is not set you will get a an aggregated value for the selected timeframe. 
    * if the granularity is set you will get data points with the specified granularity in seconds
