@@ -8,7 +8,7 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.149.2",
+    "version": "1.150.70",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#031F29",
@@ -57,7 +57,7 @@
     },
     {
       "name": "Application Analyze",
-      "description": "The following four endpoints expose our analyze functionality.\n\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \n\nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Mandatory Parameters (only for group Endpoints):\n\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForApplication)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getTagsForApplication)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\n3. *granularity* \n   * if it is not set you will get a an aggregated value for the selected timeframe. \n   * if the granularity is set you will get data points with the specified granularity in seconds\n   * The value can be selected freely between 1 - selected windowSize.\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
+      "description": "The following four endpoints expose our analyze functionality.\n\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \n\nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Mandatory Parameters (only for group Endpoints):\n\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForApplication)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getApplicationCatalogTags)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * if it is not set you will get a an aggregated value for the selected timeframe. \n   * if the granularity is set you will get data points with the specified granularity in seconds\n   * The value can be selected freely between 1 - selected windowSize.\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
     },
     {
       "name": "Application Settings"
@@ -105,6 +105,43 @@
     }
   ],
   "paths": {
+    "/api/application-monitoring/analyze/trace-groups": {
+      "post": {
+        "tags": [
+          "Application Analyze"
+        ],
+        "summary": "Trace group metrics",
+        "operationId": "getTraceGroups",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetTraceGroups"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceGroupsResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/application-monitoring/analyze/call-groups": {
       "post": {
         "tags": [
@@ -144,42 +181,6 @@
       }
     },
     "/api/application-monitoring/analyze/traces": {
-      "get": {
-        "tags": [
-          "Application Analyze"
-        ],
-        "summary": "Trace detail",
-        "operationId": "getTrace",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "style": "matrix",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FullTrace"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      },
       "post": {
         "tags": [
           "Application Analyze"
@@ -224,18 +225,55 @@
         "description": "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
       }
     },
-    "/api/application-monitoring/analyze/trace-groups": {
-      "post": {
+    "/api/application-monitoring/analyze/traces/{id}": {
+      "get": {
         "tags": [
           "Application Analyze"
         ],
-        "summary": "Trace group metrics",
-        "operationId": "getTraceGroups",
+        "summary": "Trace detail",
+        "operationId": "getTrace",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FullTrace"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/application-monitoring/metrics/endpoints": {
+      "post": {
+        "tags": [
+          "Application Metrics"
+        ],
+        "summary": "Endpoint metrics",
+        "operationId": "getEndpointsMetrics",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetTraceGroups"
+                "$ref": "#/components/schemas/GetEndpoints"
               }
             }
           },
@@ -246,7 +284,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TraceGroupsResult"
+                  "$ref": "#/components/schemas/EndpointMetricResult"
                 }
               }
             }
@@ -321,43 +359,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ServiceMetricResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/application-monitoring/metrics/endpoints": {
-      "post": {
-        "tags": [
-          "Application Metrics"
-        ],
-        "summary": "Endpoint metrics",
-        "operationId": "getEndpointsMetrics",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetEndpoints"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EndpointMetricResult"
                 }
               }
             }
@@ -1298,36 +1299,6 @@
         ]
       }
     },
-    "/api/events/alerts/anomaly": {
-      "get": {
-        "tags": [
-          "Alerts"
-        ],
-        "summary": "All Anomalies",
-        "operationId": "getAnomalies",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AnomalyEventSpecification"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
     "/api/events/alerts/anomaly/{alertId}": {
       "get": {
         "tags": [
@@ -1447,6 +1418,73 @@
         ]
       }
     },
+    "/api/events/alerts/anomaly": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "All Anomalies",
+        "operationId": "getAnomalies",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnomalyEventSpecification"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Event",
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/events": {
       "get": {
         "tags": [
@@ -1503,16 +1541,59 @@
         ]
       }
     },
-    "/api/events/{eventId}": {
+    "/api/events/settings/alertingChannels": {
       "get": {
         "tags": [
-          "Events"
+          "Event Settings"
         ],
-        "summary": "Event",
-        "operationId": "getEvent",
+        "summary": "All alerting channels",
+        "operationId": "getAlertingChannels",
         "parameters": [
           {
-            "name": "eventId",
+            "name": "ids",
+            "in": "query",
+            "schema": {
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AbstractIntegration"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/settings/alertingChannels/{id}": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Alerting channel",
+        "operationId": "getAlertingChannel",
+        "parameters": [
+          {
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -1525,7 +1606,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EventResult"
+                  "$ref": "#/components/schemas/AbstractIntegration"
                 }
               }
             }
@@ -1534,7 +1615,125 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Update alerting channel",
+        "operationId": "putAlertingChannel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/AbstractIntegration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Delete alerting channel",
+        "operationId": "deleteAlertingChannel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/settings/alertingChannels/test/{id}": {
+      "put": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Test alerting channel",
+        "operationId": "alertingChannelTest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/AbstractIntegration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
             ]
           }
         ]
@@ -1658,6 +1857,15 @@
         ],
         "summary": "All Alerting",
         "operationId": "getAlerts",
+        "parameters": [
+          {
+            "name": "newApplicationModelEnabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "content": {
@@ -1665,7 +1873,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AlertingConfiguration"
+                    "$ref": "#/components/schemas/ValidatedAlertingConfiguration"
                   }
                 }
               }
@@ -1690,14 +1898,17 @@
         "operationId": "getAlertingConfigurationInfos",
         "parameters": [
           {
-            "name": "integrationIds",
+            "name": "integrationId",
             "in": "query",
             "schema": {
-              "uniqueItems": true,
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "type": "string"
+            }
+          },
+          {
+            "name": "newApplicationModelEnabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -1708,7 +1919,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AlertingChannelInputInfo"
+                    "$ref": "#/components/schemas/ValidatedAlertingChannelInputInfo"
                   }
                 }
               }
@@ -1731,19 +1942,6 @@
         ],
         "summary": "All built-in event specifications",
         "operationId": "getBuildInEventSpecifications",
-        "parameters": [
-          {
-            "name": "ids",
-            "in": "query",
-            "schema": {
-              "uniqueItems": true,
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
         "responses": {
           "default": {
             "content": {
@@ -1904,6 +2102,36 @@
         ]
       }
     },
+    "/api/events/settings/event-specifications/custom/systemRules": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All system rules for custom event specifications",
+        "operationId": "getSystemRules",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SystemRuleLabel"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
     "/api/events/settings/event-specifications/built-in": {
       "get": {
         "tags": [
@@ -2016,276 +2244,6 @@
         ]
       }
     },
-    "/api/events/settings/event-specifications/custom/systemRules": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All system rules for custom event specifications",
-        "operationId": "getSystemRules",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SystemRule"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/settings/event-specifications/infos": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "Summary of all built-in and custom event specifications",
-        "operationId": "getEventSpecificationInfos",
-        "parameters": [
-          {
-            "name": "ids",
-            "in": "query",
-            "schema": {
-              "uniqueItems": true,
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EventSpecificationInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/settings/event-specifications/custom": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All custom event specifications",
-        "operationId": "getCustomEventSpecifications",
-        "parameters": [
-          {
-            "name": "ids",
-            "in": "query",
-            "schema": {
-              "uniqueItems": true,
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CustomEventSpecification"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/settings/event-specifications/custom/{eventSpecificationId}": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "Custom event specification",
-        "operationId": "getCustomEventSpecification",
-        "parameters": [
-          {
-            "name": "eventSpecificationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomEventSpecification"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "Update custom event specification",
-        "operationId": "putCustomEventSpecification",
-        "parameters": [
-          {
-            "name": "eventSpecificationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "$ref": "#/components/schemas/CustomEventSpecification"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      },
-      "delete": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "Delete custom event specification",
-        "operationId": "deleteCustomEventSpecification",
-        "parameters": [
-          {
-            "name": "eventSpecificationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/settings/event-specifications/custom/infos": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All custom event specification info",
-        "operationId": "getCustomEventSpecificationInfos",
-        "parameters": [
-          {
-            "name": "integrationIds",
-            "in": "query",
-            "schema": {
-              "uniqueItems": true,
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AlertingChannelInputInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
     "/api/events/settings/event-specifications/built-in/{eventSpecificationId}/enable": {
       "post": {
         "tags": [
@@ -2354,13 +2312,22 @@
         ]
       }
     },
-    "/api/events/settings/integrations": {
+    "/api/events/settings/event-specifications/infos": {
       "get": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "All integration channels",
-        "operationId": "getIntegrations",
+        "summary": "Summary of all built-in and custom event specifications",
+        "operationId": "getEventSpecificationInfos",
+        "parameters": [
+          {
+            "name": "newApplicationModelEnabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "content": {
@@ -2368,7 +2335,57 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AbstractIntegration"
+                    "$ref": "#/components/schemas/EventSpecificationInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Summary of all built-in and custom event specifications by IDs",
+        "operationId": "getEventSpecificationInfosByIds",
+        "parameters": [
+          {
+            "name": "newApplicationModelEnabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventSpecificationInfo"
                   }
                 }
               }
@@ -2384,16 +2401,16 @@
         ]
       }
     },
-    "/api/events/settings/integrations/{id}": {
+    "/api/events/settings/event-specifications/custom/{eventSpecificationId}": {
       "get": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "Integration channel",
-        "operationId": "getIntegration",
+        "summary": "Custom event specification",
+        "operationId": "getCustomEventSpecification",
         "parameters": [
           {
-            "name": "id",
+            "name": "eventSpecificationId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2406,7 +2423,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AbstractIntegration"
+                  "$ref": "#/components/schemas/CustomEventSpecification"
                 }
               }
             }
@@ -2424,15 +2441,22 @@
         "tags": [
           "Event Settings"
         ],
-        "summary": "Update integration channel",
-        "operationId": "putIntegration",
+        "summary": "Update custom event specification",
+        "operationId": "putCustomEventSpecification",
         "parameters": [
           {
-            "name": "id",
+            "name": "eventSpecificationId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "newApplicationModelEnabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -2440,7 +2464,7 @@
           "content": {
             "*/*": {
               "schema": {
-                "$ref": "#/components/schemas/AbstractIntegration"
+                "$ref": "#/components/schemas/CustomEventSpecification"
               }
             }
           },
@@ -2466,11 +2490,11 @@
         "tags": [
           "Event Settings"
         ],
-        "summary": "Delete integration channel",
-        "operationId": "deleteIntegration",
+        "summary": "Delete custom event specification",
+        "operationId": "deleteCustomEventSpecification",
         "parameters": [
           {
-            "name": "id",
+            "name": "eventSpecificationId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2495,16 +2519,50 @@
         ]
       }
     },
-    "/api/events/settings/integrations/test/{id}": {
-      "put": {
+    "/api/events/settings/event-specifications/custom/{eventSpecificationId}/enable": {
+      "post": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "Test integration channel",
-        "operationId": "integrationTest",
+        "summary": "Enable custom event specification",
+        "operationId": "enableCustomEventSpecification",
         "parameters": [
           {
-            "name": "id",
+            "name": "eventSpecificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/settings/event-specifications/custom/{eventSpecificationId}/disable": {
+      "post": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Disable custom event specification",
+        "operationId": "disableCustomEventSpecification",
+        "parameters": [
+          {
+            "name": "eventSpecificationId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2700,6 +2758,36 @@
         ]
       }
     },
+    "/api/events/settings/rule-bindings": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All rule bindings",
+        "operationId": "getRuleBindings",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RuleBinding"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
     "/api/events/settings/rule-bindings/{ruleBindingId}": {
       "get": {
         "tags": [
@@ -2811,67 +2899,6 @@
         ]
       }
     },
-    "/api/events/settings/rule-bindings": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All rule bindings",
-        "operationId": "getRuleBindings",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RuleBinding"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/infrastructure-monitoring/catalog/plugins": {
-      "get": {
-        "tags": [
-          "Infrastructure Catalog"
-        ],
-        "summary": "Plugin catalog",
-        "operationId": "getInfrastructureCatalogPlugins",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PluginResult"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ],
-        "description": "This endpoint retrieves all available plugin ids for your monitored system.\n"
-      }
-    },
     "/api/infrastructure-monitoring/catalog/metrics/{plugin}": {
       "get": {
         "tags": [
@@ -2949,6 +2976,37 @@
           }
         ],
         "description": "This endpoint retrieves all available search keywords for dynamic focus queries.\n\nThese search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.\nSome fields contain a set of possible fixed values, in this case a deviant value is invalid.\n\n```\n?query={keyword}:{value}\n```\n"
+      }
+    },
+    "/api/infrastructure-monitoring/catalog/plugins": {
+      "get": {
+        "tags": [
+          "Infrastructure Catalog"
+        ],
+        "summary": "Plugin catalog",
+        "operationId": "getInfrastructureCatalogPlugins",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PluginResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "description": "This endpoint retrieves all available plugin ids for your monitored system.\n"
       }
     },
     "/api/infrastructure-monitoring/graph/views": {
@@ -3741,74 +3799,6 @@
         ]
       }
     },
-    "/api/settings/maintenance/schedule/{id}": {
-      "put": {
-        "tags": [
-          "Maintenance Configuration"
-        ],
-        "summary": "Schedule maintenance",
-        "operationId": "scheduleMaintenanceConfig",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/settings/maintenance/unschedule/{id}": {
-      "put": {
-        "tags": [
-          "Maintenance Configuration"
-        ],
-        "summary": "Unschedule maintenance",
-        "operationId": "unscheduleMaintenanceConfig",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
     "/api/settings/maintenance/{id}": {
       "get": {
         "tags": [
@@ -3920,6 +3910,74 @@
         ]
       }
     },
+    "/api/settings/maintenance/schedule/{id}": {
+      "put": {
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "summary": "Schedule maintenance",
+        "operationId": "scheduleMaintenanceConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/maintenance/unschedule/{id}": {
+      "put": {
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "summary": "Unschedule maintenance",
+        "operationId": "unscheduleMaintenanceConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
     "/api/settings/maintenance": {
       "get": {
         "tags": [
@@ -3927,6 +3985,15 @@
         ],
         "summary": "All Maintenance configurations",
         "operationId": "getMaintenanceConfigs",
+        "parameters": [
+          {
+            "name": "newApplicationModelEnabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "content": {
@@ -3934,7 +4001,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MaintenanceConfig"
+                    "$ref": "#/components/schemas/ValidatedMaintenanceConfigWithStatus"
                   }
                 }
               }
@@ -4175,70 +4242,6 @@
         ]
       }
     },
-    "/api/settings/users/overview": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "All tenant users including pending invitations",
-        "operationId": "getUsersIncludingInvitations",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureUsers"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/settings/users/{userId}": {
-      "delete": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Remove user from tenant",
-        "operationId": "removeUserFromTenant",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureUsers"
-            ]
-          }
-        ]
-      }
-    },
     "/api/settings/users/invitations": {
       "get": {
         "tags": [
@@ -4356,6 +4359,70 @@
                   }
                 }
               }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureUsers"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/users/overview": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "All tenant users including pending invitations",
+        "operationId": "getUsersIncludingInvitations",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureUsers"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/users/{userId}": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Remove user from tenant",
+        "operationId": "removeUserFromTenant",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
             }
           }
         },
@@ -4528,7 +4595,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MetricDescription"
+                    "$ref": "#/components/schemas/WebsiteMonitoringMetricDescription"
                   }
                 }
               }
@@ -4642,7 +4709,22 @@
   },
   "components": {
     "schemas": {
-      "CallGroupsItem": {
+      "IngestionOffsetCursor": {
+        "type": "object",
+        "properties": {
+          "ingestionTime": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "offset": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TraceGroupsItem": {
         "required": [
           "cursor",
           "metrics"
@@ -4674,7 +4756,7 @@
           }
         }
       },
-      "CallGroupsResult": {
+      "TraceGroupsResult": {
         "required": [
           "items"
         ],
@@ -4683,7 +4765,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CallGroupsItem"
+              "$ref": "#/components/schemas/TraceGroupsItem"
             }
           },
           "canLoadMore": {
@@ -4695,21 +4777,6 @@
             "format": "int32"
           },
           "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "IngestionOffsetCursor": {
-        "type": "object",
-        "properties": {
-          "ingestionTime": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "offset": {
             "minimum": 0,
             "type": "integer",
             "format": "int32"
@@ -4738,7 +4805,7 @@
           }
         }
       },
-      "GetCallGroups": {
+      "GetTraceGroups": {
         "required": [
           "group"
         ],
@@ -4757,7 +4824,7 @@
             "$ref": "#/components/schemas/Group"
           },
           "tagFilters": {
-            "maxItems": 10,
+            "maxItems": 32,
             "minItems": 0,
             "type": "array",
             "items": {
@@ -4880,6 +4947,101 @@
           "to": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "CallGroupsItem": {
+        "required": [
+          "cursor",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "timestamp": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CallGroupsResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CallGroupsItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetCallGroups": {
+        "required": [
+          "group"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "group": {
+            "$ref": "#/components/schemas/Group"
+          },
+          "tagFilters": {
+            "maxItems": 10,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricConfiguration"
+            }
           }
         }
       },
@@ -5056,101 +5218,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TagFilter"
-            }
-          }
-        }
-      },
-      "TraceGroupsItem": {
-        "required": [
-          "cursor",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "timestamp": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "TraceGroupsResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TraceGroupsItem"
-            }
-          },
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "GetTraceGroups": {
-        "required": [
-          "group"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "group": {
-            "$ref": "#/components/schemas/Group"
-          },
-          "tagFilters": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricConfiguration"
             }
           }
         }
@@ -5340,6 +5407,175 @@
           }
         }
       },
+      "EndpointItem": {
+        "required": [
+          "endpoint",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "$ref": "#/components/schemas/Endpoint"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "EndpointMetricResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EndpointItem"
+            }
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AppDataMetricConfiguration": {
+        "required": [
+          "aggregation"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "DISTINCT_COUNT"
+            ]
+          }
+        }
+      },
+      "GetEndpoints": {
+        "required": [
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppDataMetricConfiguration"
+            }
+          },
+          "nameFilter": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "applicationId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "serviceId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "endpointId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "endpointTypes": {
+            "maxItems": 8,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNDEFINED",
+                "RPC",
+                "BATCH",
+                "HTTP",
+                "INTERNAL",
+                "DATABASE",
+                "MESSAGING",
+                "PAGE",
+                "PAGE_RESOURCE"
+              ]
+            }
+          },
+          "excludeSynthetic": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ApplicationItem": {
         "required": [
           "application",
@@ -5390,38 +5626,6 @@
             "minimum": 0,
             "type": "integer",
             "format": "int32"
-          }
-        }
-      },
-      "AppDataMetricConfiguration": {
-        "required": [
-          "aggregation"
-        ],
-        "type": "object",
-        "properties": {
-          "metric": {
-            "type": "string"
-          },
-          "granularity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "aggregation": {
-            "type": "string",
-            "enum": [
-              "SUM",
-              "MEAN",
-              "MAX",
-              "MIN",
-              "P25",
-              "P50",
-              "P75",
-              "P90",
-              "P95",
-              "P98",
-              "P99",
-              "DISTINCT_COUNT"
-            ]
           }
         }
       },
@@ -5492,22 +5696,6 @@
             "items": {
               "type": "string"
             }
-          }
-        }
-      },
-      "Pagination": {
-        "type": "object",
-        "properties": {
-          "page": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "maximum": 200,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -5610,127 +5798,6 @@
             "items": {
               "type": "string"
             }
-          }
-        }
-      },
-      "EndpointItem": {
-        "required": [
-          "endpoint",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "endpoint": {
-            "$ref": "#/components/schemas/Endpoint"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "EndpointMetricResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EndpointItem"
-            }
-          },
-          "page": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "GetEndpoints": {
-        "required": [
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/Pagination"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AppDataMetricConfiguration"
-            }
-          },
-          "nameFilter": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "applicationId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "serviceId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "endpointId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "endpointTypes": {
-            "maxItems": 8,
-            "minItems": 0,
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "UNDEFINED",
-                "RPC",
-                "BATCH",
-                "HTTP",
-                "INTERNAL",
-                "DATABASE",
-                "MESSAGING",
-                "PAGE",
-                "PAGE_RESOURCE"
-              ]
-            }
-          },
-          "excludeSynthetic": {
-            "type": "boolean"
           }
         }
       },
@@ -6109,17 +6176,6 @@
           }
         }
       },
-      "AbstractEventSpecificationRule": {
-        "type": "object",
-        "properties": {
-          "ruleType": {
-            "type": "string"
-          }
-        },
-        "discriminator": {
-          "propertyName": "ruleType"
-        }
-      },
       "AnomalyEventSpecification": {
         "required": [
           "match",
@@ -6145,7 +6201,7 @@
             "$ref": "#/components/schemas/EventSpecificationMatch"
           },
           "rule": {
-            "$ref": "#/components/schemas/AbstractEventSpecificationRule"
+            "$ref": "#/components/schemas/AnomalyRule"
           },
           "event": {
             "$ref": "#/components/schemas/EventSpecificationDetails"
@@ -6154,13 +6210,10 @@
             "minimum": 1,
             "type": "integer",
             "format": "int64"
-          },
-          "downstream": {
-            "$ref": "#/components/schemas/EventSpecificationDownstream"
           }
         }
       },
-      "AnomalyEventSpecificationRule": {
+      "AnomalyRule": {
         "required": [
           "sensitivity"
         ],
@@ -6177,13 +6230,11 @@
               "UPPER",
               "LOWER"
             ]
+          },
+          "ruleType": {
+            "type": "string"
           }
-        },
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/AbstractEventSpecificationRule"
-          }
-        ]
+        }
       },
       "EventSpecificationDetails": {
         "required": [
@@ -6207,23 +6258,6 @@
           "expirationTime": {
             "type": "integer",
             "format": "int64"
-          }
-        }
-      },
-      "EventSpecificationDownstream": {
-        "type": "object",
-        "properties": {
-          "integrationIds": {
-            "maxItems": 16,
-            "minItems": 0,
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "broadcastToAllAlertingConfigs": {
-            "type": "boolean"
           }
         }
       },
@@ -6259,34 +6293,6 @@
             }
           }
         }
-      },
-      "ThresholdEventSpecificationRule": {
-        "required": [
-          "aggregation",
-          "conditionOperator"
-        ],
-        "type": "object",
-        "properties": {
-          "window": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "aggregation": {
-            "type": "string"
-          },
-          "conditionOperator": {
-            "type": "string"
-          },
-          "conditionValue": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/AbstractEventSpecificationRule"
-          }
-        ]
       },
       "EventResult": {
         "type": "object",
@@ -6335,314 +6341,6 @@
                 "type": "object"
               }
             }
-          }
-        }
-      },
-      "AlertingConfiguration": {
-        "required": [
-          "alertName"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "alertName": {
-            "type": "string"
-          },
-          "muteUntil": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "integrationIds": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "eventFilteringConfiguration": {
-            "$ref": "#/components/schemas/EventFilteringConfiguration"
-          }
-        }
-      },
-      "EventFilteringConfiguration": {
-        "required": [
-          "eventQuery",
-          "eventTypes",
-          "query",
-          "ruleIds"
-        ],
-        "type": "object",
-        "properties": {
-          "query": {
-            "type": "string"
-          },
-          "eventQuery": {
-            "type": "string"
-          },
-          "ruleIds": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "eventTypes": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "AlertingChannelInputInfo": {
-        "required": [
-          "label"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "label": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          }
-        }
-      },
-      "BuiltInEventSpecification": {
-        "required": [
-          "hyperParams",
-          "ruleInputs"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
-          "shortPluginId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "description": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
-          "hyperParams": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/HyperParam"
-            }
-          },
-          "ruleInputs": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RuleInput"
-            }
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "triggering": {
-            "type": "boolean"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "lastUpdated": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "HyperParam": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "description": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
-          "defaultValue": {
-            "type": "number",
-            "format": "double"
-          },
-          "minValue": {
-            "type": "number",
-            "format": "double"
-          },
-          "maxValue": {
-            "type": "number",
-            "format": "double"
-          },
-          "valueFormat": {
-            "type": "string",
-            "enum": [
-              "NUMBER",
-              "BYTES",
-              "PERCENTAGE",
-              "MILLIS",
-              "SECONDS",
-              "MICROS",
-              "RATE",
-              "BYTE_RATE",
-              "UNDEFINED"
-            ]
-          }
-        }
-      },
-      "RuleInput": {
-        "required": [
-          "inputKind"
-        ],
-        "type": "object",
-        "properties": {
-          "inputKind": {
-            "type": "string",
-            "enum": [
-              "METRIC",
-              "SNAPSHOT_FIELD",
-              "EVENT",
-              "DERIVED_METRIC",
-              "METRIC_PATTERN"
-            ]
-          },
-          "inputName": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          }
-        }
-      },
-      "SystemRule": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          }
-        }
-      },
-      "EventSpecificationInfo": {
-        "required": [
-          "entityType",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "entityType": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "BUILT_IN",
-              "CUSTOM"
-            ]
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "triggering": {
-            "type": "boolean"
-          },
-          "enabled": {
-            "type": "boolean"
-          }
-        }
-      },
-      "CustomEventSpecification": {
-        "required": [
-          "match",
-          "name",
-          "rule"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "match": {
-            "$ref": "#/components/schemas/EventSpecificationMatch"
-          },
-          "rule": {
-            "$ref": "#/components/schemas/AbstractEventSpecificationRule"
-          },
-          "event": {
-            "$ref": "#/components/schemas/EventSpecificationDetails"
-          },
-          "eventSpecificationDownstream": {
-            "$ref": "#/components/schemas/EventSpecificationDownstream"
-          },
-          "lastUpdated": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
-          },
-          "downstream": {
-            "$ref": "#/components/schemas/EventSpecificationDownstream"
           }
         }
       },
@@ -6831,6 +6529,561 @@
           }
         ]
       },
+      "EventFilteringConfiguration": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "eventQuery": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "ruleIds": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "eventTypes": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "eitherExactlyOneOfRuleIdsOrEventTypes": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ValidatedAlertingConfiguration": {
+        "required": [
+          "alertName",
+          "eventFilteringConfiguration",
+          "integrationIds"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "alertName": {
+            "type": "string"
+          },
+          "muteUntil": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "integrationIds": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "eventFilteringConfiguration": {
+            "$ref": "#/components/schemas/EventFilteringConfiguration"
+          },
+          "invalid": {
+            "type": "boolean"
+          },
+          "alertChannelNames": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AlertingConfiguration": {
+        "required": [
+          "alertName",
+          "eventFilteringConfiguration",
+          "integrationIds"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "alertName": {
+            "type": "string"
+          },
+          "muteUntil": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "integrationIds": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "eventFilteringConfiguration": {
+            "$ref": "#/components/schemas/EventFilteringConfiguration"
+          }
+        }
+      },
+      "ValidatedAlertingChannelInputInfo": {
+        "required": [
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "query": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "eventTypes": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "selectedEvents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "invalid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BuiltInEventSpecification": {
+        "required": [
+          "hyperParams",
+          "ruleInputs"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "shortPluginId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "hyperParams": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HyperParam"
+            }
+          },
+          "ruleInputs": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleInput"
+            }
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "triggering": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "lastUpdated": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "HyperParam": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "defaultValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "minValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "valueFormat": {
+            "type": "string",
+            "enum": [
+              "NUMBER",
+              "BYTES",
+              "PERCENTAGE",
+              "MILLIS",
+              "SECONDS",
+              "MICROS",
+              "RATE",
+              "BYTE_RATE",
+              "UNDEFINED"
+            ]
+          }
+        }
+      },
+      "RuleInput": {
+        "required": [
+          "inputKind"
+        ],
+        "type": "object",
+        "properties": {
+          "inputKind": {
+            "type": "string",
+            "enum": [
+              "METRIC",
+              "SNAPSHOT_FIELD",
+              "EVENT",
+              "DERIVED_METRIC",
+              "METRIC_PATTERN"
+            ]
+          },
+          "inputName": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "SystemRuleLabel": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "EventSpecificationInfo": {
+        "required": [
+          "entityType",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "BUILT_IN",
+              "CUSTOM"
+            ]
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "triggering": {
+            "type": "boolean"
+          },
+          "invalid": {
+            "type": "boolean"
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AbstractRule": {
+        "type": "object",
+        "properties": {
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "discriminator": {
+          "propertyName": "ruleType"
+        }
+      },
+      "CustomEventSpecification": {
+        "required": [
+          "entityType",
+          "name",
+          "rules"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "entityType": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "query": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "triggering": {
+            "type": "boolean"
+          },
+          "description": {
+            "maxLength": 65536,
+            "minLength": 0,
+            "type": "string"
+          },
+          "expirationTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "rules": {
+            "maxItems": 1,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AbstractRule"
+            }
+          },
+          "downstream": {
+            "$ref": "#/components/schemas/EventSpecificationDownstream"
+          },
+          "lastUpdated": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "EventSpecificationDownstream": {
+        "required": [
+          "integrationIds"
+        ],
+        "type": "object",
+        "properties": {
+          "integrationIds": {
+            "maxItems": 16,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "broadcastToAllAlertingConfigs": {
+            "type": "boolean"
+          }
+        },
+        "writeOnly": true
+      },
+      "SystemRule": {
+        "required": [
+          "systemRuleId"
+        ],
+        "type": "object",
+        "properties": {
+          "systemRuleId": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractRule"
+          }
+        ]
+      },
+      "ThresholdRule": {
+        "required": [
+          "conditionOperator",
+          "metricName"
+        ],
+        "type": "object",
+        "properties": {
+          "metricName": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "rollup": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "window": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "aggregation": {
+            "maxLength": 3,
+            "minLength": 0,
+            "type": "string"
+          },
+          "conditionOperator": {
+            "maxLength": 2,
+            "minLength": 0,
+            "type": "string"
+          },
+          "conditionValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "aggregationForNonPercentileMetric": {
+            "type": "boolean"
+          },
+          "eitherRollupOrWindowAndAggregation": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractRule"
+          }
+        ]
+      },
+      "ThresholdRuleWithMetricInfo": {
+        "required": [
+          "conditionOperator",
+          "metricName"
+        ],
+        "type": "object",
+        "properties": {
+          "metricName": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "rollup": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "window": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "aggregation": {
+            "maxLength": 3,
+            "minLength": 0,
+            "type": "string"
+          },
+          "conditionOperator": {
+            "maxLength": 2,
+            "minLength": 0,
+            "type": "string"
+          },
+          "conditionValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "metricLabel": {
+            "type": "string"
+          },
+          "metricFormat": {
+            "type": "string",
+            "enum": [
+              "NUMBER",
+              "BYTES",
+              "PERCENTAGE",
+              "MILLIS",
+              "SECONDS",
+              "MICROS",
+              "RATE",
+              "BYTE_RATE",
+              "UNDEFINED"
+            ]
+          },
+          "aggregationForNonPercentileMetric": {
+            "type": "boolean"
+          },
+          "eitherRollupOrWindowAndAggregation": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractRule"
+          }
+        ]
+      },
       "Rule": {
         "required": [
           "conditionOperator",
@@ -6887,6 +7140,12 @@
             "minimum": 1,
             "type": "integer",
             "format": "int64"
+          },
+          "aggregationForNonPercentileMetric": {
+            "type": "boolean"
+          },
+          "eitherRollupOrWindowAndAggregation": {
+            "type": "boolean"
           }
         }
       },
@@ -7488,6 +7747,59 @@
             "minimum": 1,
             "type": "integer",
             "format": "int64"
+          },
+          "endTimeGreaterThanStartTime": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ValidatedMaintenanceConfigWithStatus": {
+        "required": [
+          "query",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "query": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "windows": {
+            "maxItems": 1,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceWindow"
+            }
+          },
+          "lastUpdated": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "UNSCHEDULED",
+              "SCHEDULED",
+              "ACTIVE",
+              "FINISHED"
+            ]
+          },
+          "invalid": {
+            "type": "boolean"
           }
         }
       },
@@ -8311,6 +8623,37 @@
           }
         }
       },
+      "WebsiteMonitoringMetricDescription": {
+        "type": "object",
+        "properties": {
+          "metricId": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "formatter": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "aggregations": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "beaconTypes": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "WebsiteMetricResult": {
         "type": "object",
         "properties": {
@@ -8359,7 +8702,7 @@
     },
     "securitySchemes": {
       "ApiKeyAuth": {
-        "type": "http",
+        "type": "apiKey",
         "description": "In order to use the REST API, you need to create an API token and assign permissions to it. API tokens are managed only by the account owner role, who can create multiple API tokens with varying permissions. API token management can found in Settings → Access Control → API Tokens.",
         "name": "authorization",
         "in": "header"
