@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: 'http://instana.com'
     email: support@instana.com
-  version: 1.151.211
+  version: 1.153.175
   x-logo:
     url: header-logo.svg
     backgroundColor: '#031F29'
@@ -44,7 +44,6 @@ tags:
       The endpoints of this group retrieve all available resources to query website metrics.
   - name: Website Analyze
     description: "The following four endpoints expose our analyze functionality.\n\n## Mandatory Parameters :\n\n**type** \n\n**group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the beacons are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForWeb)\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.\n\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getTagsForApplication)\n* *name* The name of the tag as returned by the catalog, e.g `beacon.meta`, `beacon.http.path`\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" of you are using meta tags `beacon.meta` you can filter for those by setting `yourMetaTagName=foo` in the value field, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\n3. *granularity* \n   * if it is not set you will get a an aggregated value for the selected timeframe. \n   * if the granularity is set you will get data points with the specified granularity in seconds\n   * The value can be selected freely between 1 - selected windowSize.\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
-  - name: Alerts
   - name: Events
   - name: Event Settings
   - name: User
@@ -769,6 +768,27 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureServiceMapping
+  '/api/events/{eventId}':
+    get:
+      tags:
+        - Events
+      summary: Event
+      operationId: getEvent
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResult'
+      security:
+        - ApiKeyAuth:
+            - Default
   /api/events:
     get:
       tags:
@@ -799,27 +819,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EventResult'
-      security:
-        - ApiKeyAuth:
-            - Default
-  '/api/events/{eventId}':
-    get:
-      tags:
-        - Events
-      summary: Event
-      operationId: getEvent
-      parameters:
-        - name: eventId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -1242,7 +1241,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CustomEventSpecification'
+                $ref: '#/components/schemas/CustomThresholdEventSpecificationMeta'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1777,23 +1776,6 @@ paths:
       security:
         - ApiKeyAuth:
             - CanSeeUsageInformation
-  /api/settings/api-tokens:
-    get:
-      tags:
-        - API Token
-      summary: All API tokes
-      operationId: getApiTokens
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiToken'
-      security:
-        - ApiKeyAuth:
-            - ConfigureApiTokens
   '/api/settings/api-tokens/{apiTokenId}':
     get:
       tags:
@@ -1859,6 +1841,23 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureApiTokens
+  /api/settings/api-tokens:
+    get:
+      tags:
+        - API Token
+      summary: All API tokes
+      operationId: getApiTokens
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiToken'
+      security:
+        - ApiKeyAuth:
+            - ConfigureApiTokens
   /api/settings/auditlog:
     get:
       tags:
@@ -1889,28 +1888,6 @@ paths:
       security:
         - ApiKeyAuth:
             - ViewAuditLog
-  /api/settings/maintenance:
-    get:
-      tags:
-        - Maintenance Configuration
-      summary: All Maintenance configurations
-      operationId: getMaintenanceConfigs
-      parameters:
-        - name: newApplicationModelEnabled
-          in: query
-          schema:
-            type: boolean
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ValidatedMaintenanceConfigWithStatus'
-      security:
-        - ApiKeyAuth:
-            - ConfigureCustomAlerts
   '/api/settings/maintenance/{id}':
     get:
       tags:
@@ -2013,6 +1990,28 @@ paths:
           description: default response
           content:
             application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureCustomAlerts
+  /api/settings/maintenance:
+    get:
+      tags:
+        - Maintenance Configuration
+      summary: All Maintenance configurations
+      operationId: getMaintenanceConfigs
+      parameters:
+        - name: newApplicationModelEnabled
+          in: query
+          schema:
+            type: boolean
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ValidatedMaintenanceConfigWithStatus'
       security:
         - ApiKeyAuth:
             - ConfigureCustomAlerts
@@ -2151,7 +2150,7 @@ paths:
     get:
       tags:
         - User
-      summary: All tenant users including pending invitations
+      summary: All users (incl. invitations)
       operationId: getUsersIncludingInvitations
       responses:
         default:
@@ -2188,7 +2187,7 @@ paths:
     get:
       tags:
         - User
-      summary: All pending invitations for one tenant
+      summary: All pending invitations
       operationId: getInvitations
       responses:
         default:
@@ -2226,7 +2225,7 @@ paths:
     delete:
       tags:
         - User
-      summary: Revoke pending user invitation
+      summary: Revoke pending invitation
       operationId: revokePendingInvitations
       parameters:
         - name: email
@@ -2245,7 +2244,7 @@ paths:
     get:
       tags:
         - User
-      summary: All tenant users (excluding pending invitations)
+      summary: All users (excl. invitations)
       operationId: getUsers
       responses:
         default:
@@ -2361,27 +2360,6 @@ paths:
             - Default
       description: |
         This endpoint retrieves all available metric definitions for website monitoring.
-  /api/website-monitoring/metrics:
-    post:
-      tags:
-        - Website Metrics
-      summary: Beacons metrics
-      operationId: getBeaconMetrics
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetWebsiteMetrics'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebsiteMetricResult'
-      security:
-        - ApiKeyAuth:
-            - Default
   /api/website-monitoring/page-load:
     get:
       tags:
@@ -2414,6 +2392,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/WebsiteMonitoringBeacon'
+      security:
+        - ApiKeyAuth:
+            - Default
+  /api/website-monitoring/metrics:
+    post:
+      tags:
+        - Website Metrics
+      summary: Beacons metrics
+      operationId: getBeaconMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetWebsiteMetrics'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteMetricResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -2472,8 +2471,6 @@ components:
           type: integer
           format: int32
     CursorPagination:
-      required:
-        - ingestionTime
       type: object
       properties:
         retrievalSize:
@@ -2677,6 +2674,7 @@ components:
             - UNDEFINED
             - RPC
             - BATCH
+            - SHELL
             - HTTP
             - INTERNAL
             - DATABASE
@@ -2720,6 +2718,7 @@ components:
               - UNDEFINED
               - RPC
               - BATCH
+              - SHELL
               - HTTP
               - INTERNAL
               - DATABASE
@@ -3037,6 +3036,7 @@ components:
               - UNDEFINED
               - RPC
               - BATCH
+              - SHELL
               - HTTP
               - INTERNAL
               - DATABASE
@@ -3215,6 +3215,7 @@ components:
               - UNDEFINED
               - RPC
               - BATCH
+              - SHELL
               - HTTP
               - INTERNAL
               - DATABASE
@@ -3636,17 +3637,19 @@ components:
           minLength: 0
           type: string
         ruleIds:
+          maxItems: 1024
+          minItems: 0
           uniqueItems: true
           type: array
           items:
             type: string
         eventTypes:
+          maxItems: 6
+          minItems: 0
           uniqueItems: true
           type: array
           items:
             type: string
-        eitherExactlyOneOfRuleIdsOrEventTypes:
-          type: boolean
     ValidatedAlertingConfiguration:
       required:
         - alertName
@@ -3655,13 +3658,19 @@ components:
       type: object
       properties:
         id:
+          maxLength: 64
+          minLength: 0
           type: string
         alertName:
+          maxLength: 256
+          minLength: 0
           type: string
         muteUntil:
           type: integer
           format: int64
         integrationIds:
+          maxItems: 1024
+          minItems: 0
           uniqueItems: true
           type: array
           items:
@@ -3683,13 +3692,19 @@ components:
       type: object
       properties:
         id:
+          maxLength: 64
+          minLength: 0
           type: string
         alertName:
+          maxLength: 256
+          minLength: 0
           type: string
         muteUntil:
           type: integer
           format: int64
         integrationIds:
+          maxItems: 1024
+          minItems: 0
           uniqueItems: true
           type: array
           items:
@@ -3714,6 +3729,8 @@ components:
           minLength: 0
           type: string
         eventTypes:
+          maxItems: 6
+          minItems: 0
           uniqueItems: true
           type: array
           items:
@@ -3866,9 +3883,92 @@ components:
           type: string
         name:
           type: string
-    AbstractRule:
+    CustomThresholdEventSpecificationMeta:
+      required:
+        - entityType
+        - name
+        - rules
       type: object
       properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        name:
+          maxLength: 256
+          minLength: 0
+          type: string
+        entityType:
+          maxLength: 64
+          minLength: 0
+          type: string
+        query:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        triggering:
+          type: boolean
+        description:
+          maxLength: 65536
+          minLength: 0
+          type: string
+        expirationTime:
+          type: integer
+          format: int64
+        enabled:
+          type: boolean
+        rules:
+          maxItems: 1
+          minItems: 1
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/ThresholdRule'
+        lastUpdated:
+          minimum: 1
+          type: integer
+          format: int64
+    ThresholdRule:
+      required:
+        - conditionOperator
+        - metricName
+        - ruleType
+      type: object
+      properties:
+        metricName:
+          maxLength: 256
+          minLength: 0
+          type: string
+        rollup:
+          type: integer
+          format: int64
+        window:
+          type: integer
+          format: int64
+        aggregation:
+          maxLength: 3
+          minLength: 0
+          type: string
+        conditionOperator:
+          maxLength: 2
+          minLength: 0
+          type: string
+        conditionValue:
+          type: number
+          format: double
+        aggregationForNonPercentileMetric:
+          type: boolean
+        eitherRollupOrWindowAndAggregation:
+          type: boolean
+      allOf:
+        - $ref: '#/components/schemas/AbstractRule'
+    AbstractRule:
+      required:
+        - ruleType
+      type: object
+      properties:
+        ruleType:
+          type: string
         severity:
           type: integer
           format: int32
@@ -3927,7 +4027,7 @@ components:
       type: object
       properties:
         integrationIds:
-          maxItems: 16
+          maxItems: 1024
           minItems: 0
           uniqueItems: true
           type: array
@@ -3938,91 +4038,12 @@ components:
       writeOnly: true
     SystemRule:
       required:
+        - ruleType
         - systemRuleId
       type: object
       properties:
         systemRuleId:
           type: string
-      allOf:
-        - $ref: '#/components/schemas/AbstractRule'
-    ThresholdRule:
-      required:
-        - conditionOperator
-        - metricName
-      type: object
-      properties:
-        metricName:
-          maxLength: 256
-          minLength: 0
-          type: string
-        rollup:
-          type: integer
-          format: int64
-        window:
-          type: integer
-          format: int64
-        aggregation:
-          maxLength: 3
-          minLength: 0
-          type: string
-        conditionOperator:
-          maxLength: 2
-          minLength: 0
-          type: string
-        conditionValue:
-          type: number
-          format: double
-        aggregationForNonPercentileMetric:
-          type: boolean
-        eitherRollupOrWindowAndAggregation:
-          type: boolean
-      allOf:
-        - $ref: '#/components/schemas/AbstractRule'
-    ThresholdRuleWithMetricInfo:
-      required:
-        - conditionOperator
-        - metricName
-      type: object
-      properties:
-        metricName:
-          maxLength: 256
-          minLength: 0
-          type: string
-        rollup:
-          type: integer
-          format: int64
-        window:
-          type: integer
-          format: int64
-        aggregation:
-          maxLength: 3
-          minLength: 0
-          type: string
-        conditionOperator:
-          maxLength: 2
-          minLength: 0
-          type: string
-        conditionValue:
-          type: number
-          format: double
-        metricLabel:
-          type: string
-        metricFormat:
-          type: string
-          enum:
-            - NUMBER
-            - BYTES
-            - PERCENTAGE
-            - MILLIS
-            - SECONDS
-            - MICROS
-            - RATE
-            - BYTE_RATE
-            - UNDEFINED
-        aggregationForNonPercentileMetric:
-          type: boolean
-        eitherRollupOrWindowAndAggregation:
-          type: boolean
       allOf:
         - $ref: '#/components/schemas/AbstractRule'
     MetricInstance:
@@ -4343,6 +4364,34 @@ components:
           type: string
         email:
           type: string
+    MaintenanceConfig:
+      required:
+        - query
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        name:
+          maxLength: 256
+          minLength: 0
+          type: string
+        query:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        windows:
+          maxItems: 1
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceWindow'
+        lastUpdated:
+          minimum: 1
+          type: integer
+          format: int64
     MaintenanceWindow:
       type: object
       properties:
@@ -4358,8 +4407,6 @@ components:
           minimum: 1
           type: integer
           format: int64
-        endTimeGreaterThanStartTime:
-          type: boolean
     ValidatedMaintenanceConfigWithStatus:
       required:
         - query
@@ -4398,34 +4445,6 @@ components:
             - FINISHED
         invalid:
           type: boolean
-    MaintenanceConfig:
-      required:
-        - query
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
-          type: string
-        name:
-          maxLength: 256
-          minLength: 0
-          type: string
-        query:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        windows:
-          maxItems: 1
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            $ref: '#/components/schemas/MaintenanceWindow'
-        lastUpdated:
-          minimum: 1
-          type: integer
-          format: int64
     Role:
       required:
         - implicitViewFilter
@@ -5122,7 +5141,6 @@ x-tagGroups:
       - Website Analyze
   - name: Event
     tags:
-      - Alerts
       - Events
       - Event Settings
   - name: Settings
