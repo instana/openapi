@@ -8,7 +8,7 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.153.175",
+    "version": "1.154.139",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#031F29",
@@ -102,49 +102,12 @@
     }
   ],
   "paths": {
-    "/api/application-monitoring/analyze/trace-groups": {
-      "post": {
-        "tags": [
-          "Application Analyze"
-        ],
-        "summary": "Trace group metrics",
-        "operationId": "getTraceGroups",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetTraceGroups"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TraceGroupsResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
     "/api/application-monitoring/analyze/call-groups": {
       "post": {
         "tags": [
           "Application Analyze"
         ],
-        "summary": "Call group metrics",
+        "summary": "Get grouped call metrics",
         "operationId": "getCallGroup",
         "requestBody": {
           "content": {
@@ -153,8 +116,7 @@
                 "$ref": "#/components/schemas/GetCallGroups"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
@@ -177,12 +139,48 @@
         "description": "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
       }
     },
+    "/api/application-monitoring/analyze/trace-groups": {
+      "post": {
+        "tags": [
+          "Application Analyze"
+        ],
+        "summary": "Get grouped trace metrics",
+        "operationId": "getTraceGroups",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetTraceGroups"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceGroupsResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/application-monitoring/analyze/traces": {
       "post": {
         "tags": [
           "Application Analyze"
         ],
-        "summary": "Filtering traces",
+        "summary": "Get all traces",
         "operationId": "getTraces",
         "requestBody": {
           "content": {
@@ -191,8 +189,7 @@
                 "$ref": "#/components/schemas/GetTraces"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
@@ -217,6 +214,10 @@
           {
             "lang": "JAVA",
             "source": "CloseableHttpClient client = HttpClients.createDefault();\nString url = \"https://unit-tenant.instana.com/api/application-monitoring/analyse/traces\";\nHttpPost httpPost = new HttpPost(url);\nString json = \"{\"\n            + \"\\\"pagination\\\":{\\\"retrievalSize\\\":20,\\\"offset\\\":0},\"\n            + \"\\\"timeFrame\\\":{\\\"windowSize\\\":3600000}\"\n            + \"}\"\nStringEntity entity = new StringEntity(json);\nhttpPost.setEntity(entity);\nhttpPost.setHeader(\"Accept\", \"application/json\");\nhttpPost.setHeader(\"Content-type\", \"application/json\");\nhttpPost.setHeader(\"Authorization\", \"apiToken xxxxxxxx\");\n\nCloseableHttpResponse response = client.execute(httpPost);\n\nassertThat(response.getStatusLine().getStatusCode(), equalTo(200));\nString traceResult = EntityUtils.toString(response.getEntity());\nclient.close();\n"
+          },
+          {
+            "lang": "SHELL",
+            "source": "curl --request POST \\\n  --url https://unit-tenant.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken {apiToken}}' \\\n  --header 'content-type: application/json' \\\n  --data '{ \n\n\"timeFrame\": { \n\"windowSize\": 36000000 \n}, \n\"order\":{\n\t\"by\": \"errors\", \n\"direction\": \"DESC\" \n},\n\"group\": { \n\"groupbyTag\": \"application.name\"\n},  \n\"metrics\": [ \n{ \n\"metric\": \"errors\", \n\"aggregation\": \"MEAN\" \n} \n] \n} '"
           }
         ],
         "description": "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
@@ -227,7 +228,7 @@
         "tags": [
           "Application Analyze"
         ],
-        "summary": "Trace detail",
+        "summary": "Get trace detail",
         "operationId": "getTrace",
         "parameters": [
           {
@@ -264,7 +265,7 @@
         "tags": [
           "Application Metrics"
         ],
-        "summary": "Application Metrics",
+        "summary": "Get Application Metrics",
         "operationId": "getApplicationMetrics",
         "requestBody": {
           "content": {
@@ -273,8 +274,7 @@
                 "$ref": "#/components/schemas/GetApplications"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
@@ -301,7 +301,7 @@
         "tags": [
           "Application Metrics"
         ],
-        "summary": "Service metrics",
+        "summary": "Get Service metrics",
         "operationId": "getServicesMetrics",
         "requestBody": {
           "content": {
@@ -310,8 +310,7 @@
                 "$ref": "#/components/schemas/GetServices"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
@@ -338,7 +337,7 @@
         "tags": [
           "Application Metrics"
         ],
-        "summary": "Endpoint metrics",
+        "summary": "Get Endpoint metrics",
         "operationId": "getEndpointsMetrics",
         "requestBody": {
           "content": {
@@ -347,8 +346,7 @@
                 "$ref": "#/components/schemas/GetEndpoints"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
@@ -424,6 +422,74 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApplicationResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/application-monitoring/applications/services": {
+      "get": {
+        "tags": [
+          "Application Resources"
+        ],
+        "summary": "Get applications/services",
+        "operationId": "getApplicationServices",
+        "parameters": [
+          {
+            "name": "nameFilter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "windowSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceResult"
                 }
               }
             }
@@ -528,74 +594,6 @@
         ]
       }
     },
-    "/api/application-monitoring/applications/services": {
-      "get": {
-        "tags": [
-          "Application Resources"
-        ],
-        "summary": "Get applications/services",
-        "operationId": "getApplicationServices",
-        "parameters": [
-          {
-            "name": "nameFilter",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "windowSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "to",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServiceResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
     "/api/application-monitoring/services": {
       "get": {
         "tags": [
@@ -669,7 +667,7 @@
         "tags": [
           "Application Catalog"
         ],
-        "summary": "Tag catalog",
+        "summary": "Get filter tag catalog",
         "operationId": "getApplicationCatalogTags",
         "responses": {
           "default": {
@@ -700,7 +698,7 @@
         "tags": [
           "Application Catalog"
         ],
-        "summary": "Metric catalog",
+        "summary": "Get Metric catalog",
         "operationId": "getApplicationCatalogMetrics",
         "responses": {
           "default": {
@@ -738,7 +736,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApplicationConfig"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationConfig"
+                  }
                 }
               }
             }
@@ -908,7 +909,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HttpEndpointConfig"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HttpEndpointConfig"
+                  }
                 }
               }
             }
@@ -926,8 +930,8 @@
         "tags": [
           "Application Settings"
         ],
-        "summary": "Add endpoint configuration",
-        "operationId": "add",
+        "summary": "Create endpoint configuration",
+        "operationId": "createEndpointConfig",
         "requestBody": {
           "content": {
             "*/*": {
@@ -955,7 +959,7 @@
         ]
       }
     },
-    "/api/application-monitoring/settings/http-endpoint/{serviceId}": {
+    "/api/application-monitoring/settings/http-endpoint/{id}": {
       "get": {
         "tags": [
           "Application Settings"
@@ -964,7 +968,7 @@
         "operationId": "getEndpointConfig",
         "parameters": [
           {
-            "name": "serviceId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -996,10 +1000,10 @@
           "Application Settings"
         ],
         "summary": "Update endpoint configuration",
-        "operationId": "putEndpointConfig",
+        "operationId": "updateEndpointConfig",
         "parameters": [
           {
-            "name": "serviceId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -1041,7 +1045,7 @@
         "operationId": "deleteEndpointConfig",
         "parameters": [
           {
-            "name": "serviceId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -1102,117 +1106,6 @@
         ]
       }
     },
-    "/api/application-monitoring/settings/service/{id}": {
-      "get": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "Service configuration",
-        "operationId": "getServiceConfig",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServiceConfig"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "Update service configuration",
-        "operationId": "putEndpointConfig_1",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "$ref": "#/components/schemas/ServiceConfig"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      },
-      "delete": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "Delete service configuration",
-        "operationId": "deleteEndpointConfig_1",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      }
-    },
     "/api/application-monitoring/settings/service": {
       "get": {
         "tags": [
@@ -1225,7 +1118,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ServiceConfig"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceConfig"
+                  }
                 }
               }
             }
@@ -1296,12 +1192,123 @@
         ]
       }
     },
+    "/api/application-monitoring/settings/service/{id}": {
+      "get": {
+        "tags": [
+          "Application Settings"
+        ],
+        "summary": "Service configuration",
+        "operationId": "getServiceConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceConfig"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Application Settings"
+        ],
+        "summary": "Update service configuration",
+        "operationId": "putEndpointConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Application Settings"
+        ],
+        "summary": "Delete service configuration",
+        "operationId": "deleteEndpointConfig_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ]
+      }
+    },
     "/api/events/{eventId}": {
       "get": {
         "tags": [
           "Events"
         ],
-        "summary": "Event",
+        "summary": "Get Event",
         "operationId": "getEvent",
         "parameters": [
           {
@@ -1338,7 +1345,7 @@
         "tags": [
           "Events"
         ],
-        "summary": "Fetch alerts",
+        "summary": "Get alerts",
         "operationId": "getEvents",
         "parameters": [
           {
@@ -1587,45 +1594,6 @@
         ]
       }
     },
-    "/api/events/settings/alerts": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All Alerting",
-        "operationId": "getAlerts",
-        "parameters": [
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidatedAlertingConfiguration"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
     "/api/events/settings/alerts/{id}": {
       "get": {
         "tags": [
@@ -1725,6 +1693,45 @@
             "description": "default response",
             "content": {
               "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/settings/alerts": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All Alerting",
+        "operationId": "getAlerts",
+        "parameters": [
+          {
+            "name": "newApplicationModelEnabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidatedAlertingConfiguration"
+                  }
+                }
+              }
             }
           }
         },
@@ -1963,6 +1970,36 @@
         ]
       }
     },
+    "/api/events/settings/event-specifications/custom/systemRules": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All system rules for custom event specifications",
+        "operationId": "getSystemRules",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SystemRuleLabel"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
     "/api/events/settings/event-specifications/infos": {
       "get": {
         "tags": [
@@ -2037,36 +2074,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/EventSpecificationInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/settings/event-specifications/custom/systemRules": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All system rules for custom event specifications",
-        "operationId": "getSystemRules",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SystemRuleLabel"
                   }
                 }
               }
@@ -2268,12 +2275,43 @@
         ]
       }
     },
+    "/api/infrastructure-monitoring/catalog/search": {
+      "get": {
+        "tags": [
+          "Infrastructure Catalog"
+        ],
+        "summary": "get search field catalog",
+        "operationId": "getInfrastructureCatalogSearchFields",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchFieldResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "description": "This endpoint retrieves all available search keywords for dynamic focus queries.\n\nThese search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.\nSome fields contain a set of possible fixed values, in this case a deviant value is invalid.\n\n```\n?query={keyword}:{value}\n```\n"
+      }
+    },
     "/api/infrastructure-monitoring/catalog/plugins": {
       "get": {
         "tags": [
           "Infrastructure Catalog"
         ],
-        "summary": "Plugin catalog",
+        "summary": "Get plugin catalog",
         "operationId": "getInfrastructureCatalogPlugins",
         "responses": {
           "default": {
@@ -2304,7 +2342,7 @@
         "tags": [
           "Infrastructure Catalog"
         ],
-        "summary": "Metric catalog",
+        "summary": "Get metric catalog",
         "operationId": "getInfrastructureCatalogMetrics",
         "parameters": [
           {
@@ -2347,43 +2385,12 @@
         "description": "This endpoint retrieves all available metric definitions of the requested plugin.\n\n### Path Parameters:\n\n**plugin** The plugin id from [available plugins](#operation/getInfrastructureCatalogPlugins)\n\n### Optional Parameters:\n\n**filter** You can restrict the returned metric definitions by passing a filter.\n\n* `custom` to retrieve custom metric definitions only.\n* `builtin` to retrieve built-in metric definitions only.\n"
       }
     },
-    "/api/infrastructure-monitoring/catalog/search": {
-      "get": {
-        "tags": [
-          "Infrastructure Catalog"
-        ],
-        "summary": "Search field catalog",
-        "operationId": "getInfrastructureCatalogSearchFields",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SearchFieldResult"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ],
-        "description": "This endpoint retrieves all available search keywords for dynamic focus queries.\n\nThese search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.\nSome fields contain a set of possible fixed values, in this case a deviant value is invalid.\n\n```\n?query={keyword}:{value}\n```\n"
-      }
-    },
     "/api/infrastructure-monitoring/graph/views": {
       "get": {
         "tags": [
           "Infrastructure Resources"
         ],
-        "summary": "View tree",
+        "summary": "Get view tree",
         "operationId": "getInfrastructureViewTree",
         "responses": {
           "default": {
@@ -2450,7 +2457,7 @@
         "tags": [
           "Infrastructure Metrics"
         ],
-        "summary": "Infrastructure metrics",
+        "summary": "Get infrastructure metrics",
         "operationId": "getInfrastructureMetrics",
         "parameters": [
           {
@@ -2468,8 +2475,7 @@
                 "$ref": "#/components/schemas/GetCombinedMetrics"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
@@ -2496,7 +2502,7 @@
         "tags": [
           "Infrastructure Metrics"
         ],
-        "summary": "Find snapshots",
+        "summary": "Search snapshots",
         "operationId": "getSnapshots",
         "parameters": [
           {
@@ -2635,7 +2641,7 @@
         "tags": [
           "Infrastructure Resources"
         ],
-        "summary": "Installed software",
+        "summary": "Get installed software",
         "description": "Retrieve information about the software you are running. This includes runtime and package manager information.\n\nThe `name`, `version`, `origin` and `type` parameters are optional filters that can be used to reduce the result data set.",
         "operationId": "softwareVersions",
         "parameters": [
@@ -2725,115 +2731,6 @@
           }
         ],
         "description": "The returned JSON object will provide a health property which contains a simple traffic light (GREEN/YELLO/RED). For any non-Green-state a list \nof reasons will be provided in the messages array.\n\nPossible messages:\n* No data being processed\n* No data arriving from agents\n"
-      }
-    },
-    "/api/instana/usage/api/{month}/{year}": {
-      "get": {
-        "tags": [
-          "Usage"
-        ],
-        "summary": "API usage month / year",
-        "operationId": "getUsagePerMonth",
-        "parameters": [
-          {
-            "name": "month",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "year",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UsageResult"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanSeeUsageInformation"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/instana/usage/api/{day}/{month}/{year}": {
-      "get": {
-        "tags": [
-          "Usage"
-        ],
-        "summary": "API usage day / month / year",
-        "operationId": "getUsagePerDay",
-        "parameters": [
-          {
-            "name": "day",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "month",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "year",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UsageResult"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanSeeUsageInformation"
-            ]
-          }
-        ]
       }
     },
     "/api/instana/usage/hosts/{month}/{year}": {
@@ -2945,6 +2842,65 @@
         ]
       }
     },
+    "/api/instana/usage/api/{day}/{month}/{year}": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "API usage day / month / year",
+        "operationId": "getUsagePerDay",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
+      }
+    },
     "/api/instana/usage/api": {
       "get": {
         "tags": [
@@ -2970,6 +2926,86 @@
           {
             "ApiKeyAuth": [
               "CanSeeUsageInformation"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/instana/usage/api/{month}/{year}": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "API usage month / year",
+        "operationId": "getUsagePerMonth",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/api-tokens": {
+      "get": {
+        "tags": [
+          "API Token"
+        ],
+        "summary": "All API tokes",
+        "operationId": "getApiTokens",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiToken"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureApiTokens"
             ]
           }
         ]
@@ -3086,36 +3122,6 @@
         ]
       }
     },
-    "/api/settings/api-tokens": {
-      "get": {
-        "tags": [
-          "API Token"
-        ],
-        "summary": "All API tokes",
-        "operationId": "getApiTokens",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ApiToken"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureApiTokens"
-            ]
-          }
-        ]
-      }
-    },
     "/api/settings/auditlog": {
       "get": {
         "tags": [
@@ -3163,6 +3169,45 @@
           {
             "ApiKeyAuth": [
               "ViewAuditLog"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/maintenance": {
+      "get": {
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "summary": "All Maintenance configurations",
+        "operationId": "getMaintenanceConfigs",
+        "parameters": [
+          {
+            "name": "newApplicationModelEnabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidatedMaintenanceConfigWithStatus"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
             ]
           }
         ]
@@ -3347,45 +3392,6 @@
         ]
       }
     },
-    "/api/settings/maintenance": {
-      "get": {
-        "tags": [
-          "Maintenance Configuration"
-        ],
-        "summary": "All Maintenance configurations",
-        "operationId": "getMaintenanceConfigs",
-        "parameters": [
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidatedMaintenanceConfigWithStatus"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
     "/api/settings/roles/{roleId}": {
       "get": {
         "tags": [
@@ -3426,7 +3432,7 @@
         "tags": [
           "User"
         ],
-        "summary": "Update role",
+        "summary": "Create or update role",
         "operationId": "putRole",
         "parameters": [
           {
@@ -3539,10 +3545,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SyntheticCallConfig"
-                  }
+                  "$ref": "#/components/schemas/SyntheticCallWithDefaultsConfig"
                 }
               }
             }
@@ -3611,70 +3614,6 @@
         ]
       }
     },
-    "/api/settings/users/overview": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "All users (incl. invitations)",
-        "operationId": "getUsersIncludingInvitations",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureUsers"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/settings/users/{userId}": {
-      "delete": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Remove user from tenant",
-        "operationId": "removeUserFromTenant",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureUsers"
-            ]
-          }
-        ]
-      }
-    },
     "/api/settings/users/invitations": {
       "get": {
         "tags": [
@@ -3689,7 +3628,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/User"
+                    "$ref": "#/components/schemas/UserResult"
                   }
                 }
               }
@@ -3779,7 +3718,7 @@
         "tags": [
           "User"
         ],
-        "summary": "All users (excl. invitations)",
+        "summary": "All tenant users (excluding pending invitations)",
         "operationId": "getUsers",
         "responses": {
           "default": {
@@ -3788,10 +3727,71 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/User"
+                    "$ref": "#/components/schemas/UserResult"
                   }
                 }
               }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureUsers"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/users/overview": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "All users (incl. invitations)",
+        "operationId": "getUsersIncludingInvitations",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsersResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureUsers"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/users/{userId}": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Remove user from tenant",
+        "operationId": "removeUserFromTenant",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
             }
           }
         },
@@ -3850,7 +3850,7 @@
         "tags": [
           "Website Analyze"
         ],
-        "summary": "Beacon group metrics",
+        "summary": "Get grouped beacon metrics",
         "operationId": "getBeaconGroups",
         "requestBody": {
           "content": {
@@ -3859,8 +3859,7 @@
                 "$ref": "#/components/schemas/GetWebsiteBeaconGroups"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
@@ -3887,7 +3886,7 @@
         "tags": [
           "Website Analyze"
         ],
-        "summary": "Beacons",
+        "summary": "Get all beacons",
         "operationId": "getBeacons",
         "requestBody": {
           "content": {
@@ -3896,8 +3895,7 @@
                 "$ref": "#/components/schemas/GetWebsiteBeacons"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
@@ -3924,7 +3922,7 @@
         "tags": [
           "Website Catalog"
         ],
-        "summary": "Tag catalog",
+        "summary": "Filter tag catalog",
         "operationId": "getWebsiteCatalogTags",
         "responses": {
           "default": {
@@ -3981,12 +3979,48 @@
         "description": "This endpoint retrieves all available metric definitions for website monitoring.\n"
       }
     },
+    "/api/website-monitoring/metrics": {
+      "post": {
+        "tags": [
+          "Website Metrics"
+        ],
+        "summary": "Get beacon metrics",
+        "operationId": "getBeaconMetrics",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetWebsiteMetrics"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebsiteMetricResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/website-monitoring/page-load": {
       "get": {
         "tags": [
           "Website Metrics"
         ],
-        "summary": "Page load",
+        "summary": "Get page load",
         "operationId": "getPageLoad",
         "parameters": [
           {
@@ -4037,63 +4071,11 @@
           }
         ]
       }
-    },
-    "/api/website-monitoring/metrics": {
-      "post": {
-        "tags": [
-          "Website Metrics"
-        ],
-        "summary": "Beacons metrics",
-        "operationId": "getBeaconMetrics",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetWebsiteMetrics"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WebsiteMetricResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
     }
   },
   "components": {
     "schemas": {
-      "IngestionOffsetCursor": {
-        "type": "object",
-        "properties": {
-          "ingestionTime": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "offset": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "TraceGroupsItem": {
+      "CallGroupsItem": {
         "required": [
           "cursor",
           "metrics"
@@ -4125,7 +4107,7 @@
           }
         }
       },
-      "TraceGroupsResult": {
+      "CallGroupsResult": {
         "required": [
           "items"
         ],
@@ -4134,7 +4116,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TraceGroupsItem"
+              "$ref": "#/components/schemas/CallGroupsItem"
             }
           },
           "canLoadMore": {
@@ -4146,6 +4128,21 @@
             "format": "int32"
           },
           "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "IngestionOffsetCursor": {
+        "type": "object",
+        "properties": {
+          "ingestionTime": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "offset": {
             "minimum": 0,
             "type": "integer",
             "format": "int32"
@@ -4171,7 +4168,7 @@
           }
         }
       },
-      "GetTraceGroups": {
+      "GetCallGroups": {
         "required": [
           "group"
         ],
@@ -4190,7 +4187,7 @@
             "$ref": "#/components/schemas/Group"
           },
           "tagFilters": {
-            "maxItems": 32,
+            "maxItems": 10,
             "minItems": 0,
             "type": "array",
             "items": {
@@ -4318,7 +4315,7 @@
           }
         }
       },
-      "CallGroupsItem": {
+      "TraceGroupsItem": {
         "required": [
           "cursor",
           "metrics"
@@ -4350,7 +4347,7 @@
           }
         }
       },
-      "CallGroupsResult": {
+      "TraceGroupsResult": {
         "required": [
           "items"
         ],
@@ -4359,7 +4356,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CallGroupsItem"
+              "$ref": "#/components/schemas/TraceGroupsItem"
             }
           },
           "canLoadMore": {
@@ -4377,7 +4374,7 @@
           }
         }
       },
-      "GetCallGroups": {
+      "GetTraceGroups": {
         "required": [
           "group"
         ],
@@ -4396,7 +4393,7 @@
             "$ref": "#/components/schemas/Group"
           },
           "tagFilters": {
-            "maxItems": 10,
+            "maxItems": 32,
             "minItems": 0,
             "type": "array",
             "items": {
@@ -5220,13 +5217,13 @@
           }
         }
       },
-      "EndpointResult": {
+      "ServiceResult": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Endpoint"
+              "$ref": "#/components/schemas/Service"
             }
           },
           "page": {
@@ -5243,13 +5240,13 @@
           }
         }
       },
-      "ServiceResult": {
+      "EndpointResult": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Service"
+              "$ref": "#/components/schemas/Endpoint"
             }
           },
           "page": {
@@ -5810,6 +5807,42 @@
           }
         ]
       },
+      "AlertingConfiguration": {
+        "required": [
+          "alertName",
+          "eventFilteringConfiguration",
+          "integrationIds"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "alertName": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "muteUntil": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "integrationIds": {
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "eventFilteringConfiguration": {
+            "$ref": "#/components/schemas/EventFilteringConfiguration"
+          }
+        }
+      },
       "EventFilteringConfiguration": {
         "type": "object",
         "properties": {
@@ -5838,7 +5871,16 @@
             "uniqueItems": true,
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "INCIDENT",
+                "CRITICAL",
+                "WARNING",
+                "CHANGE",
+                "ONLINE",
+                "OFFLINE",
+                "NONE"
+              ]
             }
           }
         }
@@ -5889,42 +5931,6 @@
           }
         }
       },
-      "AlertingConfiguration": {
-        "required": [
-          "alertName",
-          "eventFilteringConfiguration",
-          "integrationIds"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "alertName": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "muteUntil": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "integrationIds": {
-            "maxItems": 1024,
-            "minItems": 0,
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "eventFilteringConfiguration": {
-            "$ref": "#/components/schemas/EventFilteringConfiguration"
-          }
-        }
-      },
       "ValidatedAlertingChannelInputInfo": {
         "required": [
           "label"
@@ -5952,7 +5958,16 @@
             "uniqueItems": true,
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "INCIDENT",
+                "CRITICAL",
+                "WARNING",
+                "CHANGE",
+                "ONLINE",
+                "OFFLINE",
+                "NONE"
+              ]
             }
           },
           "selectedEvents": {
@@ -6096,6 +6111,20 @@
           }
         }
       },
+      "SystemRuleLabel": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "EventSpecificationInfo": {
         "required": [
           "entityType",
@@ -6136,25 +6165,8 @@
           "invalid": {
             "type": "boolean"
           },
-          "deprecated": {
-            "type": "boolean"
-          },
           "enabled": {
             "type": "boolean"
-          }
-        }
-      },
-      "SystemRuleLabel": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
           }
         }
       },
@@ -6239,24 +6251,30 @@
             "format": "int64"
           },
           "aggregation": {
-            "maxLength": 3,
-            "minLength": 0,
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "SUM",
+              "AVG",
+              "MIN",
+              "MAX",
+              "NONE"
+            ]
           },
           "conditionOperator": {
-            "maxLength": 2,
-            "minLength": 0,
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "GT",
+              "GTE",
+              "LT",
+              "LTE",
+              "EQ",
+              "NE",
+              "NONE"
+            ]
           },
           "conditionValue": {
             "type": "number",
             "format": "double"
-          },
-          "aggregationForNonPercentileMetric": {
-            "type": "boolean"
-          },
-          "eitherRollupOrWindowAndAggregation": {
-            "type": "boolean"
           }
         },
         "allOf": [
@@ -6383,6 +6401,29 @@
           }
         ]
       },
+      "SearchFieldResult": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "termType": {
+            "type": "string"
+          },
+          "fixedValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "MetricInstance": {
         "required": [
           "formatter"
@@ -6417,29 +6458,6 @@
           },
           "custom": {
             "type": "boolean"
-          }
-        }
-      },
-      "SearchFieldResult": {
-        "type": "object",
-        "properties": {
-          "keyword": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "context": {
-            "type": "string"
-          },
-          "termType": {
-            "type": "string"
-          },
-          "fixedValues": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -6782,6 +6800,9 @@
           },
           "canConfigureApplications": {
             "type": "boolean"
+          },
+          "canConfigureTeams": {
+            "type": "boolean"
           }
         }
       },
@@ -6855,43 +6876,6 @@
           }
         }
       },
-      "MaintenanceConfig": {
-        "required": [
-          "query"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "query": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
-          "windows": {
-            "maxItems": 1,
-            "minItems": 0,
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MaintenanceWindow"
-            }
-          },
-          "lastUpdated": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
       "MaintenanceWindow": {
         "type": "object",
         "properties": {
@@ -6962,19 +6946,54 @@
           }
         }
       },
-      "Role": {
+      "MaintenanceConfig": {
         "required": [
-          "implicitViewFilter"
+          "query"
         ],
         "type": "object",
         "properties": {
           "id": {
+            "maxLength": 64,
+            "minLength": 0,
             "type": "string"
           },
           "name": {
+            "maxLength": 256,
+            "minLength": 0,
             "type": "string"
           },
-          "implicitViewFilter": {
+          "query": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "windows": {
+            "maxItems": 1,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceWindow"
+            }
+          },
+          "lastUpdated": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Role": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
             "type": "string"
           },
           "canConfigureServiceMapping": {
@@ -7024,25 +7043,12 @@
           },
           "canConfigureApplications": {
             "type": "boolean"
-          }
-        }
-      },
-      "SyntheticCallConfig": {
-        "required": [
-          "customRules"
-        ],
-        "type": "object",
-        "properties": {
-          "defaultRulesEnabled": {
+          },
+          "canConfigureTeams": {
             "type": "boolean"
           },
-          "customRules": {
-            "maxItems": 500,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SyntheticCallRule"
-            }
+          "restrictedAccess": {
+            "type": "boolean"
           }
         }
       },
@@ -7070,186 +7076,77 @@
           }
         }
       },
-      "LdapProvider": {
+      "SyntheticCallWithDefaultsConfig": {
+        "required": [
+          "customRules",
+          "defaultRules"
+        ],
         "type": "object",
         "properties": {
-          "url": {
-            "type": "string"
-          },
-          "base": {
-            "type": "string"
-          },
-          "userDnMapping": {
-            "type": "string"
-          },
-          "groupQuery": {
-            "type": "string"
-          },
-          "userQueryTemplate": {
-            "type": "string"
-          },
-          "emailField": {
-            "type": "string"
-          },
-          "groupMemberField": {
-            "type": "string"
-          },
-          "roUser": {
-            "type": "string"
-          },
-          "userField": {
-            "type": "string"
-          },
-          "emptyPass": {
+          "defaultRulesEnabled": {
             "type": "boolean"
           },
-          "groupMemberFieldConfigured": {
-            "type": "boolean"
+          "customRules": {
+            "maxItems": 500,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyntheticCallRule"
+            }
           },
-          "valid": {
-            "type": "boolean"
+          "defaultRules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyntheticCallRule"
+            }
           }
         }
       },
-      "SAMLProvider": {
+      "SyntheticCallConfig": {
+        "required": [
+          "customRules"
+        ],
         "type": "object",
         "properties": {
-          "entityId": {
-            "type": "string"
+          "defaultRulesEnabled": {
+            "type": "boolean"
           },
-          "idpMetaData": {
-            "type": "string"
+          "customRules": {
+            "maxItems": 500,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyntheticCallRule"
+            }
           }
         }
       },
-      "SSOProvider": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "filter": {
-            "type": "string"
-          }
-        }
-      },
-      "Tenant": {
+      "UserResult": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "tenantKey": {
-            "type": "string"
-          },
-          "createDate": {
-            "type": "integer",
-            "format": "int64",
-            "writeOnly": true
-          },
-          "onPremise": {
-            "type": "boolean"
-          },
-          "roles": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Role"
-            }
-          },
-          "ssoProvider": {
-            "uniqueItems": true,
-            "type": "array",
-            "writeOnly": true,
-            "items": {
-              "$ref": "#/components/schemas/SSOProvider"
-            }
-          },
-          "samlProvider": {
-            "$ref": "#/components/schemas/SAMLProvider"
-          },
-          "ldapProvider": {
-            "$ref": "#/components/schemas/LdapProvider"
-          },
-          "createdDate": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "ssoProviders": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SSOProvider"
-            }
-          }
-        }
-      },
-      "User": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "preferredName": {
-            "type": "string"
-          },
-          "fullName": {
             "type": "string"
           },
           "email": {
             "type": "string"
           },
-          "encryptedPassword": {
+          "fullName": {
             "type": "string"
           },
-          "lastLoggedIn": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "timestampAcceptedTos": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "timestampAcceptedPrivacyAgreement": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "acceptedTosVersion": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "acceptedPrivacyAgreementVersion": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "tenantsWhereMainContact": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tenants": {
+          "roleId": {
+            "type": "string"
+          }
+        }
+      },
+      "UsersResult": {
+        "type": "object",
+        "properties": {
+          "users": {
             "uniqueItems": true,
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Tenant"
+              "$ref": "#/components/schemas/UserResult"
             }
-          },
-          "roles": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
-          "createDate": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "emailConfirmed": {
-            "type": "boolean"
           }
         }
       },
