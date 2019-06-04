@@ -8,7 +8,7 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.154.162",
+    "version": "1.155.276",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#031F29",
@@ -102,28 +102,29 @@
     }
   ],
   "paths": {
-    "/api/application-monitoring/analyze/trace-groups": {
-      "post": {
+    "/api/application-monitoring/analyze/traces/{id}": {
+      "get": {
         "tags": [
           "Application Analyze"
         ],
-        "summary": "Get grouped trace metrics",
-        "operationId": "getTraceGroups",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetTraceGroups"
-              }
+        "summary": "Get trace detail",
+        "operationId": "getTrace",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        },
+        ],
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TraceGroupsResult"
+                  "$ref": "#/components/schemas/FullTrace"
                 }
               }
             }
@@ -193,6 +194,15 @@
         ],
         "summary": "Get grouped call metrics",
         "operationId": "getCallGroup",
+        "parameters": [
+          {
+            "name": "fillTimeSeries",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -223,72 +233,27 @@
         "description": "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
       }
     },
-    "/api/application-monitoring/analyze/traces/{id}": {
-      "get": {
+    "/api/application-monitoring/analyze/trace-groups": {
+      "post": {
         "tags": [
           "Application Analyze"
         ],
-        "summary": "Get trace detail",
-        "operationId": "getTrace",
+        "summary": "Get grouped trace metrics",
+        "operationId": "getTraceGroups",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "required": true,
+            "name": "fillTimeSeries",
+            "in": "query",
             "schema": {
-              "type": "string"
+              "type": "boolean"
             }
           }
         ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FullTrace"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/application-monitoring/metrics/applications": {
-      "post": {
-        "tags": [
-          "Application Metrics"
-        ],
-        "summary": "Get Application Metrics",
-        "operationId": "getApplicationMetrics",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetApplications"
-              },
-              "examples": {
-                "payload": {
-                  "value": {
-                    "order": {
-                      "by": "latency.p95",
-                      "direction": "DESC"
-                    },
-                    "metrics": [
-                      {
-                        "metric": "latency",
-                        "granularity": "1",
-                        "aggregation": "P95"
-                      }
-                    ]
-                  }
-                }
+                "$ref": "#/components/schemas/GetTraceGroups"
               }
             }
           }
@@ -298,7 +263,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApplicationMetricResult"
+                  "$ref": "#/components/schemas/TraceGroupsResult"
                 }
               }
             }
@@ -371,6 +336,59 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EndpointMetricResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/application-monitoring/metrics/applications": {
+      "post": {
+        "tags": [
+          "Application Metrics"
+        ],
+        "summary": "Get Application Metrics",
+        "operationId": "getApplicationMetrics",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetApplications"
+              },
+              "examples": {
+                "payload": {
+                  "value": {
+                    "order": {
+                      "by": "latency.p95",
+                      "direction": "DESC"
+                    },
+                    "metrics": [
+                      {
+                        "metric": "latency",
+                        "granularity": "1",
+                        "aggregation": "P95"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationMetricResult"
                 }
               }
             }
@@ -788,9 +806,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationConfig"
+                }
+              }
             }
           }
         },
@@ -867,9 +888,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationConfig"
+                }
+              }
             }
           }
         },
@@ -961,9 +985,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpEndpointConfig"
+                }
+              }
             }
           }
         },
@@ -1040,9 +1067,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpEndpointConfig"
+                }
+              }
             }
           }
         },
@@ -1070,42 +1100,6 @@
             }
           }
         ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/application-monitoring/settings/http-endpoint/testRules": {
-      "post": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "Check endpoint Rules",
-        "operationId": "testEndpointConfig",
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/HttpEndpointRule"
-                }
-              }
-            }
-          }
-        },
         "responses": {
           "default": {
             "description": "default response",
@@ -1170,9 +1164,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceConfig"
+                }
+              }
             }
           }
         },
@@ -1192,6 +1189,19 @@
         ],
         "summary": "Order of service configuration",
         "operationId": "orderEndpointConfig",
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "default": {
             "description": "default response",
@@ -1273,9 +1283,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceConfig"
+                }
+              }
             }
           }
         },
@@ -1315,6 +1328,43 @@
           {
             "ApiKeyAuth": [
               "ConfigureServiceMapping"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get Event",
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
             ]
           }
         ]
@@ -1362,43 +1412,6 @@
                   "items": {
                     "$ref": "#/components/schemas/EventResult"
                   }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/{eventId}": {
-      "get": {
-        "tags": [
-          "Events"
-        ],
-        "summary": "Get Event",
-        "operationId": "getEvent",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventResult"
                 }
               }
             }
@@ -1567,23 +1580,13 @@
         ]
       }
     },
-    "/api/events/settings/alertingChannels/test/{id}": {
+    "/api/events/settings/alertingChannels/test": {
       "put": {
         "tags": [
           "Event Settings"
         ],
         "summary": "Test alerting channel",
-        "operationId": "alertingChannelTest",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "sendTestAlerting",
         "requestBody": {
           "content": {
             "*/*": {
@@ -1592,7 +1595,8 @@
               }
             }
           },
-          "required": true
+          "required": true,
+          "x-example": "alertingChannelTestCall"
         },
         "responses": {
           "default": {
@@ -2024,15 +2028,6 @@
         ],
         "summary": "Summary of all built-in and custom event specifications",
         "operationId": "getEventSpecificationInfos",
-        "parameters": [
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
         "responses": {
           "default": {
             "content": {
@@ -2061,15 +2056,6 @@
         ],
         "summary": "Summary of all built-in and custom event specifications by IDs",
         "operationId": "getEventSpecificationInfosByIds",
-        "parameters": [
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "*/*": {
@@ -2292,37 +2278,6 @@
         ]
       }
     },
-    "/api/infrastructure-monitoring/catalog/search": {
-      "get": {
-        "tags": [
-          "Infrastructure Catalog"
-        ],
-        "summary": "get search field catalog",
-        "operationId": "getInfrastructureCatalogSearchFields",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SearchFieldResult"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ],
-        "description": "This endpoint retrieves all available search keywords for dynamic focus queries.\n\nThese search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.\nSome fields contain a set of possible fixed values, in this case a deviant value is invalid.\n\n```\n?query={keyword}:{value}\n```\n"
-      }
-    },
     "/api/infrastructure-monitoring/catalog/plugins": {
       "get": {
         "tags": [
@@ -2400,6 +2355,37 @@
           }
         ],
         "description": "This endpoint retrieves all available metric definitions of the requested plugin.\n\n### Path Parameters:\n\n**plugin** The plugin id from [available plugins](#operation/getInfrastructureCatalogPlugins)\n\n### Optional Parameters:\n\n**filter** You can restrict the returned metric definitions by passing a filter.\n\n* `custom` to retrieve custom metric definitions only.\n* `builtin` to retrieve built-in metric definitions only.\n"
+      }
+    },
+    "/api/infrastructure-monitoring/catalog/search": {
+      "get": {
+        "tags": [
+          "Infrastructure Catalog"
+        ],
+        "summary": "get search field catalog",
+        "operationId": "getInfrastructureCatalogSearchFields",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchFieldResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "description": "This endpoint retrieves all available search keywords for dynamic focus queries.\n\nThese search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.\nSome fields contain a set of possible fixed values, in this case a deviant value is invalid.\n\n```\n?query={keyword}:{value}\n```\n"
       }
     },
     "/api/infrastructure-monitoring/graph/views": {
@@ -3068,7 +3054,7 @@
         "tags": [
           "API Token"
         ],
-        "summary": "Update API token",
+        "summary": "Create or update an API token",
         "operationId": "putApiToken",
         "parameters": [
           {
@@ -3091,10 +3077,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "If token already exist on other environment."
+          },
           "default": {
-            "description": "default response",
             "content": {
-              "*/*": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiToken"
+                }
+              }
             }
           }
         },
@@ -3294,9 +3286,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceConfig"
+                }
+              }
             }
           }
         },
@@ -3473,9 +3468,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Role"
+                }
+              }
             }
           }
         },
@@ -3905,6 +3903,15 @@
         ],
         "summary": "Get grouped beacon metrics",
         "operationId": "getBeaconGroups",
+        "parameters": [
+          {
+            "name": "fillTimeSeries",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -4092,243 +4099,22 @@
   },
   "components": {
     "schemas": {
-      "IngestionOffsetCursor": {
+      "Application": {
         "type": "object",
         "properties": {
-          "ingestionTime": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "offset": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "TraceGroupsItem": {
-        "required": [
-          "cursor",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
+          "id": {
             "type": "string"
           },
-          "timestamp": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "TraceGroupsResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TraceGroupsItem"
-            }
-          },
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "CursorPagination": {
-        "type": "object",
-        "properties": {
-          "retrievalSize": {
-            "maximum": 200,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "offset": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "ingestionTime": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "GetTraceGroups": {
-        "required": [
-          "group"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "group": {
-            "$ref": "#/components/schemas/Group"
-          },
-          "tagFilters": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricConfiguration"
-            }
-          }
-        }
-      },
-      "Group": {
-        "type": "object",
-        "properties": {
-          "groupbyTag": {
-            "maxLength": 256,
-            "minLength": 0,
+          "label": {
             "type": "string"
           },
-          "groupbyTagSecondLevelKey": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          }
-        }
-      },
-      "MetricConfiguration": {
-        "required": [
-          "aggregation"
-        ],
-        "type": "object",
-        "properties": {
-          "metric": {
-            "type": "string"
-          },
-          "granularity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "aggregation": {
+          "entityType": {
             "type": "string",
             "enum": [
-              "SUM",
-              "MEAN",
-              "MAX",
-              "MIN",
-              "P25",
-              "P50",
-              "P75",
-              "P90",
-              "P95",
-              "P98",
-              "P99",
-              "DISTINCT_COUNT"
+              "APPLICATION",
+              "SERVICE",
+              "ENDPOINT"
             ]
-          }
-        }
-      },
-      "Order": {
-        "required": [
-          "by",
-          "direction"
-        ],
-        "type": "object",
-        "properties": {
-          "by": {
-            "type": "string"
-          },
-          "direction": {
-            "type": "string",
-            "enum": [
-              "ASC",
-              "DESC"
-            ]
-          }
-        }
-      },
-      "TagFilter": {
-        "required": [
-          "operator",
-          "value"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          },
-          "operator": {
-            "type": "string",
-            "enum": [
-              "EQUALS",
-              "CONTAINS",
-              "LESS_THAN",
-              "GREATER_THAN",
-              "NOT_EMPTY",
-              "NOT_EQUAL",
-              "NOT_CONTAIN",
-              "IS_EMPTY",
-              "NOT_BLANK",
-              "IS_BLANK"
-            ]
-          }
-        }
-      },
-      "TimeFrame": {
-        "type": "object",
-        "properties": {
-          "windowSize": {
-            "maximum": 2678400000,
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "to": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
@@ -4387,6 +4173,45 @@
           }
         }
       },
+      "FullTrace": {
+        "required": [
+          "rootSpan"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "totalErrorCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "rootSpan": {
+            "$ref": "#/components/schemas/Span"
+          }
+        }
+      },
+      "PhysicalContext": {
+        "type": "object",
+        "properties": {
+          "process": {
+            "$ref": "#/components/schemas/SnapshotPreview"
+          },
+          "container": {
+            "$ref": "#/components/schemas/SnapshotPreview"
+          },
+          "host": {
+            "$ref": "#/components/schemas/SnapshotPreview"
+          },
+          "zone": {
+            "$ref": "#/components/schemas/SnapshotPreview"
+          },
+          "cluster": {
+            "$ref": "#/components/schemas/SnapshotPreview"
+          }
+        }
+      },
       "Service": {
         "required": [
           "technologies",
@@ -4433,250 +4258,6 @@
               "SERVICE",
               "ENDPOINT"
             ]
-          }
-        }
-      },
-      "Trace": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "startTime": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
-          },
-          "duration": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "erroneous": {
-            "type": "boolean"
-          },
-          "service": {
-            "$ref": "#/components/schemas/Service"
-          },
-          "endpoint": {
-            "$ref": "#/components/schemas/Endpoint"
-          }
-        }
-      },
-      "TraceItem": {
-        "required": [
-          "cursor",
-          "trace"
-        ],
-        "type": "object",
-        "properties": {
-          "trace": {
-            "$ref": "#/components/schemas/Trace"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          }
-        }
-      },
-      "TraceResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TraceItem"
-            }
-          },
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "GetTraces": {
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "tagFilters": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          }
-        }
-      },
-      "CallGroupsItem": {
-        "required": [
-          "cursor",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "timestamp": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "CallGroupsResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CallGroupsItem"
-            }
-          },
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "GetCallGroups": {
-        "required": [
-          "group"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "group": {
-            "$ref": "#/components/schemas/Group"
-          },
-          "tagFilters": {
-            "maxItems": 10,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricConfiguration"
-            }
-          }
-        }
-      },
-      "Application": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "entityType": {
-            "type": "string",
-            "enum": [
-              "APPLICATION",
-              "SERVICE",
-              "ENDPOINT"
-            ]
-          }
-        }
-      },
-      "FullTrace": {
-        "required": [
-          "rootSpan"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "totalErrorCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "rootSpan": {
-            "$ref": "#/components/schemas/Span"
-          }
-        }
-      },
-      "PhysicalContext": {
-        "type": "object",
-        "properties": {
-          "process": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          },
-          "container": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          },
-          "host": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          },
-          "zone": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          },
-          "cluster": {
-            "$ref": "#/components/schemas/SnapshotPreview"
           }
         }
       },
@@ -4815,15 +4396,193 @@
           }
         }
       },
-      "ApplicationItem": {
+      "IngestionOffsetCursor": {
+        "type": "object",
+        "properties": {
+          "ingestionTime": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "offset": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Trace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "startTime": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          },
+          "duration": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "erroneous": {
+            "type": "boolean"
+          },
+          "service": {
+            "$ref": "#/components/schemas/Service"
+          },
+          "endpoint": {
+            "$ref": "#/components/schemas/Endpoint"
+          }
+        }
+      },
+      "TraceItem": {
         "required": [
-          "application",
+          "cursor",
+          "trace"
+        ],
+        "type": "object",
+        "properties": {
+          "trace": {
+            "$ref": "#/components/schemas/Trace"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          }
+        }
+      },
+      "TraceResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CursorPagination": {
+        "type": "object",
+        "properties": {
+          "retrievalSize": {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ingestionTime": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "GetTraces": {
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "tagFilters": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          }
+        }
+      },
+      "TagFilter": {
+        "required": [
+          "operator",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "EQUALS",
+              "CONTAINS",
+              "LESS_THAN",
+              "GREATER_THAN",
+              "NOT_EMPTY",
+              "NOT_EQUAL",
+              "NOT_CONTAIN",
+              "IS_EMPTY",
+              "NOT_BLANK",
+              "IS_BLANK"
+            ]
+          }
+        }
+      },
+      "TimeFrame": {
+        "type": "object",
+        "properties": {
+          "windowSize": {
+            "maximum": 2678400000,
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "CallGroupsItem": {
+        "required": [
+          "cursor",
           "metrics"
         ],
         "type": "object",
         "properties": {
-          "application": {
-            "$ref": "#/components/schemas/Application"
+          "name": {
+            "type": "string"
+          },
+          "timestamp": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
           },
           "metrics": {
             "type": "object",
@@ -4839,7 +4598,7 @@
           }
         }
       },
-      "ApplicationMetricResult": {
+      "CallGroupsResult": {
         "required": [
           "items"
         ],
@@ -4848,27 +4607,76 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ApplicationItem"
+              "$ref": "#/components/schemas/CallGroupsItem"
             }
           },
-          "page": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
+          "canLoadMore": {
+            "type": "boolean"
           },
           "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
             "minimum": 0,
             "type": "integer",
             "format": "int32"
           }
         }
       },
-      "AppDataMetricConfiguration": {
+      "GetCallGroups": {
+        "required": [
+          "group"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "group": {
+            "$ref": "#/components/schemas/Group"
+          },
+          "tagFilters": {
+            "maxItems": 10,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricConfiguration"
+            }
+          }
+        }
+      },
+      "Group": {
+        "type": "object",
+        "properties": {
+          "groupbyTag": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "groupbyTagSecondLevelKey": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "MetricConfiguration": {
         "required": [
           "aggregation"
         ],
@@ -4900,14 +4708,92 @@
           }
         }
       },
-      "GetApplications": {
+      "Order": {
         "required": [
+          "by",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "by": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "ASC",
+              "DESC"
+            ]
+          }
+        }
+      },
+      "TraceGroupsItem": {
+        "required": [
+          "cursor",
           "metrics"
         ],
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string"
+          },
+          "timestamp": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TraceGroupsResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceGroupsItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetTraceGroups": {
+        "required": [
+          "group"
+        ],
+        "type": "object",
+        "properties": {
           "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+            "$ref": "#/components/schemas/CursorPagination"
           },
           "order": {
             "$ref": "#/components/schemas/Order"
@@ -4915,75 +4801,24 @@
           "timeFrame": {
             "$ref": "#/components/schemas/TimeFrame"
           },
+          "group": {
+            "$ref": "#/components/schemas/Group"
+          },
+          "tagFilters": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
           "metrics": {
             "maxItems": 5,
             "minItems": 1,
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AppDataMetricConfiguration"
+              "$ref": "#/components/schemas/MetricConfiguration"
             }
-          },
-          "nameFilter": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "applicationId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "serviceId": {
-            "type": "string",
-            "writeOnly": true
-          },
-          "endpointId": {
-            "type": "string",
-            "writeOnly": true
-          },
-          "endpointTypes": {
-            "uniqueItems": true,
-            "type": "array",
-            "writeOnly": true,
-            "items": {
-              "type": "string",
-              "enum": [
-                "UNDEFINED",
-                "RPC",
-                "BATCH",
-                "SHELL",
-                "HTTP",
-                "INTERNAL",
-                "DATABASE",
-                "MESSAGING",
-                "PAGE",
-                "PAGE_RESOURCE"
-              ]
-            }
-          },
-          "technologies": {
-            "uniqueItems": true,
-            "type": "array",
-            "writeOnly": true,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "Pagination": {
-        "type": "object",
-        "properties": {
-          "page": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "maximum": 200,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -5040,6 +4875,38 @@
           }
         }
       },
+      "AppDataMetricConfiguration": {
+        "required": [
+          "aggregation"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "DISTINCT_COUNT"
+            ]
+          }
+        }
+      },
       "GetServices": {
         "required": [
           "metrics"
@@ -5086,6 +4953,22 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -5208,6 +5091,130 @@
           },
           "excludeSynthetic": {
             "type": "boolean"
+          }
+        }
+      },
+      "ApplicationItem": {
+        "required": [
+          "application",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "application": {
+            "$ref": "#/components/schemas/Application"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ApplicationMetricResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationItem"
+            }
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetApplications": {
+        "required": [
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppDataMetricConfiguration"
+            }
+          },
+          "nameFilter": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "applicationId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "serviceId": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "endpointId": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "endpointTypes": {
+            "uniqueItems": true,
+            "type": "array",
+            "writeOnly": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNDEFINED",
+                "RPC",
+                "BATCH",
+                "SHELL",
+                "HTTP",
+                "INTERNAL",
+                "DATABASE",
+                "MESSAGING",
+                "PAGE",
+                "PAGE_RESOURCE"
+              ]
+            }
+          },
+          "technologies": {
+            "uniqueItems": true,
+            "type": "array",
+            "writeOnly": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -5868,11 +5875,6 @@
             "minLength": 0,
             "type": "string"
           },
-          "eventQuery": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
           "ruleIds": {
             "maxItems": 1024,
             "minItems": 0,
@@ -6307,7 +6309,8 @@
         "type": "object",
         "properties": {
           "ruleType": {
-            "type": "string"
+            "type": "string",
+            "description": "Values: `\"THRESHOLD\"`  `\"SYSTEM\"`"
           },
           "severity": {
             "type": "integer",
@@ -6418,29 +6421,6 @@
           }
         ]
       },
-      "SearchFieldResult": {
-        "type": "object",
-        "properties": {
-          "keyword": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "context": {
-            "type": "string"
-          },
-          "termType": {
-            "type": "string"
-          },
-          "fixedValues": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "MetricInstance": {
         "required": [
           "formatter"
@@ -6475,6 +6455,29 @@
           },
           "custom": {
             "type": "boolean"
+          }
+        }
+      },
+      "SearchFieldResult": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "termType": {
+            "type": "string"
+          },
+          "fixedValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
