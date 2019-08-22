@@ -133,15 +133,15 @@ OpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behin
 To generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):
 
 ```bash
-# Download the generator to your current working directory:
+//Download the generator to your current working directory:
 wget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar
 
-# generate a client library that you can vendor into your repository
+//generate a client library that you can vendor into your repository
 java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \
     -o pkg/instana/openapi \
     --skip-validate-spec
 
-# (optional) format the Go code according to the Go code standard
+//(optional) format the Go code according to the Go code standard
 gofmt -s -w pkg/instana/openapi
 ```
 
