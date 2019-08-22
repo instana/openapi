@@ -8,13 +8,13 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "INSTANA_BACKEND_BUILD_VERSION",
+    "version": "1.160.738",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#031F29",
       "altText": "instana logo"
     },
-    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n\n### Example\nHere is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.\n\n```bash\ncurl --request GET \\\n  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'\n```\n\nNext we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.\n\n```bash\ncurl --request POST \\\n  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"group\":{\n      \"groupbyTag\":\"endpoint.name\"\n  },\n  \"tagFilters\":[\n  \t{\n  \t\t\"name\":\"call.error.count\",\n  \t\t\"value\":\"0\",\n  \t\t\"operator\":\"GREATER_THAN\"\n  \t}\n  ],\n  \"metrics\":[\n  \t{\n  \t\t\"metric\":\"errors\",\n  \t\t\"aggregation\":\"MEAN\"\n  \t}\n  ]\n  }'\n```\n\n\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\nTo generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):\n\n```bash\n# Download the generator to your current working directory:\nwget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar\n\n# generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n# (optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs. To use the client from the example above, you can start right away:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n\n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n"
+    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n\n### Example\nHere is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.\n\n```bash\ncurl --request GET \\\n  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'\n```\n\nNext we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.\n\n```bash\ncurl --request POST \\\n  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"group\":{\n      \"groupbyTag\":\"endpoint.name\"\n  },\n  \"tagFilters\":[\n  \t{\n  \t\t\"name\":\"call.error.count\",\n  \t\t\"value\":\"0\",\n  \t\t\"operator\":\"GREATER_THAN\"\n  \t}\n  ],\n  \"metrics\":[\n  \t{\n  \t\t\"metric\":\"errors\",\n  \t\t\"aggregation\":\"MEAN\"\n  \t}\n  ]\n  }'\n```\n\n\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\nTo generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):\n\n```bash\n//Download the generator to your current working directory:\nwget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar\n\n//generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n//(optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs. To use the client from the example above, you can start right away:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n\n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n"
   },
   "servers": [
     {
@@ -150,43 +150,6 @@
         "description": "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
       }
     },
-    "/api/application-monitoring/analyze/traces/{id}": {
-      "get": {
-        "tags": [
-          "Application Analyze"
-        ],
-        "summary": "Get Trace detail",
-        "operationId": "getTrace",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FullTrace"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
     "/api/application-monitoring/analyze/trace-groups": {
       "post": {
         "tags": [
@@ -194,6 +157,15 @@
         ],
         "summary": "Get grouped trace metrics",
         "operationId": "getTraceGroups",
+        "parameters": [
+          {
+            "name": "fillTimeSeries",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -230,6 +202,15 @@
         ],
         "summary": "Get grouped call metrics",
         "operationId": "getCallGroup",
+        "parameters": [
+          {
+            "name": "fillTimeSeries",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -260,28 +241,29 @@
         "description": "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
       }
     },
-    "/api/application-monitoring/metrics/applications": {
-      "post": {
+    "/api/application-monitoring/analyze/traces/{id}": {
+      "get": {
         "tags": [
-          "Application Metrics"
+          "Application Analyze"
         ],
-        "summary": "Get Application Metrics",
-        "operationId": "getApplicationMetrics",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetApplications"
-              }
+        "summary": "Get trace detail",
+        "operationId": "getTrace",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        },
+        ],
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApplicationMetricResult"
+                  "$ref": "#/components/schemas/FullTrace"
                 }
               }
             }
@@ -368,13 +350,66 @@
         ]
       }
     },
-    "/api/application-monitoring/services": {
+    "/api/application-monitoring/metrics/applications": {
+      "post": {
+        "tags": [
+          "Application Metrics"
+        ],
+        "summary": "Get Application Metrics",
+        "operationId": "getApplicationMetrics",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetApplications"
+              },
+              "examples": {
+                "payload": {
+                  "value": {
+                    "order": {
+                      "by": "latency.p95",
+                      "direction": "DESC"
+                    },
+                    "metrics": [
+                      {
+                        "metric": "latency",
+                        "granularity": "1",
+                        "aggregation": "P95"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationMetricResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/application-monitoring/applications/services": {
       "get": {
         "tags": [
           "Application Resources"
         ],
-        "summary": "Get services",
-        "operationId": "getServices",
+        "summary": "Get applications/services",
+        "operationId": "getApplicationServices",
         "parameters": [
           {
             "name": "nameFilter",
@@ -422,74 +457,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ServiceResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/application-monitoring/applications": {
-      "get": {
-        "tags": [
-          "Application Resources"
-        ],
-        "summary": "Get applications",
-        "operationId": "getApplications",
-        "parameters": [
-          {
-            "name": "nameFilter",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "windowSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "to",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationResult"
                 }
               }
             }
@@ -594,13 +561,81 @@
         ]
       }
     },
-    "/api/application-monitoring/applications/services": {
+    "/api/application-monitoring/applications": {
       "get": {
         "tags": [
           "Application Resources"
         ],
-        "summary": "Get applications/services",
-        "operationId": "getApplicationServices",
+        "summary": "Get applications",
+        "operationId": "getApplications",
+        "parameters": [
+          {
+            "name": "nameFilter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "windowSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/application-monitoring/services": {
+      "get": {
+        "tags": [
+          "Application Resources"
+        ],
+        "summary": "Get services",
+        "operationId": "getServices",
         "parameters": [
           {
             "name": "nameFilter",
@@ -771,9 +806,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationConfig"
+                }
+              }
             }
           }
         },
@@ -850,9 +888,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationConfig"
+                }
+              }
             }
           }
         },
@@ -944,9 +985,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpEndpointConfig"
+                }
+              }
             }
           }
         },
@@ -1023,9 +1067,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpEndpointConfig"
+                }
+              }
             }
           }
         },
@@ -1053,42 +1100,6 @@
             }
           }
         ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/application-monitoring/settings/http-endpoint/testRules": {
-      "post": {
-        "tags": [
-          "Application Settings"
-        ],
-        "summary": "Check endpoint Rules",
-        "operationId": "testEndpointConfig",
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/HttpEndpointRule"
-                }
-              }
-            }
-          }
-        },
         "responses": {
           "default": {
             "description": "default response",
@@ -1170,9 +1181,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceConfig"
+                }
+              }
             }
           }
         },
@@ -1264,9 +1278,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceConfig"
+                }
+              }
             }
           }
         },
@@ -1286,6 +1303,19 @@
         ],
         "summary": "Order of service configuration",
         "operationId": "orderEndpointConfig",
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "default": {
             "description": "default response",
@@ -1550,23 +1580,13 @@
         ]
       }
     },
-    "/api/events/settings/alertingChannels/test/{id}": {
+    "/api/events/settings/alertingChannels/test": {
       "put": {
         "tags": [
           "Event Settings"
         ],
         "summary": "Test alerting channel",
-        "operationId": "alertingChannelTest",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "sendTestAlerting",
         "requestBody": {
           "content": {
             "*/*": {
@@ -1575,7 +1595,8 @@
               }
             }
           },
-          "required": true
+          "required": true,
+          "x-example": "alertingChannelTestCall"
         },
         "responses": {
           "default": {
@@ -1648,7 +1669,7 @@
         ],
         "requestBody": {
           "content": {
-            "*/*": {
+            "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AlertingConfiguration"
               }
@@ -1712,15 +1733,6 @@
         ],
         "summary": "All Alerting",
         "operationId": "getAlerts",
-        "parameters": [
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
         "responses": {
           "default": {
             "content": {
@@ -1757,13 +1769,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
             }
           }
         ],
@@ -1817,7 +1822,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BuiltInEventSpecification"
+                    "$ref": "#/components/schemas/WithLastUpdated"
                   }
                 }
               }
@@ -2007,15 +2012,6 @@
         ],
         "summary": "Summary of all built-in and custom event specifications",
         "operationId": "getEventSpecificationInfos",
-        "parameters": [
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
         "responses": {
           "default": {
             "content": {
@@ -2044,15 +2040,6 @@
         ],
         "summary": "Summary of all built-in and custom event specifications by IDs",
         "operationId": "getEventSpecificationInfosByIds",
-        "parameters": [
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "*/*": {
@@ -2139,13 +2126,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
           }
         ],
         "requestBody": {
@@ -2160,9 +2140,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithLastUpdated"
+                }
+              }
             }
           }
         },
@@ -2226,9 +2209,12 @@
         ],
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithLastUpdated"
+                }
+              }
             }
           }
         },
@@ -2260,9 +2246,12 @@
         ],
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithLastUpdated"
+                }
+              }
             }
           }
         },
@@ -2385,33 +2374,6 @@
         "description": "This endpoint retrieves all available search keywords for dynamic focus queries.\n\nThese search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.\nSome fields contain a set of possible fixed values, in this case a deviant value is invalid.\n\n```\n?query={keyword}:{value}\n```\n"
       }
     },
-    "/api/infrastructure-monitoring/graph/views": {
-      "get": {
-        "tags": [
-          "Infrastructure Resources"
-        ],
-        "summary": "Get view tree",
-        "operationId": "getInfrastructureViewTree",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TreeNodeResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
     "/api/infrastructure-monitoring/graph/related-hosts/{snapshotId}": {
       "get": {
         "tags": [
@@ -2452,37 +2414,71 @@
         ]
       }
     },
-    "/api/infrastructure-monitoring/snapshots/{id}": {
+    "/api/infrastructure-monitoring/graph/views": {
       "get": {
         "tags": [
-          "Infrastructure Metrics"
+          "Infrastructure Resources"
         ],
-        "summary": "Get snapshot details",
-        "operationId": "getSnapshot",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "time",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
+        "summary": "Get view tree",
+        "operationId": "getInfrastructureViewTree",
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SnapshotItem"
+                  "$ref": "#/components/schemas/TreeNodeResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/infrastructure-monitoring/metrics": {
+      "post": {
+        "tags": [
+          "Infrastructure Metrics"
+        ],
+        "summary": "Get infrastructure metrics",
+        "operationId": "getInfrastructureMetrics",
+        "parameters": [
+          {
+            "name": "context",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "offline",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetCombinedMetrics"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureMetricResult"
                 }
               }
             }
@@ -2529,6 +2525,14 @@
             }
           },
           {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
             "name": "plugin",
             "in": "query",
             "schema": {
@@ -2536,7 +2540,7 @@
             }
           },
           {
-            "name": "context",
+            "name": "offline",
             "in": "query",
             "schema": {
               "type": "boolean"
@@ -2564,37 +2568,45 @@
         "description": "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\r\n**Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\r\n- Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.\r\n"
       }
     },
-    "/api/infrastructure-monitoring/metrics": {
-      "post": {
+    "/api/infrastructure-monitoring/snapshots/{id}": {
+      "get": {
         "tags": [
           "Infrastructure Metrics"
         ],
-        "summary": "Get infrastructure metrics",
-        "operationId": "getInfrastructureMetrics",
+        "summary": "Get snapshot details",
+        "operationId": "getSnapshot",
         "parameters": [
           {
-            "name": "context",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
             "in": "query",
             "schema": {
-              "type": "boolean"
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "windowSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetCombinedMetrics"
-              }
-            }
-          }
-        },
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InfrastructureMetricResult"
+                  "$ref": "#/components/schemas/SnapshotItem"
                 }
               }
             }
@@ -2731,6 +2743,83 @@
           }
         ],
         "description": "The returned JSON object will provide a health property which contains a simple traffic light (GREEN/YELLO/RED). For any non-Green-state a list \nof reasons will be provided in the messages array.\n\nPossible messages:\n* No data being processed\n* No data arriving from agents\n"
+      }
+    },
+    "/api/instana/version": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "API version information",
+        "operationId": "getVersion",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstanaVersionInfo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/instana/usage/api/{month}/{year}": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "API usage month / year",
+        "operationId": "getUsagePerMonth",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
       }
     },
     "/api/instana/usage/api/{day}/{month}/{year}": {
@@ -2931,56 +3020,6 @@
         ]
       }
     },
-    "/api/instana/usage/api/{month}/{year}": {
-      "get": {
-        "tags": [
-          "Usage"
-        ],
-        "summary": "API usage month / year",
-        "operationId": "getUsagePerMonth",
-        "parameters": [
-          {
-            "name": "month",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "year",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UsageResult"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanSeeUsageInformation"
-            ]
-          }
-        ]
-      }
-    },
     "/api/settings/api-tokens": {
       "get": {
         "tags": [
@@ -3051,7 +3090,7 @@
         "tags": [
           "API Token"
         ],
-        "summary": "Update API token",
+        "summary": "Create or update an API token",
         "operationId": "putApiToken",
         "parameters": [
           {
@@ -3074,10 +3113,16 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "If token already exist on other environment."
+          },
           "default": {
-            "description": "default response",
             "content": {
-              "*/*": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiToken"
+                }
+              }
             }
           }
         },
@@ -3179,17 +3224,8 @@
         "tags": [
           "Maintenance Configuration"
         ],
-        "summary": "All Maintenance configurations",
+        "summary": "All maintenance configurations",
         "operationId": "getMaintenanceConfigs",
-        "parameters": [
-          {
-            "name": "newApplicationModelEnabled",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
         "responses": {
           "default": {
             "content": {
@@ -3235,7 +3271,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MaintenanceConfig"
+                  "$ref": "#/components/schemas/WithLastUpdated"
                 }
               }
             }
@@ -3253,7 +3289,7 @@
         "tags": [
           "Maintenance Configuration"
         ],
-        "summary": "Update maintenance",
+        "summary": "Create or update maintenance configuration",
         "operationId": "putMaintenanceConfig",
         "parameters": [
           {
@@ -3276,10 +3312,22 @@
           "required": true
         },
         "responses": {
+          "200": {
+            "description": "Maintenance config has been created or updated, and successfully scheduled immediately if needed"
+          },
+          "202": {
+            "description": "Maintenance config has been created or updated, but could not to be scheduled immediately. It will therefore be scheduled during the next auto-refresh with a delay of up to 4 minutes."
+          },
+          "400": {
+            "description": "Invalid JSON or mismatching IDs have been provided"
+          },
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithLastUpdated"
+                }
+              }
             }
           }
         },
@@ -3295,7 +3343,7 @@
         "tags": [
           "Maintenance Configuration"
         ],
-        "summary": "Delete maintenance",
+        "summary": "Delete maintenance configuration",
         "operationId": "deleteMaintenanceConfig",
         "parameters": [
           {
@@ -3392,36 +3440,6 @@
         ]
       }
     },
-    "/api/settings/roles": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "All roles",
-        "operationId": "getRoles",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Role"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureRoles"
-            ]
-          }
-        ]
-      }
-    },
     "/api/settings/roles/{roleId}": {
       "get": {
         "tags": [
@@ -3486,9 +3504,12 @@
         },
         "responses": {
           "default": {
-            "description": "default response",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Role"
+                }
+              }
             }
           }
         },
@@ -3521,6 +3542,36 @@
             "description": "default response",
             "content": {
               "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureRoles"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/roles": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "All roles",
+        "operationId": "getRoles",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Role"
+                  }
+                }
+              }
             }
           }
         },
@@ -3609,77 +3660,6 @@
           {
             "ApiKeyAuth": [
               "ConfigureServiceMapping"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/settings/users/{userId}/role": {
-      "put": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Add user to role",
-        "operationId": "setRole",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "roleId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureUsers"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/settings/users": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "All tenant users (excluding pending invitations)",
-        "operationId": "getUsers",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UserResult"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureUsers"
             ]
           }
         ]
@@ -3784,6 +3764,36 @@
         ]
       }
     },
+    "/api/settings/users": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "All tenant users (excluding pending invitations)",
+        "operationId": "getUsers",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureUsers"
+            ]
+          }
+        ]
+      }
+    },
     "/api/settings/users/overview": {
       "get": {
         "tags": [
@@ -3845,37 +3855,42 @@
         ]
       }
     },
-    "/api/website-monitoring/analyze/beacon-groups": {
-      "post": {
+    "/api/settings/users/{userId}/role": {
+      "put": {
         "tags": [
-          "Website Analyze"
+          "User"
         ],
-        "summary": "Get grouped beacon metrics",
-        "operationId": "getBeaconGroups",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetWebsiteBeaconGroups"
-              }
+        "summary": "Add user to role",
+        "operationId": "setRole",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "roleId",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
-        },
+        ],
         "responses": {
           "default": {
+            "description": "default response",
             "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BeaconGroupsResult"
-                }
-              }
+              "application/json": {}
             }
           }
         },
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "ConfigureUsers"
             ]
           }
         ]
@@ -3903,6 +3918,51 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BeaconResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/website-monitoring/analyze/beacon-groups": {
+      "post": {
+        "tags": [
+          "Website Analyze"
+        ],
+        "summary": "Get grouped beacon metrics",
+        "operationId": "getBeaconGroups",
+        "parameters": [
+          {
+            "name": "fillTimeSeries",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetWebsiteBeaconGroups"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeaconGroupsResult"
                 }
               }
             }
@@ -3979,6 +4039,42 @@
         "description": "This endpoint retrieves all available metric definitions for website monitoring.\n"
       }
     },
+    "/api/website-monitoring/metrics": {
+      "post": {
+        "tags": [
+          "Website Metrics"
+        ],
+        "summary": "Get beacon metrics",
+        "operationId": "getBeaconMetrics",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetWebsiteMetrics"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebsiteMetricResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/website-monitoring/page-load": {
       "get": {
         "tags": [
@@ -4035,42 +4131,6 @@
           }
         ]
       }
-    },
-    "/api/website-monitoring/metrics": {
-      "post": {
-        "tags": [
-          "Website Metrics"
-        ],
-        "summary": "Get beacon metrics",
-        "operationId": "getBeaconMetrics",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetWebsiteMetrics"
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WebsiteMetricResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
     }
   },
   "components": {
@@ -4093,6 +4153,7 @@
             "enum": [
               "UNDEFINED",
               "RPC",
+              "GRAPHQL",
               "BATCH",
               "SHELL",
               "HTTP",
@@ -4166,6 +4227,7 @@
               "enum": [
                 "UNDEFINED",
                 "RPC",
+                "GRAPHQL",
                 "BATCH",
                 "SHELL",
                 "HTTP",
@@ -4346,199 +4408,6 @@
           "to": {
             "type": "integer",
             "format": "int64"
-          }
-        }
-      },
-      "Application": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "entityType": {
-            "type": "string",
-            "enum": [
-              "APPLICATION",
-              "SERVICE",
-              "ENDPOINT"
-            ]
-          }
-        }
-      },
-      "FullTrace": {
-        "required": [
-          "rootSpan"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "totalErrorCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "rootSpan": {
-            "$ref": "#/components/schemas/Span"
-          }
-        }
-      },
-      "PhysicalContext": {
-        "type": "object",
-        "properties": {
-          "process": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          },
-          "container": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          },
-          "host": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          },
-          "zone": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          },
-          "cluster": {
-            "$ref": "#/components/schemas/SnapshotPreview"
-          }
-        }
-      },
-      "SnapshotPreview": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "time": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
-          },
-          "label": {
-            "type": "string"
-          },
-          "plugin": {
-            "type": "string"
-          }
-        }
-      },
-      "Span": {
-        "required": [
-          "childSpans",
-          "data",
-          "kind",
-          "stackTrace"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "label": {
-            "maxLength": 128,
-            "minLength": 0,
-            "type": "string"
-          },
-          "start": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
-          },
-          "duration": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "errorCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "batchSize": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "batchSelfTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "ENTRY",
-              "EXIT",
-              "INTERMEDIATE"
-            ]
-          },
-          "source": {
-            "$ref": "#/components/schemas/SpanRelation"
-          },
-          "destination": {
-            "$ref": "#/components/schemas/SpanRelation"
-          },
-          "stackTrace": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/StackTraceItem"
-            }
-          },
-          "childSpans": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Span"
-            }
-          },
-          "data": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "SpanRelation": {
-        "required": [
-          "applications"
-        ],
-        "type": "object",
-        "properties": {
-          "applications": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Application"
-            }
-          },
-          "service": {
-            "$ref": "#/components/schemas/Service"
-          },
-          "endpoint": {
-            "$ref": "#/components/schemas/Endpoint"
-          },
-          "physicalContext": {
-            "$ref": "#/components/schemas/PhysicalContext"
-          }
-        }
-      },
-      "StackTraceItem": {
-        "type": "object",
-        "properties": {
-          "file": {
-            "type": "string"
-          },
-          "method": {
-            "type": "string"
-          },
-          "line": {
-            "type": "string"
           }
         }
       },
@@ -4798,175 +4667,196 @@
           }
         }
       },
-      "ApplicationItem": {
-        "required": [
-          "application",
-          "metrics"
-        ],
+      "Application": {
         "type": "object",
         "properties": {
-          "application": {
-            "$ref": "#/components/schemas/Application"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "ApplicationMetricResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ApplicationItem"
-            }
-          },
-          "page": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "AppDataMetricConfiguration": {
-        "required": [
-          "aggregation"
-        ],
-        "type": "object",
-        "properties": {
-          "metric": {
+          "id": {
             "type": "string"
           },
-          "granularity": {
-            "type": "integer",
-            "format": "int32"
+          "label": {
+            "type": "string"
           },
-          "aggregation": {
+          "entityType": {
             "type": "string",
             "enum": [
-              "SUM",
-              "MEAN",
-              "MAX",
-              "MIN",
-              "P25",
-              "P50",
-              "P75",
-              "P90",
-              "P95",
-              "P98",
-              "P99",
-              "DISTINCT_COUNT"
+              "APPLICATION",
+              "SERVICE",
+              "ENDPOINT"
             ]
           }
         }
       },
-      "GetApplications": {
+      "FullTrace": {
         "required": [
-          "metrics"
+          "rootSpan"
         ],
         "type": "object",
         "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+          "id": {
+            "type": "string"
           },
-          "order": {
-            "$ref": "#/components/schemas/Order"
+          "totalErrorCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
           },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
+          "rootSpan": {
+            "$ref": "#/components/schemas/Span"
+          }
+        }
+      },
+      "PhysicalContext": {
+        "type": "object",
+        "properties": {
+          "process": {
+            "$ref": "#/components/schemas/SnapshotPreview"
           },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AppDataMetricConfiguration"
-            }
+          "container": {
+            "$ref": "#/components/schemas/SnapshotPreview"
           },
-          "nameFilter": {
-            "maxLength": 256,
+          "host": {
+            "$ref": "#/components/schemas/SnapshotPreview"
+          },
+          "zone": {
+            "$ref": "#/components/schemas/SnapshotPreview"
+          },
+          "cluster": {
+            "$ref": "#/components/schemas/SnapshotPreview"
+          }
+        }
+      },
+      "SnapshotPreview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "time": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          },
+          "label": {
+            "type": "string"
+          },
+          "plugin": {
+            "type": "string"
+          }
+        }
+      },
+      "Span": {
+        "required": [
+          "childSpans",
+          "data",
+          "kind",
+          "stackTrace"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 128,
             "minLength": 0,
             "type": "string"
           },
-          "applicationId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
+          "start": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
           },
-          "serviceId": {
+          "duration": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "errorCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "batchSize": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "batchSelfTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "kind": {
             "type": "string",
-            "writeOnly": true
+            "enum": [
+              "ENTRY",
+              "EXIT",
+              "INTERMEDIATE"
+            ]
           },
-          "endpointId": {
-            "type": "string",
-            "writeOnly": true
+          "source": {
+            "$ref": "#/components/schemas/SpanRelation"
           },
-          "endpointTypes": {
-            "uniqueItems": true,
+          "destination": {
+            "$ref": "#/components/schemas/SpanRelation"
+          },
+          "stackTrace": {
             "type": "array",
-            "writeOnly": true,
             "items": {
-              "type": "string",
-              "enum": [
-                "UNDEFINED",
-                "RPC",
-                "BATCH",
-                "SHELL",
-                "HTTP",
-                "INTERNAL",
-                "DATABASE",
-                "MESSAGING",
-                "PAGE",
-                "PAGE_RESOURCE"
-              ]
+              "$ref": "#/components/schemas/StackTraceItem"
             }
           },
-          "technologies": {
-            "uniqueItems": true,
+          "childSpans": {
             "type": "array",
-            "writeOnly": true,
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/Span"
+            }
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
             }
           }
         }
       },
-      "Pagination": {
+      "SpanRelation": {
+        "required": [
+          "applications"
+        ],
         "type": "object",
         "properties": {
-          "page": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
+          "applications": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Application"
+            }
           },
-          "pageSize": {
-            "maximum": 200,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
+          "service": {
+            "$ref": "#/components/schemas/Service"
+          },
+          "endpoint": {
+            "$ref": "#/components/schemas/Endpoint"
+          },
+          "physicalContext": {
+            "$ref": "#/components/schemas/PhysicalContext"
+          }
+        }
+      },
+      "StackTraceItem": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "line": {
+            "type": "string"
           }
         }
       },
@@ -5023,6 +4913,38 @@
           }
         }
       },
+      "AppDataMetricConfiguration": {
+        "required": [
+          "aggregation"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "DISTINCT_COUNT"
+            ]
+          }
+        }
+      },
       "GetServices": {
         "required": [
           "metrics"
@@ -5069,6 +4991,22 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -5178,6 +5116,7 @@
               "enum": [
                 "UNDEFINED",
                 "RPC",
+                "GRAPHQL",
                 "BATCH",
                 "SHELL",
                 "HTTP",
@@ -5191,6 +5130,131 @@
           },
           "excludeSynthetic": {
             "type": "boolean"
+          }
+        }
+      },
+      "ApplicationItem": {
+        "required": [
+          "application",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "application": {
+            "$ref": "#/components/schemas/Application"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ApplicationMetricResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationItem"
+            }
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetApplications": {
+        "required": [
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppDataMetricConfiguration"
+            }
+          },
+          "nameFilter": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "applicationId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "serviceId": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "endpointId": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "endpointTypes": {
+            "uniqueItems": true,
+            "type": "array",
+            "writeOnly": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNDEFINED",
+                "RPC",
+                "GRAPHQL",
+                "BATCH",
+                "SHELL",
+                "HTTP",
+                "INTERNAL",
+                "DATABASE",
+                "MESSAGING",
+                "PAGE",
+                "PAGE_RESOURCE"
+              ]
+            }
+          },
+          "technologies": {
+            "uniqueItems": true,
+            "type": "array",
+            "writeOnly": true,
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -5217,13 +5281,13 @@
           }
         }
       },
-      "ApplicationResult": {
+      "EndpointResult": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Application"
+              "$ref": "#/components/schemas/Endpoint"
             }
           },
           "page": {
@@ -5240,13 +5304,13 @@
           }
         }
       },
-      "EndpointResult": {
+      "ApplicationResult": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Endpoint"
+              "$ref": "#/components/schemas/Application"
             }
           },
           "page": {
@@ -5786,6 +5850,26 @@
           }
         ]
       },
+      "VictorOpsIntegration": {
+        "required": [
+          "kind",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string"
+          },
+          "routingKey": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractIntegration"
+          }
+        ]
+      },
       "WebhookIntegration": {
         "required": [
           "kind",
@@ -5840,6 +5924,11 @@
           },
           "eventFilteringConfiguration": {
             "$ref": "#/components/schemas/EventFilteringConfiguration"
+          },
+          "customPayload": {
+            "maxLength": 65536,
+            "minLength": 0,
+            "type": "string"
           }
         }
       },
@@ -5847,11 +5936,6 @@
         "type": "object",
         "properties": {
           "query": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
-          "eventQuery": {
             "maxLength": 2048,
             "minLength": 0,
             "type": "string"
@@ -5878,7 +5962,8 @@
                 "WARNING",
                 "CHANGE",
                 "ONLINE",
-                "OFFLINE"
+                "OFFLINE",
+                "NONE"
               ]
             }
           }
@@ -5917,6 +6002,11 @@
           },
           "eventFilteringConfiguration": {
             "$ref": "#/components/schemas/EventFilteringConfiguration"
+          },
+          "customPayload": {
+            "maxLength": 65536,
+            "minLength": 0,
+            "type": "string"
           },
           "invalid": {
             "type": "boolean"
@@ -5964,7 +6054,8 @@
                 "WARNING",
                 "CHANGE",
                 "ONLINE",
-                "OFFLINE"
+                "OFFLINE",
+                "NONE"
               ]
             }
           },
@@ -5977,66 +6068,6 @@
           },
           "invalid": {
             "type": "boolean"
-          }
-        }
-      },
-      "BuiltInEventSpecification": {
-        "required": [
-          "hyperParams",
-          "ruleInputs"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
-          "shortPluginId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "description": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
-          "hyperParams": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/HyperParam"
-            }
-          },
-          "ruleInputs": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RuleInput"
-            }
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "triggering": {
-            "type": "boolean"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "lastUpdated": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
@@ -6106,6 +6137,98 @@
             "maxLength": 256,
             "minLength": 0,
             "type": "string"
+          }
+        }
+      },
+      "WithLastUpdated": {
+        "required": [
+          "query"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "query": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "windows": {
+            "maxItems": 1,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceWindow"
+            }
+          },
+          "lastUpdated": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "BuiltInEventSpecification": {
+        "required": [
+          "hyperParams",
+          "ruleInputs"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "shortPluginId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "hyperParams": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HyperParam"
+            }
+          },
+          "ruleInputs": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleInput"
+            }
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "triggering": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
           }
         }
       },
@@ -6254,11 +6377,21 @@
               "SUM",
               "AVG",
               "MIN",
-              "MAX"
+              "MAX",
+              "NONE"
             ]
           },
           "conditionOperator": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "GT",
+              "GTE",
+              "LT",
+              "LTE",
+              "EQ",
+              "NE",
+              "NONE"
+            ]
           },
           "conditionValue": {
             "type": "number",
@@ -6278,7 +6411,8 @@
         "type": "object",
         "properties": {
           "ruleType": {
-            "type": "string"
+            "type": "string",
+            "description": "Values: `\"THRESHOLD\"`  `\"SYSTEM\"`  `\"ENTITY_VERIFICATION\"`"
           },
           "severity": {
             "type": "integer",
@@ -6288,6 +6422,63 @@
         "discriminator": {
           "propertyName": "ruleType"
         }
+      },
+      "EntityVerificationRule": {
+        "required": [
+          "matchingEntityLabel",
+          "matchingEntityType",
+          "matchingOperator",
+          "ruleType"
+        ],
+        "type": "object",
+        "properties": {
+          "matchingEntityType": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "matchingOperator": {
+            "type": "string",
+            "enum": [
+              "IS",
+              "CONTAINS",
+              "STARTS_WITH",
+              "ENDS_WITH",
+              "NONE"
+            ]
+          },
+          "matchingEntityLabel": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "offlineDuration": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractRule"
+          }
+        ]
+      },
+      "SystemRule": {
+        "required": [
+          "ruleType",
+          "systemRuleId"
+        ],
+        "type": "object",
+        "properties": {
+          "systemRuleId": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractRule"
+          }
+        ]
       },
       "CustomEventSpecification": {
         "required": [
@@ -6340,54 +6531,8 @@
             "items": {
               "$ref": "#/components/schemas/AbstractRule"
             }
-          },
-          "downstream": {
-            "$ref": "#/components/schemas/EventSpecificationDownstream"
-          },
-          "lastUpdated": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
           }
         }
-      },
-      "EventSpecificationDownstream": {
-        "required": [
-          "integrationIds"
-        ],
-        "type": "object",
-        "properties": {
-          "integrationIds": {
-            "maxItems": 1024,
-            "minItems": 0,
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "broadcastToAllAlertingConfigs": {
-            "type": "boolean"
-          }
-        },
-        "writeOnly": true
-      },
-      "SystemRule": {
-        "required": [
-          "ruleType",
-          "systemRuleId"
-        ],
-        "type": "object",
-        "properties": {
-          "systemRuleId": {
-            "type": "string"
-          }
-        },
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/AbstractRule"
-          }
-        ]
       },
       "MetricInstance": {
         "required": [
@@ -6500,48 +6645,6 @@
           }
         }
       },
-      "SnapshotItem": {
-        "type": "object",
-        "properties": {
-          "snapshotId": {
-            "type": "string"
-          },
-          "plugin": {
-            "type": "string"
-          },
-          "from": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "to": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "label": {
-            "type": "string"
-          },
-          "host": {
-            "type": "string"
-          }
-        }
-      },
-      "SnapshotResult": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SnapshotItem"
-            }
-          }
-        }
-      },
       "InfrastructureMetricResult": {
         "type": "object",
         "properties": {
@@ -6635,6 +6738,48 @@
           }
         }
       },
+      "SnapshotItem": {
+        "type": "object",
+        "properties": {
+          "snapshotId": {
+            "type": "string"
+          },
+          "plugin": {
+            "type": "string"
+          },
+          "from": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          }
+        }
+      },
+      "SnapshotResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SnapshotItem"
+            }
+          }
+        }
+      },
       "MonitoringState": {
         "type": "object",
         "properties": {
@@ -6702,6 +6847,20 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "InstanaVersionInfo": {
+        "type": "object",
+        "properties": {
+          "branch": {
+            "type": "string"
+          },
+          "commit": {
+            "type": "string"
+          },
+          "imageTag": {
+            "type": "string"
           }
         }
       },
@@ -6790,6 +6949,9 @@
             "type": "boolean"
           },
           "canConfigureTeams": {
+            "type": "boolean"
+          },
+          "canConfigureReleases": {
             "type": "boolean"
           }
         }
@@ -6963,11 +7125,6 @@
             "items": {
               "$ref": "#/components/schemas/MaintenanceWindow"
             }
-          },
-          "lastUpdated": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
@@ -7036,6 +7193,9 @@
             "type": "boolean"
           },
           "restrictedAccess": {
+            "type": "boolean"
+          },
+          "canConfigureReleases": {
             "type": "boolean"
           }
         }
@@ -7138,158 +7298,6 @@
           }
         }
       },
-      "BeaconGroupsResult": {
-        "required": [
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
-            }
-          },
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "totalHits": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRepresentedItemCount": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "WebsiteBeaconGroupsItem": {
-        "required": [
-          "cursor",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "earliestTimestamp": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "cursor": {
-            "$ref": "#/components/schemas/IngestionOffsetCursor"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "GetWebsiteBeaconGroups": {
-        "required": [
-          "group",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/CursorPagination"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "group": {
-            "$ref": "#/components/schemas/WebsiteBeaconTagGroup"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "PAGELOAD",
-              "RESOURCELOAD",
-              "HTTPREQUEST",
-              "ERROR"
-            ]
-          },
-          "tagFilters": {
-            "maxItems": 32,
-            "minItems": 0,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
-            }
-          }
-        }
-      },
-      "WebsiteBeaconTagGroup": {
-        "type": "object",
-        "properties": {
-          "groupbyTag": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "groupbyTagSecondLevelKey": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          }
-        }
-      },
-      "WebsiteMonitoringMetricsConfiguration": {
-        "required": [
-          "aggregation"
-        ],
-        "type": "object",
-        "properties": {
-          "metric": {
-            "type": "string"
-          },
-          "granularity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "aggregation": {
-            "type": "string",
-            "enum": [
-              "SUM",
-              "MEAN",
-              "MAX",
-              "MIN",
-              "P25",
-              "P50",
-              "P75",
-              "P90",
-              "P95",
-              "P98",
-              "P99",
-              "DISTINCT_COUNT"
-            ]
-          }
-        }
-      },
       "BeaconResult": {
         "required": [
           "items"
@@ -7375,6 +7383,11 @@
           },
           "timestamp": {
             "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          },
+          "clockSkew": {
+            "minimum": -1,
             "type": "integer",
             "format": "int64"
           },
@@ -7680,6 +7693,32 @@
             "minimum": -1,
             "type": "integer",
             "format": "int64"
+          },
+          "cspBlockedUri": {
+            "type": "string"
+          },
+          "cspEffectiveDirective": {
+            "type": "string"
+          },
+          "cspOriginalPolicy": {
+            "type": "string"
+          },
+          "cspDisposition": {
+            "type": "string"
+          },
+          "cspSample": {
+            "type": "string"
+          },
+          "cspSourceFile": {
+            "type": "string"
+          },
+          "cspLineNumber": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cspColumnNumber": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -7711,6 +7750,158 @@
             "items": {
               "$ref": "#/components/schemas/TagFilter"
             }
+          }
+        }
+      },
+      "BeaconGroupsResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
+            }
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WebsiteBeaconGroupsItem": {
+        "required": [
+          "cursor",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "earliestTimestamp": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "GetWebsiteBeaconGroups": {
+        "required": [
+          "group",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "group": {
+            "$ref": "#/components/schemas/WebsiteBeaconTagGroup"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PAGELOAD",
+              "RESOURCELOAD",
+              "HTTPREQUEST",
+              "ERROR"
+            ]
+          },
+          "tagFilters": {
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
+            }
+          }
+        }
+      },
+      "WebsiteBeaconTagGroup": {
+        "type": "object",
+        "properties": {
+          "groupbyTag": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "groupbyTagSecondLevelKey": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "WebsiteMonitoringMetricsConfiguration": {
+        "required": [
+          "aggregation"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "DISTINCT_COUNT"
+            ]
           }
         }
       },
