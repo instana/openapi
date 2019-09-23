@@ -1,7 +1,6 @@
 This endpoint retrieves the metrics for infrastructure components.
 
-## Mandatory Parameters:
-
+### Mandatory Parameters
 **plugin:** Plugins are entities' for which we collect metrics, for example : "Host", "Cassandra node", "Cassandra Connection".
 
 The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) where we have data for you.
@@ -21,8 +20,7 @@ To make the it easy to get started this endpoint has two modes that can be used 
 Once you have selected the plugin you can define up to five metrics you want to retrieve with the call.
 Please use our [metrics catalog call](#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.
 
-## Optional Parameters:
-
+### Optional Parameters
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
 ```
   windowSize           to
@@ -51,8 +49,7 @@ Valid rollups are:
 | 1 hour  | 3600  |
 
 
-## Defaults:
-
+### Defaults
 **timeframe:**
 ```
 "timeFrame": {
@@ -63,8 +60,7 @@ Valid rollups are:
 
 **rollup**: 1
 
-## Limits:
-
+### Limits
 500 Calls per Hour
 1000 Calls per Hour
 
@@ -80,8 +76,7 @@ query=entity.selfType:java
 plugin=host
 metric=cpu.steal
 ```
-## Tips:
-
+### Tips
 [1] **Pagination**
 Sometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds
 
