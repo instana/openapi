@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: 'http://instana.com'
     email: support@instana.com
-  version: 1.161.402
+  version: 1.162.659
   x-logo:
     url: header-logo.svg
     backgroundColor: '#031F29'
@@ -24,13 +24,13 @@ servers:
         default: unit
 tags:
   - name: Infrastructure Metrics
-    description: "This endpoint retrieves the metrics for infrastructure components.\r\n\r\n## Mandatory Parameters:\r\n\r\n**plugin:** Plugins are entities' for which we collect metrics, for example : \"Host\", \"Cassandra node\", \"Cassandra Connection\".\r\n\r\nThe available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) where we have data for you.\r\n\r\n**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)\r\n\r\nTo make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:\r\n1. Search metrics with a query\r\n  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.\r\n  To get usable search parameters you can either query the search [catalog endpoint](#operation/getSearchFields) or use the UI\r\n\r\n1. Search for metrics for snapshotIds\r\n  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute\r\n\r\n**metrics:** Id of the exact metric you want to retrieve, eg. \"cpu.user\", \"clientrequests.read.mean\"\r\n\r\nOnce you have selected the plugin you can define up to five metrics you want to retrieve with the call.\r\nPlease use our [metrics catalog call](#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.\r\n\r\n## Optional Parameters:\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\n**rollup:** Depending on the selected timeFrame its possible to selected the rollup.\r\n\r\nThe available rollup is depending on two factors:\r\n1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)\r\n\r\n\tFor example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min\r\n1. Size of the selected windowSize\r\n\r\n\tThe limitation is that we only return 600 Data points per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s\r\n\r\nValid rollups are:\r\n\r\n| rollup  | value |\r\n| ------------- | ------------- |\r\n| 1 second  | 1 |\r\n| 5 seconds  | 5  |\r\n| 1 minute  | 60 |\r\n| 5 minutes  | 300  |\r\n| 1 hour  | 3600  |\r\n\r\n\r\n## Defaults:\r\n\r\n**timeframe:**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**rollup**: 1\r\n\r\n## Limits:\r\n\r\n500 Calls per Hour\r\n1000 Calls per Hour\r\n\r\nTo keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]\r\n\r\nA maximum of 600 data points are returned per metric.\r\n\r\nYou can only retrieve metrics [above](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter. Work around can be found under [2]\r\n\r\nThe following example will return an empty result, because the selected plugin \"host\" is below the dynamic focus filter \"java\" :\r\n```\r\nquery=entity.selfType:java\r\nplugin=host\r\nmetric=cpu.steal\r\n```\r\n## Tips:\r\n\r\n[1] **Pagination**\r\nSometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds\r\n\r\n\r\n[2] **Application filter**\r\nYou can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name\r\n```\r\nquery=entity.application.name:\"Java Applications\"\r\n```\r\n"
+    description: "This endpoint retrieves the metrics for infrastructure components.\r\n\r\n### Mandatory Parameters\r\n**plugin:** Plugins are entities' for which we collect metrics, for example : \"Host\", \"Cassandra node\", \"Cassandra Connection\".\r\n\r\nThe available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) where we have data for you.\r\n\r\n**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)\r\n\r\nTo make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:\r\n1. Search metrics with a query\r\n  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.\r\n  To get usable search parameters you can either query the search [catalog endpoint](#operation/getSearchFields) or use the UI\r\n\r\n1. Search for metrics for snapshotIds\r\n  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute\r\n\r\n**metrics:** Id of the exact metric you want to retrieve, eg. \"cpu.user\", \"clientrequests.read.mean\"\r\n\r\nOnce you have selected the plugin you can define up to five metrics you want to retrieve with the call.\r\nPlease use our [metrics catalog call](#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.\r\n\r\n### Optional Parameters\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\n**rollup:** Depending on the selected timeFrame its possible to selected the rollup.\r\n\r\nThe available rollup is depending on two factors:\r\n1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)\r\n\r\n\tFor example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min\r\n1. Size of the selected windowSize\r\n\r\n\tThe limitation is that we only return 600 Data points per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s\r\n\r\nValid rollups are:\r\n\r\n| rollup  | value |\r\n| ------------- | ------------- |\r\n| 1 second  | 1 |\r\n| 5 seconds  | 5  |\r\n| 1 minute  | 60 |\r\n| 5 minutes  | 300  |\r\n| 1 hour  | 3600  |\r\n\r\n\r\n### Defaults\r\n**timeframe:**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**rollup**: 1\r\n\r\n### Limits\r\n500 Calls per Hour\r\n1000 Calls per Hour\r\n\r\nTo keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]\r\n\r\nA maximum of 600 data points are returned per metric.\r\n\r\nYou can only retrieve metrics [above](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter. Work around can be found under [2]\r\n\r\nThe following example will return an empty result, because the selected plugin \"host\" is below the dynamic focus filter \"java\" :\r\n```\r\nquery=entity.selfType:java\r\nplugin=host\r\nmetric=cpu.steal\r\n```\r\n### Tips\r\n[1] **Pagination**\r\nSometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds\r\n\r\n\r\n[2] **Application filter**\r\nYou can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name\r\n```\r\nquery=entity.application.name:\"Java Applications\"\r\n```\r\n"
   - name: Infrastructure Resources
   - name: Infrastructure Catalog
     description: |
       The endpoints of this group retrieve all available resources to query infrastructure metrics.
   - name: Application Metrics
-    description: "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n\r\n## Mandatory Parameters:\r\n\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\r\n\r\n## Optional Parameters:\r\n\r\n**metrics** Default you will get an aggregated metric with for the selected timeFrame \r\n\r\n* *granularity* \r\n  * if it is not set you will get a an aggregated value for the selected timeframe. \r\n  * if the granularity is set you will get data points with the specified granularity in seconds\r\n    * The value can be selected freely between 1 - selected windowSize.\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n\r\n## Defaults:\r\n\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
+    description: "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n### Mandatory Parameters\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\r\n### Optional Parameters\r\n**metrics** Default you will get an aggregated metric with for the selected timeFrame \r\n\r\n* *granularity* \r\n  * if it is not set you will get a an aggregated value for the selected timeframe. \r\n  * if the granularity is set you will get data points with the specified granularity in seconds\r\n    * The value can be selected freely between 1 - selected windowSize.\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n### Defaults\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
   - name: Application Catalog
     description: |
       The endpoints of this group retrieve all available resources to query application metrics.
@@ -107,6 +107,52 @@ paths:
         - ApiKeyAuth:
             - Default
       description: "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
+  /api/application-monitoring/analyze/process-groups:
+    post:
+      tags:
+        - Application Analyze
+      summary: Get grouped profiled process metrics
+      operationId: getProcessGroup
+      parameters:
+        - name: fillTimeSeries
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetProcessGroups'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessGroupsResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+  /api/application-monitoring/analyze/processes:
+    post:
+      tags:
+        - Application Analyze
+      summary: Get all profiled processes
+      operationId: getProcesses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetProcesses'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessResult'
+          x-example: ProcessResult
+      security:
+        - ApiKeyAuth:
+            - Default
   /api/application-monitoring/analyze/traces:
     post:
       tags:
@@ -152,6 +198,27 @@ paths:
         - lang: SHELL
           source: "curl --request POST \\\n  --url https://unit-tenant.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken {apiToken}}' \\\n  --header 'content-type: application/json' \\\n  --data '{ \n\n\"timeFrame\": { \n\"windowSize\": 36000000 \n}, \n\"order\":{\n\t\"by\": \"errors\", \n\"direction\": \"DESC\" \n},\n\"group\": { \n\"groupbyTag\": \"application.name\"\n},  \n\"metrics\": [ \n{ \n\"metric\": \"errors\", \n\"aggregation\": \"MEAN\" \n} \n] \n} '"
       description: "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
+  /api/application-monitoring/analyze/profiles:
+    post:
+      tags:
+        - Application Analyze
+      summary: Get profiles
+      operationId: getProfiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetProfiles'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfilesItem'
+          x-example: ProfilesResult
+      security:
+        - ApiKeyAuth:
+            - Default
   '/api/application-monitoring/analyze/traces/{id}':
     get:
       tags:
@@ -170,26 +237,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FullTrace'
-      security:
-        - ApiKeyAuth:
-            - Default
-  /api/application-monitoring/metrics/services:
-    post:
-      tags:
-        - Application Metrics
-      summary: Get Service metrics
-      operationId: getServicesMetrics
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetServices'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceMetricResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -240,6 +287,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApplicationMetricResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+  /api/application-monitoring/metrics/services:
+    post:
+      tags:
+        - Application Metrics
+      summary: Get Service metrics
+      operationId: getServicesMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetServices'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceMetricResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -967,7 +1034,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AlertingConfiguration'
+                $ref: '#/components/schemas/WithLastUpdated'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -990,9 +1057,10 @@ paths:
         required: true
       responses:
         default:
-          description: default response
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithLastUpdated'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1156,23 +1224,6 @@ paths:
           description: default response
           content:
             application/json: {}
-      security:
-        - ApiKeyAuth:
-            - CanConfigureCustomAlerts
-  /api/events/settings/event-specifications/custom/systemRules:
-    get:
-      tags:
-        - Event Settings
-      summary: All system rules for custom event specifications
-      operationId: getSystemRules
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SystemRuleLabel'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1342,6 +1393,49 @@ paths:
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
+  /api/events/settings/event-specifications/custom/systemRules:
+    get:
+      tags:
+        - Event Settings
+      summary: All system rules for custom event specifications
+      operationId: getSystemRules
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SystemRuleLabel'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureCustomAlerts
+  /api/infrastructure-monitoring/catalog/search:
+    get:
+      tags:
+        - Infrastructure Catalog
+      summary: get search field catalog
+      operationId: getInfrastructureCatalogSearchFields
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchFieldResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      description: |
+        This endpoint retrieves all available search keywords for dynamic focus queries.
+
+        These search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.
+        Some fields contain a set of possible fixed values, in this case a deviant value is invalid.
+
+        ```
+        ?query={keyword}:{value}
+        ```
   /api/infrastructure-monitoring/catalog/plugins:
     get:
       tags:
@@ -1401,32 +1495,6 @@ paths:
 
         * `custom` to retrieve custom metric definitions only.
         * `builtin` to retrieve built-in metric definitions only.
-  /api/infrastructure-monitoring/catalog/search:
-    get:
-      tags:
-        - Infrastructure Catalog
-      summary: get search field catalog
-      operationId: getInfrastructureCatalogSearchFields
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SearchFieldResult'
-      security:
-        - ApiKeyAuth:
-            - Default
-      description: |
-        This endpoint retrieves all available search keywords for dynamic focus queries.
-
-        These search fields can be accessed via lucene queries. Each field belongs to a context, e.g. to entity, trace or event data.
-        Some fields contain a set of possible fixed values, in this case a deviant value is invalid.
-
-        ```
-        ?query={keyword}:{value}
-        ```
   /api/infrastructure-monitoring/graph/views:
     get:
       tags:
@@ -1664,72 +1732,6 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-  '/api/instana/usage/api/{month}/{year}':
-    get:
-      tags:
-        - Usage
-      summary: API usage month / year
-      operationId: getUsagePerMonth
-      parameters:
-        - name: month
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-        - name: year
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-        - ApiKeyAuth:
-            - CanSeeUsageInformation
-  '/api/instana/usage/api/{day}/{month}/{year}':
-    get:
-      tags:
-        - Usage
-      summary: API usage day / month / year
-      operationId: getUsagePerDay
-      parameters:
-        - name: day
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-        - name: month
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-        - name: year
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-        - ApiKeyAuth:
-            - CanSeeUsageInformation
   '/api/instana/usage/hosts/{month}/{year}':
     get:
       tags:
@@ -1813,6 +1815,72 @@ paths:
       security:
         - ApiKeyAuth:
             - CanSeeUsageInformation
+  '/api/instana/usage/api/{month}/{year}':
+    get:
+      tags:
+        - Usage
+      summary: API usage month / year
+      operationId: getUsagePerMonth
+      parameters:
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+        - ApiKeyAuth:
+            - CanSeeUsageInformation
+  '/api/instana/usage/api/{day}/{month}/{year}':
+    get:
+      tags:
+        - Usage
+      summary: API usage day / month / year
+      operationId: getUsagePerDay
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+        - ApiKeyAuth:
+            - CanSeeUsageInformation
   /api/releases:
     get:
       tags:
@@ -1846,6 +1914,30 @@ paths:
       security:
         - ApiKeyAuth:
             - CanConfigureReleases
+      description: |-
+        This endpoint exposes the Releases functionality.
+
+        These APIs can be used to create, update, delete and fetch already existing releases.
+
+        ## Mandatory Parameters:
+
+        **releaseId:** A unique identifier assigned to each release.
+
+        ## Optional Parameters:
+
+        **name:** Name of the exact release you want to retrieve, eg. "Release-161", "Release-162".
+
+        **start:** Start time of the particular release.
+
+        **from:** Filters the releases to retrieve only the releases which have "start" time greater than or equal to this value.
+
+        **to:** Filters the releases to retrieve only the releases which have "start" time lesser than or equal to this value.
+
+        **maxResults:** Maximum number of releases to be retrieved.
+
+        ## Defaults:
+
+        **from, to, maxResults:** By default these parameters are not set.  
     post:
       tags:
         - Releases
@@ -2439,6 +2531,26 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureUsers
+  /api/website-monitoring/analyze/beacons:
+    post:
+      tags:
+        - Website Analyze
+      summary: Get all beacons
+      operationId: getBeacons
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetWebsiteBeacons'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeaconResult'
+      security:
+        - ApiKeyAuth:
+            - Default
   /api/website-monitoring/analyze/beacon-groups:
     post:
       tags:
@@ -2461,26 +2573,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BeaconGroupsResult'
-      security:
-        - ApiKeyAuth:
-            - Default
-  /api/website-monitoring/analyze/beacons:
-    post:
-      tags:
-        - Website Analyze
-      summary: Get all beacons
-      operationId: getBeacons
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetWebsiteBeacons'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BeaconResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -2828,6 +2920,7 @@ components:
     GetTraceGroups:
       required:
         - group
+        - metrics
       type: object
       properties:
         pagination:
@@ -2977,6 +3070,7 @@ components:
     GetCallGroups:
       required:
         - group
+        - metrics
       type: object
       properties:
         pagination:
@@ -2999,6 +3093,127 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MetricConfiguration'
+    ProcessGroupsItem:
+      required:
+        - cursor
+        - metrics
+      type: object
+      properties:
+        name:
+          type: string
+        timestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    ProcessGroupsResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    GetProcessGroups:
+      required:
+        - group
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/Group'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricConfiguration'
+    ProcessResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessesItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    ProcessesItem:
+      required:
+        - cursor
+        - profiledProcess
+      type: object
+      properties:
+        profiledProcess:
+          $ref: '#/components/schemas/ProfiledProcess'
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+    ProfiledProcess:
+      type: object
+      properties:
+        processSnapshotId:
+          type: string
+        processName:
+          type: string
+        processHost:
+          type: string
+        technology:
+          type: array
+          items:
+            type: string
+    GetProcesses:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
     Endpoint:
       required:
         - technologies
@@ -3142,6 +3357,87 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
+    Profile:
+      type: object
+      properties:
+        runtime:
+          type: string
+        category:
+          type: string
+        type:
+          type: string
+        unit:
+          type: string
+        numProcesses:
+          maximum: 9223372036854776000
+          minimum: 0
+          type: integer
+          format: int64
+        profilePaths:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfilePath'
+    ProfileNode:
+      type: object
+      properties:
+        methodName:
+          type: string
+        fileName:
+          type: string
+        fileLine:
+          minimum: 0
+          type: integer
+          format: int32
+        measurement:
+          minimum: 0
+          type: number
+          format: double
+        percent:
+          minimum: 0
+          type: number
+          format: double
+        numSamples:
+          maximum: 2147483647
+          minimum: 0
+          type: integer
+          format: int64
+    ProfilePath:
+      type: object
+      properties:
+        numProcesses:
+          maximum: 9223372036854776000
+          minimum: 0
+          type: integer
+          format: int64
+        profileNodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileNode'
+    ProfilesItem:
+      type: object
+      properties:
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+    GetProfiles:
+      type: object
+      properties:
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        queryPrecision:
+          type: string
+          enum:
+            - APPROXIMATE
+            - FULL
+        processSnapshotId:
+          type: string
     Application:
       type: object
       properties:
@@ -3155,6 +3451,15 @@ components:
             - APPLICATION
             - SERVICE
             - ENDPOINT
+    CloudfoundryPhysicalContext:
+      type: object
+      properties:
+        application:
+          $ref: '#/components/schemas/SnapshotPreview'
+        space:
+          $ref: '#/components/schemas/SnapshotPreview'
+        organization:
+          $ref: '#/components/schemas/SnapshotPreview'
     FullTrace:
       required:
         - rootSpan
@@ -3168,6 +3473,17 @@ components:
           format: int32
         rootSpan:
           $ref: '#/components/schemas/Span'
+    KubernetesPhysicalContext:
+      type: object
+      properties:
+        pod:
+          $ref: '#/components/schemas/SnapshotPreview'
+        namespace:
+          $ref: '#/components/schemas/SnapshotPreview'
+        node:
+          $ref: '#/components/schemas/SnapshotPreview'
+        cluster:
+          $ref: '#/components/schemas/SnapshotPreview'
     PhysicalContext:
       type: object
       properties:
@@ -3181,6 +3497,10 @@ components:
           $ref: '#/components/schemas/SnapshotPreview'
         cluster:
           $ref: '#/components/schemas/SnapshotPreview'
+        cloudfoundry:
+          $ref: '#/components/schemas/CloudfoundryPhysicalContext'
+        kubernetes:
+          $ref: '#/components/schemas/KubernetesPhysicalContext'
     SnapshotPreview:
       type: object
       properties:
@@ -3276,116 +3596,6 @@ components:
           type: string
         line:
           type: string
-    ServiceItem:
-      required:
-        - metrics
-        - service
-      type: object
-      properties:
-        service:
-          $ref: '#/components/schemas/Service'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    ServiceMetricResult:
-      required:
-        - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ServiceItem'
-        page:
-          minimum: 1
-          type: integer
-          format: int32
-        pageSize:
-          minimum: 1
-          type: integer
-          format: int32
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-    AppDataMetricConfiguration:
-      required:
-        - aggregation
-      type: object
-      properties:
-        metric:
-          type: string
-        granularity:
-          type: integer
-          format: int32
-        aggregation:
-          type: string
-          enum:
-            - SUM
-            - MEAN
-            - MAX
-            - MIN
-            - P25
-            - P50
-            - P75
-            - P90
-            - P95
-            - P98
-            - P99
-            - DISTINCT_COUNT
-    GetServices:
-      required:
-        - metrics
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-        order:
-          $ref: '#/components/schemas/Order'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/AppDataMetricConfiguration'
-        nameFilter:
-          maxLength: 256
-          minLength: 0
-          type: string
-        applicationId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        serviceId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        technologies:
-          maxItems: 20
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-    Pagination:
-      type: object
-      properties:
-        page:
-          minimum: 1
-          type: integer
-          format: int32
-        pageSize:
-          maximum: 200
-          minimum: 1
-          type: integer
-          format: int32
     EndpointItem:
       required:
         - endpoint
@@ -3423,6 +3633,31 @@ components:
           minimum: 0
           type: integer
           format: int32
+    AppDataMetricConfiguration:
+      required:
+        - aggregation
+      type: object
+      properties:
+        metric:
+          type: string
+        granularity:
+          type: integer
+          format: int32
+        aggregation:
+          type: string
+          enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - DISTINCT_COUNT
     GetEndpoints:
       required:
         - metrics
@@ -3477,6 +3712,18 @@ components:
               - PAGE_RESOURCE
         excludeSynthetic:
           type: boolean
+    Pagination:
+      type: object
+      properties:
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          maximum: 200
+          minimum: 1
+          type: integer
+          format: int32
     ApplicationItem:
       required:
         - application
@@ -3567,6 +3814,79 @@ components:
           uniqueItems: true
           type: array
           writeOnly: true
+          items:
+            type: string
+    ServiceItem:
+      required:
+        - metrics
+        - service
+      type: object
+      properties:
+        service:
+          $ref: '#/components/schemas/Service'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    ServiceMetricResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceItem'
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          minimum: 1
+          type: integer
+          format: int32
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+    GetServices:
+      required:
+        - metrics
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/AppDataMetricConfiguration'
+        nameFilter:
+          maxLength: 256
+          minLength: 0
+          type: string
+        applicationId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        serviceId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        technologies:
+          maxItems: 20
+          minItems: 0
+          uniqueItems: true
+          type: array
           items:
             type: string
     ServiceResult:
@@ -3980,6 +4300,63 @@ components:
             type: string
       allOf:
         - $ref: '#/components/schemas/AbstractIntegration'
+    EventFilteringConfiguration:
+      type: object
+      properties:
+        query:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        ruleIds:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        eventTypes:
+          maxItems: 6
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+              - INCIDENT
+              - CRITICAL
+              - WARNING
+              - CHANGE
+              - ONLINE
+              - OFFLINE
+              - NONE
+    WithLastUpdated:
+      required:
+        - query
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        name:
+          maxLength: 256
+          minLength: 0
+          type: string
+        query:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        windows:
+          maxItems: 1
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceWindow'
+        lastUpdated:
+          minimum: 1
+          type: integer
+          format: int64
     AlertingConfiguration:
       required:
         - alertName
@@ -4011,35 +4388,6 @@ components:
           maxLength: 65536
           minLength: 0
           type: string
-    EventFilteringConfiguration:
-      type: object
-      properties:
-        query:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        ruleIds:
-          maxItems: 1024
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-        eventTypes:
-          maxItems: 6
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-            enum:
-              - INCIDENT
-              - CRITICAL
-              - WARNING
-              - CHANGE
-              - ONLINE
-              - OFFLINE
-              - NONE
     ValidatedAlertingConfiguration:
       required:
         - alertName
@@ -4071,9 +4419,18 @@ components:
           maxLength: 65536
           minLength: 0
           type: string
+        lastUpdated:
+          minimum: 1
+          type: integer
+          format: int64
         invalid:
           type: boolean
         alertChannelNames:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        applicationNames:
           uniqueItems: true
           type: array
           items:
@@ -4170,34 +4527,6 @@ components:
           maxLength: 256
           minLength: 0
           type: string
-    WithLastUpdated:
-      required:
-        - query
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
-          type: string
-        name:
-          maxLength: 256
-          minLength: 0
-          type: string
-        query:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        windows:
-          maxItems: 1
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            $ref: '#/components/schemas/MaintenanceWindow'
-        lastUpdated:
-          minimum: 1
-          type: integer
-          format: int64
     BuiltInEventSpecification:
       required:
         - hyperParams
@@ -4239,15 +4568,6 @@ components:
           type: boolean
         enabled:
           type: boolean
-    SystemRuleLabel:
-      required:
-        - name
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
     EventSpecificationInfo:
       required:
         - entityType
@@ -4458,6 +4778,30 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AbstractRule'
+    SystemRuleLabel:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    SearchFieldResult:
+      type: object
+      properties:
+        keyword:
+          type: string
+        description:
+          type: string
+        context:
+          type: string
+        termType:
+          type: string
+        fixedValues:
+          type: array
+          items:
+            type: string
     MetricInstance:
       required:
         - formatter
@@ -4485,21 +4829,6 @@ components:
           type: string
         custom:
           type: boolean
-    SearchFieldResult:
-      type: object
-      properties:
-        keyword:
-          type: string
-        description:
-          type: string
-        context:
-          type: string
-        termType:
-          type: string
-        fixedValues:
-          type: array
-          items:
-            type: string
     Connection:
       type: object
       properties:
@@ -4772,6 +5101,8 @@ components:
           type: boolean
         canConfigureReleases:
           type: boolean
+        canConfigureLogManagement:
+          type: boolean
     AuditLogEntry:
       required:
         - actor
@@ -4945,6 +5276,8 @@ components:
           type: boolean
         canConfigureReleases:
           type: boolean
+        canConfigureLogManagement:
+          type: boolean
     SyntheticCallRule:
       required:
         - matchSpecification
@@ -5012,116 +5345,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserResult'
-    BeaconGroupsResult:
-      required:
-        - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/WebsiteBeaconGroupsItem'
-        canLoadMore:
-          type: boolean
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-        totalRepresentedItemCount:
-          minimum: 0
-          type: integer
-          format: int32
-    WebsiteBeaconGroupsItem:
-      required:
-        - cursor
-        - metrics
-      type: object
-      properties:
-        name:
-          type: string
-        earliestTimestamp:
-          minimum: 0
-          type: integer
-          format: int64
-        cursor:
-          $ref: '#/components/schemas/IngestionOffsetCursor'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    GetWebsiteBeaconGroups:
-      required:
-        - group
-        - type
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/CursorPagination'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        group:
-          $ref: '#/components/schemas/WebsiteBeaconTagGroup'
-        order:
-          $ref: '#/components/schemas/Order'
-        type:
-          type: string
-          enum:
-            - PAGELOAD
-            - RESOURCELOAD
-            - HTTPREQUEST
-            - ERROR
-        tagFilters:
-          maxItems: 32
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/WebsiteMonitoringMetricsConfiguration'
-    WebsiteBeaconTagGroup:
-      type: object
-      properties:
-        groupbyTag:
-          maxLength: 256
-          minLength: 0
-          type: string
-        groupbyTagSecondLevelKey:
-          maxLength: 256
-          minLength: 0
-          type: string
-    WebsiteMonitoringMetricsConfiguration:
-      required:
-        - aggregation
-      type: object
-      properties:
-        metric:
-          type: string
-        granularity:
-          type: integer
-          format: int32
-        aggregation:
-          type: string
-          enum:
-            - SUM
-            - MEAN
-            - MAX
-            - MIN
-            - P25
-            - P50
-            - P75
-            - P90
-            - P95
-            - P98
-            - P99
-            - DISTINCT_COUNT
     BeaconResult:
       required:
         - items
@@ -5453,6 +5676,117 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
+    BeaconGroupsResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteBeaconGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    WebsiteBeaconGroupsItem:
+      required:
+        - cursor
+        - metrics
+      type: object
+      properties:
+        name:
+          type: string
+        earliestTimestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    GetWebsiteBeaconGroups:
+      required:
+        - group
+        - metrics
+        - type
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/WebsiteBeaconTagGroup'
+        order:
+          $ref: '#/components/schemas/Order'
+        type:
+          type: string
+          enum:
+            - PAGELOAD
+            - RESOURCELOAD
+            - HTTPREQUEST
+            - ERROR
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteMonitoringMetricsConfiguration'
+    WebsiteBeaconTagGroup:
+      type: object
+      properties:
+        groupbyTag:
+          maxLength: 256
+          minLength: 0
+          type: string
+        groupbyTagSecondLevelKey:
+          maxLength: 256
+          minLength: 0
+          type: string
+    WebsiteMonitoringMetricsConfiguration:
+      required:
+        - aggregation
+      type: object
+      properties:
+        metric:
+          type: string
+        granularity:
+          type: integer
+          format: int32
+        aggregation:
+          type: string
+          enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - DISTINCT_COUNT
     WebsiteMonitoringMetricDescription:
       type: object
       properties:
