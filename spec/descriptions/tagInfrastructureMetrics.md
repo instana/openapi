@@ -10,7 +10,7 @@ The available plugins are depending on the system you are monitoring. Therefore 
 To make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:
 1. Search metrics with a query
   You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.
-  To get usable search parameters you can either query the search [catalog endpoint](#operation/getSearchFields) or use the UI
+  To get usable search parameters you can either query the search [catalog endpoint](#operation/getInfrastructureCatalogSearchFields) or use the UI
 
 1. Search for metrics for snapshotIds
   For advanced use cases, pagination for example, its recommended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute
@@ -18,7 +18,7 @@ To make the it easy to get started this endpoint has two modes that can be used 
 **metrics:** Id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"
 
 Once you have selected the plugin you can define up to five metrics you want to retrieve with the call.
-Please use our [metrics catalog call](#operation/getMetricsByPlugin) to get the available metrics for the selected plugin.
+Please use our [metrics catalog call](#operation/getInfrastructureCatalogPlugins) to get the available metrics for the selected plugin.
 
 ### Optional Parameters
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
