@@ -3,7 +3,7 @@ This endpoint retrieves the metrics for infrastructure components.
 ### Mandatory Parameters
 **plugin:** Plugins are entities' for which we collect metrics, for example : "Host", "Cassandra node", "Cassandra Connection".
 
-The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getPlugins) where we have data for you.
+The available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getInfrastructureCatalogPlugins) where we have data for you.
 
 **query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)
 
@@ -18,7 +18,7 @@ To make the it easy to get started this endpoint has two modes that can be used 
 **metrics:** Id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"
 
 Once you have selected the plugin you can define up to five metrics you want to retrieve with the call.
-Please use our [metrics catalog call](#operation/getInfrastructureCatalogPlugins) to get the available metrics for the selected plugin.
+Please use our [metrics catalog call](#operation/getInfrastructureCatalogMetrics) to get the available metrics for the selected plugin.
 
 ### Optional Parameters
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
