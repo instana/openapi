@@ -6,10 +6,10 @@ info:
     name: © Instana
     url: 'http://instana.com'
     email: support@instana.com
-  version: 1.172.612
+  version: 1.172.613
   x-logo:
     url: header-logo.svg
-    backgroundColor: '#031F29'
+    backgroundColor: '#FAFBFC'
     altText: instana logo
   description: "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n\n### Example\nHere is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.\n\n```bash\ncurl --request GET \\\n  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'\n```\n\nNext we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.\n\n```bash\ncurl --request POST \\\n  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"group\":{\n      \"groupbyTag\":\"endpoint.name\"\n  },\n  \"tagFilters\":[\n  \t{\n  \t\t\"name\":\"call.error.count\",\n  \t\t\"value\":\"0\",\n  \t\t\"operator\":\"GREATER_THAN\"\n  \t}\n  ],\n  \"metrics\":[\n  \t{\n  \t\t\"metric\":\"errors\",\n  \t\t\"aggregation\":\"MEAN\"\n  \t}\n  ]\n  }'\n```\n\n\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\nTo generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):\n\n```bash\n//Download the generator to your current working directory:\nwget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar\n\n//generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n//(optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs. To use the client from the example above, you can start right away:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n\n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n"
 servers:
@@ -56,51 +56,6 @@ tags:
   - name: Health
   - name: Usage
 paths:
-  /api/application-monitoring/analyze/traces:
-    post:
-      tags:
-        - Application Analyze
-      summary: Get all traces
-      operationId: getTraces
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetTraces'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TraceResult'
-          x-example: TraceResult
-      security:
-        - ApiKeyAuth:
-            - Default
-      x-code-samples:
-        - lang: JAVA
-          source: |
-            CloseableHttpClient client = HttpClients.createDefault();
-            String url = "https://unit-tenant.instana.com/api/application-monitoring/analyse/traces";
-            HttpPost httpPost = new HttpPost(url);
-            String json = "{"
-                        + "\"pagination\":{\"retrievalSize\":20,\"offset\":0},"
-                        + "\"timeFrame\":{\"windowSize\":3600000}"
-                        + "}"
-            StringEntity entity = new StringEntity(json);
-            httpPost.setEntity(entity);
-            httpPost.setHeader("Accept", "application/json");
-            httpPost.setHeader("Content-type", "application/json");
-            httpPost.setHeader("Authorization", "apiToken xxxxxxxx");
-
-            CloseableHttpResponse response = client.execute(httpPost);
-
-            assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
-            String traceResult = EntityUtils.toString(response.getEntity());
-            client.close();
-        - lang: SHELL
-          source: "curl --request POST \\\n  --url https://unit-tenant.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken {apiToken}}' \\\n  --header 'content-type: application/json' \\\n  --data '{ \n\n\"timeFrame\": { \n\"windowSize\": 36000000 \n}, \n\"order\":{\n\t\"by\": \"errors\", \n\"direction\": \"DESC\" \n},\n\"group\": { \n\"groupbyTag\": \"application.name\"\n},  \n\"metrics\": [ \n{ \n\"metric\": \"errors\", \n\"aggregation\": \"MEAN\" \n} \n] \n} '"
-      description: "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
   '/api/application-monitoring/analyze/traces/{id}':
     get:
       tags:
@@ -173,6 +128,51 @@ paths:
         - ApiKeyAuth:
             - Default
       description: "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
+  /api/application-monitoring/analyze/traces:
+    post:
+      tags:
+        - Application Analyze
+      summary: Get all traces
+      operationId: getTraces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTraces'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceResult'
+          x-example: TraceResult
+      security:
+        - ApiKeyAuth:
+            - Default
+      x-code-samples:
+        - lang: JAVA
+          source: |
+            CloseableHttpClient client = HttpClients.createDefault();
+            String url = "https://unit-tenant.instana.com/api/application-monitoring/analyse/traces";
+            HttpPost httpPost = new HttpPost(url);
+            String json = "{"
+                        + "\"pagination\":{\"retrievalSize\":20,\"offset\":0},"
+                        + "\"timeFrame\":{\"windowSize\":3600000}"
+                        + "}"
+            StringEntity entity = new StringEntity(json);
+            httpPost.setEntity(entity);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+            httpPost.setHeader("Authorization", "apiToken xxxxxxxx");
+
+            CloseableHttpResponse response = client.execute(httpPost);
+
+            assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+            String traceResult = EntityUtils.toString(response.getEntity());
+            client.close();
+        - lang: SHELL
+          source: "curl --request POST \\\n  --url https://unit-tenant.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken {apiToken}}' \\\n  --header 'content-type: application/json' \\\n  --data '{ \n\n\"timeFrame\": { \n\"windowSize\": 36000000 \n}, \n\"order\":{\n\t\"by\": \"errors\", \n\"direction\": \"DESC\" \n},\n\"group\": { \n\"groupbyTag\": \"application.name\"\n},  \n\"metrics\": [ \n{ \n\"metric\": \"errors\", \n\"aggregation\": \"MEAN\" \n} \n] \n} '"
+      description: "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
   /api/application-monitoring/metrics/services:
     post:
       tags:
@@ -243,12 +243,12 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-  /api/application-monitoring/applications/services:
+  /api/application-monitoring/applications:
     get:
       tags:
         - Application Resources
-      summary: Get applications/services
-      operationId: getApplicationServices
+      summary: Get applications
+      operationId: getApplications
       parameters:
         - name: nameFilter
           in: query
@@ -279,7 +279,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceResult'
+                $ref: '#/components/schemas/ApplicationResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -337,12 +337,12 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-  /api/application-monitoring/applications:
+  /api/application-monitoring/applications/services:
     get:
       tags:
         - Application Resources
-      summary: Get applications
-      operationId: getApplications
+      summary: Get applications/services
+      operationId: getApplicationServices
       parameters:
         - name: nameFilter
           in: query
@@ -373,7 +373,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationResult'
+                $ref: '#/components/schemas/ServiceResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -660,43 +660,6 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureServiceMapping
-  /api/application-monitoring/settings/service:
-    get:
-      tags:
-        - Application Settings
-      summary: All service configurations
-      operationId: getServiceConfigs
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceConfig'
-      security:
-        - ApiKeyAuth:
-            - ConfigureServiceMapping
-    post:
-      tags:
-        - Application Settings
-      summary: Add service configuration
-      operationId: addServiceConfig
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ServiceConfig'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceConfig'
-      security:
-        - ApiKeyAuth:
-            - ConfigureServiceMapping
   '/api/application-monitoring/settings/service/{id}':
     get:
       tags:
@@ -760,6 +723,43 @@ paths:
           description: default response
           content:
             application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureServiceMapping
+  /api/application-monitoring/settings/service:
+    get:
+      tags:
+        - Application Settings
+      summary: All service configurations
+      operationId: getServiceConfigs
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceConfig'
+      security:
+        - ApiKeyAuth:
+            - ConfigureServiceMapping
+    post:
+      tags:
+        - Application Settings
+      summary: Add service configuration
+      operationId: addServiceConfig
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ServiceConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceConfig'
       security:
         - ApiKeyAuth:
             - ConfigureServiceMapping
@@ -1164,23 +1164,6 @@ paths:
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
-  /api/events/settings/event-specifications/custom/systemRules:
-    get:
-      tags:
-        - Event Settings
-      summary: All system rules for custom event specifications
-      operationId: getSystemRules
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SystemRuleLabel'
-      security:
-        - ApiKeyAuth:
-            - CanConfigureCustomAlerts
   /api/events/settings/event-specifications/infos:
     get:
       tags:
@@ -1348,19 +1331,12 @@ paths:
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
-  '/api/events/settings/website-alert-configs/{id}/versions':
+  /api/events/settings/event-specifications/custom/systemRules:
     get:
       tags:
         - Event Settings
-      summary: Get versions of Website Alert Config
-      description: Find all versions of a Website Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.
-      operationId: findVersions
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      summary: All system rules for custom event specifications
+      operationId: getSystemRules
       responses:
         default:
           content:
@@ -1368,7 +1344,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ConfigVersion'
+                  $ref: '#/components/schemas/SystemRuleLabel'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1414,6 +1390,30 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureCustomAlerts
+  '/api/events/settings/website-alert-configs/{id}/versions':
+    get:
+      tags:
+        - Event Settings
+      summary: Get versions of Website Alert Config
+      description: Find all versions of a Website Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.
+      operationId: findVersions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConfigVersion'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1647,6 +1647,35 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
+  /api/infrastructure-monitoring/metrics:
+    post:
+      tags:
+        - Infrastructure Metrics
+      summary: Get infrastructure metrics
+      operationId: getInfrastructureMetrics
+      parameters:
+        - name: context
+          in: query
+          schema:
+            type: boolean
+        - name: offline
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetCombinedMetrics'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureMetricResult'
+      security:
+        - ApiKeyAuth:
+            - Default
   /api/infrastructure-monitoring/snapshots:
     get:
       tags:
@@ -1719,35 +1748,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SnapshotItem'
-      security:
-        - ApiKeyAuth:
-            - Default
-  /api/infrastructure-monitoring/metrics:
-    post:
-      tags:
-        - Infrastructure Metrics
-      summary: Get infrastructure metrics
-      operationId: getInfrastructureMetrics
-      parameters:
-        - name: context
-          in: query
-          schema:
-            type: boolean
-        - name: offline
-          in: query
-          schema:
-            type: boolean
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetCombinedMetrics'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InfrastructureMetricResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -1846,19 +1846,30 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-  '/api/instana/usage/api/{day}/{month}/{year}':
+  /api/instana/usage/api:
     get:
       tags:
         - Usage
-      summary: API usage day / month / year
-      operationId: getUsagePerDay
+      summary: API usage by customer
+      operationId: getAllUsage
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+        - ApiKeyAuth:
+            - CanSeeUsageInformation
+  '/api/instana/usage/api/{month}/{year}':
+    get:
+      tags:
+        - Usage
+      summary: API usage month / year
+      operationId: getUsagePerMonth
       parameters:
-        - name: day
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
         - name: month
           in: path
           required: true
@@ -1948,30 +1959,19 @@ paths:
       security:
         - ApiKeyAuth:
             - CanSeeUsageInformation
-  /api/instana/usage/api:
+  '/api/instana/usage/api/{day}/{month}/{year}':
     get:
       tags:
         - Usage
-      summary: API usage by customer
-      operationId: getAllUsage
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-        - ApiKeyAuth:
-            - CanSeeUsageInformation
-  '/api/instana/usage/api/{month}/{year}':
-    get:
-      tags:
-        - Usage
-      summary: API usage month / year
-      operationId: getUsagePerMonth
+      summary: API usage day / month / year
+      operationId: getUsagePerDay
       parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
         - name: month
           in: path
           required: true
@@ -1995,72 +1995,6 @@ paths:
       security:
         - ApiKeyAuth:
             - CanSeeUsageInformation
-  '/api/releases/{releaseId}':
-    get:
-      tags:
-        - Releases
-      summary: Get release
-      operationId: getRelease
-      parameters:
-        - name: releaseId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReleaseWithMetadata'
-      security:
-        - ApiKeyAuth:
-            - CanConfigureReleases
-    put:
-      tags:
-        - Releases
-      summary: Update release
-      operationId: putRelease
-      parameters:
-        - name: releaseId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Release'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReleaseWithMetadata'
-      security:
-        - ApiKeyAuth:
-            - CanConfigureReleases
-    delete:
-      tags:
-        - Releases
-      summary: Delete release
-      operationId: deleteRelease
-      parameters:
-        - name: releaseId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-      security:
-        - ApiKeyAuth:
-            - CanConfigureReleases
   /api/releases:
     get:
       tags:
@@ -2138,6 +2072,89 @@ paths:
       security:
         - ApiKeyAuth:
             - CanConfigureReleases
+  '/api/releases/{releaseId}':
+    get:
+      tags:
+        - Releases
+      summary: Get release
+      operationId: getRelease
+      parameters:
+        - name: releaseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseWithMetadata'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureReleases
+    put:
+      tags:
+        - Releases
+      summary: Update release
+      operationId: putRelease
+      parameters:
+        - name: releaseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Release'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseWithMetadata'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureReleases
+    delete:
+      tags:
+        - Releases
+      summary: Delete release
+      operationId: deleteRelease
+      parameters:
+        - name: releaseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+        - ApiKeyAuth:
+            - CanConfigureReleases
+  /api/settings/api-tokens:
+    get:
+      tags:
+        - API Token
+      summary: All API tokes
+      operationId: getApiTokens
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiToken'
+      security:
+        - ApiKeyAuth:
+            - ConfigureApiTokens
   '/api/settings/api-tokens/{apiTokenId}':
     get:
       tags:
@@ -2203,23 +2220,6 @@ paths:
           description: default response
           content:
             '*/*': {}
-      security:
-        - ApiKeyAuth:
-            - ConfigureApiTokens
-  /api/settings/api-tokens:
-    get:
-      tags:
-        - API Token
-      summary: All API tokes
-      operationId: getApiTokens
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiToken'
       security:
         - ApiKeyAuth:
             - ConfigureApiTokens
@@ -2472,30 +2472,6 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureServiceMapping
-  '/api/settings/users/{userId}/role':
-    put:
-      tags:
-        - User
-      summary: Add user to role
-      operationId: setRole
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: roleId
-          in: query
-          schema:
-            type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-      security:
-        - ApiKeyAuth:
-            - ConfigureUsers
   /api/settings/users/invitations:
     get:
       tags:
@@ -2605,6 +2581,30 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureUsers
+  '/api/settings/users/{userId}/role':
+    put:
+      tags:
+        - User
+      summary: Add user to role
+      operationId: setRole
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: roleId
+          in: query
+          schema:
+            type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureUsers
   /api/website-monitoring/analyze/beacons:
     post:
       tags:
@@ -2687,45 +2687,6 @@ paths:
             - Default
       description: |
         This endpoint retrieves all available metric definitions for website monitoring.
-  /api/website-monitoring/config:
-    get:
-      tags:
-        - Website Configuration
-      summary: Get configured websites
-      operationId: get
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Website'
-      security:
-        - ApiKeyAuth:
-            - ConfigureEumApplications
-    post:
-      tags:
-        - Website Configuration
-      summary: Configure new website
-      operationId: post
-      parameters:
-        - name: name
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Website successfully configured
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Website'
-        '400':
-          description: Missing name query parameter or name already used for a configured website
-      security:
-        - ApiKeyAuth:
-            - ConfigureEumApplications
   '/api/website-monitoring/config/{websiteId}/sourceMap':
     get:
       operationId: getSourceMapConfigs
@@ -2823,6 +2784,45 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureEumApplications
+  /api/website-monitoring/config:
+    get:
+      tags:
+        - Website Configuration
+      summary: Get configured websites
+      operationId: get
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Website'
+      security:
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+    post:
+      tags:
+        - Website Configuration
+      summary: Configure new website
+      operationId: post
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Website successfully configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Website'
+        '400':
+          description: Missing name query parameter or name already used for a configured website
+      security:
+        - ApiKeyAuth:
+            - ConfigureEumApplications
   '/api/website-monitoring/config/{websiteId}':
     put:
       tags:
@@ -2868,26 +2868,6 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureEumApplications
-  /api/website-monitoring/metrics:
-    post:
-      tags:
-        - Website Metrics
-      summary: Get beacon metrics
-      operationId: getBeaconMetrics
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetWebsiteMetrics'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebsiteMetricResult'
-      security:
-        - ApiKeyAuth:
-            - Default
   /api/website-monitoring/page-load:
     get:
       tags:
@@ -2923,8 +2903,54 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
+  /api/website-monitoring/metrics:
+    post:
+      tags:
+        - Website Metrics
+      summary: Get beacon metrics
+      operationId: getBeaconMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetWebsiteMetrics'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteMetricResult'
+      security:
+        - ApiKeyAuth:
+            - Default
 components:
   schemas:
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        boundaryScope:
+          type: string
+        entityType:
+          type: string
+          enum:
+            - APPLICATION
+            - SERVICE
+            - ENDPOINT
+    CloudfoundryPhysicalContext:
+      type: object
+      properties:
+        application:
+          $ref: '#/components/schemas/SnapshotPreview'
+        space:
+          $ref: '#/components/schemas/SnapshotPreview'
+        organization:
+          $ref: '#/components/schemas/SnapshotPreview'
+        cfInstanceIndex:
+          type: string
     Endpoint:
       required:
         - technologies
@@ -2969,17 +2995,45 @@ components:
             - APPLICATION
             - SERVICE
             - ENDPOINT
-    IngestionOffsetCursor:
+    FullTrace:
+      required:
+        - rootSpan
       type: object
       properties:
-        ingestionTime:
-          minimum: 0
-          type: integer
-          format: int64
-        offset:
+        id:
+          type: string
+        totalErrorCount:
           minimum: 0
           type: integer
           format: int32
+        rootSpan:
+          $ref: '#/components/schemas/Span'
+    KubernetesPhysicalContext:
+      type: object
+      properties:
+        pod:
+          $ref: '#/components/schemas/SnapshotPreview'
+        namespace:
+          $ref: '#/components/schemas/SnapshotPreview'
+        node:
+          $ref: '#/components/schemas/SnapshotPreview'
+        cluster:
+          $ref: '#/components/schemas/SnapshotPreview'
+    PhysicalContext:
+      type: object
+      properties:
+        process:
+          $ref: '#/components/schemas/SnapshotPreview'
+        container:
+          $ref: '#/components/schemas/SnapshotPreview'
+        host:
+          $ref: '#/components/schemas/SnapshotPreview'
+        cluster:
+          $ref: '#/components/schemas/SnapshotPreview'
+        cloudfoundry:
+          $ref: '#/components/schemas/CloudfoundryPhysicalContext'
+        kubernetes:
+          $ref: '#/components/schemas/KubernetesPhysicalContext'
     Service:
       required:
         - technologies
@@ -3020,192 +3074,6 @@ components:
             - APPLICATION
             - SERVICE
             - ENDPOINT
-    Trace:
-      type: object
-      properties:
-        id:
-          type: string
-        label:
-          type: string
-        startTime:
-          minimum: 1
-          type: integer
-          format: int64
-        duration:
-          minimum: 0
-          type: integer
-          format: int64
-        erroneous:
-          type: boolean
-        service:
-          $ref: '#/components/schemas/Service'
-        endpoint:
-          $ref: '#/components/schemas/Endpoint'
-    TraceItem:
-      required:
-        - cursor
-        - trace
-      type: object
-      properties:
-        trace:
-          $ref: '#/components/schemas/Trace'
-        cursor:
-          $ref: '#/components/schemas/IngestionOffsetCursor'
-    TraceResult:
-      required:
-        - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/TraceItem'
-        canLoadMore:
-          type: boolean
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-        totalRepresentedItemCount:
-          minimum: 0
-          type: integer
-          format: int32
-    CursorPagination:
-      type: object
-      properties:
-        retrievalSize:
-          maximum: 200
-          minimum: 1
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        ingestionTime:
-          type: integer
-          format: int64
-    GetTraces:
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/CursorPagination'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        tagFilters:
-          maxItems: 32
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-    TagFilter:
-      required:
-        - operator
-        - value
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: string
-        operator:
-          type: string
-          enum:
-            - EQUALS
-            - CONTAINS
-            - LESS_THAN
-            - GREATER_THAN
-            - NOT_EMPTY
-            - NOT_EQUAL
-            - NOT_CONTAIN
-            - IS_EMPTY
-            - NOT_BLANK
-            - IS_BLANK
-            - STARTS_WITH
-            - ENDS_WITH
-            - NOT_STARTS_WITH
-            - NOT_ENDS_WITH
-        entity:
-          type: string
-          enum:
-            - NOT_APPLICABLE
-            - DESTINATION
-            - SOURCE
-    TimeFrame:
-      type: object
-      properties:
-        windowSize:
-          maximum: 2678400000
-          minimum: 0
-          type: integer
-          format: int64
-        to:
-          type: integer
-          format: int64
-    Application:
-      type: object
-      properties:
-        id:
-          type: string
-        label:
-          type: string
-        boundaryScope:
-          type: string
-        entityType:
-          type: string
-          enum:
-            - APPLICATION
-            - SERVICE
-            - ENDPOINT
-    CloudfoundryPhysicalContext:
-      type: object
-      properties:
-        application:
-          $ref: '#/components/schemas/SnapshotPreview'
-        space:
-          $ref: '#/components/schemas/SnapshotPreview'
-        organization:
-          $ref: '#/components/schemas/SnapshotPreview'
-        cfInstanceIndex:
-          type: string
-    FullTrace:
-      required:
-        - rootSpan
-      type: object
-      properties:
-        id:
-          type: string
-        totalErrorCount:
-          minimum: 0
-          type: integer
-          format: int32
-        rootSpan:
-          $ref: '#/components/schemas/Span'
-    KubernetesPhysicalContext:
-      type: object
-      properties:
-        pod:
-          $ref: '#/components/schemas/SnapshotPreview'
-        namespace:
-          $ref: '#/components/schemas/SnapshotPreview'
-        node:
-          $ref: '#/components/schemas/SnapshotPreview'
-        cluster:
-          $ref: '#/components/schemas/SnapshotPreview'
-    PhysicalContext:
-      type: object
-      properties:
-        process:
-          $ref: '#/components/schemas/SnapshotPreview'
-        container:
-          $ref: '#/components/schemas/SnapshotPreview'
-        host:
-          $ref: '#/components/schemas/SnapshotPreview'
-        cluster:
-          $ref: '#/components/schemas/SnapshotPreview'
-        cloudfoundry:
-          $ref: '#/components/schemas/CloudfoundryPhysicalContext'
-        kubernetes:
-          $ref: '#/components/schemas/KubernetesPhysicalContext'
     SnapshotPreview:
       type: object
       properties:
@@ -3316,6 +3184,17 @@ components:
           type: string
         line:
           type: string
+    IngestionOffsetCursor:
+      type: object
+      properties:
+        ingestionTime:
+          minimum: 0
+          type: integer
+          format: int64
+        offset:
+          minimum: 0
+          type: integer
+          format: int32
     TraceGroupsItem:
       required:
         - cursor
@@ -3357,6 +3236,20 @@ components:
           minimum: 0
           type: integer
           format: int32
+    CursorPagination:
+      type: object
+      properties:
+        retrievalSize:
+          maximum: 200
+          minimum: 1
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        ingestionTime:
+          type: integer
+          format: int64
     GetTraceGroups:
       required:
         - group
@@ -3440,6 +3333,50 @@ components:
           enum:
             - ASC
             - DESC
+    TagFilter:
+      required:
+        - operator
+        - value
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        operator:
+          type: string
+          enum:
+            - EQUALS
+            - CONTAINS
+            - LESS_THAN
+            - GREATER_THAN
+            - NOT_EMPTY
+            - NOT_EQUAL
+            - NOT_CONTAIN
+            - IS_EMPTY
+            - NOT_BLANK
+            - IS_BLANK
+            - STARTS_WITH
+            - ENDS_WITH
+            - NOT_STARTS_WITH
+            - NOT_ENDS_WITH
+        entity:
+          type: string
+          enum:
+            - NOT_APPLICABLE
+            - DESTINATION
+            - SOURCE
+    TimeFrame:
+      type: object
+      properties:
+        windowSize:
+          maximum: 2678400000
+          minimum: 0
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
     CallGroupsItem:
       required:
         - cursor
@@ -3507,6 +3444,69 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MetricConfiguration'
+    Trace:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        startTime:
+          minimum: 1
+          type: integer
+          format: int64
+        duration:
+          minimum: 0
+          type: integer
+          format: int64
+        erroneous:
+          type: boolean
+        service:
+          $ref: '#/components/schemas/Service'
+        endpoint:
+          $ref: '#/components/schemas/Endpoint'
+    TraceItem:
+      required:
+        - cursor
+        - trace
+      type: object
+      properties:
+        trace:
+          $ref: '#/components/schemas/Trace'
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+    TraceResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    GetTraces:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
     ServiceItem:
       required:
         - metrics
@@ -3812,13 +3812,13 @@ components:
           writeOnly: true
           items:
             type: string
-    ServiceResult:
+    ApplicationResult:
       type: object
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Service'
+            $ref: '#/components/schemas/Application'
         page:
           type: integer
           format: int32
@@ -3844,13 +3844,13 @@ components:
         totalHits:
           type: integer
           format: int32
-    ApplicationResult:
+    ServiceResult:
       type: object
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Application'
+            $ref: '#/components/schemas/Service'
         page:
           type: integer
           format: int32
@@ -4611,15 +4611,6 @@ components:
           type: boolean
         enabled:
           type: boolean
-    SystemRuleLabel:
-      required:
-        - name
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
     EventSpecificationInfo:
       required:
         - entityType
@@ -4830,21 +4821,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AbstractRule'
-    ConfigVersion:
+    SystemRuleLabel:
       required:
-        - id
+        - name
       type: object
       properties:
         id:
-          maxLength: 64
-          minLength: 0
           type: string
-        created:
-          minimum: 1
-          type: integer
-          format: int64
-        enabled:
-          type: boolean
+        name:
+          type: string
     HistoricBaseline:
       required:
         - baseline
@@ -5109,6 +5094,21 @@ components:
           format: int64
       discriminator:
         propertyName: type
+    ConfigVersion:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        created:
+          minimum: 1
+          type: integer
+          format: int64
+        enabled:
+          type: boolean
     WebsiteAlertConfig:
       required:
         - alertChannelIds
@@ -5244,34 +5244,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TreeNode'
-    SnapshotItem:
-      type: object
-      properties:
-        snapshotId:
-          type: string
-        plugin:
-          type: string
-        from:
-          type: integer
-          format: int64
-        to:
-          type: integer
-          format: int64
-        tags:
-          type: array
-          items:
-            type: string
-        label:
-          type: string
-        host:
-          type: string
-    SnapshotResult:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/SnapshotItem'
     InfrastructureMetricResult:
       type: object
       properties:
@@ -5336,6 +5308,34 @@ components:
           type: array
           items:
             type: string
+    SnapshotItem:
+      type: object
+      properties:
+        snapshotId:
+          type: string
+        plugin:
+          type: string
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
+        tags:
+          type: array
+          items:
+            type: string
+        label:
+          type: string
+        host:
+          type: string
+    SnapshotResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotItem'
     MonitoringState:
       type: object
       properties:
