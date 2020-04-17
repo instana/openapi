@@ -40,7 +40,7 @@ if command -v docker >/dev/null ; then
   if [ ! -d './spec/changelog' ]; then
     mkdir -p './spec/changelog'
   fi
-  docker run -v $(pwd):/workspace:ro -v $(pwd)/spec/changelog:/out:rw joschi/openapi-diff:latest --markdown "/out/changelog-${VERSION}.md" "/workspace/${SPEC_OLD}" "/workspace/${SPEC_NEW}" 
+  docker run -v "$(pwd)":/workspace:ro -v "$(pwd)/spec/changelog":/out:rw joschi/openapi-diff:latest --markdown "/out/changelog-${VERSION}.md" "/workspace/${SPEC_OLD}" "/workspace/${SPEC_NEW}"
 fi
 
 mv -f "${SPEC_NEW}" "${SPEC_OLD}"
@@ -50,8 +50,10 @@ if ! command -v nvm >/dev/null ; then
   if command -v brew > /dev/null && brew --prefix nvm > /dev/null ; then
     NVM_DIR=${NVM_DIR:-"$HOME/.nvm"}
     export NVM_DIR
+    # shellcheck disable=SC1090
     . "$(brew --prefix nvm)/nvm.sh"
   else
+    # shellcheck disable=SC1090
     . "${NVM_DIR:-"$HOME/.nvm"}/nvm.sh"
   fi
 fi
@@ -62,7 +64,7 @@ nvm use
 if ! command -v yarn >/dev/null ; then
   npm install -g yarn@1.9.4
 fi
-    
+
 # TODO: Why not `yarn install`?
 npm install
 
