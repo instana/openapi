@@ -134,7 +134,7 @@ To generate a client library for Go to interact with our backend, you can use th
 
 ```bash
 //Download the generator to your current working directory:
-wget http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.2.3/openapi-generator-cli-3.2.3.jar -O openapi-generator-cli.jar
+wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator/4.3.0/openapi-generator-4.3.0.jar -O openapi-generator-cli.jar
 
 //generate a client library that you can vendor into your repository
 java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \
