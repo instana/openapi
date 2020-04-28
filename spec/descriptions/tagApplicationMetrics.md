@@ -1,9 +1,12 @@
 The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.
 ### Mandatory Parameters
+
 **metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
 1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)
 2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.
+
 ### Optional Parameters
+
 **metrics** Default you will get an aggregated metric with for the selected timeFrame 
 
 * *granularity* 
@@ -37,7 +40,9 @@ To narrow down the result set you have four options to search for an application
 * *serviceId:* search for applications that include a particular service by serviceId
 
 * *endpointId:* search for applications that include a particular endpoint by endpointId
+
 ### Defaults
+
 **metrics**
 * *granularity:* 1
 
