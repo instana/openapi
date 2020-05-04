@@ -33,14 +33,17 @@ if grep -q 'INSTANA_BACKEND_BUILD_VERSION' "${SPEC_NEW}" ; then
   sed -i '' -e "s/INSTANA_BACKEND_BUILD_VERSION/${VERSION}/g" "${SPEC_NEW}"
 fi
 
-# Run openapi-diff if Docker is available
-if command -v docker >/dev/null ; then
-  echo "Finding differences between old and new OpenAPI spec"
-  docker pull -q joschi/openapi-diff:latest
-  if [ ! -d './spec/changelog' ]; then
-    mkdir -p './spec/changelog'
+# Only run openapi-diff if the specs are different
+if ! cmp -s "${SPEC_OLD}" "${SPEC_NEW}" ; then
+  # Run openapi-diff if Docker is available
+  if command -v docker >/dev/null ; then
+    echo "Finding differences between old and new OpenAPI spec"
+    docker pull -q joschi/openapi-diff:latest
+    if [ ! -d './spec/changelog' ]; then
+      mkdir -p './spec/changelog'
+    fi
+    docker run -v "$(pwd)":/workspace:ro -v "$(pwd)/spec/changelog":/out:rw joschi/openapi-diff:latest --markdown "/out/changelog-${VERSION}.md" "/workspace/${SPEC_OLD}" "/workspace/${SPEC_NEW}"
   fi
-  docker run -v "$(pwd)":/workspace:ro -v "$(pwd)/spec/changelog":/out:rw joschi/openapi-diff:latest --markdown "/out/changelog-${VERSION}.md" "/workspace/${SPEC_OLD}" "/workspace/${SPEC_NEW}"
 fi
 
 mv -f "${SPEC_NEW}" "${SPEC_OLD}"
