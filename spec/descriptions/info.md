@@ -126,15 +126,24 @@ A rate limit is applied to API usage. Up to 5,000 calls per hour can be made. Ho
 
 ## Generating REST API clients
 
-The API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format. You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).
+The API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format.
+You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).
 
-OpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).
+OpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind.
+To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).
 
-To generate a client library for Go to interact with our backend, you can use the following script (you need a JDK and `wget`):
+For example, to generate a client library for Go to interact with our backend, you can use the following script; mind replacing the values of the `UNIT_NAME` and `TENANT_NAME` environment variables using those for your tenant unit:
 
 ```bash
+#!/bin/bash
+
+### This script assumes you have the `java` and `wget` commands on the path
+
+export UNIT_NAME='myunit' # for example: prod
+export TENANT_NAME='mytenant' # for example: awesomecompany
+
 //Download the generator to your current working directory:
-wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.0/openapi-generator-cli-4.3.0.jar -O openapi-generator-cli.jar
+wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.0/openapi-generator-cli-4.3.0.jar -O openapi-generator-cli.jar --server-variables "tenant=${TENANT_NAME},unit=${UNIT_NAME}"
 
 //generate a client library that you can vendor into your repository
 java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \
@@ -145,7 +154,7 @@ java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openap
 gofmt -s -w pkg/instana/openapi
 ```
 
-The generated clients contain comprehensive READMEs. To use the client from the example above, you can start right away:
+The generated clients contain comprehensive READMEs, and you can start right away using the client from the example above:
 
 ```go
 import instana "./pkg/instana/openapi"
