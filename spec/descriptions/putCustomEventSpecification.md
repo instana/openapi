@@ -75,7 +75,7 @@ curl --request PUT 'https://<Host>/api/events/settings/event-specifications/cust
 curl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/09876543228' \
 --header 'Authorization: apiToken <Token>' \
 --header 'Content-Type: application/json' \
---data-raw '{ "id" :"09876543228", "description":"Event for OpenApi Entity Verification Rule", "enabled":true,"entityType":"host","expirationTime":"60000",
+--data-raw '{ "id" :"09876543228", "description":"Event for OpenAPI Entity Verification Rule", "enabled":true,"entityType":"host","expirationTime":"60000",
 "name":"Event for OpenAPI Entity Verification Rule",
 "rules":[{"matchingEntityLabel":"test", "matchingEntityType":"jvmRuntimePlatform","matchingOperator":"startsWith","offlineDuration":1800000, 
 "ruleType":"entity_verification","severity": 5}], "triggering":false
