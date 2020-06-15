@@ -30,7 +30,7 @@ curl --request PUT 'https://<HOST>/api/events/settings/event-specifications/cust
 --header 'Content-Type: application/json' \
 --data-raw '{ "id" :"09876543225", "description":"Event for OpenAPI documentation", "enabled":true,"entityType":"host","expirationTime":"60000","name":"Event for OpenAPI documentation",
 "query":<Query>, 
-"rules":[{"aggregation":"sum","conditionOperator":">", "conditionValue":0.1, "metricName":null, "metricPattern":{"prefix":"fs", "postfix":"free", "operator":"endsWith", "placeholder":"/xvda1"}, 
+"rules":[{"aggregation":"sum","conditionOperator":">", "conditionValue":0.1, "metricName":null, "metricPattern":{"prefix":"fs", "postfix":"free", "matchingOperator":"endsWith", "matchingLabel":"/xvda1"},
 "rollup":null, "ruleType":"threshold", "severity":10, "window":30000}], "triggering":false
 }'
 ```
@@ -67,9 +67,9 @@ curl --request PUT 'https://<Host>/api/events/settings/event-specifications/cust
 
 #### Entity Verification Rule:
 
-- **rules.matchingType:** Type of the Entity
+- **rules.matchingEntityType:** Type of the Entity
 - **rules.matchingOperator:** Operator for matching the Entity name
-- **rules.matchingOperator:** Name Pattern for the Entity
+- **rules.matchingEntityLabel:** Name Pattern for the Entity
 
 ```
 curl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/09876543228' \
