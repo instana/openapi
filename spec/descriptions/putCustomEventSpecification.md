@@ -60,7 +60,7 @@ curl --request PUT 'https://<Host>/api/events/settings/event-specifications/cust
 curl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/09876543227' \
 --header 'Authorization: apiToken <Token>' \
 --header 'Content-Type: application/json' \
---data-raw '{ "id" :"09876543227", "description":"Event for OpenApi documentation System Rule", "enabled":true,"entityType":"any","expirationTime":"60000",
+--data-raw '{ "id" :"09876543227", "description":"Event for OpenAPI documentation System Rule", "enabled":true,"entityType":"any","expirationTime":"60000",
 "name":"Event for OpenApi documentation System Rule", "rules":[{"ruleType":"system", "systemRuleId":"entity.offline","severity":10}], "triggering":false
 }'
 ```
