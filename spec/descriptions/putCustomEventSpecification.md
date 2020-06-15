@@ -46,7 +46,7 @@ The above example creates a custom event that matches disk devices that end with
 curl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/09876543226' \
 --header 'Authorization: apiToken <Token>' \
 --header 'Content-Type: application/json' \
---data-raw '{ "id" :"09876543226", "description":"Event for OpenApi documentation fixed Metric", "enabled":true,"entityType":"host","expirationTime":"60000",
+--data-raw '{ "id" :"09876543226", "description":"Event for OpenAPI documentation fixed Metric", "enabled":true,"entityType":"host","expirationTime":"60000",
 "name":"Event for OpenApi documentation fixed metric","rules":[{"aggregation":"sum","conditionOperator":">", "conditionValue":0.1, "metricName":"fs./dev/xvda1.free", 
 "rollup":null, "ruleType":"threshold", "severity":10, "window":30000}], "triggering":false
 }'
