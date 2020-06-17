@@ -22,7 +22,7 @@ Depending on the chosen `ruleType`, there are further required parameters:
 
 - **rules.metricPattern.prefix:** Prefix pattern for the metric
 
-- **rules.metricPattern.matchingOperator:** Operator for matching the metric 
+- **rules.metricPattern.operator:** Operator for matching the metric
 
 ```
 curl --request PUT 'https://<HOST>/api/events/settings/event-specifications/custom/09876543225' \
@@ -30,7 +30,7 @@ curl --request PUT 'https://<HOST>/api/events/settings/event-specifications/cust
 --header 'Content-Type: application/json' \
 --data-raw '{ "id" :"09876543225", "description":"Event for OpenAPI documentation", "enabled":true,"entityType":"host","expirationTime":"60000","name":"Event for OpenAPI documentation",
 "query":<Query>, 
-"rules":[{"aggregation":"sum","conditionOperator":">", "conditionValue":0.1, "metricName":null, "metricPattern":{"prefix":"fs", "postfix":"free", "matchingOperator":"endsWith", "matchingLabel":"/xvda1"},
+"rules":[{"aggregation":"sum","conditionOperator":">", "conditionValue":0.1, "metricName":null, "metricPattern":{"prefix":"fs", "postfix":"free", "operator":"endsWith", "placeholder":"/xvda1"},
 "rollup":null, "ruleType":"threshold", "severity":10, "window":30000}], "triggering":false
 }'
 ```
