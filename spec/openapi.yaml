@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: http://instana.com
     email: support@instana.com
-  version: 1.180.469
+  version: 1.180.489
   x-description: info
   x-logo:
     url: header-logo.svg
@@ -52,6 +52,8 @@ tags:
 - name: Event Settings
   x-description: tagEventSettings
 - name: User
+  x-description: tagUser
+- name: Groups
   x-description: tagUser
 - name: Audit Log
   x-description: tagAuditLog
@@ -1008,6 +1010,28 @@ paths:
       security:
       - ApiKeyAuth:
         - CanConfigureIntegrations
+  /api/events/settings/alerts/infos:
+    get:
+      tags:
+      - Event Settings
+      summary: All alerting configuration info
+      operationId: getAlertingConfigurationInfos
+      parameters:
+      - name: integrationId
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ValidatedAlertingChannelInputInfo'
+      security:
+      - ApiKeyAuth:
+        - CanConfigureCustomAlerts
   /api/events/settings/alerts/{id}:
     get:
       tags:
@@ -1088,28 +1112,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ValidatedAlertingConfiguration'
-      security:
-      - ApiKeyAuth:
-        - CanConfigureCustomAlerts
-  /api/events/settings/alerts/infos:
-    get:
-      tags:
-      - Event Settings
-      summary: All alerting configuration info
-      operationId: getAlertingConfigurationInfos
-      parameters:
-      - name: integrationId
-        in: query
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ValidatedAlertingChannelInputInfo'
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -1716,21 +1718,6 @@ paths:
       - ApiKeyAuth:
         - Default
       x-description: getInfrastructureCatalogSearchFields
-  /api/infrastructure-monitoring/graph/views:
-    get:
-      tags:
-      - Infrastructure Resources
-      summary: Get view tree
-      operationId: getInfrastructureViewTree
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TreeNodeResult'
-      security:
-      - ApiKeyAuth:
-        - Default
   /api/infrastructure-monitoring/graph/related-hosts/{snapshotId}:
     get:
       tags:
@@ -1751,6 +1738,21 @@ paths:
                 type: array
                 items:
                   type: string
+      security:
+      - ApiKeyAuth:
+        - Default
+  /api/infrastructure-monitoring/graph/views:
+    get:
+      tags:
+      - Infrastructure Resources
+      summary: Get view tree
+      operationId: getInfrastructureViewTree
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreeNodeResult'
       security:
       - ApiKeyAuth:
         - Default
@@ -1950,36 +1952,6 @@ paths:
       - ApiKeyAuth:
         - Default
       x-description: getVersion
-  /api/instana/usage/api/{month}/{year}:
-    get:
-      tags:
-      - Usage
-      summary: API usage month / year
-      operationId: getUsagePerMonth
-      parameters:
-      - name: month
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int32
-      - name: year
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-      - ApiKeyAuth:
-        - CanSeeUsageInformation
   /api/instana/usage/api/{day}/{month}/{year}:
     get:
       tags:
@@ -1993,36 +1965,6 @@ paths:
         schema:
           type: integer
           format: int32
-      - name: month
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int32
-      - name: year
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-      - ApiKeyAuth:
-        - CanSeeUsageInformation
-  /api/instana/usage/hosts/{month}/{year}:
-    get:
-      tags:
-      - Usage
-      summary: Host count month / year
-      operationId: getHostsPerMonth
-      parameters:
       - name: month
         in: path
         required: true
@@ -2088,6 +2030,66 @@ paths:
       - Usage
       summary: API usage by customer
       operationId: getAllUsage
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+      - ApiKeyAuth:
+        - CanSeeUsageInformation
+  /api/instana/usage/hosts/{month}/{year}:
+    get:
+      tags:
+      - Usage
+      summary: Host count month / year
+      operationId: getHostsPerMonth
+      parameters:
+      - name: month
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: year
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+      - ApiKeyAuth:
+        - CanSeeUsageInformation
+  /api/instana/usage/api/{month}/{year}:
+    get:
+      tags:
+      - Usage
+      summary: API usage month / year
+      operationId: getUsagePerMonth
+      parameters:
+      - name: month
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: year
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
       responses:
         default:
           content:
@@ -2223,6 +2225,23 @@ paths:
       - ApiKeyAuth:
         - CanConfigureReleases
       x-description: deleteRelease
+  /api/settings/api-tokens:
+    get:
+      tags:
+      - API Token
+      summary: All API tokes
+      operationId: getApiTokens
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiToken'
+      security:
+      - ApiKeyAuth:
+        - ConfigureApiTokens
   /api/settings/api-tokens/{apiTokenId}:
     get:
       tags:
@@ -2291,23 +2310,6 @@ paths:
       security:
       - ApiKeyAuth:
         - ConfigureApiTokens
-  /api/settings/api-tokens:
-    get:
-      tags:
-      - API Token
-      summary: All API tokes
-      operationId: getApiTokens
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiToken'
-      security:
-      - ApiKeyAuth:
-        - ConfigureApiTokens
   /api/settings/auditlog:
     get:
       tags:
@@ -2338,6 +2340,162 @@ paths:
       security:
       - ApiKeyAuth:
         - ViewAuditLog
+  /api/settings/group/{id}:
+    get:
+      tags:
+      - Groups
+      summary: Get group
+      operationId: getGroup
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+      security:
+      - ApiKeyAuth:
+        - ConfigureGroups
+    put:
+      tags:
+      - Groups
+      summary: Update group
+      operationId: updateGroup
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+      security:
+      - ApiKeyAuth:
+        - ConfigureGroups
+      x-description: updateGroup
+    delete:
+      tags:
+      - Groups
+      summary: Delete groups
+      operationId: deleteGroup
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+      - ApiKeyAuth:
+        - ConfigureGroups
+      x-description: deleteGroups
+  /api/settings/groups:
+    get:
+      tags:
+      - Groups
+      summary: All groups
+      operationId: getGroups
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+      security:
+      - ApiKeyAuth:
+        - ConfigureGroups
+    put:
+      tags:
+      - Groups
+      summary: Create groups
+      operationId: updateGroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Group'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+      security:
+      - ApiKeyAuth:
+        - ConfigureGroups
+      x-description: updateGroups
+  /api/settings/groups/user/{email}:
+    get:
+      tags:
+      - Groups
+      summary: Get groups
+      operationId: getGroupsByUser
+      parameters:
+      - name: email
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+      security:
+      - ApiKeyAuth:
+        - ConfigureGroups
+      x-description: getGroups
+  /api/settings/group:
+    post:
+      tags:
+      - Groups
+      summary: Create group
+      operationId: createGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+      security:
+      - ApiKeyAuth:
+        - ConfigureGroups
+      x-description: createGroup
   /api/settings/maintenance:
     get:
       tags:
@@ -3029,23 +3187,25 @@ components:
             $ref: '#/components/schemas/MetricConfiguration'
     Group:
       required:
-      - groupbyTag
+      - members
+      - name
       type: object
       properties:
-        groupbyTag:
-          maxLength: 256
+        id:
+          maxLength: 64
           minLength: 0
           type: string
-        groupbyTagSecondLevelKey:
-          maxLength: 256
-          minLength: 0
+        name:
           type: string
-        groupbyTagEntity:
-          type: string
-          enum:
-          - NOT_APPLICABLE
-          - DESTINATION
-          - SOURCE
+        members:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        permissionSet:
+          $ref: '#/components/schemas/PermissionSet'
     MetricConfiguration:
       required:
       - aggregation
@@ -4414,6 +4574,56 @@ components:
           type: object
           additionalProperties:
             type: string
+    ValidatedAlertingChannelInputInfo:
+      required:
+      - id
+      - label
+      - type
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        label:
+          maxLength: 256
+          minLength: 0
+          type: string
+        query:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        eventTypes:
+          maxItems: 6
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+            - INCIDENT
+            - CRITICAL
+            - WARNING
+            - CHANGE
+            - ONLINE
+            - OFFLINE
+            - AGENT_MONITORING_ISSUE
+            - NONE
+        selectedEvents:
+          type: integer
+          format: int32
+        enabled:
+          type: boolean
+        type:
+          type: string
+          enum:
+          - ALERT
+          - WEBSITE_SMART_ALERT
+          - APPLICATION_SMART_ALERT
+        entityId:
+          type: string
+        invalid:
+          type: boolean
     AlertingConfigurationWithLastUpdated:
       required:
       - alertName
@@ -4560,56 +4770,6 @@ components:
           type: array
           items:
             type: string
-    ValidatedAlertingChannelInputInfo:
-      required:
-      - id
-      - label
-      - type
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
-          type: string
-        label:
-          maxLength: 256
-          minLength: 0
-          type: string
-        query:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        eventTypes:
-          maxItems: 6
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-            enum:
-            - INCIDENT
-            - CRITICAL
-            - WARNING
-            - CHANGE
-            - ONLINE
-            - OFFLINE
-            - AGENT_MONITORING_ISSUE
-            - NONE
-        selectedEvents:
-          type: integer
-          format: int32
-        enabled:
-          type: boolean
-        type:
-          type: string
-          enum:
-          - ALERT
-          - WEBSITE_SMART_ALERT
-          - APPLICATION_SMART_ALERT
-        entityId:
-          type: string
-        invalid:
-          type: boolean
     BuiltInEventSpecificationWithLastUpdated:
       required:
       - hyperParams
@@ -5757,6 +5917,77 @@ components:
           type: string
         email:
           type: string
+    Member:
+      required:
+      - email
+      - userId
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+    PermissionSet:
+      required:
+      - applicationIds
+      - kubernetesClusterUUIDs
+      - kubernetesNamespaceUIDs
+      - mobileAppIds
+      - name
+      - permissions
+      - websiteIds
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        name:
+          type: string
+        permissions:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        applicationIds:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        kubernetesClusterUUIDs:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        kubernetesNamespaceUIDs:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        websiteIds:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        mobileAppIds:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        infraDfqFilter:
+          type: string
     MaintenanceWindow:
       required:
       - id
@@ -6580,6 +6811,7 @@ x-tagGroups:
 - name: Settings
   tags:
   - User
+  - Groups
   - Audit Log
   - API Token
   - Maintenance Configuration
