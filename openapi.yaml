@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: 'http://instana.com'
     email: support@instana.com
-  version: 1.179.711
+  version: 1.180.469
   x-logo:
     url: header-logo.svg
     backgroundColor: '#FAFBFC'
@@ -56,6 +56,32 @@ tags:
   - name: Health
   - name: Usage
 paths:
+  /api/application-monitoring/analyze/call-groups:
+    post:
+      tags:
+        - Application Analyze
+      summary: Get grouped call metrics
+      operationId: getCallGroup
+      parameters:
+        - name: fillTimeSeries
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetCallGroups'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallGroupsResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      description: "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
   /api/application-monitoring/analyze/traces:
     post:
       tags:
@@ -101,32 +127,6 @@ paths:
         - lang: SHELL
           source: "curl --request POST \\\n  --url https://unit-tenant.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken {apiToken}}' \\\n  --header 'content-type: application/json' \\\n  --data '{ \n\n\"timeFrame\": { \n\"windowSize\": 36000000 \n}, \n\"order\":{\n\t\"by\": \"errors\", \n\"direction\": \"DESC\" \n},\n\"group\": { \n\"groupbyTag\": \"application.name\"\n},  \n\"metrics\": [ \n{ \n\"metric\": \"errors\", \n\"aggregation\": \"MEAN\" \n} \n] \n} '"
       description: "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
-  /api/application-monitoring/analyze/call-groups:
-    post:
-      tags:
-        - Application Analyze
-      summary: Get grouped call metrics
-      operationId: getCallGroup
-      parameters:
-        - name: fillTimeSeries
-          in: query
-          schema:
-            type: boolean
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetCallGroups'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CallGroupsResult'
-      security:
-        - ApiKeyAuth:
-            - Default
-      description: "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
   /api/application-monitoring/analyze/trace-groups:
     post:
       tags:
@@ -1332,7 +1332,7 @@ paths:
     put:
       tags:
         - Event Settings
-      summary: Update custom event specification
+      summary: Create or Update custom event specification
       operationId: putCustomEventSpecification
       parameters:
         - name: eventSpecificationId
@@ -1355,6 +1355,90 @@ paths:
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
+      description: |
+        This endpoint creates or updates the Custom Event Specification 
+
+        ## Mandatory Parameters:
+
+        - **eventSpecificationId(Path Parameter):** A unique identifier for each custom event
+
+        - **id:** Same as the eventSpecificationId
+
+        - **name:** Name for the custom event
+
+        - **entityType:** Name of tha available plugins for the selected source
+
+        - **rules.ruleType:** Type of the rule being set for the custom event
+
+        ### Rule-type specific parameters
+
+        Depending on the chosen `ruleType`, there are further required parameters:
+
+        #### Threshold Rule using a dynamic built-in metric by pattern :
+
+        - **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window
+
+        - **rules.metricPattern.prefix:** Prefix pattern for the metric
+
+        - **rules.metricPattern.operator:** Operator for matching the metric
+
+        ```
+        curl --request PUT 'https://<HOST>/api/events/settings/event-specifications/custom/09876543225' \
+        --header 'Authorization: apiToken <Token>' \
+        --header 'Content-Type: application/json' \
+        --data-raw '{ "id" :"09876543225", "description":"Event for OpenAPI documentation", "enabled":true,"entityType":"host","expirationTime":"60000","name":"Event for OpenAPI documentation",
+        "query":<Query>, 
+        "rules":[{"aggregation":"sum","conditionOperator":">", "conditionValue":0.1, "metricName":null, "metricPattern":{"prefix":"fs", "postfix":"free", "operator":"endsWith", "placeholder":"/xvda1"},
+        "rollup":null, "ruleType":"threshold", "severity":10, "window":30000}], "triggering":false
+        }'
+        ```
+        The above example creates a custom event that matches disk devices that end with "/xvda1" for the metric "fs.{device}.free" for any host in scope.
+
+        #### Threshold Rule using fixed metric :
+
+        - **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window
+
+        - **rules.metricName:** Metric name for the event
+
+        ```
+        curl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/09876543226' \
+        --header 'Authorization: apiToken <Token>' \
+        --header 'Content-Type: application/json' \
+        --data-raw '{ "id" :"09876543226", "description":"Event for OpenAPI documentation fixed Metric", "enabled":true,"entityType":"host","expirationTime":"60000",
+        "name":"Event for OpenAPI documentation fixed metric","rules":[{"aggregation":"sum","conditionOperator":">", "conditionValue":0.1, "metricName":"fs./dev/xvda1.free", 
+        "rollup":null, "ruleType":"threshold", "severity":10, "window":30000}], "triggering":false
+        }'
+        ```
+
+        #### System Rule:
+
+        - **rules.systemRuleId:** Id of the System Rule being set 
+
+        ```
+        curl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/09876543227' \
+        --header 'Authorization: apiToken <Token>' \
+        --header 'Content-Type: application/json' \
+        --data-raw '{ "id" :"09876543227", "description":"Event for OpenAPI documentation System Rule", "enabled":true,"entityType":"any","expirationTime":"60000",
+        "name":"Event for OpenAPI documentation System Rule", "rules":[{"ruleType":"system", "systemRuleId":"entity.offline","severity":10}], "triggering":false
+        }'
+        ```
+
+        #### Entity Verification Rule:
+
+        - **rules.matchingEntityType:** Type of the Entity
+        - **rules.matchingOperator:** Operator for matching the Entity name
+        - **rules.matchingEntityLabel:** Name Pattern for the Entity
+
+        ```
+        curl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/09876543228' \
+        --header 'Authorization: apiToken <Token>' \
+        --header 'Content-Type: application/json' \
+        --data-raw '{ "id" :"09876543228", "description":"Event for OpenAPI Entity Verification Rule", "enabled":true,"entityType":"host","expirationTime":"60000",
+        "name":"Event for OpenAPI Entity Verification Rule",
+        "rules":[{"matchingEntityLabel":"test", "matchingEntityType":"jvmRuntimePlatform","matchingOperator":"startsWith","offlineDuration":1800000, 
+        "ruleType":"entity_verification","severity": 5}], "triggering":false
+        }'
+        ``
     delete:
       tags:
         - Event Settings
@@ -1733,6 +1817,21 @@ paths:
         ```
         ?query={keyword}:{value}
         ```
+  /api/infrastructure-monitoring/graph/views:
+    get:
+      tags:
+        - Infrastructure Resources
+      summary: Get view tree
+      operationId: getInfrastructureViewTree
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreeNodeResult'
+      security:
+        - ApiKeyAuth:
+            - Default
   '/api/infrastructure-monitoring/graph/related-hosts/{snapshotId}':
     get:
       tags:
@@ -1753,21 +1852,6 @@ paths:
                 type: array
                 items:
                   type: string
-      security:
-        - ApiKeyAuth:
-            - Default
-  /api/infrastructure-monitoring/graph/views:
-    get:
-      tags:
-        - Infrastructure Resources
-      summary: Get view tree
-      operationId: getInfrastructureViewTree
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TreeNodeResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -2816,7 +2900,7 @@ paths:
       tags:
         - Website Configuration
       summary: Get configured websites
-      operationId: get
+      operationId: getWebsites
       responses:
         default:
           content:
@@ -2825,9 +2909,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Website'
-      security:
-        - ApiKeyAuth:
-            - ConfigureEumApplications
     post:
       tags:
         - Website Configuration
@@ -2851,6 +2932,23 @@ paths:
         - ApiKeyAuth:
             - ConfigureEumApplications
   '/api/website-monitoring/config/{websiteId}':
+    get:
+      tags:
+        - Website Configuration
+      summary: Get configured website
+      operationId: get
+      parameters:
+        - name: websiteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Website'
     put:
       tags:
         - Website Configuration
@@ -2952,6 +3050,204 @@ paths:
             - Default
 components:
   schemas:
+    CallGroupsItem:
+      required:
+        - cursor
+        - metrics
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+        timestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    CallGroupsResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CallGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    IngestionOffsetCursor:
+      type: object
+      properties:
+        ingestionTime:
+          minimum: 0
+          type: integer
+          format: int64
+        offset:
+          minimum: 0
+          type: integer
+          format: int32
+    CursorPagination:
+      type: object
+      properties:
+        retrievalSize:
+          maximum: 200
+          minimum: 1
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        ingestionTime:
+          type: integer
+          format: int64
+    GetCallGroups:
+      required:
+        - group
+        - metrics
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/Group'
+        tagFilters:
+          maxItems: 10
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricConfiguration'
+    Group:
+      required:
+        - groupbyTag
+      type: object
+      properties:
+        groupbyTag:
+          maxLength: 256
+          minLength: 0
+          type: string
+        groupbyTagSecondLevelKey:
+          maxLength: 256
+          minLength: 0
+          type: string
+        groupbyTagEntity:
+          type: string
+          enum:
+            - NOT_APPLICABLE
+            - DESTINATION
+            - SOURCE
+    MetricConfiguration:
+      required:
+        - aggregation
+        - metric
+      type: object
+      properties:
+        metric:
+          type: string
+        granularity:
+          type: integer
+          format: int32
+        aggregation:
+          type: string
+          enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - DISTINCT_COUNT
+    Order:
+      required:
+        - by
+        - direction
+      type: object
+      properties:
+        by:
+          type: string
+        direction:
+          type: string
+          enum:
+            - ASC
+            - DESC
+    TagFilter:
+      required:
+        - name
+        - operator
+        - value
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        operator:
+          type: string
+          enum:
+            - EQUALS
+            - CONTAINS
+            - LESS_THAN
+            - LESS_OR_EQUAL_THAN
+            - GREATER_THAN
+            - GREATER_OR_EQUAL_THAN
+            - NOT_EMPTY
+            - NOT_EQUAL
+            - NOT_CONTAIN
+            - IS_EMPTY
+            - NOT_BLANK
+            - IS_BLANK
+            - STARTS_WITH
+            - ENDS_WITH
+            - NOT_STARTS_WITH
+            - NOT_ENDS_WITH
+        entity:
+          type: string
+          enum:
+            - NOT_APPLICABLE
+            - DESTINATION
+            - SOURCE
+    TimeFrame:
+      type: object
+      properties:
+        windowSize:
+          maximum: 2678400000
+          minimum: 0
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
     Endpoint:
       required:
         - id
@@ -3005,17 +3301,6 @@ components:
             - APPLICATION
             - SERVICE
             - ENDPOINT
-    IngestionOffsetCursor:
-      type: object
-      properties:
-        ingestionTime:
-          minimum: 0
-          type: integer
-          format: int64
-        offset:
-          minimum: 0
-          type: integer
-          format: int32
     Service:
       required:
         - id
@@ -3111,20 +3396,6 @@ components:
           minimum: 0
           type: integer
           format: int32
-    CursorPagination:
-      type: object
-      properties:
-        retrievalSize:
-          maximum: 200
-          minimum: 1
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        ingestionTime:
-          type: integer
-          format: int64
     GetTraces:
       type: object
       properties:
@@ -3138,179 +3409,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
-    TagFilter:
-      required:
-        - name
-        - operator
-        - value
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: string
-        operator:
-          type: string
-          enum:
-            - EQUALS
-            - CONTAINS
-            - LESS_THAN
-            - LESS_OR_EQUAL_THAN
-            - GREATER_THAN
-            - GREATER_OR_EQUAL_THAN
-            - NOT_EMPTY
-            - NOT_EQUAL
-            - NOT_CONTAIN
-            - IS_EMPTY
-            - NOT_BLANK
-            - IS_BLANK
-            - STARTS_WITH
-            - ENDS_WITH
-            - NOT_STARTS_WITH
-            - NOT_ENDS_WITH
-        entity:
-          type: string
-          enum:
-            - NOT_APPLICABLE
-            - DESTINATION
-            - SOURCE
-    TimeFrame:
-      type: object
-      properties:
-        windowSize:
-          maximum: 2678400000
-          minimum: 0
-          type: integer
-          format: int64
-        to:
-          type: integer
-          format: int64
-    CallGroupsItem:
-      required:
-        - cursor
-        - metrics
-        - name
-      type: object
-      properties:
-        name:
-          type: string
-        timestamp:
-          minimum: 0
-          type: integer
-          format: int64
-        cursor:
-          $ref: '#/components/schemas/IngestionOffsetCursor'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    CallGroupsResult:
-      required:
-        - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CallGroupsItem'
-        canLoadMore:
-          type: boolean
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-        totalRepresentedItemCount:
-          minimum: 0
-          type: integer
-          format: int32
-    GetCallGroups:
-      required:
-        - group
-        - metrics
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/CursorPagination'
-        order:
-          $ref: '#/components/schemas/Order'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        group:
-          $ref: '#/components/schemas/Group'
-        tagFilters:
-          maxItems: 10
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/MetricConfiguration'
-    Group:
-      required:
-        - groupbyTag
-      type: object
-      properties:
-        groupbyTag:
-          maxLength: 256
-          minLength: 0
-          type: string
-        groupbyTagSecondLevelKey:
-          maxLength: 256
-          minLength: 0
-          type: string
-        groupbyTagEntity:
-          type: string
-          enum:
-            - NOT_APPLICABLE
-            - DESTINATION
-            - SOURCE
-    MetricConfiguration:
-      required:
-        - aggregation
-        - metric
-      type: object
-      properties:
-        metric:
-          type: string
-        granularity:
-          type: integer
-          format: int32
-        aggregation:
-          type: string
-          enum:
-            - SUM
-            - MEAN
-            - MAX
-            - MIN
-            - P25
-            - P50
-            - P75
-            - P90
-            - P95
-            - P98
-            - P99
-            - DISTINCT_COUNT
-    Order:
-      required:
-        - by
-        - direction
-      type: object
-      properties:
-        by:
-          type: string
-        direction:
-          type: string
-          enum:
-            - ASC
-            - DESC
     TraceGroupsItem:
       required:
         - cursor
@@ -4049,6 +4147,12 @@ components:
                 - NOT_BLANK
                 - STARTS_WITH
                 - ENDS_WITH
+                - NOT_STARTS_WITH
+                - NOT_ENDS_WITH
+                - GREATER_OR_EQUAL_THAN
+                - LESS_OR_EQUAL_THAN
+                - LESS_THAN
+                - GREATER_THAN
     FixedHttpPathSegmentMatchingRule:
       required:
         - name
@@ -4422,6 +4526,10 @@ components:
           type: string
         name:
           type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: string
     AlertingConfigurationWithLastUpdated:
       required:
         - alertName
@@ -4473,7 +4581,7 @@ components:
           items:
             type: string
         eventTypes:
-          maxItems: 6
+          maxItems: 1024
           minItems: 0
           uniqueItems: true
           type: array
@@ -4914,18 +5022,6 @@ components:
           type: string
         postfix:
           type: string
-        matchingLabel:
-          type: string
-          writeOnly: true
-        matchingOperator:
-          type: string
-          writeOnly: true
-          enum:
-            - IS
-            - CONTAINS
-            - STARTS_WITH
-            - ENDS_WITH
-            - ANY
         placeholder:
           type: string
         operator:
@@ -5267,7 +5363,13 @@ components:
             type: string
         granularity:
           type: integer
-          format: int64
+          format: int32
+          enum:
+            - 60000
+            - 300000
+            - 600000
+            - 1800000
+          default: 600000
         timeThreshold:
           $ref: '#/components/schemas/WebsiteTimeThreshold'
         id:
@@ -5308,8 +5410,6 @@ components:
         type:
           type: string
         timeWindow:
-          maximum: 7200000
-          minimum: 600000
           type: integer
           format: int64
       discriminator:
@@ -5382,7 +5482,13 @@ components:
             type: string
         granularity:
           type: integer
-          format: int64
+          format: int32
+          enum:
+            - 60000
+            - 300000
+            - 600000
+            - 1800000
+          default: 600000
         timeThreshold:
           $ref: '#/components/schemas/WebsiteTimeThreshold'
     PluginResult:
