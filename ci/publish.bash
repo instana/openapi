@@ -22,6 +22,7 @@ fi
 
 VERSION="${1}"
 BUILD_URL="${2}"
+BRANCH_NAME=${BRANCH_NAME:='master'}
 SCRIPT_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
 
 echo "Downloading new OpenAPI spec..."
@@ -44,11 +45,11 @@ fi
 echo "Generating spec descriptions..."
 yarn build
 
-echo "Commit and push changes"
-git checkout master
+echo "Commit and push changes to ${BRANCH_NAME}"
+git checkout $BRANCH_NAME
 git add .
 git commit -q -a -m "Added generated spec files, see ${BUILD_URL}"
-git push -q origin master
+git push -q origin $BRANCH_NAME
 
 echo "Publish changes to gh-pages"
 yarn gh-pages

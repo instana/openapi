@@ -22,3 +22,19 @@ stage ('Generate and publish OpenAPI specs') {
     }
   }
 }
+
+stage ('Trigger API end-to-end tests') {
+  timeout(time: 30, unit: 'MINUTES') {
+    if (env.BRANCH_NAME == 'master') {
+      withCredentials([string(credentialsId: 'internal-instanaops-instana-api-token', variable: 'INSTANA_API_TOKEN')]) {
+        build job: '/tests/rest-api-e2e-tests', parameters: [
+            string(name: 'BRANCH_NAME', value: 'develop'),
+            string(name: 'OPENAPI_URL', value: 'https://instana.github.io/openapi/openapi.yaml'),
+            string(name: 'INSTANA_API_URL', value: 'https://internal-instanaops.instana.io/'),
+            string(name: 'INSTANA_API_TOKEN', value: "${INSTANA_API_TOKEN}"),
+            string(name: 'OPSGENIE_BASE_PATH', value: 'https://api.eu.opsgenie.com')
+        ]
+      }
+    }
+  }
+}
