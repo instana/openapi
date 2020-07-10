@@ -129,9 +129,10 @@ A rate limit is applied to API usage. Up to 5,000 calls per hour can be made. Ho
 The API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format.
 You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).
 
-OpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind.
+OpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. Please make sure that you always use the latest version of the generator, as a number of improvements are regularly made.
 To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).
 
+### Go
 For example, to generate a client library for Go to interact with our backend, you can use the following script; mind replacing the values of the `UNIT_NAME` and `TENANT_NAME` environment variables using those for your tenant unit:
 
 ```bash
@@ -143,7 +144,7 @@ export UNIT_NAME='myunit' # for example: prod
 export TENANT_NAME='mytenant' # for example: awesomecompany
 
 //Download the generator to your current working directory:
-wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.0/openapi-generator-cli-4.3.0.jar -O openapi-generator-cli.jar --server-variables "tenant=${TENANT_NAME},unit=${UNIT_NAME}"
+wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar --server-variables "tenant=${TENANT_NAME},unit=${UNIT_NAME}"
 
 //generate a client library that you can vendor into your repository
 java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \
@@ -180,4 +181,23 @@ func readTags() {
 		fmt.Printf("%s (%s): %s\n", tag.Category, tag.Type, tag.Name)
 	}
 }
+```
+
+### Java
+Download the latest openapi generator cli:
+```
+wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar
+```
+
+A list for calls for different java http client implementations, which creates a valid generated source code for our spec.
+```
+//Nativ Java HTTP Client
+java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8 --library native
+
+//Spring WebClient
+java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library webclient
+
+//Spring RestTemplate
+java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library resttemplate
+
 ```
