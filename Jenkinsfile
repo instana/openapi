@@ -18,7 +18,9 @@ stage('Checkout') {
 stage ('Generate and publish OpenAPI specs') {
   node {
     timeout(time: 10, unit: 'MINUTES') {
-      sh "./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
+      if (env.BRANCH_NAME == 'master') {
+        sh "./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
+      }
     }
   }
 }
