@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: http://instana.com
     email: support@instana.com
-  version: 1.182.368
+  version: 1.183.416
   x-description: info
   x-logo:
     url: header-logo.svg
@@ -70,33 +70,6 @@ tags:
 - name: Usage
   x-description: tagUsage
 paths:
-  /api/application-monitoring/analyze/trace-groups:
-    post:
-      tags:
-      - Application Analyze
-      summary: Get grouped trace metrics
-      operationId: getTraceGroups
-      parameters:
-      - name: fillTimeSeries
-        in: query
-        schema:
-          type: boolean
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetTraceGroups'
-        x-payload: getTraceGroups
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TraceGroupsResult'
-      security:
-      - ApiKeyAuth:
-        - Default
-      x-description: getTraceGroups
   /api/application-monitoring/analyze/call-groups:
     post:
       tags:
@@ -124,6 +97,33 @@ paths:
       - ApiKeyAuth:
         - Default
       x-description: getCallGroup
+  /api/application-monitoring/analyze/trace-groups:
+    post:
+      tags:
+      - Application Analyze
+      summary: Get grouped trace metrics
+      operationId: getTraceGroups
+      parameters:
+      - name: fillTimeSeries
+        in: query
+        schema:
+          type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTraceGroups'
+        x-payload: getTraceGroups
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceGroupsResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      x-description: getTraceGroups
   /api/application-monitoring/analyze/traces:
     post:
       tags:
@@ -286,6 +286,46 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
+  /api/application-monitoring/applications:
+    get:
+      tags:
+      - Application Resources
+      summary: Get applications
+      operationId: getApplications
+      parameters:
+      - name: nameFilter
+        in: query
+        schema:
+          type: string
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResult'
+      security:
+      - ApiKeyAuth:
+        - Default
   /api/application-monitoring/applications/services/endpoints:
     get:
       tags:
@@ -337,46 +377,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EndpointResult'
-      security:
-      - ApiKeyAuth:
-        - Default
-  /api/application-monitoring/applications:
-    get:
-      tags:
-      - Application Resources
-      summary: Get applications
-      operationId: getApplications
-      parameters:
-      - name: nameFilter
-        in: query
-        schema:
-          type: string
-      - name: windowSize
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: to
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: page
-        in: query
-        schema:
-          type: integer
-          format: int32
-      - name: pageSize
-        in: query
-        schema:
-          type: integer
-          format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationResult'
       security:
       - ApiKeyAuth:
         - Default
@@ -1952,42 +1952,6 @@ paths:
       - ApiKeyAuth:
         - Default
       x-description: getVersion
-  /api/instana/usage/api/{day}/{month}/{year}:
-    get:
-      tags:
-      - Usage
-      summary: API usage day / month / year
-      operationId: getUsagePerDay
-      parameters:
-      - name: day
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int32
-      - name: month
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int32
-      - name: year
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int32
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-      - ApiKeyAuth:
-        - CanSeeUsageInformation
   /api/instana/usage/hosts/{day}/{month}/{year}:
     get:
       tags:
@@ -2078,6 +2042,42 @@ paths:
       summary: API usage month / year
       operationId: getUsagePerMonth
       parameters:
+      - name: month
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: year
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+      - ApiKeyAuth:
+        - CanSeeUsageInformation
+  /api/instana/usage/api/{day}/{month}/{year}:
+    get:
+      tags:
+      - Usage
+      summary: API usage day / month / year
+      operationId: getUsagePerDay
+      parameters:
+      - name: day
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
       - name: month
         in: path
         required: true
@@ -3092,18 +3092,7 @@ paths:
         - Default
 components:
   schemas:
-    IngestionOffsetCursor:
-      type: object
-      properties:
-        ingestionTime:
-          minimum: 0
-          type: integer
-          format: int64
-        offset:
-          minimum: 0
-          type: integer
-          format: int32
-    TraceGroupsItem:
+    CallGroupsItem:
       required:
       - cursor
       - metrics
@@ -3126,7 +3115,7 @@ components:
               type: array
               items:
                 type: number
-    TraceGroupsResult:
+    CallGroupsResult:
       required:
       - items
       type: object
@@ -3134,7 +3123,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/TraceGroupsItem'
+            $ref: '#/components/schemas/CallGroupsItem'
         canLoadMore:
           type: boolean
         totalHits:
@@ -3142,6 +3131,17 @@ components:
           type: integer
           format: int32
         totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    IngestionOffsetCursor:
+      type: object
+      properties:
+        ingestionTime:
+          minimum: 0
+          type: integer
+          format: int64
+        offset:
           minimum: 0
           type: integer
           format: int32
@@ -3159,7 +3159,7 @@ components:
         ingestionTime:
           type: integer
           format: int64
-    GetTraceGroups:
+    GetCallGroups:
       required:
       - group
       - metrics
@@ -3174,7 +3174,7 @@ components:
         group:
           $ref: '#/components/schemas/Group'
         tagFilters:
-          maxItems: 32
+          maxItems: 10
           minItems: 0
           type: array
           items:
@@ -3292,7 +3292,7 @@ components:
         to:
           type: integer
           format: int64
-    CallGroupsItem:
+    TraceGroupsItem:
       required:
       - cursor
       - metrics
@@ -3315,7 +3315,7 @@ components:
               type: array
               items:
                 type: number
-    CallGroupsResult:
+    TraceGroupsResult:
       required:
       - items
       type: object
@@ -3323,7 +3323,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/CallGroupsItem'
+            $ref: '#/components/schemas/TraceGroupsItem'
         canLoadMore:
           type: boolean
         totalHits:
@@ -3334,7 +3334,7 @@ components:
           minimum: 0
           type: integer
           format: int32
-    GetCallGroups:
+    GetTraceGroups:
       required:
       - group
       - metrics
@@ -3349,7 +3349,7 @@ components:
         group:
           $ref: '#/components/schemas/Group'
         tagFilters:
-          maxItems: 10
+          maxItems: 32
           minItems: 0
           type: array
           items:
@@ -4029,13 +4029,13 @@ components:
         totalHits:
           type: integer
           format: int32
-    EndpointResult:
+    ApplicationResult:
       type: object
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Endpoint'
+            $ref: '#/components/schemas/Application'
         page:
           type: integer
           format: int32
@@ -4045,13 +4045,13 @@ components:
         totalHits:
           type: integer
           format: int32
-    ApplicationResult:
+    EndpointResult:
       type: object
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Application'
+            $ref: '#/components/schemas/Endpoint'
         page:
           type: integer
           format: int32
@@ -6635,6 +6635,8 @@ components:
           - RESOURCELOAD
           - HTTPREQUEST
           - ERROR
+          - CUSTOM
+          - PAGE_CHANGE
         tagFilters:
           maxItems: 32
           minItems: 0
@@ -6705,6 +6707,8 @@ components:
           - RESOURCELOAD
           - HTTPREQUEST
           - ERROR
+          - CUSTOM
+          - PAGE_CHANGE
         tagFilters:
           maxItems: 32
           minItems: 0
@@ -6821,6 +6825,8 @@ components:
           - RESOURCELOAD
           - HTTPREQUEST
           - ERROR
+          - CUSTOM
+          - PAGE_CHANGE
         tagFilters:
           maxItems: 32
           minItems: 0
