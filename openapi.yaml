@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: 'http://instana.com'
     email: support@instana.com
-  version: 1.184.707
+  version: 1.185.824
   x-logo:
     url: header-logo.svg
     backgroundColor: '#FAFBFC'
@@ -51,37 +51,15 @@ tags:
   - name: Groups
   - name: Audit Log
   - name: API Token
+  - name: Session Settings
   - name: Maintenance Configuration
   - name: Synthetic Calls
   - name: Releases
+  - name: SLI Settings
+  - name: SLI Report
   - name: Health
   - name: Usage
 paths:
-  /api/application-monitoring/analyze/trace-groups:
-    post:
-      tags:
-        - Application Analyze
-      summary: Get grouped trace metrics
-      operationId: getTraceGroups
-      parameters:
-        - name: fillTimeSeries
-          in: query
-          schema:
-            type: boolean
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetTraceGroups'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TraceGroupsResult'
-      security:
-        - ApiKeyAuth:
-            - Default
   /api/application-monitoring/analyze/traces:
     post:
       tags:
@@ -127,6 +105,31 @@ paths:
         - lang: SHELL
           source: "curl --request POST \\\n  --url https://unit-tenant.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken {apiToken}}' \\\n  --header 'content-type: application/json' \\\n  --data '{ \n\n\"timeFrame\": { \n\"windowSize\": 36000000 \n}, \n\"order\":{\n\t\"by\": \"errors\", \n\"direction\": \"DESC\" \n},\n\"group\": { \n\"groupbyTag\": \"application.name\"\n},  \n\"metrics\": [ \n{ \n\"metric\": \"errors\", \n\"aggregation\": \"MEAN\" \n} \n] \n} '"
       description: "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
+  /api/application-monitoring/analyze/trace-groups:
+    post:
+      tags:
+        - Application Analyze
+      summary: Get grouped trace metrics
+      operationId: getTraceGroups
+      parameters:
+        - name: fillTimeSeries
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTraceGroups'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceGroupsResult'
+      security:
+        - ApiKeyAuth:
+            - Default
   /api/application-monitoring/analyze/call-groups:
     post:
       tags:
@@ -171,6 +174,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FullTrace'
+      security:
+        - ApiKeyAuth:
+            - Default
+  /api/application-monitoring/metrics/endpoints:
+    post:
+      tags:
+        - Application Metrics
+      summary: Get Endpoint metrics
+      operationId: getEndpointsMetrics
+      parameters:
+        - name: fillTimeSeries
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetEndpoints'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EndpointMetricResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -221,31 +249,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceMetricResult'
-      security:
-        - ApiKeyAuth:
-            - Default
-  /api/application-monitoring/metrics/endpoints:
-    post:
-      tags:
-        - Application Metrics
-      summary: Get Endpoint metrics
-      operationId: getEndpointsMetrics
-      parameters:
-        - name: fillTimeSeries
-          in: query
-          schema:
-            type: boolean
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetEndpoints'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EndpointMetricResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -423,24 +426,6 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-  /api/application-monitoring/catalog/tags:
-    get:
-      tags:
-        - Application Catalog
-      summary: Get filter tag catalog
-      operationId: getApplicationCatalogTags
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Tag'
-      security:
-        - ApiKeyAuth:
-            - Default
-      description: "This endpoint retrieves all available tags for your monitored system.\n\nThese tags can be used to group metric results.\n```\n\"group\": {\n  \"groupbyTag\": \"service.name\"\n}\n```\n\nThese tags can be used to filter metric results.\n```\n\"tagFilters\": [{\n\t\"name\": \"application.name\",\n\t\"operator\": \"EQUALS\",\n\t\"value\": \"example\"\n}]\n```\n"
   /api/application-monitoring/catalog/metrics:
     get:
       tags:
@@ -460,6 +445,24 @@ paths:
             - Default
       description: |
         This endpoint retrieves all available metric definitions for application monitoring.
+  /api/application-monitoring/catalog/tags:
+    get:
+      tags:
+        - Application Catalog
+      summary: Get filter tag catalog
+      operationId: getApplicationCatalogTags
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+      security:
+        - ApiKeyAuth:
+            - Default
+      description: "This endpoint retrieves all available tags for your monitored system.\n\nThese tags can be used to group metric results.\n```\n\"group\": {\n  \"groupbyTag\": \"service.name\"\n}\n```\n\nThese tags can be used to filter metric results.\n```\n\"tagFilters\": [{\n\t\"name\": \"application.name\",\n\t\"operator\": \"EQUALS\",\n\t\"value\": \"example\"\n}]\n```\n"
   /api/application-monitoring/settings/application:
     get:
       tags:
@@ -666,6 +669,72 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureServiceMapping
+  '/api/application-monitoring/settings/service/{id}':
+    get:
+      tags:
+        - Application Settings
+      summary: Service configuration
+      operationId: getServiceConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceConfig'
+      security:
+        - ApiKeyAuth:
+            - ConfigureServiceMapping
+    put:
+      tags:
+        - Application Settings
+      summary: Update service configuration
+      operationId: putServiceConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceConfig'
+      security:
+        - ApiKeyAuth:
+            - ConfigureServiceMapping
+    delete:
+      tags:
+        - Application Settings
+      summary: Delete service configuration
+      operationId: deleteServiceConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureServiceMapping
   /api/application-monitoring/settings/service:
     get:
       tags:
@@ -741,72 +810,6 @@ paths:
               items:
                 type: string
         required: true
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-      security:
-        - ApiKeyAuth:
-            - ConfigureServiceMapping
-  '/api/application-monitoring/settings/service/{id}':
-    get:
-      tags:
-        - Application Settings
-      summary: Service configuration
-      operationId: getServiceConfig
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceConfig'
-      security:
-        - ApiKeyAuth:
-            - ConfigureServiceMapping
-    put:
-      tags:
-        - Application Settings
-      summary: Update service configuration
-      operationId: putServiceConfig
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceConfig'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceConfig'
-      security:
-        - ApiKeyAuth:
-            - ConfigureServiceMapping
-    delete:
-      tags:
-        - Application Settings
-      summary: Delete service configuration
-      operationId: deleteServiceConfig
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
       responses:
         default:
           description: default response
@@ -1009,28 +1012,6 @@ paths:
       security:
         - ApiKeyAuth:
             - CanConfigureIntegrations
-  /api/events/settings/alerts/infos:
-    get:
-      tags:
-        - Event Settings
-      summary: All alerting configuration info
-      operationId: getAlertingConfigurationInfos
-      parameters:
-        - name: integrationId
-          in: query
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ValidatedAlertingChannelInputInfo'
-      security:
-        - ApiKeyAuth:
-            - CanConfigureCustomAlerts
   '/api/events/settings/alerts/{id}':
     get:
       tags:
@@ -1114,12 +1095,17 @@ paths:
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
-  /api/events/settings/event-specifications/custom/systemRules:
+  /api/events/settings/alerts/infos:
     get:
       tags:
         - Event Settings
-      summary: All system rules for custom event specifications
-      operationId: getSystemRules
+      summary: All alerting configuration info
+      operationId: getAlertingConfigurationInfos
+      parameters:
+        - name: integrationId
+          in: query
+          schema:
+            type: string
       responses:
         default:
           content:
@@ -1127,7 +1113,126 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SystemRuleLabel'
+                  $ref: '#/components/schemas/ValidatedAlertingChannelInputInfo'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureCustomAlerts
+  /api/events/settings/event-specifications/built-in:
+    get:
+      tags:
+        - Event Settings
+      summary: All built-in event specification
+      operationId: getBuiltInEventSpecifications
+      parameters:
+        - name: ids
+          in: query
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BuiltInEventSpecificationWithLastUpdated'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureCustomAlerts
+  '/api/events/settings/event-specifications/built-in/{eventSpecificationId}':
+    get:
+      tags:
+        - Event Settings
+      summary: Built-in event specifications
+      operationId: getBuiltInEventSpecification
+      parameters:
+        - name: eventSpecificationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuiltInEventSpecification'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureCustomAlerts
+    delete:
+      tags:
+        - Event Settings
+      summary: Delete built-in event specification
+      operationId: deleteBuiltInEventSpecification
+      parameters:
+        - name: eventSpecificationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+        - ApiKeyAuth:
+            - CanConfigureCustomAlerts
+  '/api/events/settings/event-specifications/built-in/{eventSpecificationId}/enable':
+    post:
+      tags:
+        - Event Settings
+      summary: Enable built-in event specification
+      operationId: enableBuiltInEventSpecification
+      parameters:
+        - name: eventSpecificationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuiltInEventSpecificationWithLastUpdated'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureCustomAlerts
+  '/api/events/settings/event-specifications/built-in/{eventSpecificationId}/disable':
+    post:
+      tags:
+        - Event Settings
+      summary: Disable built-in event specification
+      operationId: disableBuiltInEventSpecification
+      parameters:
+        - name: eventSpecificationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuiltInEventSpecificationWithLastUpdated'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1187,6 +1292,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CustomEventSpecificationWithLastUpdated'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureCustomAlerts
+  /api/events/settings/event-specifications/custom/systemRules:
+    get:
+      tags:
+        - Event Settings
+      summary: All system rules for custom event specifications
+      operationId: getSystemRules
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SystemRuleLabel'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1391,125 +1513,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CustomEventSpecificationWithLastUpdated'
-      security:
-        - ApiKeyAuth:
-            - CanConfigureCustomAlerts
-  /api/events/settings/event-specifications/built-in:
-    get:
-      tags:
-        - Event Settings
-      summary: All built-in event specification
-      operationId: getBuiltInEventSpecifications
-      parameters:
-        - name: ids
-          in: query
-          schema:
-            uniqueItems: true
-            type: array
-            items:
-              type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BuiltInEventSpecificationWithLastUpdated'
-      security:
-        - ApiKeyAuth:
-            - CanConfigureCustomAlerts
-  '/api/events/settings/event-specifications/built-in/{eventSpecificationId}':
-    get:
-      tags:
-        - Event Settings
-      summary: Built-in event specifications
-      operationId: getBuiltInEventSpecification
-      parameters:
-        - name: eventSpecificationId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BuiltInEventSpecification'
-      security:
-        - ApiKeyAuth:
-            - CanConfigureCustomAlerts
-    delete:
-      tags:
-        - Event Settings
-      summary: Delete built-in event specification
-      operationId: deleteBuiltInEventSpecification
-      parameters:
-        - name: eventSpecificationId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-      security:
-        - ApiKeyAuth:
-            - CanConfigureCustomAlerts
-  '/api/events/settings/event-specifications/built-in/{eventSpecificationId}/enable':
-    post:
-      tags:
-        - Event Settings
-      summary: Enable built-in event specification
-      operationId: enableBuiltInEventSpecification
-      parameters:
-        - name: eventSpecificationId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-              nullable: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BuiltInEventSpecificationWithLastUpdated'
-      security:
-        - ApiKeyAuth:
-            - CanConfigureCustomAlerts
-  '/api/events/settings/event-specifications/built-in/{eventSpecificationId}/disable':
-    post:
-      tags:
-        - Event Settings
-      summary: Disable built-in event specification
-      operationId: disableBuiltInEventSpecification
-      parameters:
-        - name: eventSpecificationId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-              nullable: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BuiltInEventSpecificationWithLastUpdated'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -2091,23 +2094,6 @@ paths:
       security:
         - ApiKeyAuth:
             - CanSeeUsageInformation
-  /api/instana/usage/api:
-    get:
-      tags:
-        - Usage
-      summary: API usage by customer
-      operationId: getAllUsage
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsageResult'
-      security:
-        - ApiKeyAuth:
-            - CanSeeUsageInformation
   '/api/instana/usage/api/{month}/{year}':
     get:
       tags:
@@ -2127,6 +2113,23 @@ paths:
           schema:
             type: integer
             format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageResult'
+      security:
+        - ApiKeyAuth:
+            - CanSeeUsageInformation
+  /api/instana/usage/api:
+    get:
+      tags:
+        - Usage
+      summary: API usage by customer
+      operationId: getAllUsage
       responses:
         default:
           content:
@@ -2351,7 +2354,7 @@ paths:
     get:
       tags:
         - API Token
-      summary: All API tokes
+      summary: All API tokens
       operationId: getApiTokens
       responses:
         default:
@@ -2462,70 +2465,6 @@ paths:
       security:
         - ApiKeyAuth:
             - ViewAuditLog
-  /api/settings/groups:
-    get:
-      tags:
-        - Groups
-      summary: All groups
-      operationId: getGroups
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Group'
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
-    put:
-      tags:
-        - Groups
-      summary: Create groups
-      operationId: updateGroups
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/Group'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Group'
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
-  '/api/settings/groups/user/{email}':
-    get:
-      tags:
-        - Groups
-      summary: Get groups
-      operationId: getGroupsByUser
-      parameters:
-        - name: email
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Group'
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
   '/api/settings/group/{id}':
     get:
       tags:
@@ -2589,6 +2528,70 @@ paths:
           description: default response
           content:
             application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+  '/api/settings/groups/user/{email}':
+    get:
+      tags:
+        - Groups
+      summary: Get groups
+      operationId: getGroupsByUser
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+  /api/settings/groups:
+    get:
+      tags:
+        - Groups
+      summary: All groups
+      operationId: getGroups
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+    put:
+      tags:
+        - Groups
+      summary: Create groups
+      operationId: updateGroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Group'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
       security:
         - ApiKeyAuth:
             - ConfigureGroups
@@ -2785,6 +2788,53 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureRoles
+  /api/settings/session:
+    get:
+      tags:
+        - Session Settings
+      summary: Session settings
+      operationId: getSessionSettings
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionSettings'
+      security:
+        - ApiKeyAuth:
+            - ConfigureSessionSettings
+    put:
+      tags:
+        - Session Settings
+      summary: Configure session settings
+      operationId: setSessionSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionSettings'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionSettings'
+      security:
+        - ApiKeyAuth:
+            - ConfigureSessionSettings
+    delete:
+      tags:
+        - Session Settings
+      summary: Delete session settings
+      operationId: deleteSessionSettings
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureSessionSettings
   /api/settings/synthetic-calls:
     get:
       tags:
@@ -2965,6 +3015,171 @@ paths:
       security:
         - ApiKeyAuth:
             - ConfigureUsers
+  '/api/sli/report/{sliId}':
+    get:
+      tags:
+        - SLI Report
+      summary: Generate SLI report
+      operationId: getSli
+      parameters:
+        - name: sliId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: slo
+          in: query
+          schema:
+            type: number
+            format: double
+        - name: from
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: to
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SliReport'
+      security:
+        - ApiKeyAuth:
+            - canConfigureServiceLevelIndicators
+  '/api/settings/sli/{id}':
+    get:
+      tags:
+        - SLI Settings
+      summary: Get SLI Config
+      operationId: getSli_1
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+        - ApiKeyAuth:
+            - canConfigureServiceLevelIndicators
+    put:
+      tags:
+        - SLI Settings
+      summary: Update SLI Config
+      operationId: putSli
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+        - ApiKeyAuth:
+            - canConfigureServiceLevelIndicators
+    delete:
+      tags:
+        - SLI Settings
+      summary: Delete SLI Config
+      operationId: delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      security:
+        - ApiKeyAuth:
+            - canConfigureServiceLevelIndicators
+  /api/settings/sli:
+    get:
+      tags:
+        - SLI Settings
+      summary: Get All SLI Configs
+      operationId: getSli_2
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+        - ApiKeyAuth:
+            - canConfigureServiceLevelIndicators
+    post:
+      tags:
+        - SLI Settings
+      summary: Create SLI Config
+      operationId: createSli
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SliConfiguration'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+        - ApiKeyAuth:
+            - canConfigureServiceLevelIndicators
+  /api/website-monitoring/analyze/beacons:
+    post:
+      tags:
+        - Website Analyze
+      summary: Get all beacons
+      operationId: getBeacons
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetWebsiteBeacons'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeaconResult'
+      security:
+        - ApiKeyAuth:
+            - Default
   /api/website-monitoring/analyze/beacon-groups:
     post:
       tags:
@@ -2987,26 +3202,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BeaconGroupsResult'
-      security:
-        - ApiKeyAuth:
-            - Default
-  /api/website-monitoring/analyze/beacons:
-    post:
-      tags:
-        - Website Analyze
-      summary: Get all beacons
-      operationId: getBeacons
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetWebsiteBeacons'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BeaconResult'
       security:
         - ApiKeyAuth:
             - Default
@@ -3132,7 +3327,7 @@ paths:
       tags:
         - Website Configuration
       summary: Remove website
-      operationId: delete
+      operationId: delete_1
       parameters:
         - name: websiteId
           in: path
@@ -3202,206 +3397,6 @@ paths:
             - Default
 components:
   schemas:
-    IngestionOffsetCursor:
-      type: object
-      properties:
-        ingestionTime:
-          minimum: 0
-          type: integer
-          format: int64
-        offset:
-          minimum: 0
-          type: integer
-          format: int32
-    TraceGroupsItem:
-      required:
-        - cursor
-        - metrics
-        - name
-      type: object
-      properties:
-        name:
-          type: string
-        timestamp:
-          minimum: 0
-          type: integer
-          format: int64
-        cursor:
-          $ref: '#/components/schemas/IngestionOffsetCursor'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    TraceGroupsResult:
-      required:
-        - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/TraceGroupsItem'
-        canLoadMore:
-          type: boolean
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-        totalRepresentedItemCount:
-          minimum: 0
-          type: integer
-          format: int32
-    CursorPagination:
-      type: object
-      properties:
-        retrievalSize:
-          maximum: 200
-          minimum: 1
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        ingestionTime:
-          type: integer
-          format: int64
-    GetTraceGroups:
-      required:
-        - group
-        - metrics
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/CursorPagination'
-        order:
-          $ref: '#/components/schemas/Order'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        group:
-          $ref: '#/components/schemas/Group'
-        tagFilters:
-          maxItems: 32
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/MetricConfiguration'
-    Group:
-      required:
-        - members
-        - name
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
-          type: string
-        name:
-          type: string
-        members:
-          maxItems: 1024
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            $ref: '#/components/schemas/Member'
-        permissionSet:
-          $ref: '#/components/schemas/PermissionSet'
-    MetricConfiguration:
-      required:
-        - aggregation
-        - metric
-      type: object
-      properties:
-        metric:
-          type: string
-        granularity:
-          type: integer
-          format: int32
-        aggregation:
-          type: string
-          enum:
-            - SUM
-            - MEAN
-            - MAX
-            - MIN
-            - P25
-            - P50
-            - P75
-            - P90
-            - P95
-            - P98
-            - P99
-            - DISTINCT_COUNT
-    Order:
-      required:
-        - by
-        - direction
-      type: object
-      properties:
-        by:
-          type: string
-        direction:
-          type: string
-          enum:
-            - ASC
-            - DESC
-    TagFilter:
-      required:
-        - name
-        - operator
-        - value
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: string
-        operator:
-          type: string
-          enum:
-            - EQUALS
-            - CONTAINS
-            - LESS_THAN
-            - LESS_OR_EQUAL_THAN
-            - GREATER_THAN
-            - GREATER_OR_EQUAL_THAN
-            - NOT_EMPTY
-            - NOT_EQUAL
-            - NOT_CONTAIN
-            - IS_EMPTY
-            - NOT_BLANK
-            - IS_BLANK
-            - STARTS_WITH
-            - ENDS_WITH
-            - NOT_STARTS_WITH
-            - NOT_ENDS_WITH
-        entity:
-          type: string
-          enum:
-            - NOT_APPLICABLE
-            - DESTINATION
-            - SOURCE
-    TimeFrame:
-      type: object
-      properties:
-        windowSize:
-          maximum: 2678400000
-          minimum: 0
-          type: integer
-          format: int64
-        to:
-          type: integer
-          format: int64
     Endpoint:
       required:
         - id
@@ -3455,6 +3450,17 @@ components:
             - APPLICATION
             - SERVICE
             - ENDPOINT
+    IngestionOffsetCursor:
+      type: object
+      properties:
+        ingestionTime:
+          minimum: 0
+          type: integer
+          format: int64
+        offset:
+          minimum: 0
+          type: integer
+          format: int32
     Service:
       required:
         - id
@@ -3550,6 +3556,20 @@ components:
           minimum: 0
           type: integer
           format: int32
+    CursorPagination:
+      type: object
+      properties:
+        retrievalSize:
+          maximum: 200
+          minimum: 1
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        ingestionTime:
+          type: integer
+          format: int64
     GetTraces:
       type: object
       properties:
@@ -3563,6 +3583,182 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
+    TagFilter:
+      required:
+        - name
+        - operator
+        - value
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        operator:
+          type: string
+          enum:
+            - EQUALS
+            - CONTAINS
+            - LESS_THAN
+            - LESS_OR_EQUAL_THAN
+            - GREATER_THAN
+            - GREATER_OR_EQUAL_THAN
+            - NOT_EMPTY
+            - NOT_EQUAL
+            - NOT_CONTAIN
+            - IS_EMPTY
+            - NOT_BLANK
+            - IS_BLANK
+            - STARTS_WITH
+            - ENDS_WITH
+            - NOT_STARTS_WITH
+            - NOT_ENDS_WITH
+        entity:
+          type: string
+          enum:
+            - NOT_APPLICABLE
+            - DESTINATION
+            - SOURCE
+    TimeFrame:
+      type: object
+      properties:
+        windowSize:
+          maximum: 2678400000
+          minimum: 0
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
+    TraceGroupsItem:
+      required:
+        - cursor
+        - metrics
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+        timestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    TraceGroupsResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    GetTraceGroups:
+      required:
+        - group
+        - metrics
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/Group'
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricConfiguration'
+    Group:
+      required:
+        - members
+        - name
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        name:
+          type: string
+        members:
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        permissionSet:
+          $ref: '#/components/schemas/PermissionSet'
+    MetricConfiguration:
+      required:
+        - metricName
+      type: object
+      properties:
+        metricName:
+          type: string
+        metricAggregation:
+          type: string
+          enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - DISTINCT_COUNT
+        threshold:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
+          format: double
+    Order:
+      required:
+        - by
+        - direction
+      type: object
+      properties:
+        by:
+          type: string
+        direction:
+          type: string
+          enum:
+            - ASC
+            - DESC
     CallGroupsItem:
       required:
         - cursor
@@ -3817,14 +4013,14 @@ components:
           type: string
         line:
           type: string
-    ApplicationItem:
+    EndpointItem:
       required:
-        - application
+        - endpoint
         - metrics
       type: object
       properties:
-        application:
-          $ref: '#/components/schemas/Application'
+        endpoint:
+          $ref: '#/components/schemas/Endpoint'
         metrics:
           type: object
           additionalProperties:
@@ -3833,7 +4029,7 @@ components:
               type: array
               items:
                 type: number
-    ApplicationMetricResult:
+    EndpointMetricResult:
       required:
         - items
       type: object
@@ -3841,7 +4037,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/ApplicationItem'
+            $ref: '#/components/schemas/EndpointItem'
         page:
           minimum: 1
           type: integer
@@ -3880,6 +4076,111 @@ components:
             - P98
             - P99
             - DISTINCT_COUNT
+    GetEndpoints:
+      required:
+        - metrics
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/AppDataMetricConfiguration'
+        nameFilter:
+          maxLength: 256
+          minLength: 0
+          type: string
+        applicationId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        serviceId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        endpointId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        endpointTypes:
+          maxItems: 8
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+              - UNDEFINED
+              - RPC
+              - EVENT
+              - GRAPHQL
+              - BATCH
+              - SHELL
+              - HTTP
+              - SDK
+              - INTERNAL
+              - DATABASE
+              - MESSAGING
+              - PAGE
+              - PAGE_RESOURCE
+        excludeSynthetic:
+          type: boolean
+    Pagination:
+      type: object
+      properties:
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          maximum: 200
+          minimum: 1
+          type: integer
+          format: int32
+    ApplicationItem:
+      required:
+        - application
+        - metrics
+      type: object
+      properties:
+        application:
+          $ref: '#/components/schemas/Application'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    ApplicationMetricResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationItem'
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          minimum: 1
+          type: integer
+          format: int32
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
     GetApplications:
       required:
         - metrics
@@ -3939,18 +4240,6 @@ components:
           writeOnly: true
           items:
             type: string
-    Pagination:
-      type: object
-      properties:
-        page:
-          minimum: 1
-          type: integer
-          format: int32
-        pageSize:
-          maximum: 200
-          minimum: 1
-          type: integer
-          format: int32
     ServiceItem:
       required:
         - metrics
@@ -4030,99 +4319,6 @@ components:
             - NONE
             - UPSTREAM
             - DOWNSTREAM
-    EndpointItem:
-      required:
-        - endpoint
-        - metrics
-      type: object
-      properties:
-        endpoint:
-          $ref: '#/components/schemas/Endpoint'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    EndpointMetricResult:
-      required:
-        - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/EndpointItem'
-        page:
-          minimum: 1
-          type: integer
-          format: int32
-        pageSize:
-          minimum: 1
-          type: integer
-          format: int32
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-    GetEndpoints:
-      required:
-        - metrics
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-        order:
-          $ref: '#/components/schemas/Order'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/AppDataMetricConfiguration'
-        nameFilter:
-          maxLength: 256
-          minLength: 0
-          type: string
-        applicationId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        serviceId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        endpointId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        endpointTypes:
-          maxItems: 8
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-            enum:
-              - UNDEFINED
-              - RPC
-              - EVENT
-              - GRAPHQL
-              - BATCH
-              - SHELL
-              - HTTP
-              - SDK
-              - INTERNAL
-              - DATABASE
-              - MESSAGING
-              - PAGE
-              - PAGE_RESOURCE
-        excludeSynthetic:
-          type: boolean
     EndpointResult:
       type: object
       properties:
@@ -4171,6 +4367,22 @@ components:
         totalHits:
           type: integer
           format: int32
+    MetricDescription:
+      type: object
+      properties:
+        metricId:
+          type: string
+        label:
+          type: string
+        formatter:
+          type: string
+        description:
+          type: string
+        aggregations:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
     Tag:
       type: object
       properties:
@@ -4192,22 +4404,6 @@ components:
         sourceValueAvailableFrom:
           type: integer
           format: int64
-    MetricDescription:
-      type: object
-      properties:
-        metricId:
-          type: string
-        label:
-          type: string
-        formatter:
-          type: string
-        description:
-          type: string
-        aggregations:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
     ApplicationConfig:
       required:
         - boundaryScope
@@ -4724,56 +4920,6 @@ components:
           type: object
           additionalProperties:
             type: string
-    ValidatedAlertingChannelInputInfo:
-      required:
-        - id
-        - label
-        - type
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
-          type: string
-        label:
-          maxLength: 256
-          minLength: 0
-          type: string
-        query:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        eventTypes:
-          maxItems: 6
-          minItems: 0
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-            enum:
-              - incident
-              - critical
-              - warning
-              - change
-              - online
-              - offline
-              - agent_monitoring_issue
-              - none
-        selectedEvents:
-          type: integer
-          format: int32
-        enabled:
-          type: boolean
-        type:
-          type: string
-          enum:
-            - Alert
-            - WebsiteSmartAlert
-            - ApplicationSmartAlert
-        entityId:
-          type: string
-        invalid:
-          type: boolean
     AlertingConfigurationWithLastUpdated:
       required:
         - alertName
@@ -4920,16 +5066,206 @@ components:
           type: array
           items:
             type: string
-    SystemRuleLabel:
+    ValidatedAlertingChannelInputInfo:
       required:
+        - id
+        - label
+        - type
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        label:
+          maxLength: 256
+          minLength: 0
+          type: string
+        query:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        eventTypes:
+          maxItems: 6
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+              - incident
+              - critical
+              - warning
+              - change
+              - online
+              - offline
+              - agent_monitoring_issue
+              - none
+        selectedEvents:
+          type: integer
+          format: int32
+        enabled:
+          type: boolean
+        type:
+          type: string
+          enum:
+            - Alert
+            - WebsiteSmartAlert
+            - ApplicationSmartAlert
+        entityId:
+          type: string
+        invalid:
+          type: boolean
+    BuiltInEventSpecificationWithLastUpdated:
+      required:
+        - hyperParams
+        - id
+        - name
+        - ruleInputs
+        - shortPluginId
+      type: object
+      properties:
+        id:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        shortPluginId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        name:
+          maxLength: 256
+          minLength: 0
+          type: string
+        description:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        hyperParams:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/HyperParam'
+        ruleInputs:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleInput'
+        severity:
+          type: integer
+          format: int32
+        triggering:
+          type: boolean
+        enabled:
+          type: boolean
+        lastUpdated:
+          minimum: 1
+          type: integer
+          format: int64
+    HyperParam:
+      required:
+        - description
         - id
         - name
       type: object
       properties:
         id:
+          maxLength: 64
+          minLength: 0
           type: string
         name:
+          maxLength: 256
+          minLength: 0
           type: string
+        description:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        defaultValue:
+          type: number
+          format: double
+        minValue:
+          type: number
+          format: double
+        maxValue:
+          type: number
+          format: double
+        valueFormat:
+          type: string
+          enum:
+            - NUMBER
+            - BYTES
+            - PERCENTAGE
+            - MILLIS
+            - SECONDS
+            - MICROS
+            - RATE
+            - BYTE_RATE
+            - UNDEFINED
+    RuleInput:
+      required:
+        - inputKind
+        - inputName
+      type: object
+      properties:
+        inputKind:
+          type: string
+          enum:
+            - METRIC
+            - SNAPSHOT_FIELD
+            - EVENT
+            - DERIVED_METRIC
+            - METRIC_PATTERN
+        inputName:
+          maxLength: 256
+          minLength: 0
+          type: string
+    BuiltInEventSpecification:
+      required:
+        - hyperParams
+        - id
+        - name
+        - ruleInputs
+        - shortPluginId
+      type: object
+      properties:
+        id:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        shortPluginId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        name:
+          maxLength: 256
+          minLength: 0
+          type: string
+        description:
+          maxLength: 2048
+          minLength: 0
+          type: string
+        hyperParams:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/HyperParam'
+        ruleInputs:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleInput'
+        severity:
+          type: integer
+          format: int32
+        triggering:
+          type: boolean
+        enabled:
+          type: boolean
     EventSpecificationInfo:
       required:
         - entityType
@@ -5127,6 +5463,16 @@ components:
             conditionValue:
               type: number
               format: double
+    SystemRuleLabel:
+      required:
+        - id
+        - name
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
     CustomEventSpecification:
       required:
         - entityType
@@ -5169,156 +5515,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AbstractRule'
-    BuiltInEventSpecificationWithLastUpdated:
-      required:
-        - hyperParams
-        - id
-        - name
-        - ruleInputs
-        - shortPluginId
-      type: object
-      properties:
-        id:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        shortPluginId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        name:
-          maxLength: 256
-          minLength: 0
-          type: string
-        description:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        hyperParams:
-          maxItems: 32
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/HyperParam'
-        ruleInputs:
-          maxItems: 32
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/RuleInput'
-        severity:
-          type: integer
-          format: int32
-        triggering:
-          type: boolean
-        enabled:
-          type: boolean
-        lastUpdated:
-          minimum: 1
-          type: integer
-          format: int64
-    HyperParam:
-      required:
-        - description
-        - id
-        - name
-      type: object
-      properties:
-        id:
-          maxLength: 64
-          minLength: 0
-          type: string
-        name:
-          maxLength: 256
-          minLength: 0
-          type: string
-        description:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        defaultValue:
-          type: number
-          format: double
-        minValue:
-          type: number
-          format: double
-        maxValue:
-          type: number
-          format: double
-        valueFormat:
-          type: string
-          enum:
-            - NUMBER
-            - BYTES
-            - PERCENTAGE
-            - MILLIS
-            - SECONDS
-            - MICROS
-            - RATE
-            - BYTE_RATE
-            - UNDEFINED
-    RuleInput:
-      required:
-        - inputKind
-        - inputName
-      type: object
-      properties:
-        inputKind:
-          type: string
-          enum:
-            - METRIC
-            - SNAPSHOT_FIELD
-            - EVENT
-            - DERIVED_METRIC
-            - METRIC_PATTERN
-        inputName:
-          maxLength: 256
-          minLength: 0
-          type: string
-    BuiltInEventSpecification:
-      required:
-        - hyperParams
-        - id
-        - name
-        - ruleInputs
-        - shortPluginId
-      type: object
-      properties:
-        id:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        shortPluginId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        name:
-          maxLength: 256
-          minLength: 0
-          type: string
-        description:
-          maxLength: 2048
-          minLength: 0
-          type: string
-        hyperParams:
-          maxItems: 32
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/HyperParam'
-        ruleInputs:
-          maxItems: 32
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/RuleInput'
-        severity:
-          type: integer
-          format: int32
-        triggering:
-          type: boolean
-        enabled:
-          type: boolean
     HistoricBaseline:
       required:
         - baseline
@@ -5469,6 +5665,13 @@ components:
         mapping:
           staticThreshold: '#/components/schemas/StaticThreshold'
           historicBaseline: '#/components/schemas/HistoricBaseline'
+    ThroughputWebsiteAlertRule:
+      required:
+        - alertType
+        - metricName
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/WebsiteAlertRule'
     UserImpactWebsiteTimeThreshold:
       required:
         - type
@@ -5596,6 +5799,7 @@ components:
           specificJsError: '#/components/schemas/SpecificJsErrorsWebsiteAlertRule'
           slowness: '#/components/schemas/SlownessWebsiteAlertRule'
           statusCode: '#/components/schemas/StatusCodeWebsiteAlertRule'
+          throughput: '#/components/schemas/ThroughputWebsiteAlertRule'
     WebsiteTimeThreshold:
       required:
         - type
@@ -5807,6 +6011,7 @@ components:
         snapshotIds:
           maxItems: 30
           minItems: 1
+          uniqueItems: true
           type: array
           items:
             type: string
@@ -5854,10 +6059,10 @@ components:
         firstKnownReportingTime:
           type: integer
           format: int64
-        serverlessCount:
+        hostCount:
           type: integer
           format: int32
-        hostCount:
+        serverlessCount:
           type: integer
           format: int32
     SoftwareUser:
@@ -6021,6 +6226,10 @@ components:
         canViewLogs:
           type: boolean
         canViewTraceDetails:
+          type: boolean
+        canConfigureSessionSettings:
+          type: boolean
+        canConfigureServiceLevelIndicators:
           type: boolean
     AuditLogEntry:
       required:
@@ -6320,19 +6529,23 @@ components:
           type: boolean
         canViewTraceDetails:
           type: boolean
-    SyntheticCallConfig:
-      required:
-        - customRules
+        canConfigureSessionSettings:
+          type: boolean
+        canConfigureServiceLevelIndicators:
+          type: boolean
+    SessionSettings:
       type: object
       properties:
-        defaultRulesEnabled:
-          type: boolean
-        customRules:
-          maxItems: 500
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/SyntheticCallRule'
+        tokenLifeTimeInMillis:
+          maximum: 604800000
+          minimum: 900000
+          type: integer
+          format: int64
+        idleTimeInMillis:
+          maximum: 28800000
+          minimum: 60000
+          type: integer
+          format: int64
     SyntheticCallRule:
       required:
         - matchSpecification
@@ -6369,6 +6582,19 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SyntheticCallRule'
+    SyntheticCallConfig:
+      required:
+        - customRules
+      type: object
+      properties:
+        defaultRulesEnabled:
+          type: boolean
+        customRules:
+          maxItems: 500
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/SyntheticCallRule'
     UserResult:
       type: object
       properties:
@@ -6388,129 +6614,214 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserResult'
-    BeaconGroupsResult:
-      required:
-        - items
+    SliReport:
       type: object
       properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/WebsiteBeaconGroupsItem'
-        canLoadMore:
-          type: boolean
-        totalHits:
-          minimum: 0
+        sli:
+          type: number
+          format: double
+        slo:
+          type: number
+          format: double
+        totalErrorBudget:
           type: integer
           format: int32
-        totalRepresentedItemCount:
-          minimum: 0
+        errorBudgetRemaining:
           type: integer
           format: int32
-    WebsiteBeaconGroupsItem:
+        fromTimestamp:
+          type: integer
+          format: int64
+        toTimestamp:
+          type: integer
+          format: int64
+        violationDistribution:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+    ApplicationSliEntity:
       required:
-        - cursor
-        - metrics
+        - boundaryScope
+        - sliType
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SliEntity'
+        - type: object
+          properties:
+            applicationId:
+              type: string
+            serviceId:
+              type: string
+            endpointId:
+              type: string
+            boundaryScope:
+              type: string
+              enum:
+                - ALL
+                - INBOUND
+    ApplicationTagFilter:
+      required:
+        - entity
         - name
       type: object
       properties:
         name:
           type: string
-        earliestTimestamp:
-          minimum: 0
+        stringValue:
+          type: string
+        numberValue:
           type: integer
           format: int64
-        cursor:
-          $ref: '#/components/schemas/IngestionOffsetCursor'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    GetWebsiteBeaconGroups:
-      required:
-        - group
-        - metrics
-        - type
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/CursorPagination'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        group:
-          $ref: '#/components/schemas/WebsiteBeaconTagGroup'
-        order:
-          $ref: '#/components/schemas/Order'
-        type:
+        booleanValue:
+          type: boolean
+        operator:
           type: string
           enum:
-            - PAGELOAD
-            - RESOURCELOAD
-            - HTTPREQUEST
-            - ERROR
-            - CUSTOM
-            - PAGE_CHANGE
-        tagFilters:
-          maxItems: 32
-          minItems: 0
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/WebsiteMonitoringMetricsConfiguration'
-    WebsiteBeaconTagGroup:
-      required:
-        - groupbyTag
-      type: object
-      properties:
-        groupbyTag:
-          maxLength: 256
-          minLength: 0
-          type: string
-        groupbyTagSecondLevelKey:
-          maxLength: 256
-          minLength: 0
-          type: string
-        groupbyTagEntity:
+            - EQUALS
+            - CONTAINS
+            - LESS_THAN
+            - LESS_OR_EQUAL_THAN
+            - GREATER_THAN
+            - GREATER_OR_EQUAL_THAN
+            - NOT_EMPTY
+            - NOT_EQUAL
+            - NOT_CONTAIN
+            - IS_EMPTY
+            - NOT_BLANK
+            - IS_BLANK
+            - STARTS_WITH
+            - ENDS_WITH
+            - NOT_STARTS_WITH
+            - NOT_ENDS_WITH
+        entity:
           type: string
           enum:
             - NOT_APPLICABLE
             - DESTINATION
             - SOURCE
-    WebsiteMonitoringMetricsConfiguration:
+    AvailabilitySliEntity:
       required:
-        - aggregation
-        - metric
+        - badEventFilters
+        - boundaryScope
+        - goodEventFilters
+        - sliType
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SliEntity'
+        - type: object
+          properties:
+            applicationId:
+              type: string
+            serviceId:
+              type: string
+            endpointId:
+              type: string
+            boundaryScope:
+              type: string
+              enum:
+                - ALL
+                - INBOUND
+            goodEventFilters:
+              maxItems: 32
+              minItems: 1
+              type: array
+              items:
+                $ref: '#/components/schemas/ApplicationTagFilter'
+            badEventFilters:
+              maxItems: 32
+              minItems: 1
+              type: array
+              items:
+                $ref: '#/components/schemas/ApplicationTagFilter'
+    InfrastructureSliEntity:
+      required:
+        - instanceAggregation
+        - query
+        - sliType
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SliEntity'
+        - type: object
+          properties:
+            instanceAggregation:
+              type: string
+              enum:
+                - SUM
+                - MEAN
+                - MAX
+                - MIN
+                - P25
+                - P50
+                - P75
+                - P90
+                - P95
+                - P98
+                - P99
+                - DISTINCT_COUNT
+            query:
+              type: string
+    SliConfigurationWithLastUpdated:
+      required:
+        - id
+        - sliEntity
+        - sliName
       type: object
       properties:
-        metric:
+        id:
+          maxLength: 64
+          minLength: 0
           type: string
-        granularity:
+        sliName:
+          maxLength: 256
+          minLength: 0
+          type: string
+        initialEvaluationTimestamp:
           type: integer
-          format: int32
-        aggregation:
+          format: int64
+        metricConfiguration:
+          $ref: '#/components/schemas/MetricConfiguration'
+        sliEntity:
+          $ref: '#/components/schemas/SliEntity'
+        lastUpdated:
+          minimum: 1
+          type: integer
+          format: int64
+    SliEntity:
+      required:
+        - sliType
+      type: object
+      properties:
+        sliType:
           type: string
-          enum:
-            - SUM
-            - MEAN
-            - MAX
-            - MIN
-            - P25
-            - P50
-            - P75
-            - P90
-            - P95
-            - P98
-            - P99
-            - DISTINCT_COUNT
+      discriminator:
+        propertyName: sliType
+        mapping:
+          application: '#/components/schemas/ApplicationSliEntity'
+          custom: '#/components/schemas/InfrastructureSliEntity'
+          availability: '#/components/schemas/AvailabilitySliEntity'
+    SliConfiguration:
+      required:
+        - id
+        - sliEntity
+        - sliName
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 0
+          type: string
+        sliName:
+          maxLength: 256
+          minLength: 0
+          type: string
+        initialEvaluationTimestamp:
+          type: integer
+          format: int64
+        metricConfiguration:
+          $ref: '#/components/schemas/MetricConfiguration'
+        sliEntity:
+          $ref: '#/components/schemas/SliEntity'
     BeaconResult:
       required:
         - items
@@ -6875,6 +7186,129 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
+    BeaconGroupsResult:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteBeaconGroupsItem'
+        canLoadMore:
+          type: boolean
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
+        totalRepresentedItemCount:
+          minimum: 0
+          type: integer
+          format: int32
+    WebsiteBeaconGroupsItem:
+      required:
+        - cursor
+        - metrics
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+        earliestTimestamp:
+          minimum: 0
+          type: integer
+          format: int64
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    GetWebsiteBeaconGroups:
+      required:
+        - group
+        - metrics
+        - type
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        group:
+          $ref: '#/components/schemas/WebsiteBeaconTagGroup'
+        order:
+          $ref: '#/components/schemas/Order'
+        type:
+          type: string
+          enum:
+            - PAGELOAD
+            - RESOURCELOAD
+            - HTTPREQUEST
+            - ERROR
+            - CUSTOM
+            - PAGE_CHANGE
+        tagFilters:
+          maxItems: 32
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/WebsiteMonitoringMetricsConfiguration'
+    WebsiteBeaconTagGroup:
+      required:
+        - groupbyTag
+      type: object
+      properties:
+        groupbyTag:
+          maxLength: 256
+          minLength: 0
+          type: string
+        groupbyTagSecondLevelKey:
+          maxLength: 256
+          minLength: 0
+          type: string
+        groupbyTagEntity:
+          type: string
+          enum:
+            - NOT_APPLICABLE
+            - DESTINATION
+            - SOURCE
+    WebsiteMonitoringMetricsConfiguration:
+      required:
+        - aggregation
+        - metric
+      type: object
+      properties:
+        metric:
+          type: string
+        granularity:
+          type: integer
+          format: int32
+        aggregation:
+          type: string
+          enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - DISTINCT_COUNT
     WebsiteMonitoringMetricDescription:
       type: object
       properties:
@@ -6980,9 +7414,14 @@ x-tagGroups:
       - API Token
       - Maintenance Configuration
       - Synthetic Calls
+      - Session Settings
   - name: Pipeline Feedback
     tags:
       - Releases
+  - name: Service Level Indicators
+    tags:
+      - SLI Settings
+      - SLI Report
   - name: Instana
     tags:
       - Health
