@@ -6,7 +6,7 @@ info:
     name: © Instana
     url: http://instana.com
     email: support@instana.com
-  version: 1.188.749
+  version: 1.188.738
   x-description: info
   x-logo:
     url: header-logo.svg
@@ -78,37 +78,6 @@ tags:
 - name: Usage
   x-description: tagUsage
 paths:
-  /api/host-agent/{id}:
-    get:
-      tags:
-      - Host Agent
-      summary: Get host agent snapshot details
-      operationId: getAgentSnapshot
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: to
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: windowSize
-        in: query
-        schema:
-          type: integer
-          format: int64
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SnapshotItem'
-      security:
-      - ApiKeyAuth:
-        - Default
   /api/host-agent/configuration:
     post:
       tags:
@@ -156,6 +125,37 @@ paths:
       - ApiKeyAuth:
         - canConfigureAgents
       x-description: updateConfigurationByQuery
+  /api/host-agent/{id}:
+    get:
+      tags:
+      - Host Agent
+      summary: Get host agent snapshot details
+      operationId: getAgentSnapshot
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotItem'
+      security:
+      - ApiKeyAuth:
+        - Default
   /api/host-agent/{hostId}/configuration:
     post:
       tags:
@@ -378,6 +378,32 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
+  /api/application-monitoring/metrics/applications:
+    post:
+      tags:
+      - Application Metrics
+      summary: Get Application Metrics
+      operationId: getApplicationMetrics
+      parameters:
+      - name: fillTimeSeries
+        in: query
+        schema:
+          type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetApplications'
+        x-payload: getApplicationMetrics
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationMetricResult'
+      security:
+      - ApiKeyAuth:
+        - Default
   /api/application-monitoring/metrics/services:
     post:
       tags:
@@ -430,29 +456,50 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-  /api/application-monitoring/metrics/applications:
-    post:
+  /api/application-monitoring/applications:
+    get:
       tags:
-      - Application Metrics
-      summary: Get Application Metrics
-      operationId: getApplicationMetrics
+      - Application Resources
+      summary: Get applications
+      operationId: getApplications
       parameters:
-      - name: fillTimeSeries
+      - name: nameFilter
         in: query
         schema:
-          type: boolean
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetApplications'
-        x-payload: getApplicationMetrics
+          type: string
+      - name: windowSize
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: to
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: applicationBoundaryScope
+        in: query
+        schema:
+          type: string
+          enum:
+          - ALL
+          - INBOUND
       responses:
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationMetricResult'
+                $ref: '#/components/schemas/ApplicationResult'
       security:
       - ApiKeyAuth:
         - Default
@@ -514,53 +561,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EndpointResult'
-      security:
-      - ApiKeyAuth:
-        - Default
-  /api/application-monitoring/applications:
-    get:
-      tags:
-      - Application Resources
-      summary: Get applications
-      operationId: getApplications
-      parameters:
-      - name: nameFilter
-        in: query
-        schema:
-          type: string
-      - name: windowSize
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: to
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: page
-        in: query
-        schema:
-          type: integer
-          format: int32
-      - name: pageSize
-        in: query
-        schema:
-          type: integer
-          format: int32
-      - name: applicationBoundaryScope
-        in: query
-        schema:
-          type: string
-          enum:
-          - ALL
-          - INBOUND
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApplicationResult'
       security:
       - ApiKeyAuth:
         - Default
@@ -3548,6 +3548,21 @@ paths:
         - Default
 components:
   schemas:
+    AgentConfigurationUpdate:
+      type: object
+      properties:
+        remoteName:
+          maxLength: 256
+          minLength: 0
+          type: string
+        remoteUri:
+          maxLength: 65536
+          minLength: 0
+          type: string
+        remoteBranch:
+          maxLength: 256
+          minLength: 0
+          type: string
     SnapshotItem:
       type: object
       properties:
@@ -3568,21 +3583,6 @@ components:
         label:
           type: string
         host:
-          type: string
-    AgentConfigurationUpdate:
-      type: object
-      properties:
-        remoteName:
-          maxLength: 256
-          minLength: 0
-          type: string
-        remoteUri:
-          maxLength: 65536
-          minLength: 0
-          type: string
-        remoteBranch:
-          maxLength: 256
-          minLength: 0
           type: string
     SnapshotResult:
       type: object
@@ -4206,14 +4206,14 @@ components:
           type: string
         line:
           type: string
-    ServiceItem:
+    ApplicationItem:
       required:
+      - application
       - metrics
-      - service
       type: object
       properties:
-        service:
-          $ref: '#/components/schemas/Service'
+        application:
+          $ref: '#/components/schemas/Application'
         metrics:
           type: object
           additionalProperties:
@@ -4222,7 +4222,7 @@ components:
               type: array
               items:
                 type: number
-    ServiceMetricResult:
+    ApplicationMetricResult:
       required:
       - items
       type: object
@@ -4230,7 +4230,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/ServiceItem'
+            $ref: '#/components/schemas/ApplicationItem'
         page:
           minimum: 1
           type: integer
@@ -4269,6 +4269,119 @@ components:
           - P98
           - P99
           - DISTINCT_COUNT
+    GetApplications:
+      required:
+      - metrics
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        order:
+          $ref: '#/components/schemas/Order'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        metrics:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/AppDataMetricConfiguration'
+        nameFilter:
+          maxLength: 256
+          minLength: 0
+          type: string
+        applicationId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        serviceId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        endpointId:
+          maxLength: 64
+          minLength: 0
+          type: string
+        endpointTypes:
+          uniqueItems: true
+          type: array
+          writeOnly: true
+          items:
+            type: string
+            enum:
+            - UNDEFINED
+            - RPC
+            - EVENT
+            - GRAPHQL
+            - BATCH
+            - SHELL
+            - HTTP
+            - SDK
+            - INTERNAL
+            - DATABASE
+            - MESSAGING
+            - PAGE
+            - PAGE_RESOURCE
+        technologies:
+          uniqueItems: true
+          type: array
+          writeOnly: true
+          items:
+            type: string
+        applicationBoundaryScope:
+          type: string
+          enum:
+          - ALL
+          - INBOUND
+    Pagination:
+      type: object
+      properties:
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          maximum: 200
+          minimum: 1
+          type: integer
+          format: int32
+    ServiceItem:
+      required:
+      - metrics
+      - service
+      type: object
+      properties:
+        service:
+          $ref: '#/components/schemas/Service'
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+    ServiceMetricResult:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceItem'
+        page:
+          minimum: 1
+          type: integer
+          format: int32
+        pageSize:
+          minimum: 1
+          type: integer
+          format: int32
+        totalHits:
+          minimum: 0
+          type: integer
+          format: int32
     GetServices:
       required:
       - metrics
@@ -4316,18 +4429,6 @@ components:
           enum:
           - ALL
           - INBOUND
-    Pagination:
-      type: object
-      properties:
-        page:
-          minimum: 1
-          type: integer
-          format: int32
-        pageSize:
-          maximum: 200
-          minimum: 1
-          type: integer
-          format: int32
     EndpointItem:
       required:
       - endpoint
@@ -4426,123 +4527,6 @@ components:
           enum:
           - ALL
           - INBOUND
-    ApplicationItem:
-      required:
-      - application
-      - metrics
-      type: object
-      properties:
-        application:
-          $ref: '#/components/schemas/Application'
-        metrics:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    ApplicationMetricResult:
-      required:
-      - items
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ApplicationItem'
-        page:
-          minimum: 1
-          type: integer
-          format: int32
-        pageSize:
-          minimum: 1
-          type: integer
-          format: int32
-        totalHits:
-          minimum: 0
-          type: integer
-          format: int32
-    GetApplications:
-      required:
-      - metrics
-      type: object
-      properties:
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-        order:
-          $ref: '#/components/schemas/Order'
-        timeFrame:
-          $ref: '#/components/schemas/TimeFrame'
-        metrics:
-          maxItems: 5
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/AppDataMetricConfiguration'
-        nameFilter:
-          maxLength: 256
-          minLength: 0
-          type: string
-        applicationId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        serviceId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        endpointId:
-          maxLength: 64
-          minLength: 0
-          type: string
-        endpointTypes:
-          uniqueItems: true
-          type: array
-          writeOnly: true
-          items:
-            type: string
-            enum:
-            - UNDEFINED
-            - RPC
-            - EVENT
-            - GRAPHQL
-            - BATCH
-            - SHELL
-            - HTTP
-            - SDK
-            - INTERNAL
-            - DATABASE
-            - MESSAGING
-            - PAGE
-            - PAGE_RESOURCE
-        technologies:
-          uniqueItems: true
-          type: array
-          writeOnly: true
-          items:
-            type: string
-        applicationBoundaryScope:
-          type: string
-          enum:
-          - ALL
-          - INBOUND
-    EndpointResult:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/Endpoint'
-        page:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        totalHits:
-          type: integer
-          format: int32
     ApplicationResult:
       type: object
       properties:
@@ -4550,6 +4534,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Application'
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        totalHits:
+          type: integer
+          format: int32
+    EndpointResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Endpoint'
         page:
           type: integer
           format: int32
