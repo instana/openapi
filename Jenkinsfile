@@ -28,8 +28,11 @@ stage ('Generate and publish OpenAPI specs') {
 stage ('Trigger API end-to-end tests') {
   timeout(time: 30, unit: 'MINUTES') {
     if (env.BRANCH_NAME == 'master') {
+      def versionParts = env.VERSION.split('.')
+      def releaseNumber = versionParts[1]
+
       build job: '/tests/rest-api-e2e-tests', parameters: [
-          string(name: 'BRANCH_NAME', value: 'develop'),
+          string(name: 'BRANCH_NAME', value: "release-${releaseNumber}"),
           string(name: 'ENVIRONMENT', value: 'internal-instanaops'),
           string(name: 'OPENAPI_URL', value: 'https://instana.github.io/openapi/openapi.yaml'),
           string(name: 'OPSGENIE_BASE_PATH', value: 'https://api.eu.opsgenie.com')
