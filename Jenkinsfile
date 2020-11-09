@@ -28,7 +28,7 @@ stage ('Generate and publish OpenAPI specs') {
 stage ('Trigger API end-to-end tests') {
   timeout(time: 30, unit: 'MINUTES') {
     if (env.BRANCH_NAME == 'master') {
-      def versionParts = env.VERSION.split('.')
+      def versionParts = env.VERSION.tokenize('.')
       def releaseNumber = versionParts[1]
 
       build job: '/tests/rest-api-e2e-tests', parameters: [
