@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.192.1240",
+    "version": "1.193.685",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -81,6 +81,10 @@
     },
     {
       "name": "Event Settings"
+    },
+    {
+      "name": "Application Alert Configuration",
+      "description": "The endpoints of this group can be used to manage Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature \"Application Smart Alerts\".\nIn order to use this feature or to have more information, please contact <support@instana.com>.\n\n"
     },
     {
       "name": "Host Agent",
@@ -595,7 +599,9 @@
                 "GROUPING",
                 "FILTERING",
                 "SMART_ALERTS",
-                "SLI_MANAGEMENT"
+                "SLI_MANAGEMENT",
+                "APPLICATION_CONFIG",
+                "APPLICATION_CONFIG_BLUEPRINT"
               ]
             }
           }
@@ -688,7 +694,9 @@
                 "GROUPING",
                 "FILTERING",
                 "SMART_ALERTS",
-                "SLI_MANAGEMENT"
+                "SLI_MANAGEMENT",
+                "APPLICATION_CONFIG",
+                "APPLICATION_CONFIG_BLUEPRINT"
               ]
             }
           }
@@ -2108,7 +2116,7 @@
             ]
           }
         ],
-        "summary": "All Alerting",
+        "summary": "Get all Alert Configurations",
         "tags": [
           "Event Settings"
         ]
@@ -2181,7 +2189,7 @@
             ]
           }
         ],
-        "summary": "Delete alerting",
+        "summary": "Delete Alert Configuration",
         "tags": [
           "Event Settings"
         ]
@@ -2216,7 +2224,7 @@
             ]
           }
         ],
-        "summary": "Alerting",
+        "summary": "Find an Alert Configuration by ID",
         "tags": [
           "Event Settings"
         ]
@@ -2261,9 +2269,357 @@
             ]
           }
         ],
-        "summary": "Update alerting",
+        "summary": "Update Alert Configuration",
         "tags": [
           "Event Settings"
+        ]
+      }
+    },
+    "/api/events/settings/application-alert-configs": {
+      "get": {
+        "description": "Configs are sorted descending by their created date.",
+        "operationId": "findActiveApplicationAlertConfigs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "applicationId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationAlertConfigWithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "All Application Alert Configs",
+        "tags": [
+          "Application Alert Configuration"
+        ]
+      },
+      "post": {
+        "operationId": "createApplicationAlertConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationAlertConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationAlertConfigWithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Create Application Alert Config",
+        "tags": [
+          "Application Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/application-alert-configs/{id}": {
+      "delete": {
+        "operationId": "deleteApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Delete Application Alert Config",
+        "tags": [
+          "Application Alert Configuration"
+        ]
+      },
+      "get": {
+        "description": "Find a Application Alert Config by ID. This will deliver deleted configs too.",
+        "operationId": "findApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "validOn",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationAlertConfigWithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Get Application Alert Config",
+        "tags": [
+          "Application Alert Configuration"
+        ]
+      },
+      "post": {
+        "operationId": "updateApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationAlertConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationAlertConfigWithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Update Application Alert Config",
+        "tags": [
+          "Application Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/application-alert-configs/{id}/disable": {
+      "put": {
+        "operationId": "disableApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationAlertConfigWithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Disable Application Alert Config",
+        "tags": [
+          "Application Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/application-alert-configs/{id}/enable": {
+      "put": {
+        "operationId": "enableApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationAlertConfigWithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Enable Application Alert Config",
+        "tags": [
+          "Application Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/application-alert-configs/{id}/versions": {
+      "get": {
+        "description": "Find all versions of a Application Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.",
+        "operationId": "findApplicationAlertConfigVersions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConfigVersion"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Get versions of Application Alert Config",
+        "tags": [
+          "Application Alert Configuration"
         ]
       }
     },
@@ -5965,7 +6321,9 @@
                 "GROUPING",
                 "FILTERING",
                 "SMART_ALERTS",
-                "SLI_MANAGEMENT"
+                "SLI_MANAGEMENT",
+                "APPLICATION_CONFIG",
+                "APPLICATION_CONFIG_BLUEPRINT"
               ]
             }
           }
@@ -6565,11 +6923,6 @@
             "minItems": 0,
             "uniqueItems": true
           },
-          "id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 0
-          },
           "infraDfqFilter": {
             "type": "string"
           },
@@ -6599,9 +6952,6 @@
             "maxItems": 1024,
             "minItems": 0,
             "uniqueItems": true
-          },
-          "name": {
-            "type": "string"
           },
           "permissions": {
             "type": "array",
@@ -6788,6 +7138,243 @@
           "boundaryScope",
           "id",
           "label"
+        ]
+      },
+      "ApplicationAlertConfig": {
+        "type": "object",
+        "properties": {
+          "alertChannelIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "applicationId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "boundaryScope": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "INBOUND"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "default": 600000,
+            "enum": [
+              60000,
+              300000,
+              600000,
+              900000,
+              1200000,
+              1800000
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "rule": {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/Threshold"
+          },
+          "timeThreshold": {
+            "$ref": "#/components/schemas/ApplicationTimeThreshold"
+          },
+          "triggering": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "alertChannelIds",
+          "applicationId",
+          "boundaryScope",
+          "description",
+          "name",
+          "rule",
+          "tagFilters",
+          "threshold",
+          "timeThreshold"
+        ]
+      },
+      "ApplicationAlertConfigWithMetadata": {
+        "type": "object",
+        "properties": {
+          "alertChannelIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "applicationId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "boundaryScope": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "INBOUND"
+            ]
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "default": 600000,
+            "enum": [
+              60000,
+              300000,
+              600000,
+              900000,
+              1200000,
+              1800000
+            ]
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/Threshold"
+          },
+          "timeThreshold": {
+            "$ref": "#/components/schemas/ApplicationTimeThreshold"
+          },
+          "triggering": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "alertChannelIds",
+          "applicationId",
+          "boundaryScope",
+          "description",
+          "id",
+          "name",
+          "rule",
+          "tagFilters",
+          "threshold",
+          "timeThreshold"
+        ]
+      },
+      "ApplicationAlertRule": {
+        "type": "object",
+        "discriminator": {
+          "mapping": {
+            "errorRate": "#/components/schemas/ErrorRateApplicationAlertRule",
+            "logs": "#/components/schemas/LogsApplicationAlertRule",
+            "slowness": "#/components/schemas/SlownessApplicationAlertRule",
+            "statusCode": "#/components/schemas/StatusCodeApplicationAlertRule",
+            "throughput": "#/components/schemas/ThroughputApplicationAlertRule"
+          },
+          "propertyName": "alertType"
+        },
+        "properties": {
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "P99_9",
+              "P99_99",
+              "DISTINCT_COUNT"
+            ]
+          },
+          "alertType": {
+            "type": "string"
+          },
+          "metricName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "alertType",
+          "metricName"
         ]
       },
       "ApplicationConfig": {
@@ -7033,6 +7620,29 @@
         "required": [
           "boundaryScope",
           "sliType"
+        ]
+      },
+      "ApplicationTimeThreshold": {
+        "type": "object",
+        "discriminator": {
+          "mapping": {
+            "requestImpact": "#/components/schemas/RequestImpactApplicationTimeThreshold",
+            "violationsInPeriod": "#/components/schemas/ViolationsInPeriodApplicationTimeThreshold",
+            "violationsInSequence": "#/components/schemas/ViolationsInSequenceApplicationTimeThreshold"
+          },
+          "propertyName": "type"
+        },
+        "properties": {
+          "timeWindow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
         ]
       },
       "AuditLogEntry": {
@@ -7983,6 +8593,18 @@
           "matchingEntityType",
           "matchingOperator",
           "ruleType"
+        ]
+      },
+      "ErrorRateApplicationAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          }
+        ],
+        "required": [
+          "alertType",
+          "metricName"
         ]
       },
       "EventFilteringConfiguration": {
@@ -9120,6 +9742,66 @@
           "type"
         ]
       },
+      "LogsApplicationAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": [
+                  "WARN",
+                  "ERROR",
+                  "ANY"
+                ]
+              },
+              "loglevel": {
+                "type": "string",
+                "enum": [
+                  "WARN",
+                  "ERROR",
+                  "ANY"
+                ],
+                "writeOnly": true
+              },
+              "message": {
+                "type": "string"
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "EQUALS",
+                  "CONTAINS",
+                  "LESS_THAN",
+                  "LESS_OR_EQUAL_THAN",
+                  "GREATER_THAN",
+                  "GREATER_OR_EQUAL_THAN",
+                  "NOT_EMPTY",
+                  "NOT_EQUAL",
+                  "NOT_CONTAIN",
+                  "IS_EMPTY",
+                  "NOT_BLANK",
+                  "IS_BLANK",
+                  "STARTS_WITH",
+                  "ENDS_WITH",
+                  "NOT_STARTS_WITH",
+                  "NOT_ENDS_WITH"
+                ]
+              }
+            }
+          }
+        ],
+        "required": [
+          "alertType",
+          "level",
+          "metricName",
+          "operator"
+        ]
+      },
       "MaintenanceConfig": {
         "type": "object",
         "properties": {
@@ -9797,6 +10479,27 @@
           "name"
         ]
       },
+      "RequestImpactApplicationTimeThreshold": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApplicationTimeThreshold"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "requests": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1
+              }
+            }
+          }
+        ],
+        "required": [
+          "type"
+        ]
+      },
       "RuleInput": {
         "type": "object",
         "properties": {
@@ -10329,6 +11032,19 @@
           }
         }
       },
+      "SlownessApplicationAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          }
+        ],
+        "required": [
+          "aggregation",
+          "alertType",
+          "metricName"
+        ]
+      },
       "SlownessWebsiteAlertRule": {
         "type": "object",
         "allOf": [
@@ -10776,6 +11492,33 @@
           "type"
         ]
       },
+      "StatusCodeApplicationAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "statusCodeEnd": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1
+              },
+              "statusCodeStart": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 1
+              }
+            }
+          }
+        ],
+        "required": [
+          "alertType",
+          "metricName"
+        ]
+      },
       "StatusCodeWebsiteAlertRule": {
         "type": "object",
         "allOf": [
@@ -11027,6 +11770,51 @@
           "value"
         ]
       },
+      "TagFilterExpression": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "elements": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TagFilterExpressionElement"
+                }
+              },
+              "logicalOperator": {
+                "type": "string",
+                "enum": [
+                  "AND",
+                  "OR"
+                ]
+              }
+            }
+          }
+        ],
+        "required": [
+          "elements",
+          "logicalOperator"
+        ]
+      },
+      "TagFilterExpressionElement": {
+        "type": "object",
+        "discriminator": {
+          "mapping": {
+            "EXPRESSION": "#/components/schemas/TagFilterExpression",
+            "TAG_FILTER": "#/components/schemas/TagFilter"
+          },
+          "propertyName": "type"
+        },
+        "properties": {
+          "type": {
+            "type": "string"
+          }
+        }
+      },
       "TagMatcherDTO": {
         "type": "object",
         "allOf": [
@@ -11243,6 +12031,18 @@
         "required": [
           "conditionOperator",
           "ruleType"
+        ]
+      },
+      "ThroughputApplicationAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          }
+        ],
+        "required": [
+          "alertType",
+          "metricName"
         ]
       },
       "ThroughputWebsiteAlertRule": {
@@ -11742,6 +12542,28 @@
           "routingKey"
         ]
       },
+      "ViolationsInPeriodApplicationTimeThreshold": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApplicationTimeThreshold"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "violations": {
+                "type": "integer",
+                "format": "int32",
+                "maximum": 12,
+                "minimum": 1
+              }
+            }
+          }
+        ],
+        "required": [
+          "type"
+        ]
+      },
       "ViolationsInPeriodWebsiteTimeThreshold": {
         "type": "object",
         "allOf": [
@@ -11758,6 +12580,17 @@
                 "minimum": 1
               }
             }
+          }
+        ],
+        "required": [
+          "type"
+        ]
+      },
+      "ViolationsInSequenceApplicationTimeThreshold": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApplicationTimeThreshold"
           }
         ],
         "required": [
@@ -12817,6 +13650,12 @@
       "tags": [
         "SLI Settings",
         "SLI Report"
+      ]
+    },
+    {
+      "name": "BETA Features",
+      "tags": [
+        "Application Alert Configuration"
       ]
     },
     {
