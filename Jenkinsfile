@@ -33,8 +33,7 @@ stage ('Trigger API end-to-end tests') {
 
       build job: '/tests/rest-api-e2e-tests', parameters: [
           string(name: 'BRANCH_NAME', value: "release-${releaseNumber}"),
-          string(name: 'ENVIRONMENT', value: 'preview-instana'),
-          string(name: 'OPSGENIE_BASE_PATH', value: 'https://api.eu.opsgenie.com')
+          string(name: 'ENVIRONMENT', value: 'preview-instana')
       ]
     }
   }
