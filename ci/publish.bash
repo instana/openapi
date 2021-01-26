@@ -48,7 +48,7 @@ yarn build
 echo "Commit and push changes to ${BRANCH_NAME}"
 git checkout $BRANCH_NAME
 git add .
-git commit -q -a -m "Added generated spec files, see ${BUILD_URL}"
+git commit -q -a -m "Added generated spec files, see ${BUILD_URL}" >/dev/null 2>&1
 git push -q origin $BRANCH_NAME
 
 echo "Publish changes to gh-pages"
