@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.194.695
+  version: 1.195.569
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -377,10 +377,6 @@ paths:
               - SLI_MANAGEMENT
               - APPLICATION_CONFIG
               - APPLICATION_CONFIG_BLUEPRINT
-        - in: query
-          name: useQueryableTags
-          schema:
-            type: boolean
       responses:
         default:
           content:
@@ -1363,7 +1359,7 @@ paths:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
-            - CanConfigureCustomAlerts
+            - Default
       summary: All Application Alert Configs
       tags:
         - Application Alert Configuration
@@ -1385,6 +1381,8 @@ paths:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
+            - Default
+        - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Create Application Alert Config
       tags:
@@ -1404,6 +1402,8 @@ paths:
             application/json: {}
           description: default response
       security:
+        - ApiKeyAuth:
+            - Default
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Delete Application Alert Config
@@ -1433,7 +1433,7 @@ paths:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
-            - CanConfigureCustomAlerts
+            - Default
       summary: Get Application Alert Config
       tags:
         - Application Alert Configuration
@@ -1460,6 +1460,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
+        - ApiKeyAuth:
+            - Default
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Update Application Alert Config
@@ -1490,6 +1492,8 @@ paths:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
+            - Default
+        - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Disable Application Alert Config
       tags:
@@ -1519,6 +1523,8 @@ paths:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
+            - Default
+        - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Enable Application Alert Config
       tags:
@@ -1543,7 +1549,7 @@ paths:
                   $ref: '#/components/schemas/ConfigVersion'
       security:
         - ApiKeyAuth:
-            - CanConfigureCustomAlerts
+            - Default
       summary: Get versions of Application Alert Config
       tags:
         - Application Alert Configuration
@@ -4288,6 +4294,8 @@ components:
           type: boolean
         canConfigureEumApplications:
           type: boolean
+        canConfigureGlobalAlertConfigs:
+          type: boolean
         canConfigureGlobalAlertPayload:
           type: boolean
         canConfigureIntegrations:
@@ -4356,6 +4364,7 @@ components:
             - P99_9
             - P99_99
             - DISTINCT_COUNT
+            - SUM_POSITIVE
         granularity:
           type: integer
           format: int32
@@ -4397,6 +4406,8 @@ components:
           type: string
           maxLength: 64
           minLength: 0
+        applicationIdFromSelection:
+          type: string
         boundaryScope:
           type: string
           enum:
@@ -4465,6 +4476,8 @@ components:
           type: string
           maxLength: 64
           minLength: 0
+        applicationIdFromSelection:
+          type: string
         boundaryScope:
           type: string
           enum:
@@ -4495,6 +4508,9 @@ components:
           type: string
           maxLength: 64
           minLength: 0
+        isDerivedFromGlobalAlert:
+          type: boolean
+          writeOnly: true
         name:
           type: string
           maxLength: 256
@@ -4560,6 +4576,7 @@ components:
             - P99_9
             - P99_99
             - DISTINCT_COUNT
+            - SUM_POSITIVE
         alertType:
           type: string
         metricName:
@@ -6370,6 +6387,7 @@ components:
             - P99_9
             - P99_99
             - DISTINCT_COUNT
+            - SUM_POSITIVE
         granularity:
           type: integer
           format: int32
@@ -6398,6 +6416,7 @@ components:
             - P99_9
             - P99_99
             - DISTINCT_COUNT
+            - SUM_POSITIVE
         metricName:
           type: string
         threshold:
@@ -7562,12 +7581,17 @@ components:
           type: boolean
         description:
           type: string
+        isQueryable:
+          type: boolean
+          writeOnly: true
         label:
           type: string
           maxLength: 256
           minLength: 0
         name:
           type: string
+        queryable:
+          type: boolean
         type:
           type: string
           enum:
@@ -7710,6 +7734,8 @@ components:
           type: string
         label:
           type: string
+        queryable:
+          type: boolean
         searchable:
           type: boolean
         type:
@@ -7730,6 +7756,8 @@ components:
           type: string
         label:
           type: string
+        queryable:
+          type: boolean
         type:
           type: string
     TagTreeTag:
@@ -7744,6 +7772,7 @@ components:
               type: string
       required:
         - label
+        - queryable
         - tagName
     Threshold:
       type: object
@@ -8405,6 +8434,7 @@ components:
             - P99_9
             - P99_99
             - DISTINCT_COUNT
+            - SUM_POSITIVE
         alertType:
           type: string
         metricName:
@@ -8826,6 +8856,16 @@ components:
           type: string
         metricId:
           type: string
+        pathToValueInBeacon:
+          type: array
+          items:
+            type: string
+          maxItems: 2147483647
+          minItems: 1
+        tagName:
+          type: string
+      required:
+        - beaconTypes
     WebsiteMonitoringMetricsConfiguration:
       type: object
       properties:
@@ -8846,6 +8886,7 @@ components:
             - P99_9
             - P99_99
             - DISTINCT_COUNT
+            - SUM_POSITIVE
         granularity:
           type: integer
           format: int32
