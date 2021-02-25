@@ -1,11 +1,4 @@
 This endpoint retrieves the metrics for calls.
 
-**Manditory Paramters:**
-
-**Optional Paramters:**
-
-**Defaults:**
-
-**Limits:**
-
-**Tips:**
+## Deprecated Parameters
+**tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**
