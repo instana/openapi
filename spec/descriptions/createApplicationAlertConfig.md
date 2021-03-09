@@ -6,7 +6,7 @@ This endpoint creates the Application Alert Configuration
 
 - **description:** Description for the application alert configuration
 
-- **applicationId:** Unique ID of the Application Perspective
+- **applications:** Selection of application, services and endpoints in scope.
 
 - **boundaryScope:** Boundary scope of the Application Perspective
 
@@ -20,4 +20,6 @@ This endpoint creates the Application Alert Configuration
 
 ## Deprecated Parameters
 
-**tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**
+- **tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**
+
+- **applicationId:** Unique ID of the Application Perspective. It is replaced by **applications**
