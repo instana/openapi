@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.195.685
+  version: 1.196.770
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -63,6 +63,9 @@ tags:
   - name: Synthetic Calls
   - name: Releases
   - name: SLI Settings
+    description: |-
+      ## Deprecated Parameters
+      **tagFilters** The list of tag filters. It is replaced by **tagFilterExpression**
   - name: SLI Report
   - name: Health
   - name: Custom Dashboards
@@ -103,7 +106,7 @@ paths:
       summary: Get grouped call metrics
       tags:
         - Application Analyze
-      description: "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
+      description: "This endpoint retrieves the metrics for calls.\r\n\r\n## Deprecated Parameters\r\n**tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**"
   /api/application-monitoring/analyze/trace-groups:
     post:
       operationId: getTraceGroups
@@ -603,6 +606,11 @@ paths:
       summary: Add application configuration
       tags:
         - Application Settings
+      description: |-
+        Create a new Application Perspective.
+
+        ## Deprecated Parameters
+        **matchSpecification:** A binary tree sturcture of match expression connected with binary operator AND or OR. It is replaced by **tagFilterExpression** which is also used in Application Analyze API endpoints.
   '/api/application-monitoring/settings/application/{id}':
     delete:
       operationId: deleteApplicationConfig
@@ -669,6 +677,11 @@ paths:
       summary: Update application configuration
       tags:
         - Application Settings
+      description: |-
+        Update an existing Application Perspective.
+
+        ## Deprecated Parameters
+        **matchSpecification:** A binary tree sturcture of match expression connected with binary operator AND or OR. It is replaced by **tagFilterExpression** which is also used in Application Analyze API endpoints.
   /api/application-monitoring/settings/http-endpoint:
     get:
       operationId: getEndpointConfigs
@@ -931,7 +944,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CustomDashboard'
+                  $ref: '#/components/schemas/CustomDashboardPreview'
       security:
         - ApiKeyAuth:
             - Default
@@ -1387,6 +1400,32 @@ paths:
       summary: Create Application Alert Config
       tags:
         - Application Alert Configuration
+      description: |
+        This endpoint creates the Application Alert Configuration
+
+        ## Mandatory Parameters:
+
+        - **name:** Name for the application alert configuration
+
+        - **description:** Description for the application alert configuration
+
+        - **applications:** Selection of application, services and endpoints in scope.
+
+        - **boundaryScope:** Boundary scope of the Application Perspective
+
+        - **alertChannelIds:** List of IDs of alert channels defined in Instana
+
+        - **rule:** Indicates the type of rule this alert configuration is about
+
+        - **threshold:** Indicates the type of threshold this alert rule is evaluated on 
+
+        - **timeThreshold:** Indicates the type of violation of the defined threshold
+
+        ## Deprecated Parameters
+
+        - **tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**
+
+        - **applicationId:** Unique ID of the Application Perspective. It is replaced by **applications**
   '/api/events/settings/application-alert-configs/{id}':
     delete:
       operationId: deleteApplicationAlertConfig
@@ -1467,6 +1506,34 @@ paths:
       summary: Update Application Alert Config
       tags:
         - Application Alert Configuration
+      description: |
+        This endpoint updates the Application Alert Configuration
+
+        ## Mandatory Parameters:
+
+        - **id:** ID of the application alert config which needs to be updated
+
+        - **name:** Name for the application alert configuration
+
+        - **description:** Description for the application alert configuration
+
+        - **applications:** Selection of application, services and endpoints in scope
+
+        - **boundaryScope:** Boundary scope of the Application Perspective
+
+        - **alertChannelIds:** List of IDs of alert channels defined in Instana
+
+        - **rule:** Indicates the type of rule this alert configuration is about
+
+        - **threshold:** Indicates the type of threshold this alert rule is evaluated on 
+
+        - **timeThreshold:** Indicates the type of violation of the defined threshold
+
+        ## Deprecated Parameters
+
+        - **tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**
+
+        - **applicationId:** Unique ID of the Application Perspective. It is replaced by **applications**
   '/api/events/settings/application-alert-configs/{id}/disable':
     put:
       operationId: disableApplicationAlertConfig
@@ -2062,6 +2129,28 @@ paths:
       summary: Create Website Alert Config
       tags:
         - Event Settings
+      description: |
+        This endpoint creates the Website Alert Configuration
+
+        ## Mandatory Parameters:
+
+        - **name:** Name for the website alert configuration
+
+        - **description:** Description for the website alert configuration
+
+        - **websiteId:** Unique ID of the website
+
+        - **alertChannelIds:** List of IDs of alert channels defined in Instana
+
+        - **rule:** Indicates the type of rule this alert configuration is about
+
+        - **threshold:** Indicates the type of threshold this alert rule is evaluated on 
+
+        - **timeThreshold:** Indicates the type of violation of the defined threshold
+
+        ## Deprecated Parameters
+
+        **tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**
   '/api/events/settings/website-alert-configs/{id}':
     delete:
       operationId: deleteWebsiteAlertConfig
@@ -2138,6 +2227,31 @@ paths:
       summary: Update Website Alert Config
       tags:
         - Event Settings
+      description: |+
+        This endpoint updates the Website Alert Configuration
+
+        ## Mandatory Parameters:
+
+        - **id:** ID of the website alert config which needs to be updated 
+
+        - **name:** Name for the website alert configuration
+
+        - **description:** Description for the website alert configuration
+
+        - **websiteId:** Unique ID of the website
+
+        - **alertChannelIds:** List of IDs of alert channels defined in Instana
+
+        - **rule:** Indicates the type of rule this alert configuration is about
+
+        - **threshold:** Indicates the type of threshold this alert rule is evaluated on
+
+        - **timeThreshold:** Indicates the type of violation of the defined threshold
+
+        ## Deprecated Parameters
+
+        **tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**
+
   '/api/events/settings/website-alert-configs/{id}/disable':
     put:
       operationId: disableWebsiteAlertConfig
@@ -3210,132 +3324,6 @@ paths:
       summary: Audit log
       tags:
         - Audit Log
-  /api/settings/groups:
-    get:
-      operationId: getGroups
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiGroup'
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
-      summary: Get groups
-      tags:
-        - Groups
-    post:
-      operationId: createGroup
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ApiGroup'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiGroup'
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
-      summary: Create group
-      tags:
-        - Groups
-  '/api/settings/groups/user/{email}':
-    get:
-      operationId: getGroupsByUser
-      parameters:
-        - in: path
-          name: email
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApiGroup'
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
-      summary: Get groups of a single user
-      tags:
-        - Groups
-  '/api/settings/groups/{id}':
-    delete:
-      operationId: deleteGroup
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
-      summary: Delete group
-      tags:
-        - Groups
-    get:
-      operationId: getGroup
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiGroup'
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
-      summary: Get group
-      tags:
-        - Groups
-    put:
-      operationId: updateGroup
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ApiGroup'
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiGroup'
-      security:
-        - ApiKeyAuth:
-            - ConfigureGroups
-      summary: Update group
-      tags:
-        - Groups
   /api/settings/maintenance:
     get:
       operationId: getMaintenanceConfigs
@@ -3425,6 +3413,186 @@ paths:
       summary: Create or update maintenance configuration
       tags:
         - Maintenance Configuration
+  /api/settings/rbac/groups:
+    get:
+      operationId: getGroups
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiGroup'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Get groups
+      tags:
+        - Groups
+    post:
+      operationId: createGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiGroup'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiGroup'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Create group
+      tags:
+        - Groups
+  '/api/settings/rbac/groups/user/{email}':
+    get:
+      operationId: getGroupsByUser
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiGroup'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Get groups of a single user
+      tags:
+        - Groups
+  '/api/settings/rbac/groups/{groupId}/permissions':
+    put:
+      operationId: addPermissionsOnGroup
+      parameters:
+        - in: path
+          name: groupId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiGroup'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Add permissions to group
+      tags:
+        - Groups
+  '/api/settings/rbac/groups/{groupId}/users':
+    put:
+      operationId: addUsersToGroup
+      parameters:
+        - in: path
+          name: groupId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiGroup'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Add users to group
+      tags:
+        - Groups
+  '/api/settings/rbac/groups/{id}':
+    delete:
+      operationId: deleteGroup
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Delete group
+      tags:
+        - Groups
+    get:
+      operationId: getGroup
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiGroup'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Get group
+      tags:
+        - Groups
+    put:
+      operationId: updateGroup
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiGroup'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiGroup'
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Update group
+      tags:
+        - Groups
   /api/settings/session:
     delete:
       operationId: deleteSessionSettings
@@ -3511,6 +3679,55 @@ paths:
       summary: Create SLI Config
       tags:
         - SLI Settings
+      description: |
+        This endpoint creates the Service Level Indicator Configuration
+
+        ## Mandatory Parameters:
+
+        - **id** A unique identifier for each SLI configuration
+
+        - **sliName:** Name for the SLI configuration
+
+        - **sliEntity:** Entity of the SLI configuration
+
+        ### SLI Entity specific parameters
+
+        Depending on the chosen `sliType` in the `sliEntity`, there are further required parameters:
+
+        #### Application SLI entity
+
+        This option can be used to create a Time-Based SLI
+
+        - **sliEntity.applicationId:** The Id of the Application Perspective
+
+        - **sliEntity.boundaryScope:** Boundary scope of the Application Perspective
+
+        - **metricConfiguration.metricName:** The metric name on which to compute the SLI
+
+        - **metricConfiguration.metricAggregation:** The aggregation of the metric
+
+        - **metricConfiguration.threshold:** Threshold for the metric
+
+        #### Availability SLI entity
+
+        This opetion can be used to create an Event-Based SLI
+
+        - **sliEntity.applicationId:** The Id of the Application Perspective
+
+        - **sliEntity.boundaryScope:** Boundary scope of the Application Perspective
+
+        ## Deprecated Parameters for Availability SLI entity:
+
+        - **sliEntity.serviceId:** The ID if the Service in he context of an Application Perspective
+
+        - **sliEntity.endpointId:** The ID of an Endpoint belonging to a Service
+
+        - **sliEntity.goodEventFilters:** The list of TagFilters to match good events / calls
+
+        - **sliEntity.badEventFilters:** The list of TagFilters to match bad events / calls
+
+        All of these filters can be included using the list of TagFilterExpressions via **sliEntity.goodEventFilterExpression** and **sliEntity.badEventFilterExpression**.
+        These parameters will be removed in the upcoming releases.
   '/api/settings/sli/{id}':
     delete:
       operationId: delete
@@ -3563,7 +3780,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+              $ref: '#/components/schemas/SliConfiguration'
         required: true
       responses:
         default:
@@ -4208,7 +4425,7 @@ components:
         name:
           type: string
         permissionSet:
-          $ref: '#/components/schemas/ApiPermissionSet'
+          $ref: '#/components/schemas/ApiPermissionSetWithRoles'
       required:
         - members
         - name
@@ -4221,36 +4438,40 @@ components:
           type: string
       required:
         - userId
-    ApiPermissionSet:
+    ApiPermissionSetWithRoles:
       type: object
       properties:
         applicationIds:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/ScopeBinding'
           maxItems: 1024
           minItems: 0
           uniqueItems: true
-        infraDfqFilter:
+        id:
           type: string
+          maxLength: 64
+          minLength: 0
+        infraDfqFilter:
+          $ref: '#/components/schemas/ScopeBinding'
         kubernetesClusterUUIDs:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/ScopeBinding'
           maxItems: 1024
           minItems: 0
           uniqueItems: true
         kubernetesNamespaceUIDs:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/ScopeBinding'
           maxItems: 1024
           minItems: 0
           uniqueItems: true
         mobileAppIds:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/ScopeBinding'
           maxItems: 1024
           minItems: 0
           uniqueItems: true
@@ -4264,7 +4485,7 @@ components:
         websiteIds:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/ScopeBinding'
           maxItems: 1024
           minItems: 0
           uniqueItems: true
@@ -4406,8 +4627,10 @@ components:
           type: string
           maxLength: 64
           minLength: 0
-        applicationIdFromSelection:
-          type: string
+        applications:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ApplicationNode'
         boundaryScope:
           type: string
           enum:
@@ -4417,6 +4640,11 @@ components:
           type: string
           maxLength: 65536
           minLength: 0
+        evaluationType:
+          type: string
+          enum:
+            - PER_AP
+            - PER_AP_SERVICE
         granularity:
           type: integer
           format: int32
@@ -4428,6 +4656,10 @@ components:
             - 900000
             - 1200000
             - 1800000
+        includeInternal:
+          type: boolean
+        includeSynthetic:
+          type: boolean
         name:
           type: string
           maxLength: 256
@@ -4455,8 +4687,10 @@ components:
       required:
         - alertChannelIds
         - applicationId
+        - applications
         - boundaryScope
         - description
+        - evaluationType
         - name
         - rule
         - tagFilters
@@ -4476,8 +4710,10 @@ components:
           type: string
           maxLength: 64
           minLength: 0
-        applicationIdFromSelection:
-          type: string
+        applications:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ApplicationNode'
         boundaryScope:
           type: string
           enum:
@@ -4495,6 +4731,11 @@ components:
           minLength: 0
         enabled:
           type: boolean
+        evaluationType:
+          type: string
+          enum:
+            - PER_AP
+            - PER_AP_SERVICE
         granularity:
           type: integer
           format: int32
@@ -4510,6 +4751,10 @@ components:
           type: string
           maxLength: 64
           minLength: 0
+        includeInternal:
+          type: boolean
+        includeSynthetic:
+          type: boolean
         isDerivedFromGlobalAlert:
           type: boolean
           writeOnly: true
@@ -4542,8 +4787,10 @@ components:
       required:
         - alertChannelIds
         - applicationId
+        - applications
         - boundaryScope
         - description
+        - evaluationType
         - id
         - name
         - rule
@@ -4611,6 +4858,8 @@ components:
             - INCLUDE_NO_DOWNSTREAM
             - INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
             - INCLUDE_ALL_DOWNSTREAM
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
       required:
         - boundaryScope
         - id
@@ -4700,6 +4949,22 @@ components:
           minimum: 0
       required:
         - items
+    ApplicationNode:
+      type: object
+      properties:
+        applicationId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        inclusive:
+          type: boolean
+        services:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ServiceNode'
+      required:
+        - applicationId
+        - services
     ApplicationResult:
       type: object
       properties:
@@ -4812,6 +5077,8 @@ components:
           properties:
             applicationId:
               type: string
+            badEventFilterExpression:
+              $ref: '#/components/schemas/TagFilterExpressionElement'
             badEventFilters:
               type: array
               items:
@@ -4825,12 +5092,18 @@ components:
                 - INBOUND
             endpointId:
               type: string
+            goodEventFilterExpression:
+              $ref: '#/components/schemas/TagFilterExpressionElement'
             goodEventFilters:
               type: array
               items:
                 $ref: '#/components/schemas/TagFilter'
               maxItems: 32
               minItems: 1
+            includeInternal:
+              type: boolean
+            includeSynthetic:
+              type: boolean
             serviceId:
               type: string
       required:
@@ -5092,6 +5365,18 @@ components:
         - id
         - title
         - widgets
+    CustomDashboardPreview:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 64
+          minLength: 0
+        title:
+          type: string
+      required:
+        - id
+        - title
     CustomEventSpecification:
       type: object
       properties:
@@ -5223,6 +5508,42 @@ components:
           minimum: 1
       required:
         - fields
+    DeprecatedTagFilter:
+      type: object
+      properties:
+        entity:
+          type: string
+          enum:
+            - NOT_APPLICABLE
+            - DESTINATION
+            - SOURCE
+        name:
+          type: string
+        operator:
+          type: string
+          enum:
+            - EQUALS
+            - CONTAINS
+            - LESS_THAN
+            - LESS_OR_EQUAL_THAN
+            - GREATER_THAN
+            - GREATER_OR_EQUAL_THAN
+            - NOT_EMPTY
+            - NOT_EQUAL
+            - NOT_CONTAIN
+            - IS_EMPTY
+            - NOT_BLANK
+            - IS_BLANK
+            - STARTS_WITH
+            - ENDS_WITH
+            - NOT_STARTS_WITH
+            - NOT_ENDS_WITH
+        value:
+          type: string
+      required:
+        - name
+        - operator
+        - value
     DynamicField:
       type: object
       allOf:
@@ -5398,6 +5719,17 @@ components:
           minimum: 0
       required:
         - items
+    EndpointNode:
+      type: object
+      properties:
+        endpointId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        inclusive:
+          type: boolean
+      required:
+        - endpointId
     EndpointResult:
       type: object
       properties:
@@ -5671,10 +6003,12 @@ components:
           $ref: '#/components/schemas/Order'
         pagination:
           $ref: '#/components/schemas/CursorPagination'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           items:
-            $ref: '#/components/schemas/TagFilter'
+            $ref: '#/components/schemas/DeprecatedTagFilter'
           maxItems: 10
           minItems: 0
         timeFrame:
@@ -5837,7 +6171,7 @@ components:
         tagFilters:
           type: array
           items:
-            $ref: '#/components/schemas/TagFilter'
+            $ref: '#/components/schemas/DeprecatedTagFilter'
           maxItems: 32
           minItems: 0
         timeFrame:
@@ -5853,7 +6187,7 @@ components:
         tagFilters:
           type: array
           items:
-            $ref: '#/components/schemas/TagFilter'
+            $ref: '#/components/schemas/DeprecatedTagFilter'
           maxItems: 32
           minItems: 0
         timeFrame:
@@ -5876,7 +6210,7 @@ components:
         tagFilters:
           type: array
           items:
-            $ref: '#/components/schemas/TagFilter'
+            $ref: '#/components/schemas/DeprecatedTagFilter'
           maxItems: 32
           minItems: 0
         timeFrame:
@@ -5902,7 +6236,7 @@ components:
         tagFilters:
           type: array
           items:
-            $ref: '#/components/schemas/TagFilter'
+            $ref: '#/components/schemas/DeprecatedTagFilter'
           maxItems: 32
           minItems: 0
         timeFrame:
@@ -5930,7 +6264,7 @@ components:
         tagFilters:
           type: array
           items:
-            $ref: '#/components/schemas/TagFilter'
+            $ref: '#/components/schemas/DeprecatedTagFilter'
           maxItems: 32
           minItems: 0
         timeFrame:
@@ -6107,6 +6441,7 @@ components:
             - NUMBER
             - BYTES
             - PERCENTAGE
+            - LATENCY
             - MILLIS
             - SECONDS
             - MICROS
@@ -6457,6 +6792,7 @@ components:
             - NUMBER
             - BYTES
             - PERCENTAGE
+            - LATENCY
             - MILLIS
             - SECONDS
             - MICROS
@@ -6557,6 +6893,8 @@ components:
             - INCLUDE_NO_DOWNSTREAM
             - INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
             - INCLUDE_ALL_DOWNSTREAM
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
       required:
         - boundaryScope
         - label
@@ -6788,6 +7126,17 @@ components:
       required:
         - inputKind
         - inputName
+    ScopeBinding:
+      type: object
+      properties:
+        scopeId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        scopeRoleId:
+          type: string
+          maxLength: 64
+          minLength: 0
     SearchFieldResult:
       type: object
       properties:
@@ -6968,6 +7317,22 @@ components:
           minimum: 0
       required:
         - items
+    ServiceNode:
+      type: object
+      properties:
+        endpoints:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/EndpointNode'
+        inclusive:
+          type: boolean
+        serviceId:
+          type: string
+          maxLength: 64
+          minLength: 0
+      required:
+        - endpoints
+        - serviceId
     ServiceResult:
       type: object
       properties:
@@ -7619,40 +7984,52 @@ components:
         - tags
     TagFilter:
       type: object
-      properties:
-        entity:
-          type: string
-          enum:
-            - NOT_APPLICABLE
-            - DESTINATION
-            - SOURCE
-        name:
-          type: string
-        operator:
-          type: string
-          enum:
-            - EQUALS
-            - CONTAINS
-            - LESS_THAN
-            - LESS_OR_EQUAL_THAN
-            - GREATER_THAN
-            - GREATER_OR_EQUAL_THAN
-            - NOT_EMPTY
-            - NOT_EQUAL
-            - NOT_CONTAIN
-            - IS_EMPTY
-            - NOT_BLANK
-            - IS_BLANK
-            - STARTS_WITH
-            - ENDS_WITH
-            - NOT_STARTS_WITH
-            - NOT_ENDS_WITH
-        value:
-          type: string
+      allOf:
+        - $ref: '#/components/schemas/TagFilterExpressionElement'
+        - type: object
+          properties:
+            booleanValue:
+              type: boolean
+            entity:
+              type: string
+              enum:
+                - NOT_APPLICABLE
+                - DESTINATION
+                - SOURCE
+            key:
+              type: string
+            name:
+              type: string
+            numberValue:
+              type: integer
+              format: int64
+            operator:
+              type: string
+              enum:
+                - EQUALS
+                - CONTAINS
+                - LESS_THAN
+                - LESS_OR_EQUAL_THAN
+                - GREATER_THAN
+                - GREATER_OR_EQUAL_THAN
+                - NOT_EMPTY
+                - NOT_EQUAL
+                - NOT_CONTAIN
+                - IS_EMPTY
+                - NOT_BLANK
+                - IS_BLANK
+                - STARTS_WITH
+                - ENDS_WITH
+                - NOT_STARTS_WITH
+                - NOT_ENDS_WITH
+            stringValue:
+              type: string
+            value:
+              type: object
       required:
+        - entity
         - name
         - operator
-        - value
     TagFilterExpression:
       type: object
       allOf:
@@ -8086,6 +8463,7 @@ components:
             - Alert
             - WebsiteSmartAlert
             - ApplicationSmartAlert
+            - GlobalApplicationSmartAlert
       required:
         - id
         - label
