@@ -14,7 +14,7 @@ This API endpoint updates the Website Alert Configuration.
 
 - **websiteId:** Unique ID of the website.
 
-- **tagFilterExpression:** Boolean expression of tag filters to define the scope of relevant calls.
+- **tagFilterExpression:** Boolean expression of tag filters to define the scope of relevant website beacons.
 
 - **granularity:** The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used.
 
