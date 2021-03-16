@@ -2,4 +2,4 @@ Groups are used to permit individual users to perform specific actions and get v
 
 When you are a member of multiple groups, your permissions have an additive effect.
 
-Granting access to certain entities within Instana (e.g. Applications, Kubernetes Cluster etc.) is done through a corresponding entry in the `permissionSet` payload.
+Granting access to certain entities within Instana (e.g. Applications, Kubernetes Clusters etc.) is done through a corresponding entry in the `permissionSet` payload.
