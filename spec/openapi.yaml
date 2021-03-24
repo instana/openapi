@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.196.775
+  version: 1.197.1012
   x-description: info
   x-logo:
     altText: instana logo
@@ -766,6 +766,118 @@ paths:
       summary: Update endpoint configuration
       tags:
       - Application Settings
+  /api/application-monitoring/settings/manual-service:
+    get:
+      operationId: getAllManualServiceConfigs
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ManualServiceConfig'
+      security:
+      - ApiKeyAuth:
+        - ConfigureServiceMapping
+      summary: All manual service configurations
+      tags:
+      - Application Settings
+      x-description: getAllManualServiceConfigs
+    post:
+      operationId: addManualServiceConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualServiceConfigWithoutId'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualServiceConfig'
+      security:
+      - ApiKeyAuth:
+        - ConfigureServiceMapping
+      summary: Add manual service configuration
+      tags:
+      - Application Settings
+      x-description: addManualServiceConfigs
+    put:
+      operationId: replaceAllManualServiceConfigs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ManualServiceConfigWithoutId'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ManualServiceConfig'
+      security:
+      - ApiKeyAuth:
+        - ConfigureServiceMapping
+      summary: Replace all manual service configurations
+      tags:
+      - Application Settings
+      x-description: replaceAllManualServiceConfigs
+  /api/application-monitoring/settings/manual-service/{id}:
+    delete:
+      operationId: deleteManualServiceConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - ConfigureServiceMapping
+      summary: Delete manual service configuration
+      tags:
+      - Application Settings
+      x-description: deleteManualServiceConfigs
+    put:
+      operationId: updateManualServiceConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualServiceConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualServiceConfig'
+      security:
+      - ApiKeyAuth:
+        - ConfigureServiceMapping
+      summary: Update manual service configuration
+      tags:
+      - Application Settings
+      x-description: updateManualServiceConfigs
   /api/application-monitoring/settings/service:
     get:
       operationId: getServiceConfigs
@@ -3005,7 +3117,7 @@ paths:
       responses:
         default:
           content:
-            '*/*': {}
+            application/json: {}
           description: default response
       security:
       - ApiKeyAuth:
@@ -4014,6 +4126,7 @@ components:
           SLACK: '#/components/schemas/SlackIntegration'
           SPLUNK: '#/components/schemas/SplunkIntegration'
           VICTOR_OPS: '#/components/schemas/VictorOpsIntegration'
+          WATSON_AIOPS_WEBHOOK: '#/components/schemas/WatsonAIOpsWebhookIntegration'
           WEBEX_TEAMS_WEBHOOK: '#/components/schemas/WebexTeamsWebhookIntegration'
           WEB_HOOK: '#/components/schemas/WebhookIntegration'
         propertyName: kind
@@ -4165,6 +4278,7 @@ components:
       required:
       - members
       - name
+      - permissionSet
     ApiMember:
       type: object
       properties:
@@ -4184,10 +4298,6 @@ components:
           maxItems: 1024
           minItems: 0
           uniqueItems: true
-        id:
-          type: string
-          maxLength: 64
-          minLength: 0
         infraDfqFilter:
           $ref: '#/components/schemas/ScopeBinding'
         kubernetesClusterUUIDs:
@@ -4361,8 +4471,7 @@ components:
           uniqueItems: true
         applicationId:
           type: string
-          maxLength: 64
-          minLength: 0
+          writeOnly: true
         applications:
           type: object
           additionalProperties:
@@ -4422,14 +4531,12 @@ components:
           type: boolean
       required:
       - alertChannelIds
-      - applicationId
       - applications
       - boundaryScope
       - description
       - evaluationType
       - name
       - rule
-      - tagFilters
       - threshold
       - timeThreshold
     ApplicationAlertConfigWithMetadata:
@@ -4522,7 +4629,6 @@ components:
           type: boolean
       required:
       - alertChannelIds
-      - applicationId
       - applications
       - boundaryScope
       - description
@@ -4530,7 +4636,6 @@ components:
       - id
       - name
       - rule
-      - tagFilters
       - threshold
       - timeThreshold
     ApplicationAlertRule:
@@ -6424,6 +6529,41 @@ components:
           minimum: 0
       required:
       - id
+    ManualServiceConfig:
+      type: object
+      properties:
+        description:
+          type: string
+        enabled:
+          type: boolean
+        existingServiceId:
+          type: string
+        id:
+          type: string
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        unmonitoredServiceName:
+          type: string
+      required:
+      - id
+      - tagFilterExpression
+    ManualServiceConfigWithoutId:
+      type: object
+      properties:
+        description:
+          type: string
+          writeOnly: true
+        enabled:
+          type: boolean
+          writeOnly: true
+        existingServiceId:
+          type: string
+          writeOnly: true
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        unmonitoredServiceName:
+          type: string
+          writeOnly: true
     MatchAllHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -8342,6 +8482,19 @@ components:
       - $ref: '#/components/schemas/WebsiteTimeThreshold'
       required:
       - type
+    WatsonAIOpsWebhookIntegration:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AbstractIntegration'
+      - type: object
+        properties:
+          webhookUrl:
+            type: string
+      required:
+      - id
+      - kind
+      - name
+      - webhookUrl
     WebexTeamsWebhookIntegration:
       type: object
       allOf:
@@ -8442,7 +8595,6 @@ components:
       - description
       - name
       - rule
-      - tagFilters
       - threshold
       - timeThreshold
       - websiteId
@@ -8515,7 +8667,6 @@ components:
       - id
       - name
       - rule
-      - tagFilters
       - threshold
       - timeThreshold
       - websiteId
@@ -9050,7 +9201,7 @@ components:
           format: int32
           maximum: 11
           minimum: 0
-        y:
+        "y":
           type: integer
           format: int32
           minimum: 0
