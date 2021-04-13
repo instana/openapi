@@ -5,7 +5,7 @@ In order to use this feature or to have more information, please contact <suppor
 
 All parameters and deprecated parameters are similar to Application Alert Configuration except **applications**
 
-- **applications:** Selection of applications, services and endpoints in scope. It allows more than one application unlike in Application Alert Configuration.
+- **applications:** Selection of applications, services and endpoints in scope. It allows more than one application to define a global rule across different Application Perspectives.
 
   #### Example: Select multiple Application Perspectives
 
