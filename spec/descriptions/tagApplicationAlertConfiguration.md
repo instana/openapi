@@ -17,12 +17,12 @@ In order to use this feature or to have more information, please contact <suppor
 
   The selection defines a tree of included or excluded sub entities. The defined `inclusive` flag defines whether this node and his child nodes are included (`inclusive: true`) or excluded (`inclusive: false`) by default. Empty selections or unnecessary selections are not allowed. 
 
-  #### Example 1: Select an entire Appliation Perspective
+  #### Example 1: Select an entire Application Perspective
 
   To select the entire application with ID `<appId>` including all its services and endpoints, simply provide the following selection object:
 
   ```json
-  "application": {
+  "applications": {
       "<appId>": {
           "applicationId": "<appId>"
       }
@@ -36,7 +36,7 @@ In order to use this feature or to have more information, please contact <suppor
   To select not the entire application with ID `<appId>`, but only the entire serivces Service1 with ID `<service1>` and Service2 with ID `<service2>`, with the exception of endpoint `<endpoint2>` of Service2. And in addition, only Endpoint `<endpoint3>` of Service3 with id `<service3>`, then use the following selection:
 
   ```json
-  "application": {
+  "applications": {
       "<appId>": {
           "applicationId": "<appId>",
           "inclusive": false,
