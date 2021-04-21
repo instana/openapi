@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.198.998
+  version: 1.199.1128
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -68,12 +68,12 @@ tags:
 
         The selection defines a tree of included or excluded sub entities. The defined `inclusive` flag defines whether this node and his child nodes are included (`inclusive: true`) or excluded (`inclusive: false`) by default. Empty selections or unnecessary selections are not allowed. 
 
-        #### Example 1: Select an entire Appliation Perspective
+        #### Example 1: Select an entire Application Perspective
 
         To select the entire application with ID `<appId>` including all its services and endpoints, simply provide the following selection object:
 
         ```json
-        "application": {
+        "applications": {
             "<appId>": {
                 "applicationId": "<appId>"
             }
@@ -87,7 +87,7 @@ tags:
         To select not the entire application with ID `<appId>`, but only the entire serivces Service1 with ID `<service1>` and Service2 with ID `<service2>`, with the exception of endpoint `<endpoint2>` of Service2. And in addition, only Endpoint `<endpoint3>` of Service3 with id `<service3>`, then use the following selection:
 
         ```json
-        "application": {
+        "applications": {
             "<appId>": {
                 "applicationId": "<appId>",
                 "inclusive": false,
@@ -145,6 +145,31 @@ tags:
       - **tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**.
 
       - **applicationId:** Unique ID of the Application Perspective. It is replaced by **applications**.
+  - name: Global Application Alert Configuration
+    description: |
+      The API endpoints of this group can be used to manage Global Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature "Application Smart Alerts".
+      In order to use this feature or to have more information, please contact <support@instana.com>.
+
+      ## Parameters:
+
+      All parameters and deprecated parameters are similar to Application Alert Configuration except **applications**
+
+      - **applications:** Selection of applications, services and endpoints in scope. It allows more than one application to define a global rule across different Application Perspectives.
+
+        #### Example: Select multiple Application Perspectives
+
+        To select multiple applications with IDs `<appId1>`, `<appId2>` including all its services and endpoints, simply provide the following selection object:
+
+        ```json
+        "applications": {
+            "<appId1>": {
+                "applicationId": "<appId1>"
+            },
+            "<appId2>": {
+                 "applicationId": "<appId2>"
+            }
+        }
+        ```
   - name: Host Agent
     description: 'Endpoints of this group can be used to list and configure host agents. '
   - name: User
@@ -174,6 +199,31 @@ tags:
       our internal IDs for users and API tokens.
   - name: Usage
 paths:
+  /api/application-monitoring/analyze/backend-correlation:
+    get:
+      operationId: getCorrelatedTraces
+      parameters:
+        - in: query
+          name: correlationId
+          required: true
+          schema:
+            type: string
+            maxLength: 128
+            minLength: 0
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BackendTraceReference'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Resolve backend trace IDs using correlation IDs from website and mobile app monitoring beacons.
+      tags:
+        - Application Analyze
   /api/application-monitoring/analyze/call-groups:
     post:
       operationId: getCallGroup
@@ -1668,8 +1718,6 @@ paths:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
-            - Default
-        - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Create Application Alert Config
       tags:
@@ -1691,8 +1739,6 @@ paths:
             application/json: {}
           description: default response
       security:
-        - ApiKeyAuth:
-            - Default
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Delete Application Alert Config
@@ -1750,8 +1796,6 @@ paths:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
-            - Default
-        - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Update Application Alert Config
       tags:
@@ -1783,8 +1827,6 @@ paths:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
-            - Default
-        - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Disable Application Alert Config
       tags:
@@ -1813,8 +1855,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
-        - ApiKeyAuth:
-            - Default
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
       summary: Enable Application Alert Config
@@ -2308,6 +2348,197 @@ paths:
       summary: All built-in and custom event specifications
       tags:
         - Event Settings
+  /api/events/settings/global-alert-configs/applications:
+    get:
+      description: Configs are sorted descending by their created date.
+      operationId: findActiveGlobalApplicationAlertConfigs
+      parameters:
+        - in: query
+          name: applicationId
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GlobalApplicationAlertConfigWithMetadata'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: All Global Application Alert Configs
+      tags:
+        - Global Application Alert Configuration
+    post:
+      operationId: createGlobalApplicationAlertConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GlobalApplicationsAlertConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalApplicationAlertConfigWithMetadata'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureGlobalAlertConfigs
+      summary: Create Global Application Alert Config
+      tags:
+        - Global Application Alert Configuration
+  '/api/events/settings/global-alert-configs/applications/{id}':
+    delete:
+      operationId: deleteGlobalApplicationAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - CanConfigureGlobalAlertConfigs
+      summary: Delete Global Application Alert Config
+      tags:
+        - Global Application Alert Configuration
+    get:
+      description: Find a Global Application Alert Config by ID. This will deliver deleted configs too.
+      operationId: findGlobalApplicationAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: validOn
+          schema:
+            type: integer
+            format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalApplicationAlertConfigWithMetadata'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get Global Application Alert Config
+      tags:
+        - Global Application Alert Configuration
+    post:
+      operationId: updateGlobalApplicationAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GlobalApplicationsAlertConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalApplicationAlertConfigWithMetadata'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureGlobalAlertConfigs
+      summary: Update Global Application Alert Config
+      tags:
+        - Global Application Alert Configuration
+  '/api/events/settings/global-alert-configs/applications/{id}/disable':
+    put:
+      operationId: disableGlobalApplicationAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - CanConfigureGlobalAlertConfigs
+      summary: Disable Global Application Alert Config
+      tags:
+        - Global Application Alert Configuration
+  '/api/events/settings/global-alert-configs/applications/{id}/enable':
+    put:
+      operationId: enableGlobalApplicationAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - CanConfigureGlobalAlertConfigs
+      summary: Enable Global Application Alert Config
+      tags:
+        - Global Application Alert Configuration
+  '/api/events/settings/global-alert-configs/applications/{id}/versions':
+    get:
+      description: Find all versions of a Global Application Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.
+      operationId: findGlobalApplicationAlertConfigVersions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConfigVersion'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get versions of Global Application Alert Config
+      tags:
+        - Global Application Alert Configuration
   /api/events/settings/website-alert-configs:
     get:
       description: Configs are sorted descending by their created date.
@@ -4175,6 +4406,31 @@ paths:
       summary: All users (incl. invitations)
       tags:
         - User
+  '/api/settings/users/{email}':
+    put:
+      operationId: updateUser
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditUser'
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - ConfigureUsers
+      summary: Change user name of single user
+      tags:
+        - User
   '/api/settings/users/{userId}':
     delete:
       operationId: removeUserFromTenant
@@ -4193,6 +4449,28 @@ paths:
         - ApiKeyAuth:
             - ConfigureUsers
       summary: Remove user from tenant
+      tags:
+        - User
+    get:
+      operationId: getUserById
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResult'
+      security:
+        - ApiKeyAuth:
+            - ConfigureUsers
+      summary: Get single user
       tags:
         - User
   '/api/sli/report/{sliId}':
@@ -4957,8 +5235,6 @@ components:
           type: integer
           format: int64
           minimum: 1
-        derivedFromGlobalAlert:
-          type: boolean
         description:
           type: string
           maxLength: 65536
@@ -4989,9 +5265,6 @@ components:
           type: boolean
         includeSynthetic:
           type: boolean
-        isDerivedFromGlobalAlert:
-          type: boolean
-          writeOnly: true
         name:
           type: string
           maxLength: 256
@@ -5099,51 +5372,12 @@ components:
         - scope
     ApplicationEventResult:
       type: object
-      properties:
-        applicationId:
-          type: string
-        detail:
-          type: string
-        end:
-          type: integer
-          format: int64
-        entityLabel:
-          type: string
-        entityName:
-          type: string
-        eventId:
-          type: string
-        fixSuggestion:
-          type: string
-        metrics:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        problem:
-          type: string
-        recentEvents:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        severity:
-          type: integer
-          format: int32
-        snapshotId:
-          type: string
-        start:
-          type: integer
-          format: int64
-        state:
-          type: string
-        triggeringTime:
-          type: integer
-          format: int64
-        type:
-          type: string
+      allOf:
+        - $ref: '#/components/schemas/EventResult'
+        - type: object
+          properties:
+            applicationId:
+              type: string
     ApplicationItem:
       type: object
       properties:
@@ -5341,6 +5575,13 @@ components:
       required:
         - boundaryScope
         - sliType
+    BackendTraceReference:
+      type: object
+      properties:
+        traceId:
+          type: string
+      required:
+        - traceId
     BeaconGroupsResult:
       type: object
       properties:
@@ -5797,6 +6038,13 @@ components:
           type: string
       required:
         - tagName
+    EditUser:
+      type: object
+      properties:
+        fullName:
+          type: string
+      required:
+        - fullName
     EmailIntegration:
       type: object
       allOf:
@@ -5867,53 +6115,14 @@ components:
         - type
     EndpointEventResult:
       type: object
-      properties:
-        detail:
-          type: string
-        end:
-          type: integer
-          format: int64
-        endpointId:
-          type: string
-        endpointServiceId:
-          type: string
-        entityLabel:
-          type: string
-        entityName:
-          type: string
-        eventId:
-          type: string
-        fixSuggestion:
-          type: string
-        metrics:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        problem:
-          type: string
-        recentEvents:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        severity:
-          type: integer
-          format: int32
-        snapshotId:
-          type: string
-        start:
-          type: integer
-          format: int64
-        state:
-          type: string
-        triggeringTime:
-          type: integer
-          format: int64
-        type:
-          type: string
+      allOf:
+        - $ref: '#/components/schemas/EventResult'
+        - type: object
+          properties:
+            endpointId:
+              type: string
+            endpointServiceId:
+              type: string
     EndpointItem:
       type: object
       properties:
@@ -6063,6 +6272,8 @@ components:
         entityLabel:
           type: string
         entityName:
+          type: string
+        entityType:
           type: string
         eventId:
           type: string
@@ -6513,6 +6724,178 @@ components:
       required:
         - metrics
         - type
+    GlobalApplicationAlertConfigWithMetadata:
+      type: object
+      properties:
+        alertChannelIds:
+          type: array
+          items:
+            type: string
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        applicationIds:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        applications:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ApplicationNode'
+        boundaryScope:
+          type: string
+          enum:
+            - ALL
+            - INBOUND
+        created:
+          type: integer
+          format: int64
+          minimum: 1
+        description:
+          type: string
+          maxLength: 65536
+          minLength: 0
+        enabled:
+          type: boolean
+        evaluationType:
+          type: string
+          enum:
+            - PER_AP
+            - PER_AP_SERVICE
+        granularity:
+          type: integer
+          format: int32
+          default: 600000
+          enum:
+            - 60000
+            - 300000
+            - 600000
+            - 900000
+            - 1200000
+            - 1800000
+        id:
+          type: string
+          maxLength: 64
+          minLength: 0
+        includeInternal:
+          type: boolean
+        includeSynthetic:
+          type: boolean
+        name:
+          type: string
+          maxLength: 256
+          minLength: 0
+        readOnly:
+          type: boolean
+        rule:
+          $ref: '#/components/schemas/ApplicationAlertRule'
+        severity:
+          type: integer
+          format: int32
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        timeThreshold:
+          $ref: '#/components/schemas/ApplicationTimeThreshold'
+        triggering:
+          type: boolean
+      required:
+        - alertChannelIds
+        - applications
+        - boundaryScope
+        - description
+        - evaluationType
+        - id
+        - name
+        - rule
+        - threshold
+        - timeThreshold
+    GlobalApplicationsAlertConfig:
+      type: object
+      properties:
+        alertChannelIds:
+          type: array
+          items:
+            type: string
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        applications:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ApplicationNode'
+        boundaryScope:
+          type: string
+          enum:
+            - ALL
+            - INBOUND
+        description:
+          type: string
+          maxLength: 65536
+          minLength: 0
+        evaluationType:
+          type: string
+          enum:
+            - PER_AP
+            - PER_AP_SERVICE
+        granularity:
+          type: integer
+          format: int32
+          default: 600000
+          enum:
+            - 60000
+            - 300000
+            - 600000
+            - 900000
+            - 1200000
+            - 1800000
+        includeInternal:
+          type: boolean
+        includeSynthetic:
+          type: boolean
+        name:
+          type: string
+          maxLength: 256
+          minLength: 0
+        rule:
+          $ref: '#/components/schemas/ApplicationAlertRule'
+        severity:
+          type: integer
+          format: int32
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        timeThreshold:
+          $ref: '#/components/schemas/ApplicationTimeThreshold'
+        triggering:
+          type: boolean
+      required:
+        - alertChannelIds
+        - applications
+        - boundaryScope
+        - description
+        - evaluationType
+        - name
+        - rule
+        - threshold
+        - timeThreshold
     GoogleChatIntegration:
       type: object
       allOf:
@@ -6686,49 +7069,8 @@ components:
         - name
     InfraEventResult:
       type: object
-      properties:
-        detail:
-          type: string
-        end:
-          type: integer
-          format: int64
-        entityLabel:
-          type: string
-        entityName:
-          type: string
-        eventId:
-          type: string
-        fixSuggestion:
-          type: string
-        metrics:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        problem:
-          type: string
-        recentEvents:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        severity:
-          type: integer
-          format: int32
-        snapshotId:
-          type: string
-        start:
-          type: integer
-          format: int64
-        state:
-          type: string
-        triggeringTime:
-          type: integer
-          format: int64
-        type:
-          type: string
+      allOf:
+        - $ref: '#/components/schemas/EventResult'
     InfrastructureMetricResult:
       type: object
       properties:
@@ -7492,51 +7834,12 @@ components:
         - name
     ServiceEventResult:
       type: object
-      properties:
-        detail:
-          type: string
-        end:
-          type: integer
-          format: int64
-        entityLabel:
-          type: string
-        entityName:
-          type: string
-        eventId:
-          type: string
-        fixSuggestion:
-          type: string
-        metrics:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        problem:
-          type: string
-        recentEvents:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        serviceId:
-          type: string
-        severity:
-          type: integer
-          format: int32
-        snapshotId:
-          type: string
-        start:
-          type: integer
-          format: int64
-        state:
-          type: string
-        triggeringTime:
-          type: integer
-          format: int64
-        type:
-          type: string
+      allOf:
+        - $ref: '#/components/schemas/EventResult'
+        - type: object
+          properties:
+            serviceId:
+              type: string
     ServiceItem:
       type: object
       properties:
@@ -9148,51 +9451,12 @@ components:
         - cursor
     WebsiteEventResult:
       type: object
-      properties:
-        detail:
-          type: string
-        end:
-          type: integer
-          format: int64
-        entityLabel:
-          type: string
-        entityName:
-          type: string
-        eventId:
-          type: string
-        fixSuggestion:
-          type: string
-        metrics:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        problem:
-          type: string
-        recentEvents:
-          type: array
-          items:
-            type: object
-            additionalProperties:
-              type: object
-        severity:
-          type: integer
-          format: int32
-        snapshotId:
-          type: string
-        start:
-          type: integer
-          format: int64
-        state:
-          type: string
-        triggeringTime:
-          type: integer
-          format: int64
-        type:
-          type: string
-        websiteId:
-          type: string
+      allOf:
+        - $ref: '#/components/schemas/EventResult'
+        - type: object
+          properties:
+            websiteId:
+              type: string
     WebsiteMetricResult:
       type: object
       properties:
@@ -9657,6 +9921,7 @@ x-tagGroups:
   - name: BETA Features
     tags:
       - Application Alert Configuration
+      - Global Application Alert Configuration
   - name: Instana
     tags:
       - Health
