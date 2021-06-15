@@ -1,7 +1,7 @@
 The API endpoints of this group can be used to manage Global Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature "Application Smart Alerts".
 In order to use this feature or to have more information, please contact <support@instana.com>.
 
-## Parameters:
+## Parameters
 
 All parameters and deprecated parameters are similar to Application Alert Configuration except **applications**
 
@@ -21,3 +21,19 @@ All parameters and deprecated parameters are similar to Application Alert Config
       }
   }
   ```
+
+## BuiltIn Global Application Alert Configurations
+
+Instana provides a number of global application alert configurations by for every customer.
+These built in global application alert configurations can be identified by the `builtIn` field being `true`.
+While built in global application alert configurations can be reconfigured for the most part like any other
+global application alert configuration, some restrictions apply when manipulating them:
+* They cannot be deleted or created
+* The following fields cannot be updated:
+  * `evaluationType`
+  * `rule`
+  * `tagFilterExpression`
+  * `threshold.type`
+  * `threshold.operator`
+
+Performing one of the restricted operations will result in an error with status code `400`
