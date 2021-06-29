@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.203.823
+  version: 1.204.839
   x-description: info
   x-logo:
     altText: instana logo
@@ -4406,6 +4406,7 @@ components:
       discriminator:
         mapping:
           entity_verification: '#/components/schemas/EntityVerificationRule'
+          host_availability: '#/components/schemas/HostAvailabilityRule'
           system: '#/components/schemas/SystemRule'
           threshold: '#/components/schemas/ThresholdRule'
         propertyName: ruleType
@@ -4413,7 +4414,7 @@ components:
         ruleType:
           type: string
           description: "Values: `\"THRESHOLD\"`  `\"SYSTEM\"`  `\"ENTITY_VERIFICATION\"\
-            `"
+            ` `\"HOST_AVAILABILITY\"`"
         severity:
           type: integer
           format: int32
@@ -4442,6 +4443,13 @@ components:
       required:
       - accessType
       - relationType
+    AdaptiveBaseline:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/Threshold'
+      required:
+      - operator
+      - type
     AgentConfigurationUpdate:
       type: object
       properties:
@@ -6064,6 +6072,10 @@ components:
       properties:
         group:
           $ref: '#/components/schemas/Group'
+        includeInternal:
+          type: boolean
+        includeSynthetic:
+          type: boolean
         metrics:
           type: array
           items:
@@ -6606,6 +6618,10 @@ components:
             exclusiveMinimum: false
             maximum: 16.0
             minimum: 0.5
+          lastUpdated:
+            type: integer
+            format: int64
+            minimum: 0
           seasonality:
             type: string
             enum:
@@ -6615,6 +6631,23 @@ components:
       - operator
       - seasonality
       - type
+    HostAvailabilityRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AbstractRule'
+      - type: object
+        properties:
+          closeAfter:
+            type: integer
+            format: int64
+            maximum: 86400000
+          offlineDuration:
+            type: integer
+            format: int64
+          tagFilter:
+            $ref: '#/components/schemas/TagFilter'
+      required:
+      - ruleType
     HttpEndpointConfig:
       type: object
       properties:
@@ -8015,6 +8048,10 @@ components:
       - $ref: '#/components/schemas/Threshold'
       - type: object
         properties:
+          lastUpdated:
+            type: integer
+            format: int64
+            minimum: 0
           value:
             type: number
             format: double
@@ -8356,10 +8393,6 @@ components:
           staticThreshold: '#/components/schemas/StaticThreshold'
         propertyName: type
       properties:
-        lastUpdated:
-          type: integer
-          format: int64
-          minimum: 0
         operator:
           type: string
           enum:
