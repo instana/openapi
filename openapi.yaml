@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.203.823
+  version: 1.204.839
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -52,7 +52,7 @@ tags:
       The API endpoints of this group can be used to manage Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature "Application Smart Alerts".
       In order to use this feature or to have more information, please contact <support@instana.com>.
 
-      ## Parameters
+      ## Parameters:
 
       - **id:** ID of the application alert config which needs to be updated.
 
@@ -146,11 +146,11 @@ tags:
 
       - **applicationId:** Unique ID of the Application Perspective. It is replaced by **applications**.
   - name: Global Application Alert Configuration
-    description: |-
+    description: |
       The API endpoints of this group can be used to manage Global Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature "Application Smart Alerts".
       In order to use this feature or to have more information, please contact <support@instana.com>.
 
-      ## Parameters
+      ## Parameters:
 
       All parameters and deprecated parameters are similar to Application Alert Configuration except **applications**
 
@@ -170,22 +170,6 @@ tags:
             }
         }
         ```
-
-      ## BuiltIn Global Application Alert Configurations
-
-      Instana provides a number of global application alert configurations by for every customer.
-      These built in global application alert configurations can be identified by the `builtIn` field being `true`.
-      While built in global application alert configurations can be reconfigured for the most part like any other
-      global application alert configuration, some restrictions apply when manipulating them:
-      * They cannot be deleted or created
-      * The following fields cannot be updated:
-        * `evaluationType`
-        * `rule`
-        * `tagFilterExpression`
-        * `threshold.type`
-        * `threshold.operator`
-
-      Performing one of the restricted operations will result in an error with status code `400`
   - name: Host Agent
     description: 'Endpoints of this group can be used to list and configure host agents. '
   - name: User
@@ -4832,13 +4816,14 @@ components:
       discriminator:
         mapping:
           entity_verification: '#/components/schemas/EntityVerificationRule'
+          host_availability: '#/components/schemas/HostAvailabilityRule'
           system: '#/components/schemas/SystemRule'
           threshold: '#/components/schemas/ThresholdRule'
         propertyName: ruleType
       properties:
         ruleType:
           type: string
-          description: 'Values: `"THRESHOLD"`  `"SYSTEM"`  `"ENTITY_VERIFICATION"`'
+          description: 'Values: `"THRESHOLD"`  `"SYSTEM"`  `"ENTITY_VERIFICATION"` `"HOST_AVAILABILITY"`'
         severity:
           type: integer
           format: int32
@@ -4867,6 +4852,13 @@ components:
       required:
         - accessType
         - relationType
+    AdaptiveBaseline:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Threshold'
+      required:
+        - operator
+        - type
     AgentConfigurationUpdate:
       type: object
       properties:
@@ -6489,6 +6481,10 @@ components:
       properties:
         group:
           $ref: '#/components/schemas/Group'
+        includeInternal:
+          type: boolean
+        includeSynthetic:
+          type: boolean
         metrics:
           type: array
           items:
@@ -7031,6 +7027,10 @@ components:
               exclusiveMinimum: false
               maximum: 16
               minimum: 0.5
+            lastUpdated:
+              type: integer
+              format: int64
+              minimum: 0
             seasonality:
               type: string
               enum:
@@ -7040,6 +7040,23 @@ components:
         - operator
         - seasonality
         - type
+    HostAvailabilityRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/AbstractRule'
+        - type: object
+          properties:
+            closeAfter:
+              type: integer
+              format: int64
+              maximum: 86400000
+            offlineDuration:
+              type: integer
+              format: int64
+            tagFilter:
+              $ref: '#/components/schemas/TagFilter'
+      required:
+        - ruleType
     HttpEndpointConfig:
       type: object
       properties:
@@ -8440,6 +8457,10 @@ components:
         - $ref: '#/components/schemas/Threshold'
         - type: object
           properties:
+            lastUpdated:
+              type: integer
+              format: int64
+              minimum: 0
             value:
               type: number
               format: double
@@ -8781,10 +8802,6 @@ components:
           staticThreshold: '#/components/schemas/StaticThreshold'
         propertyName: type
       properties:
-        lastUpdated:
-          type: integer
-          format: int64
-          minimum: 0
         operator:
           type: string
           enum:
