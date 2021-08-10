@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.206.617
+  version: 1.207.850
   x-description: info
   x-logo:
     altText: instana logo
@@ -3278,6 +3278,36 @@ paths:
       tags:
       - Releases
       x-description: putRelease
+  /api/settings/accesslog:
+    get:
+      operationId: getAuditLogs
+      parameters:
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: query
+        schema:
+          type: string
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+          format: int32
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessLogResponse'
+      security:
+      - ApiKeyAuth:
+        - ViewAuditLog
+      summary: Access log
+      tags:
+      - Access Log
   /api/settings/api-tokens:
     get:
       operationId: getApiTokens
@@ -3387,7 +3417,7 @@ paths:
       - API Token
   /api/settings/auditlog:
     get:
-      operationId: getAuditLogs
+      operationId: getAuditLogs_1
       parameters:
       - in: query
         name: offset
@@ -3772,9 +3802,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+                $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -3841,9 +3869,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+                $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -4420,6 +4446,43 @@ components:
           format: int32
       required:
       - ruleType
+    AccessLogEntry:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - GRANT_TEMP_ACCESS
+          - FIRST_LOGIN
+          - LOGIN
+          - LOGOUT
+        email:
+          type: string
+        fullName:
+          type: string
+        tenantId:
+          type: string
+        tenantUnitId:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+      required:
+      - action
+      - email
+      - fullName
+      - tenantId
+      - timestamp
+    AccessLogResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessLogEntry'
+        total:
+          type: integer
+          format: int64
     AccessRule:
       type: object
       properties:
@@ -8672,6 +8735,10 @@ components:
         lastLoggedIn:
           type: integer
           format: int64
+      required:
+      - email
+      - fullName
+      - id
     UsersResult:
       type: object
       properties:
@@ -8680,6 +8747,8 @@ components:
           items:
             $ref: '#/components/schemas/UserResult'
           uniqueItems: true
+      required:
+      - users
     ValidatedAlertingChannelInputInfo:
       type: object
       properties:
