@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.207.850
+  version: 1.208.967
   x-description: info
   x-logo:
     altText: instana logo
@@ -29,6 +29,8 @@ tags:
   x-description: tagInfrastructureResources
 - name: Infrastructure Catalog
   x-description: tagInfrastructureCatalog
+- name: Infrastructure Topology
+  x-description: tagInfrastructureTopology
 - name: Application Metrics
   x-description: tagApplicationMetrics
 - name: Application Catalog
@@ -39,6 +41,8 @@ tags:
   x-description: tagApplicationAnalyze
 - name: Application Settings
   x-description: tagApplicationSettings
+- name: Application Topology
+  x-description: tagApplicationTopology
 - name: Website Metrics
   x-description: tagWebsiteMetrics
 - name: Website Catalog
@@ -1056,6 +1060,32 @@ paths:
       summary: Update service configuration
       tags:
       - Application Settings
+  /api/application-monitoring/topology/services:
+    get:
+      operationId: getServicesMap
+      parameters:
+      - in: query
+        name: windowSize
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: to
+        schema:
+          type: integer
+          format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceMap'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Gets the service topology
+      tags:
+      - Application Topology
   /api/custom-dashboard:
     get:
       operationId: getCustomDashboards
@@ -1515,9 +1545,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+                $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -1565,9 +1593,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+                $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
       - ApiKeyAuth:
         - Default
@@ -1593,9 +1619,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+                $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -1621,11 +1645,8 @@ paths:
       responses:
         default:
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+            application/json: {}
+          description: default response
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -1650,11 +1671,8 @@ paths:
       responses:
         default:
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+            application/json: {}
+          description: default response
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -2299,9 +2317,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+                $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -2349,9 +2365,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+                $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -2377,9 +2391,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+                $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -2405,11 +2417,8 @@ paths:
       responses:
         default:
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+            application/json: {}
+          description: default response
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -2434,11 +2443,8 @@ paths:
       responses:
         default:
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+            application/json: {}
+          description: default response
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -2797,22 +2803,7 @@ paths:
         - Default
       summary: Related hosts
       tags:
-      - Infrastructure Resources
-  /api/infrastructure-monitoring/graph/views:
-    get:
-      operationId: getInfrastructureViewTree
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TreeNodeResult'
-      security:
-      - ApiKeyAuth:
-        - Default
-      summary: Get view tree
-      tags:
-      - Infrastructure Resources
+      - Infrastructure Topology
   /api/infrastructure-monitoring/metrics:
     post:
       operationId: getInfrastructureMetrics
@@ -2897,7 +2888,7 @@ paths:
         - Default
       summary: Search snapshots
       tags:
-      - Infrastructure Metrics
+      - Infrastructure Resources
       x-description: getSnapshots
   /api/infrastructure-monitoring/snapshots/{id}:
     get:
@@ -2929,7 +2920,7 @@ paths:
         - Default
       summary: Get snapshot details
       tags:
-      - Infrastructure Metrics
+      - Infrastructure Resources
   /api/infrastructure-monitoring/software/versions:
     get:
       description: |-
@@ -2973,6 +2964,26 @@ paths:
       summary: Get installed software
       tags:
       - Infrastructure Resources
+  /api/infrastructure-monitoring/topology:
+    get:
+      operationId: getTopology
+      parameters:
+      - in: query
+        name: includeData
+        schema:
+          type: boolean
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topology'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Gets the infrastructure topology
+      tags:
+      - Infrastructure Topology
   /api/instana/health:
     get:
       operationId: getHealthState
@@ -3445,6 +3456,62 @@ paths:
       summary: Audit log
       tags:
       - Audit Log
+  /api/settings/invitations:
+    delete:
+      operationId: revokePendingInvitation
+      parameters:
+      - in: query
+        name: email
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - ConfigureUsers
+      summary: Revoke pending invitation
+      tags:
+      - User
+    get:
+      operationId: getInvitations
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvitationResult'
+      security:
+      - ApiKeyAuth:
+        - ConfigureUsers
+      summary: All pending invitations
+      tags:
+      - User
+    post:
+      operationId: inviteUsers
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Invitation'
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - ConfigureUsers
+      summary: Send user invitations
+      tags:
+      - User
   /api/settings/maintenance:
     get:
       operationId: getMaintenanceConfigs
@@ -3938,67 +4005,6 @@ paths:
       - ApiKeyAuth:
         - ConfigureUsers
       summary: All users (without invitations)
-      tags:
-      - User
-  /api/settings/users/invitations:
-    delete:
-      operationId: revokePendingInvitations
-      parameters:
-      - in: query
-        name: email
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-      - ApiKeyAuth:
-        - ConfigureUsers
-      summary: Revoke pending invitation
-      tags:
-      - User
-    get:
-      operationId: getInvitations
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserResult'
-      security:
-      - ApiKeyAuth:
-        - ConfigureUsers
-      summary: All pending invitations
-      tags:
-      - User
-    post:
-      operationId: sendInvitation
-      parameters:
-      - in: query
-        name: email
-        schema:
-          type: array
-          items:
-            type: string
-      - in: query
-        name: roleId
-        schema:
-          type: array
-          items:
-            type: string
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-      - ApiKeyAuth:
-        - ConfigureUsers
-      summary: Send user invitation
       tags:
       - User
   /api/settings/users/overview:
@@ -5596,6 +5602,11 @@ components:
           uniqueItems: true
         triggering:
           type: boolean
+        validVersion:
+          type: integer
+          format: int32
+          maximum: 1
+          minimum: 0
       required:
       - entityType
       - id
@@ -5642,6 +5653,11 @@ components:
           uniqueItems: true
         triggering:
           type: boolean
+        validVersion:
+          type: integer
+          format: int32
+          maximum: 1
+          minimum: 0
       required:
       - entityType
       - id
@@ -5895,6 +5911,19 @@ components:
         totalHits:
           type: integer
           format: int32
+    EntityId:
+      type: object
+      properties:
+        host:
+          type: string
+        pluginId:
+          type: string
+        steadyId:
+          type: string
+      required:
+      - host
+      - pluginId
+      - steadyId
     EntityVerificationRule:
       type: object
       allOf:
@@ -6646,6 +6675,30 @@ components:
       - kind
       - name
       - webhookUrl
+    GraphEdge:
+      type: object
+      properties:
+        destination:
+          type: string
+        relation:
+          type: string
+        source:
+          type: string
+    GraphNode:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: object
+        entityId:
+          $ref: '#/components/schemas/EntityId'
+        id:
+          type: string
+        label:
+          type: string
+        plugin:
+          type: string
     Group:
       type: object
       properties:
@@ -6873,6 +6926,29 @@ components:
       - id
       - kind
       - name
+    Invitation:
+      type: object
+      properties:
+        email:
+          type: string
+        groupId:
+          type: string
+      required:
+      - email
+      - groupId
+    InvitationResult:
+      type: object
+      properties:
+        email:
+          type: string
+        groupId:
+          type: string
+        id:
+          type: string
+      required:
+      - email
+      - groupId
+      - id
     KubernetesPhysicalContext:
       type: object
       properties:
@@ -7122,6 +7198,22 @@ components:
           type: array
           items:
             type: string
+            enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - P99_9
+            - P99_99
+            - DISTINCT_COUNT
+            - SUM_POSITIVE
           uniqueItems: true
         description:
           type: string
@@ -7131,6 +7223,11 @@ components:
           type: string
         metricId:
           type: string
+      required:
+      - aggregations
+      - formatter
+      - label
+      - metricId
     MetricInstance:
       type: object
       properties:
@@ -7538,6 +7635,11 @@ components:
     Service:
       type: object
       properties:
+        applications:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
         entityType:
           type: string
           enum:
@@ -7548,6 +7650,15 @@ components:
           type: string
         label:
           type: string
+        maxSeverity:
+          type: number
+          format: double
+          maximum: 10
+          minimum: 0
+        numberOfOpenIssues:
+          type: integer
+          format: int32
+          minimum: 0
         technologies:
           type: array
           items:
@@ -7574,6 +7685,7 @@ components:
             - PAGE_RESOURCE
           uniqueItems: true
       required:
+      - applications
       - id
       - label
       - technologies
@@ -7631,6 +7743,45 @@ components:
       required:
       - metrics
       - service
+    ServiceMap:
+      type: object
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceMapConnection'
+          uniqueItems: true
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+          uniqueItems: true
+      required:
+      - connections
+      - services
+    ServiceMapConnection:
+      type: object
+      properties:
+        calls:
+          type: integer
+          format: int64
+          minimum: 0
+        errorRate:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+        from:
+          type: string
+        latency:
+          type: number
+          format: double
+          minimum: 0
+        to:
+          type: string
+      required:
+      - from
+      - to
     ServiceMatchingRule:
       type: object
       properties:
@@ -8563,6 +8714,17 @@ components:
           format: int64
           maximum: 2678400000
           minimum: 0
+    Topology:
+      type: object
+      properties:
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphEdge'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
     Trace:
       type: object
       properties:
@@ -8658,24 +8820,6 @@ components:
           minimum: 0
       required:
       - items
-    TreeNode:
-      type: object
-      properties:
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/TreeNode'
-        snapshotId:
-          type: string
-        type:
-          type: string
-    TreeNodeResult:
-      type: object
-      properties:
-        tree:
-          type: array
-          items:
-            $ref: '#/components/schemas/TreeNode'
     UnsupportedHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -8742,13 +8886,16 @@ components:
     UsersResult:
       type: object
       properties:
+        invitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvitationResult'
+          uniqueItems: true
         users:
           type: array
           items:
             $ref: '#/components/schemas/UserResult'
           uniqueItems: true
-      required:
-      - users
     ValidatedAlertingChannelInputInfo:
       type: object
       properties:
@@ -9541,6 +9688,22 @@ components:
           type: array
           items:
             type: string
+            enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - P99_9
+            - P99_99
+            - DISTINCT_COUNT
+            - SUM_POSITIVE
           uniqueItems: true
         beaconTypes:
           type: array
@@ -9564,7 +9727,11 @@ components:
         tagName:
           type: string
       required:
+      - aggregations
       - beaconTypes
+      - formatter
+      - label
+      - metricId
     WebsiteMonitoringMetricsConfiguration:
       type: object
       properties:
@@ -9662,6 +9829,7 @@ x-tagGroups:
   - Infrastructure Metrics
   - Infrastructure Resources
   - Infrastructure Catalog
+  - Infrastructure Topology
 - name: Application Monitoring
   tags:
   - Application Metrics
@@ -9669,6 +9837,7 @@ x-tagGroups:
   - Application Catalog
   - Application Analyze
   - Application Settings
+  - Application Topology
 - name: Website Monitoring
   tags:
   - Website Metrics
