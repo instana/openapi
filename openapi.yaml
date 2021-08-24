@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.207.850
+  version: 1.208.967
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -29,6 +29,7 @@ tags:
   - name: Infrastructure Catalog
     description: |
       The endpoints of this group retrieve all available resources to query infrastructure metrics.
+  - name: Infrastructure Topology
   - name: Application Metrics
     description: "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n### Mandatory Parameters\r\n\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\r\n\r\n### Optional Parameters\r\n\r\n**metrics** Default you will get an aggregated metric with for the selected timeFrame \r\n\r\n* *granularity* \r\n  * if it is not set you will get a an aggregated value for the selected timeframe. \r\n  * if the granularity is set you will get data points with the specified granularity in seconds\r\n    * The value can be selected freely between 1 - selected windowSize.\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n\r\n### Defaults\r\n\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
   - name: Application Catalog
@@ -38,6 +39,7 @@ tags:
   - name: Application Analyze
     description: "The following four endpoints expose our analyze functionality.\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Parameters\n### Mandatory Parameters (only for group Endpoints):\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForApplication)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n### Optional Parameters\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getApplicationCatalogTags)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * if it is not set you will get a an aggregated value for the selected timeframe. \n   * if the granularity is set you will get data points with the specified granularity in seconds\n   * The value can be selected freely between 1 - selected windowSize.\n\n### Defaults:\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
   - name: Application Settings
+  - name: Application Topology
   - name: Website Metrics
   - name: Website Catalog
     description: |
@@ -1258,6 +1260,32 @@ paths:
       summary: Update service configuration
       tags:
         - Application Settings
+  /api/application-monitoring/topology/services:
+    get:
+      operationId: getServicesMap
+      parameters:
+        - in: query
+          name: windowSize
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: to
+          schema:
+            type: integer
+            format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceMap'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Gets the service topology
+      tags:
+        - Application Topology
   /api/custom-dashboard:
     get:
       operationId: getCustomDashboards
@@ -1713,9 +1741,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+                $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1763,9 +1789,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+                $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
             - Default
@@ -1791,9 +1815,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+                $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1820,11 +1842,8 @@ paths:
       responses:
         default:
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+            application/json: {}
+          description: default response
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -1849,11 +1868,8 @@ paths:
       responses:
         default:
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ApplicationAlertConfigWithMetadata'
+            application/json: {}
+          description: default response
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -2575,9 +2591,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+                $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -2653,9 +2667,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+                $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -2681,9 +2693,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+                $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -2740,11 +2750,8 @@ paths:
       responses:
         default:
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+            application/json: {}
+          description: default response
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -2769,11 +2776,8 @@ paths:
       responses:
         default:
           content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteAlertConfigWithMetadata'
+            application/json: {}
+          description: default response
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -3153,22 +3157,7 @@ paths:
             - Default
       summary: Related hosts
       tags:
-        - Infrastructure Resources
-  /api/infrastructure-monitoring/graph/views:
-    get:
-      operationId: getInfrastructureViewTree
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TreeNodeResult'
-      security:
-        - ApiKeyAuth:
-            - Default
-      summary: Get view tree
-      tags:
-        - Infrastructure Resources
+        - Infrastructure Topology
   /api/infrastructure-monitoring/metrics:
     post:
       operationId: getInfrastructureMetrics
@@ -3252,7 +3241,7 @@ paths:
             - Default
       summary: Search snapshots
       tags:
-        - Infrastructure Metrics
+        - Infrastructure Resources
       description: "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\r\n**Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\r\n- Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.\r\n- The **size** parameter can be used in order to limit the maximum number of retrieved snapshots.\r\n- The **offline** parameter is used to allow deeper visibility into snapshots. Set to `false`, the query will return all snapshots that are still available on the given **to** timestamp. However, set to `true`, the query will return all snapshots that have been active within the time window, this must at least include the online result and snapshots terminated within this time.\r\n"
   '/api/infrastructure-monitoring/snapshots/{id}':
     get:
@@ -3284,7 +3273,7 @@ paths:
             - Default
       summary: Get snapshot details
       tags:
-        - Infrastructure Metrics
+        - Infrastructure Resources
   /api/infrastructure-monitoring/software/versions:
     get:
       description: |-
@@ -3328,6 +3317,26 @@ paths:
       summary: Get installed software
       tags:
         - Infrastructure Resources
+  /api/infrastructure-monitoring/topology:
+    get:
+      operationId: getTopology
+      parameters:
+        - in: query
+          name: includeData
+          schema:
+            type: boolean
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topology'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Gets the infrastructure topology
+      tags:
+        - Infrastructure Topology
   /api/instana/health:
     get:
       operationId: getHealthState
@@ -3824,6 +3833,62 @@ paths:
       summary: Audit log
       tags:
         - Audit Log
+  /api/settings/invitations:
+    delete:
+      operationId: revokePendingInvitation
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - ConfigureUsers
+      summary: Revoke pending invitation
+      tags:
+        - User
+    get:
+      operationId: getInvitations
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvitationResult'
+      security:
+        - ApiKeyAuth:
+            - ConfigureUsers
+      summary: All pending invitations
+      tags:
+        - User
+    post:
+      operationId: inviteUsers
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Invitation'
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - ConfigureUsers
+      summary: Send user invitations
+      tags:
+        - User
   /api/settings/maintenance:
     get:
       operationId: getMaintenanceConfigs
@@ -4354,67 +4419,6 @@ paths:
         - ApiKeyAuth:
             - ConfigureUsers
       summary: All users (without invitations)
-      tags:
-        - User
-  /api/settings/users/invitations:
-    delete:
-      operationId: revokePendingInvitations
-      parameters:
-        - in: query
-          name: email
-          schema:
-            type: string
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-        - ApiKeyAuth:
-            - ConfigureUsers
-      summary: Revoke pending invitation
-      tags:
-        - User
-    get:
-      operationId: getInvitations
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserResult'
-      security:
-        - ApiKeyAuth:
-            - ConfigureUsers
-      summary: All pending invitations
-      tags:
-        - User
-    post:
-      operationId: sendInvitation
-      parameters:
-        - in: query
-          name: email
-          schema:
-            type: array
-            items:
-              type: string
-        - in: query
-          name: roleId
-          schema:
-            type: array
-            items:
-              type: string
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-        - ApiKeyAuth:
-            - ConfigureUsers
-      summary: Send user invitation
       tags:
         - User
   /api/settings/users/overview:
@@ -6005,6 +6009,11 @@ components:
           uniqueItems: true
         triggering:
           type: boolean
+        validVersion:
+          type: integer
+          format: int32
+          maximum: 1
+          minimum: 0
       required:
         - entityType
         - id
@@ -6051,6 +6060,11 @@ components:
           uniqueItems: true
         triggering:
           type: boolean
+        validVersion:
+          type: integer
+          format: int32
+          maximum: 1
+          minimum: 0
       required:
         - entityType
         - id
@@ -6304,6 +6318,19 @@ components:
         totalHits:
           type: integer
           format: int32
+    EntityId:
+      type: object
+      properties:
+        host:
+          type: string
+        pluginId:
+          type: string
+        steadyId:
+          type: string
+      required:
+        - host
+        - pluginId
+        - steadyId
     EntityVerificationRule:
       type: object
       allOf:
@@ -7055,6 +7082,30 @@ components:
         - kind
         - name
         - webhookUrl
+    GraphEdge:
+      type: object
+      properties:
+        destination:
+          type: string
+        relation:
+          type: string
+        source:
+          type: string
+    GraphNode:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: object
+        entityId:
+          $ref: '#/components/schemas/EntityId'
+        id:
+          type: string
+        label:
+          type: string
+        plugin:
+          type: string
     Group:
       type: object
       properties:
@@ -7282,6 +7333,29 @@ components:
         - id
         - kind
         - name
+    Invitation:
+      type: object
+      properties:
+        email:
+          type: string
+        groupId:
+          type: string
+      required:
+        - email
+        - groupId
+    InvitationResult:
+      type: object
+      properties:
+        email:
+          type: string
+        groupId:
+          type: string
+        id:
+          type: string
+      required:
+        - email
+        - groupId
+        - id
     KubernetesPhysicalContext:
       type: object
       properties:
@@ -7531,6 +7605,22 @@ components:
           type: array
           items:
             type: string
+            enum:
+              - SUM
+              - MEAN
+              - MAX
+              - MIN
+              - P25
+              - P50
+              - P75
+              - P90
+              - P95
+              - P98
+              - P99
+              - P99_9
+              - P99_99
+              - DISTINCT_COUNT
+              - SUM_POSITIVE
           uniqueItems: true
         description:
           type: string
@@ -7540,6 +7630,11 @@ components:
           type: string
         metricId:
           type: string
+      required:
+        - aggregations
+        - formatter
+        - label
+        - metricId
     MetricInstance:
       type: object
       properties:
@@ -7947,6 +8042,11 @@ components:
     Service:
       type: object
       properties:
+        applications:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
         entityType:
           type: string
           enum:
@@ -7957,6 +8057,15 @@ components:
           type: string
         label:
           type: string
+        maxSeverity:
+          type: number
+          format: double
+          maximum: 10
+          minimum: 0
+        numberOfOpenIssues:
+          type: integer
+          format: int32
+          minimum: 0
         technologies:
           type: array
           items:
@@ -7983,6 +8092,7 @@ components:
               - PAGE_RESOURCE
           uniqueItems: true
       required:
+        - applications
         - id
         - label
         - technologies
@@ -8040,6 +8150,45 @@ components:
       required:
         - metrics
         - service
+    ServiceMap:
+      type: object
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceMapConnection'
+          uniqueItems: true
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+          uniqueItems: true
+      required:
+        - connections
+        - services
+    ServiceMapConnection:
+      type: object
+      properties:
+        calls:
+          type: integer
+          format: int64
+          minimum: 0
+        errorRate:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+        from:
+          type: string
+        latency:
+          type: number
+          format: double
+          minimum: 0
+        to:
+          type: string
+      required:
+        - from
+        - to
     ServiceMatchingRule:
       type: object
       properties:
@@ -8972,6 +9121,17 @@ components:
           format: int64
           maximum: 2678400000
           minimum: 0
+    Topology:
+      type: object
+      properties:
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphEdge'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
     Trace:
       type: object
       properties:
@@ -9067,24 +9227,6 @@ components:
           minimum: 0
       required:
         - items
-    TreeNode:
-      type: object
-      properties:
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/TreeNode'
-        snapshotId:
-          type: string
-        type:
-          type: string
-    TreeNodeResult:
-      type: object
-      properties:
-        tree:
-          type: array
-          items:
-            $ref: '#/components/schemas/TreeNode'
     UnsupportedHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -9151,13 +9293,16 @@ components:
     UsersResult:
       type: object
       properties:
+        invitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvitationResult'
+          uniqueItems: true
         users:
           type: array
           items:
             $ref: '#/components/schemas/UserResult'
           uniqueItems: true
-      required:
-        - users
     ValidatedAlertingChannelInputInfo:
       type: object
       properties:
@@ -9950,6 +10095,22 @@ components:
           type: array
           items:
             type: string
+            enum:
+              - SUM
+              - MEAN
+              - MAX
+              - MIN
+              - P25
+              - P50
+              - P75
+              - P90
+              - P95
+              - P98
+              - P99
+              - P99_9
+              - P99_99
+              - DISTINCT_COUNT
+              - SUM_POSITIVE
           uniqueItems: true
         beaconTypes:
           type: array
@@ -9973,7 +10134,11 @@ components:
         tagName:
           type: string
       required:
+        - aggregations
         - beaconTypes
+        - formatter
+        - label
+        - metricId
     WebsiteMonitoringMetricsConfiguration:
       type: object
       properties:
@@ -10074,6 +10239,7 @@ x-tagGroups:
       - Infrastructure Metrics
       - Infrastructure Resources
       - Infrastructure Catalog
+      - Infrastructure Topology
   - name: Application Monitoring
     tags:
       - Application Metrics
@@ -10081,6 +10247,7 @@ x-tagGroups:
       - Application Catalog
       - Application Analyze
       - Application Settings
+      - Application Topology
   - name: Website Monitoring
     tags:
       - Website Metrics
