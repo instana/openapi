@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.208.967
+  version: 1.209.1118
   x-description: info
   x-logo:
     altText: instana logo
@@ -1679,6 +1679,38 @@ paths:
       summary: Enable Application Alert Config
       tags:
       - Application Alert Configuration
+  /api/events/settings/application-alert-configs/{id}/restore/{created}:
+    put:
+      operationId: restoreApplicationAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: created
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureCustomAlerts
+      summary: Restore Application Alert Config
+      tags:
+      - Application Alert Configuration
   /api/events/settings/application-alert-configs/{id}/versions:
     get:
       description: Find all versions of a Application Alert Config by ID. This will
@@ -2255,6 +2287,38 @@ paths:
       summary: Enable Global Application Alert Config
       tags:
       - Global Application Alert Configuration
+  /api/events/settings/global-alert-configs/applications/{id}/restore/{created}:
+    put:
+      operationId: restoreGlobalApplicationAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: created
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Restore Global Application Alert Config
+      tags:
+      - Global Application Alert Configuration
   /api/events/settings/global-alert-configs/applications/{id}/versions:
     get:
       description: Find all versions of a Global Application Alert Config by ID. This
@@ -2449,6 +2513,38 @@ paths:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
       summary: Enable Website Alert Config
+      tags:
+      - Event Settings
+  /api/events/settings/website-alert-configs/{id}/restore/{created}:
+    put:
+      operationId: restoreWebsiteAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: created
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureCustomAlerts
+      summary: Restore Website Alert Config
       tags:
       - Event Settings
   /api/events/settings/website-alert-configs/{id}/versions:
@@ -5247,6 +5343,18 @@ components:
         total:
           type: integer
           format: int64
+    Author:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - API
+          - USER
+          - INSTANA
+          - UNKNOWN
     AvailabilitySliEntity:
       type: object
       allOf:
@@ -5486,6 +5594,24 @@ components:
           minimum: 0
       required:
       - items
+    ChangeSummary:
+      type: object
+      properties:
+        author:
+          $ref: '#/components/schemas/Author'
+        changeType:
+          type: string
+          enum:
+          - CREATE
+          - UPDATE
+          - DELETE
+          - ENABLE
+          - DISABLE
+          - RESTORE
+          - UNKNOWN
+      required:
+      - author
+      - changeType
     CloudfoundryPhysicalContext:
       type: object
       properties:
@@ -5500,6 +5626,8 @@ components:
     ConfigVersion:
       type: object
       properties:
+        changeSummary:
+          $ref: '#/components/schemas/ChangeSummary'
         created:
           type: integer
           format: int64
@@ -5568,6 +5696,10 @@ components:
     CustomEventSpecification:
       type: object
       properties:
+        applicationAlertConfigId:
+          type: string
+          maxLength: 64
+          minLength: 0
         description:
           type: string
           maxLength: 65536
@@ -5585,6 +5717,8 @@ components:
           type: string
           maxLength: 64
           minLength: 0
+        migrated:
+          type: boolean
         name:
           type: string
           maxLength: 256
@@ -5615,6 +5749,10 @@ components:
     CustomEventSpecificationWithLastUpdated:
       type: object
       properties:
+        applicationAlertConfigId:
+          type: string
+          maxLength: 64
+          minLength: 0
         description:
           type: string
           maxLength: 65536
@@ -5636,6 +5774,8 @@ components:
           type: integer
           format: int64
           minimum: 1
+        migrated:
+          type: boolean
         name:
           type: string
           maxLength: 256
@@ -9812,6 +9952,14 @@ components:
       - config
       - id
       - type
+    WithResolvedName:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/Author'
+      - type: object
+        properties:
+          fullName:
+            type: string
   securitySchemes:
     ApiKeyAuth:
       description: "In order to use the REST API, you need to create an API token\
