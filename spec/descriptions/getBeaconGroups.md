@@ -1,11 +1,4 @@
-This endpoint retrieves the metrics for infrastructure components.
+This endpoint retrieves groups of beacons and aggregated metrics.
 
-**Manditory Paramters:**
-
-**Optional Paramters:**
-
-**Defaults:**
-
-**Limits:**
-
-**Tips:**
+## Deprecated Parameters
+**tagFilters:** it is replaced by **tagFilterExpression**
