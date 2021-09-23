@@ -1,5 +1,5 @@
 CloseableHttpClient client = HttpClients.createDefault();
-String url = "https://unit-tenant.instana.com/api/application-monitoring/analyse/traces";
+String url = "https://unit-tenant.instana.com/api/application-monitoring/analyze/traces";
 HttpPost httpPost = new HttpPost(url);
 String json = "{"
             + "\"pagination\":{\"retrievalSize\":20,\"offset\":0},"
