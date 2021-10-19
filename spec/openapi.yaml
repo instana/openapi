@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.211.1402
+  version: 1.212.1855
   x-description: info
   x-logo:
     altText: instana logo
@@ -3925,6 +3925,93 @@ paths:
       tags:
       - Groups
       x-description: updateGroup
+  /api/settings/rbac/mappings:
+    get:
+      operationId: getGroupMappings
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupMapping'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get all group mappings
+      tags:
+      - Groups
+      x-description: getGroupMappings
+    post:
+      operationId: createGroupMapping
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupMapping'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMapping'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Create group mapping
+      tags:
+      - Groups
+      x-description: createGroupMapping
+  /api/settings/rbac/mappings/{id}:
+    delete:
+      operationId: deleteGroupMapping
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Delete group mapping
+      tags:
+      - Groups
+      x-description: deleteGroupMapping
+    put:
+      operationId: updateGroupMapping
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupMapping'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMapping'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Update group mapping
+      tags:
+      - Groups
+      x-description: updateGroupMapping
   /api/settings/session:
     delete:
       operationId: deleteSessionSettings
@@ -3950,7 +4037,7 @@ paths:
       security:
       - ApiKeyAuth:
         - ConfigureSessionSettings
-      summary: Session settings
+      summary: Get session settings
       tags:
       - Session Settings
     put:
@@ -4914,6 +5001,7 @@ components:
           - P99
           - P99_9
           - P99_99
+          - DISTRIBUTION
           - DISTINCT_COUNT
           - SUM_POSITIVE
         granularity:
@@ -5158,6 +5246,7 @@ components:
           - P99
           - P99_9
           - P99_99
+          - DISTRIBUTION
           - DISTINCT_COUNT
           - SUM_POSITIVE
         alertType:
@@ -5319,7 +5408,6 @@ components:
           serviceId:
             type: string
       required:
-      - applicationId
       - boundaryScope
       - sliType
     ApplicationTimeThreshold:
@@ -5422,7 +5510,6 @@ components:
           serviceId:
             type: string
       required:
-      - applicationId
       - boundaryScope
       - sliType
     BackendTraceReference:
@@ -6900,6 +6987,27 @@ components:
       required:
       - groupbyTag
       - groupbyTagEntity
+    GroupMapping:
+      type: object
+      properties:
+        groupId:
+          type: string
+        id:
+          type: string
+          maxLength: 64
+          minLength: 0
+        key:
+          type: string
+          maxLength: 65536
+          minLength: 0
+        value:
+          type: string
+          maxLength: 65536
+          minLength: 0
+      required:
+      - groupId
+      - key
+      - value
     HealthState:
       type: object
       properties:
@@ -7332,6 +7440,7 @@ components:
           - P99
           - P99_9
           - P99_99
+          - DISTRIBUTION
           - DISTINCT_COUNT
           - SUM_POSITIVE
         granularity:
@@ -7361,6 +7470,7 @@ components:
           - P99
           - P99_9
           - P99_99
+          - DISTRIBUTION
           - DISTINCT_COUNT
           - SUM_POSITIVE
         metricName:
@@ -7393,6 +7503,7 @@ components:
             - P99
             - P99_9
             - P99_99
+            - DISTRIBUTION
             - DISTINCT_COUNT
             - SUM_POSITIVE
           uniqueItems: true
@@ -7412,6 +7523,7 @@ components:
           - P99
           - P99_9
           - P99_99
+          - DISTRIBUTION
           - DISTINCT_COUNT
           - SUM_POSITIVE
         description:
@@ -9537,6 +9649,7 @@ components:
           - P99
           - P99_9
           - P99_99
+          - DISTRIBUTION
           - DISTINCT_COUNT
           - SUM_POSITIVE
         alertType:
@@ -9599,6 +9712,32 @@ components:
       required:
       - beacon
       - cursor
+    WebsiteEventBasedSliEntity:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/SliEntity'
+      - type: object
+        properties:
+          badEventsFilterExpression:
+            $ref: '#/components/schemas/TagFilterExpressionElement'
+          beaconType:
+            type: string
+            enum:
+            - PAGE_LOAD
+            - PAGE_RESOURCE
+            - HTTP_REQUEST
+            - JS_ERROR
+            - CUSTOM
+            - PAGE_CHANGE
+          goodEventsFilterExpression:
+            $ref: '#/components/schemas/TagFilterExpressionElement'
+          websiteId:
+            type: string
+      required:
+      - badEventsFilterExpression
+      - beaconType
+      - goodEventsFilterExpression
+      - sliType
     WebsiteEventResult:
       type: object
       allOf:
@@ -9921,6 +10060,7 @@ components:
             - P99
             - P99_9
             - P99_99
+            - DISTRIBUTION
             - DISTINCT_COUNT
             - SUM_POSITIVE
           uniqueItems: true
@@ -9945,6 +10085,7 @@ components:
           - P99
           - P99_9
           - P99_99
+          - DISTRIBUTION
           - DISTINCT_COUNT
           - SUM_POSITIVE
         description:
@@ -9988,6 +10129,7 @@ components:
           - P99
           - P99_9
           - P99_99
+          - DISTRIBUTION
           - DISTINCT_COUNT
           - SUM_POSITIVE
         granularity:
@@ -9998,6 +10140,28 @@ components:
       required:
       - aggregation
       - metric
+    WebsiteTimeBasedSliEntity:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/SliEntity'
+      - type: object
+        properties:
+          beaconType:
+            type: string
+            enum:
+            - PAGE_LOAD
+            - PAGE_RESOURCE
+            - HTTP_REQUEST
+            - JS_ERROR
+            - CUSTOM
+            - PAGE_CHANGE
+          filterExpression:
+            $ref: '#/components/schemas/TagFilterExpressionElement'
+          websiteId:
+            type: string
+      required:
+      - beaconType
+      - sliType
     WebsiteTimeThreshold:
       type: object
       discriminator:
