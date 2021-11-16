@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.213.1635
+  version: 1.214.1231
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -3666,6 +3666,177 @@ paths:
       summary: API version information
       tags:
         - Health
+  /api/mobile-app-monitoring/catalog:
+    get:
+      operationId: getMobileAppTagCatalog
+      parameters:
+        - in: query
+          name: beaconType
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: useCase
+          required: true
+          schema:
+            type: string
+            enum:
+              - GROUPING
+              - FILTERING
+              - SMART_ALERTS
+              - SLI_MANAGEMENT
+              - APPLICATION_CONFIG
+              - APPLICATION_CONFIG_BLUEPRINT
+      responses:
+        '400':
+          description: When the combination of beaconType and useCase is unsupported/unknown.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagCatalog'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get mobile app tag catalog
+      tags:
+        - Mobile App Catalog
+  /api/mobile-app-monitoring/catalog/metrics:
+    get:
+      operationId: getMobileAppMetricCatalog
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MobileAppMonitoringMetricDescription'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Metric catalog
+      tags:
+        - Mobile App Catalog
+  /api/mobile-app-monitoring/config:
+    get:
+      operationId: getMobileAppConfig
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MobileApp'
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Get configured mobile apps
+      tags:
+        - Mobile App Configuration
+    post:
+      operationId: postMobileAppConfig
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileApp'
+          description: Mobile App successfully configured
+        '400':
+          description: Missing name query parameter or name already used for a configured mobile app.
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Configure new mobile app
+      tags:
+        - Mobile App Configuration
+  '/api/mobile-app-monitoring/config/{mobileAppId}':
+    delete:
+      operationId: deleteMobileAppConfig
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Mobile app successfully removed
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Remove mobile app
+      tags:
+        - Mobile App Configuration
+    put:
+      operationId: renameMobileAppConfig
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: name
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileApp'
+          description: Mobile app successfully renamed
+        '400':
+          description: Missing name query parameter or name already used for a configured mobile app.
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Rename mobile app
+      tags:
+        - Mobile App Configuration
+  /api/mobile-app-monitoring/session:
+    get:
+      operationId: getSession
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          style: matrix
+        - in: path
+          name: timestamp
+          required: true
+          schema:
+            type: integer
+            format: int64
+          style: matrix
+      responses:
+        '400':
+          description: Missing session id or missing timestamp
+        '404':
+          description: Mobile app not found
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MobileAppMonitoringBeacon'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get session
+      tags:
+        - Mobile App Metrics
   /api/releases:
     get:
       operationId: getAllReleases
@@ -8044,6 +8215,348 @@ components:
       required:
         - operator
         - prefix
+    MobileApp:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 128
+          minLength: 0
+        name:
+          type: string
+          maxLength: 128
+          minLength: 0
+      required:
+        - id
+        - name
+    MobileAppMonitoringBeacon:
+      type: object
+      properties:
+        accuracyRadius:
+          type: integer
+          format: int64
+          minimum: -1
+        agentVersion:
+          type: string
+          maxLength: 128
+          minLength: 0
+        appBuild:
+          type: string
+          maxLength: 128
+          minLength: 0
+        appVersion:
+          type: string
+          maxLength: 128
+          minLength: 0
+        backendTraceId:
+          type: string
+          maxLength: 128
+          minLength: 0
+        batchSize:
+          type: integer
+          format: int64
+          minimum: 1
+        beaconId:
+          type: string
+          maxLength: 128
+          minLength: 0
+        bundleIdentifier:
+          type: string
+          maxLength: 128
+          minLength: 0
+        carrier:
+          type: string
+          maxLength: 256
+          minLength: 0
+        city:
+          type: string
+          maxLength: 256
+          minLength: 0
+        clockSkew:
+          type: integer
+          format: int64
+          minimum: 0
+        connectionType:
+          type: string
+          maxLength: 16
+          minLength: 0
+        continent:
+          type: string
+          maxLength: 256
+          minLength: 0
+        continentCode:
+          type: string
+          maxLength: 64
+          minLength: 0
+        country:
+          type: string
+          maxLength: 256
+          minLength: 0
+        countryCode:
+          type: string
+          maxLength: 64
+          minLength: 0
+        customEventName:
+          type: string
+          maxLength: 256
+          minLength: 0
+        decodedBodySize:
+          type: integer
+          format: int64
+          minimum: -1
+        deviceHardware:
+          type: string
+          maxLength: 128
+          minLength: 0
+        deviceManufacturer:
+          type: string
+          maxLength: 128
+          minLength: 0
+        deviceModel:
+          type: string
+          maxLength: 128
+          minLength: 0
+        duration:
+          type: integer
+          format: int64
+          minimum: 0
+        effectiveConnectionType:
+          type: string
+          maxLength: 16
+          minLength: 0
+        encodedBodySize:
+          type: integer
+          format: int64
+          minimum: -1
+        environment:
+          type: string
+          maxLength: 256
+          minLength: 0
+        errorCount:
+          type: integer
+          format: int64
+          minimum: 0
+        errorId:
+          type: string
+          maxLength: 128
+          minLength: 0
+        errorMessage:
+          type: string
+          maxLength: 16384
+          minLength: 0
+        errorType:
+          type: string
+          maxLength: 1024
+          minLength: 0
+        googlePlayServicesMissing:
+          type: boolean
+        httpCallMethod:
+          type: string
+          maxLength: 16
+          minLength: 0
+        httpCallOrigin:
+          type: string
+          maxLength: 1024
+          minLength: 0
+        httpCallPath:
+          type: string
+          maxLength: 4096
+          minLength: 0
+        httpCallStatus:
+          type: integer
+          format: int32
+          maximum: 599
+          minimum: -1
+        httpCallUrl:
+          type: string
+          maxLength: 4096
+          minLength: 0
+        ingestionTime:
+          type: integer
+          format: int64
+          minimum: 1
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        meta:
+          type: object
+          additionalProperties:
+            type: string
+        mobileAppId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        mobileAppLabel:
+          type: string
+          maxLength: 128
+          minLength: 0
+        osName:
+          type: string
+          maxLength: 128
+          minLength: 0
+        osVersion:
+          type: string
+          maxLength: 128
+          minLength: 0
+        platform:
+          type: string
+          maxLength: 32
+          minLength: 0
+        region:
+          type: string
+          maxLength: 256
+          minLength: 0
+        rooted:
+          type: boolean
+        sessionId:
+          type: string
+          maxLength: 128
+          minLength: 0
+        stackTrace:
+          type: string
+          maxLength: 16384
+          minLength: 0
+        subdivision:
+          type: string
+          maxLength: 256
+          minLength: 0
+        subdivisionCode:
+          type: string
+          maxLength: 64
+          minLength: 0
+        tenant:
+          type: string
+          maxLength: 256
+          minLength: 0
+        timestamp:
+          type: integer
+          format: int64
+          minimum: 1
+        transferSize:
+          type: integer
+          format: int64
+          minimum: -1
+        type:
+          type: string
+          maxLength: 24
+          minLength: 0
+        unit:
+          type: string
+          maxLength: 256
+          minLength: 0
+        userEmail:
+          type: string
+          maxLength: 128
+          minLength: 0
+        userId:
+          type: string
+          maxLength: 128
+          minLength: 0
+        userIp:
+          type: string
+          maxLength: 45
+          minLength: 0
+        userLanguages:
+          type: array
+          items:
+            type: string
+          maxItems: 5
+          minItems: 0
+        userName:
+          type: string
+          maxLength: 128
+          minLength: 0
+        view:
+          type: string
+          maxLength: 256
+          minLength: 0
+        viewportHeight:
+          type: integer
+          format: int32
+          minimum: -1
+        viewportWidth:
+          type: integer
+          format: int32
+          minimum: -1
+      required:
+        - beaconId
+        - mobileAppId
+        - sessionId
+        - type
+    MobileAppMonitoringMetricDescription:
+      type: object
+      properties:
+        aggregations:
+          type: array
+          items:
+            type: string
+            enum:
+              - SUM
+              - MEAN
+              - MAX
+              - MIN
+              - P25
+              - P50
+              - P75
+              - P90
+              - P95
+              - P98
+              - P99
+              - P99_9
+              - P99_99
+              - DISTRIBUTION
+              - DISTINCT_COUNT
+              - SUM_POSITIVE
+          uniqueItems: true
+        beaconTypes:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        defaultAggregation:
+          type: string
+          enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - P99_9
+            - P99_99
+            - DISTRIBUTION
+            - DISTINCT_COUNT
+            - SUM_POSITIVE
+        description:
+          type: string
+        formatter:
+          type: string
+        label:
+          type: string
+        metricId:
+          type: string
+        pathToValueInBeacon:
+          type: array
+          items:
+            type: string
+          maxItems: 2147483647
+          minItems: 1
+        tagName:
+          type: string
+      required:
+        - aggregations
+        - beaconTypes
+        - formatter
+        - label
+        - metricId
     MonitoringState:
       type: object
       properties:
