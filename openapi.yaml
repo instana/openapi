@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.215.890
+  version: 1.216.1173
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -205,6 +205,7 @@ tags:
       our internal IDs for users and API tokens.
   - name: Usage
   - name: Synthetic Settings
+  - name: Synthetic Results
 paths:
   /api/application-monitoring/analyze/backend-correlation:
     get:
@@ -547,14 +548,11 @@ paths:
               - GROUPING
               - FILTERING
               - SMART_ALERTS
+              - SMART_ALERTS_LOGS
+              - SMART_ALERTS_ADAPTIVE_BASELINE
               - SLI_MANAGEMENT
               - APPLICATION_CONFIG
               - APPLICATION_CONFIG_BLUEPRINT
-        - in: query
-          name: thresholdType
-          schema:
-            type: string
-            default: staticThreshold
       responses:
         default:
           content:
@@ -611,6 +609,8 @@ paths:
               - GROUPING
               - FILTERING
               - SMART_ALERTS
+              - SMART_ALERTS_LOGS
+              - SMART_ALERTS_ADAPTIVE_BASELINE
               - SLI_MANAGEMENT
               - APPLICATION_CONFIG
               - APPLICATION_CONFIG_BLUEPRINT
@@ -1514,6 +1514,24 @@ paths:
       summary: Get all events
       tags:
         - Events
+      description: |-
+        This endpoint retrieves all available events for the requested timeframe.
+
+        ### Query Parameters:
+
+        - **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided.
+        - **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.
+        - **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.
+        - **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval. 
+
+        ### Example
+
+        Fetch all events that have been opened within the last 30 minutes.
+
+        ```bash
+        curl --request GET 'https://<HOST>/api/events?windowSize=30000 excludeTriggeredBefore=true' \
+        --header 'Authorization: apiToken <Token>'
+        ```
   /api/events/settings/alertingChannels:
     get:
       operationId: getAlertingChannels
@@ -3002,6 +3020,12 @@ paths:
       summary: Get a particular event
       tags:
         - Events
+      description: |-
+        This endpoint retrieves an event given its ID.
+
+        ### Path Parameters:
+
+        - **eventId:** The ID of the event to fetch.
   /api/host-agent:
     get:
       operationId: search
@@ -3714,6 +3738,8 @@ paths:
               - GROUPING
               - FILTERING
               - SMART_ALERTS
+              - SMART_ALERTS_LOGS
+              - SMART_ALERTS_ADAPTIVE_BASELINE
               - SLI_MANAGEMENT
               - APPLICATION_CONFIG
               - APPLICATION_CONFIG_BLUEPRINT
@@ -3830,6 +3856,140 @@ paths:
         - ApiKeyAuth:
             - ConfigureMobileAppMonitoring
       summary: Rename mobile app
+      tags:
+        - Mobile App Configuration
+  '/api/mobile-app-monitoring/config/{mobileAppId}/geo-location':
+    get:
+      operationId: getGeoLocationConfiguration
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoLocationConfiguration'
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Get geo location configuration for mobile app
+      tags:
+        - Mobile App Configuration
+    put:
+      operationId: updateGeoLocationConfiguration
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeoLocationConfiguration'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoLocationConfiguration'
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Update geo location configuration for mobile app
+      tags:
+        - Mobile App Configuration
+  '/api/mobile-app-monitoring/config/{mobileAppId}/geo-mapping-rules':
+    get:
+      operationId: getGeoMappingRules
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/csv: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Get custom geo mapping rules for mobile app
+      tags:
+        - Website Configuration
+    put:
+      operationId: setGeoMappingRules
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          text/csv:
+            schema:
+              type: string
+      responses:
+        '200':
+          content:
+            text/csv: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Set custom geo mapping rules for mobile app
+      tags:
+        - Website Configuration
+  '/api/mobile-app-monitoring/config/{mobileAppId}/ip-masking':
+    get:
+      operationId: getIpMaskingConfiguration
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IpMaskingConfiguration'
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Get IP masking configuration for mobile app
+      tags:
+        - Mobile App Configuration
+    put:
+      operationId: updateIpMaskingConfiguration
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IpMaskingConfiguration'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IpMaskingConfiguration'
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+      summary: Update IP masking configuration for mobile app
       tags:
         - Mobile App Configuration
   /api/mobile-app-monitoring/session:
@@ -4217,11 +4377,12 @@ paths:
       operationId: inviteUsers
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
               type: array
               items:
                 $ref: '#/components/schemas/Invitation'
+        required: true
       responses:
         default:
           content:
@@ -4395,7 +4556,9 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              type: array
+              items:
+                type: string
         required: true
       responses:
         default:
@@ -4422,7 +4585,9 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              type: array
+              items:
+                type: string
         required: true
       responses:
         default:
@@ -5031,6 +5196,8 @@ paths:
               - GROUPING
               - FILTERING
               - SMART_ALERTS
+              - SMART_ALERTS_LOGS
+              - SMART_ALERTS_ADAPTIVE_BASELINE
               - SLI_MANAGEMENT
               - APPLICATION_CONFIG
               - APPLICATION_CONFIG_BLUEPRINT
@@ -5181,6 +5348,140 @@ paths:
         - ApiKeyAuth:
             - ConfigureEumApplications
       summary: Rename website
+      tags:
+        - Website Configuration
+  '/api/website-monitoring/config/{websiteId}/geo-location':
+    get:
+      operationId: getGeoLocationConfiguration_1
+      parameters:
+        - in: path
+          name: websiteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoLocationConfiguration'
+      security:
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+      summary: Get geo location configuration for website
+      tags:
+        - Website Configuration
+    put:
+      operationId: updateGeoLocationConfiguration_1
+      parameters:
+        - in: path
+          name: websiteId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeoLocationConfiguration'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoLocationConfiguration'
+      security:
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+      summary: Update geo location configuration for website
+      tags:
+        - Website Configuration
+  '/api/website-monitoring/config/{websiteId}/geo-mapping-rules':
+    get:
+      operationId: getGeoMappingRules_1
+      parameters:
+        - in: path
+          name: websiteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            text/csv: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+      summary: Get custom geo mapping rules for website
+      tags:
+        - Website Configuration
+    put:
+      operationId: setGeoMappingRules_1
+      parameters:
+        - in: path
+          name: websiteId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          text/csv:
+            schema:
+              type: string
+      responses:
+        '200':
+          content:
+            text/csv: {}
+      security:
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+      summary: Set custom geo mapping rules for website
+      tags:
+        - Website Configuration
+  '/api/website-monitoring/config/{websiteId}/ip-masking':
+    get:
+      operationId: getIpMaskingConfiguration_1
+      parameters:
+        - in: path
+          name: websiteId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IpMaskingConfiguration'
+      security:
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+      summary: Get IP masking configuration for website
+      tags:
+        - Website Configuration
+    put:
+      operationId: updateIpMaskingConfiguration_1
+      parameters:
+        - in: path
+          name: websiteId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IpMaskingConfiguration'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IpMaskingConfiguration'
+      security:
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+      summary: Update IP masking configuration for website
       tags:
         - Website Configuration
   /api/website-monitoring/metrics:
@@ -7002,6 +7303,75 @@ components:
       required:
         - id
         - rootSpan
+    GeoLocationConfiguration:
+      type: object
+      properties:
+        geoDetailRemoval:
+          type: string
+          enum:
+            - NO_REMOVAL
+            - REMOVE_COORDINATES
+            - REMOVE_CITY
+            - REMOVE_ALL
+        geoMappingRules:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoMappingRule'
+          maxItems: 512
+          minItems: 0
+      required:
+        - geoDetailRemoval
+    GeoMappingRule:
+      type: object
+      properties:
+        accuracyRadius:
+          type: integer
+          format: int64
+          minimum: -1
+        cidr:
+          type: string
+          maxLength: 128
+          minLength: 0
+        city:
+          type: string
+        continent:
+          type: string
+        continentCode:
+          type: string
+        country:
+          type: string
+        countryCode:
+          type: string
+        latitude:
+          type: number
+          format: double
+        leastSpecificSubdivision:
+          $ref: '#/components/schemas/GeoSubdivision'
+        longitude:
+          type: number
+          format: double
+        subdivisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoSubdivision'
+          maxItems: 8
+          minItems: 0
+      required:
+        - cidr
+        - subdivisions
+    GeoSubdivision:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 32
+          minLength: 0
+        name:
+          type: string
+          maxLength: 256
+          minLength: 0
+      required:
+        - name
     GetApplications:
       type: object
       properties:
@@ -7863,6 +8233,17 @@ components:
         - email
         - groupId
         - id
+    IpMaskingConfiguration:
+      type: object
+      properties:
+        ipMasking:
+          type: string
+          enum:
+            - DEFAULT
+            - STRICT
+            - REMOVE_ALL_DETAILS
+      required:
+        - ipMasking
     KubernetesPhysicalContext:
       type: object
       properties:
@@ -10863,6 +11244,10 @@ components:
           type: boolean
         httpCallCorrelationAttempted:
           type: boolean
+        httpCallHeaders:
+          type: object
+          additionalProperties:
+            type: string
         httpCallMethod:
           type: string
         httpCallOrigin:
