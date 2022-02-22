@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.218.497
+  version: 1.219.473
   x-description: info
   x-logo:
     altText: instana logo
@@ -334,7 +334,7 @@ paths:
       - Application Resources
   /api/application-monitoring/applications/services/endpoints:
     get:
-      operationId: application.resources.endpoints
+      operationId: getApplicationEndpoints
       parameters:
       - description: Name of service
         in: query
@@ -2684,7 +2684,7 @@ paths:
       x-description: getEvent
   /api/host-agent:
     get:
-      operationId: search
+      operationId: searchHostAgents
       parameters:
       - in: query
         name: query
@@ -2799,7 +2799,7 @@ paths:
       x-description: updateConfigurationByHost
   /api/host-agent/{hostId}/logs:
     get:
-      operationId: getLogs
+      operationId: getAgentLogs
       parameters:
       - in: path
         name: hostId
@@ -2833,7 +2833,7 @@ paths:
       - Host Agent
   /api/host-agent/{hostId}/update:
     post:
-      operationId: update
+      operationId: updateAgent
       parameters:
       - in: path
         name: hostId
@@ -3494,7 +3494,7 @@ paths:
       - Mobile App Configuration
   /api/mobile-app-monitoring/config/{mobileAppId}/geo-location:
     get:
-      operationId: getGeoLocationConfiguration
+      operationId: getMobileAppGeoLocationConfiguration
       parameters:
       - in: path
         name: mobileAppId
@@ -3514,7 +3514,7 @@ paths:
       tags:
       - Mobile App Configuration
     put:
-      operationId: updateGeoLocationConfiguration
+      operationId: updateMobileAppGeoLocationConfiguration
       parameters:
       - in: path
         name: mobileAppId
@@ -3540,7 +3540,7 @@ paths:
       - Mobile App Configuration
   /api/mobile-app-monitoring/config/{mobileAppId}/geo-mapping-rules:
     get:
-      operationId: getGeoMappingRules
+      operationId: getMobileAppGeoMappingRules
       parameters:
       - in: path
         name: mobileAppId
@@ -3558,7 +3558,7 @@ paths:
       tags:
       - Website Configuration
     put:
-      operationId: setGeoMappingRules
+      operationId: setMobileAppGeoMappingRules
       parameters:
       - in: path
         name: mobileAppId
@@ -3582,7 +3582,7 @@ paths:
       - Website Configuration
   /api/mobile-app-monitoring/config/{mobileAppId}/ip-masking:
     get:
-      operationId: getIpMaskingConfiguration
+      operationId: getMobileAppIpMaskingConfiguration
       parameters:
       - in: path
         name: mobileAppId
@@ -3602,7 +3602,7 @@ paths:
       tags:
       - Mobile App Configuration
     put:
-      operationId: updateIpMaskingConfiguration
+      operationId: updateMobileAppIpMaskingConfiguration
       parameters:
       - in: path
         name: mobileAppId
@@ -3787,7 +3787,7 @@ paths:
       x-description: putRelease
   /api/settings/accesslog:
     get:
-      operationId: getAuditLogs
+      operationId: getAccessLogs
       parameters:
       - in: query
         name: offset
@@ -3924,7 +3924,7 @@ paths:
       - API Token
   /api/settings/auditlog:
     get:
-      operationId: getAuditLogs_1
+      operationId: getAuditLogs
       parameters:
       - in: query
         name: offset
@@ -4429,7 +4429,8 @@ paths:
       - Session Settings
   /api/settings/sli:
     get:
-      operationId: getSli_1
+      deprecated: true
+      operationId: getAllSliConfigs
       responses:
         default:
           content:
@@ -4445,7 +4446,8 @@ paths:
       tags:
       - SLI Settings
     post:
-      operationId: createSli
+      deprecated: true
+      operationId: createSliConfig
       requestBody:
         content:
           application/json:
@@ -4467,7 +4469,8 @@ paths:
       x-description: createSliConfiguration
   /api/settings/sli/{id}:
     delete:
-      operationId: delete
+      deprecated: true
+      operationId: deleteSliConfig
       parameters:
       - in: path
         name: id
@@ -4486,7 +4489,8 @@ paths:
       tags:
       - SLI Settings
     get:
-      operationId: getSli_2
+      deprecated: true
+      operationId: getSliConfig
       parameters:
       - in: path
         name: id
@@ -4506,7 +4510,8 @@ paths:
       tags:
       - SLI Settings
     put:
-      operationId: putSli
+      deprecated: true
+      operationId: updateSliConfig
       parameters:
       - in: path
         name: id
@@ -4678,6 +4683,84 @@ paths:
       summary: Get single user
       tags:
       - User
+  /api/settings/v2/sli:
+    get:
+      operationId: getAllSliConfigsV2
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+      - ApiKeyAuth:
+        - canConfigureServiceLevelIndicators
+      summary: Get All SLI Configs
+      tags:
+      - SLI Settings
+    post:
+      operationId: createSliConfigV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SliConfiguration'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+      - ApiKeyAuth:
+        - canConfigureServiceLevelIndicators
+      summary: Create SLI Config
+      tags:
+      - SLI Settings
+      x-description: createSliConfiguration
+  /api/settings/v2/sli/{id}:
+    delete:
+      operationId: deleteSliConfigV2
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - canConfigureServiceLevelIndicators
+      summary: Delete SLI Config
+      tags:
+      - SLI Settings
+    get:
+      operationId: getSliConfigV2
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+      - ApiKeyAuth:
+        - canConfigureServiceLevelIndicators
+      summary: Get SLI Config
+      tags:
+      - SLI Settings
   /api/sli/report/{sliId}:
     get:
       operationId: getSli
@@ -4852,7 +4935,7 @@ paths:
       tags:
       - Website Configuration
     post:
-      operationId: post
+      operationId: createWebsite
       parameters:
       - in: query
         name: name
@@ -4876,7 +4959,7 @@ paths:
       - Website Configuration
   /api/website-monitoring/config/{websiteId}:
     delete:
-      operationId: delete_1
+      operationId: deleteWebsite
       parameters:
       - in: path
         name: websiteId
@@ -4893,7 +4976,7 @@ paths:
       tags:
       - Website Configuration
     get:
-      operationId: get
+      operationId: getWebsite
       parameters:
       - in: path
         name: websiteId
@@ -4910,7 +4993,7 @@ paths:
       tags:
       - Website Configuration
     put:
-      operationId: rename
+      operationId: renameWebsite
       parameters:
       - in: path
         name: websiteId
@@ -4939,7 +5022,7 @@ paths:
       - Website Configuration
   /api/website-monitoring/config/{websiteId}/geo-location:
     get:
-      operationId: getGeoLocationConfiguration_1
+      operationId: getWebsiteGeoLocationConfiguration
       parameters:
       - in: path
         name: websiteId
@@ -4959,7 +5042,7 @@ paths:
       tags:
       - Website Configuration
     put:
-      operationId: updateGeoLocationConfiguration_1
+      operationId: updateWebsiteGeoLocationConfiguration
       parameters:
       - in: path
         name: websiteId
@@ -4985,7 +5068,7 @@ paths:
       - Website Configuration
   /api/website-monitoring/config/{websiteId}/geo-mapping-rules:
     get:
-      operationId: getGeoMappingRules_1
+      operationId: getWebsiteGeoMappingRules
       parameters:
       - in: path
         name: websiteId
@@ -5003,7 +5086,7 @@ paths:
       tags:
       - Website Configuration
     put:
-      operationId: setGeoMappingRules_1
+      operationId: setWebsiteGeoMappingRules
       parameters:
       - in: path
         name: websiteId
@@ -5027,7 +5110,7 @@ paths:
       - Website Configuration
   /api/website-monitoring/config/{websiteId}/ip-masking:
     get:
-      operationId: getIpMaskingConfiguration_1
+      operationId: getWebsiteIpMaskingConfiguration
       parameters:
       - in: path
         name: websiteId
@@ -5047,7 +5130,7 @@ paths:
       tags:
       - Website Configuration
     put:
-      operationId: updateIpMaskingConfiguration_1
+      operationId: updateWebsiteIpMaskingConfiguration
       parameters:
       - in: path
         name: websiteId
@@ -6044,6 +6127,10 @@ components:
           type: integer
           format: int64
           minimum: 0
+        totalRetainedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
       required:
       - items
     BeaconResult:
@@ -6060,6 +6147,10 @@ components:
           format: int64
           minimum: 0
         totalRepresentedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
+        totalRetainedItemCount:
           type: integer
           format: int64
           minimum: 0
@@ -6217,6 +6308,10 @@ components:
           format: int64
           minimum: 0
         totalRepresentedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
+        totalRetainedItemCount:
           type: integer
           format: int64
           minimum: 0
@@ -10063,6 +10158,10 @@ components:
           type: integer
           format: int64
           minimum: 0
+        totalRetainedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
       required:
       - items
     TraceItem:
@@ -10089,6 +10188,10 @@ components:
           format: int64
           minimum: 0
         totalRepresentedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
+        totalRetainedItemCount:
           type: integer
           format: int64
           minimum: 0
