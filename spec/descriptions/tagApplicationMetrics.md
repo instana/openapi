@@ -7,12 +7,13 @@ The endpoints of this group retrieve the metrics for defined applications, disco
 
 ### Optional Parameters
 
-**metrics** Default you will get an aggregated metric with for the selected timeFrame 
+**metrics** Default you will get an aggregated metric with for the selected timeframe 
 
 * *granularity* 
-  * if it is not set you will get a an aggregated value for the selected timeframe. 
-  * if the granularity is set you will get data points with the specified granularity in seconds
-    * The value can be selected freely between 1 - selected windowSize.
+   * If it is not set you will get a an aggregated value for the selected timeframe
+   * If the granularity is set you will get data points with the specified granularity **in seconds**
+    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)
+    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)
    
 **pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
 1. *page* select the page number you want to retrieve

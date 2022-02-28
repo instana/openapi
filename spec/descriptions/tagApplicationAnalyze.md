@@ -39,9 +39,10 @@ Furthermore you can [search and filter all traces](#operation/getTraces) and ret
    * Traces Sum
 2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.
 3. *granularity* 
-   * if it is not set you will get a an aggregated value for the selected timeframe. 
-   * if the granularity is set you will get data points with the specified granularity in seconds
-   * The value can be selected freely between 1 - selected windowSize.
+   * If it is not set you will get a an aggregated value for the selected timeframe
+   * If the granularity is set you will get data points with the specified granularity **in seconds**
+    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)
+    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)
 
 ### Defaults:
 **timeFrame**
