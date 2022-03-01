@@ -30,6 +30,8 @@ The endpoints of this group retrieve the metrics for defined applications, disco
 <----------------------|
 ```
 
+The timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.
+
 To narrow down the result set you have four options to search for an application.
 
 **nameFilter | applicationId | serviceId | endpointId**
