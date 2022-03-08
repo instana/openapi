@@ -14,6 +14,6 @@ This option is more restrictive than `filterEventUpdates` and does not inform ab
 Fetch all events that have been opened or closed within the last 30 minutes.
 
 ```bash
-curl --request GET 'https://<HOST>/api/events?windowSize=30000 filterEventUpdates=true' \
+curl --request GET 'https://<HOST>/api/events?windowSize=30000&filterEventUpdates=true' \
 --header 'Authorization: apiToken <Token>'
 ```
