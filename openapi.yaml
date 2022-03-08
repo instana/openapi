@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.219.473
+  version: 1.220.437
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -1522,14 +1522,16 @@ paths:
         - **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided.
         - **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.
         - **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.
-        - **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval. 
+        - **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.
+        This option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.
+        - **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.
 
         ### Example
 
-        Fetch all events that have been opened within the last 30 minutes.
+        Fetch all events that have been opened or closed within the last 30 minutes.
 
         ```bash
-        curl --request GET 'https://<HOST>/api/events?windowSize=30000 excludeTriggeredBefore=true' \
+        curl --request GET 'https://<HOST>/api/events?windowSize=30000&filterEventUpdates=true' \
         --header 'Authorization: apiToken <Token>'
         ```
   /api/events/settings/alertingChannels:
@@ -3720,6 +3722,51 @@ paths:
       summary: API version information
       tags:
         - Health
+  /api/mobile-app-monitoring/analyze/beacon-groups:
+    post:
+      operationId: getMobileAppBeaconGroups
+      parameters:
+        - in: query
+          name: fillTimeSeries
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMobileAppBeaconGroups'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeaconGroupsResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get grouped beacon metrics
+      tags:
+        - Mobile App Analyze
+  /api/mobile-app-monitoring/analyze/beacons:
+    post:
+      operationId: getMobileAppBeacons
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMobileAppBeacons'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeaconResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get all beacons
+      tags:
+        - Mobile App Analyze
   /api/mobile-app-monitoring/catalog:
     get:
       operationId: getMobileAppTagCatalog
@@ -3992,6 +4039,26 @@ paths:
       summary: Update IP masking configuration for mobile app
       tags:
         - Mobile App Configuration
+  /api/mobile-app-monitoring/metrics:
+    post:
+      operationId: getMobileAppBeaconMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMobileAppMetrics'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileAppMetricResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get beacon metrics
+      tags:
+        - Mobile App Metrics
   /api/mobile-app-monitoring/session:
     get:
       operationId: getSession
@@ -7707,6 +7774,94 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
         - metrics
+    GetMobileAppBeaconGroups:
+      type: object
+      properties:
+        group:
+          $ref: '#/components/schemas/MobileAppBeaconTagGroup'
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MobileAppMonitoringMetricsConfiguration'
+          maxItems: 5
+          minItems: 1
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeprecatedTagFilter'
+          maxItems: 32
+          minItems: 0
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        type:
+          type: string
+          enum:
+            - SESSION_START
+            - HTTP_REQUEST
+            - CRASH
+            - CUSTOM
+            - VIEW_CHANGE
+      required:
+        - group
+        - metrics
+        - type
+    GetMobileAppBeacons:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeprecatedTagFilter'
+          maxItems: 32
+          minItems: 0
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        type:
+          type: string
+          enum:
+            - SESSION_START
+            - HTTP_REQUEST
+            - CRASH
+            - CUSTOM
+            - VIEW_CHANGE
+      required:
+        - type
+    GetMobileAppMetrics:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MobileAppMonitoringMetricsConfiguration'
+          maxItems: 5
+          minItems: 1
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeprecatedTagFilter'
+          maxItems: 32
+          minItems: 0
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        type:
+          type: string
+          enum:
+            - SESSION_START
+            - HTTP_REQUEST
+            - CRASH
+            - CUSTOM
+            - VIEW_CHANGE
+      required:
+        - metrics
+        - type
     GetServices:
       type: object
       properties:
@@ -8787,6 +8942,54 @@ components:
       required:
         - id
         - name
+    MobileAppBeaconGroupsItem:
+      type: object
+      properties:
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        earliestTimestamp:
+          type: integer
+          format: int64
+          minimum: 0
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+        name:
+          type: string
+      required:
+        - cursor
+        - metrics
+        - name
+    MobileAppBeaconTagGroup:
+      type: object
+      properties:
+        groupbyTag:
+          type: string
+          maxLength: 256
+          minLength: 0
+        groupbyTagEntity:
+          type: string
+          enum:
+            - NOT_APPLICABLE
+            - DESTINATION
+            - SOURCE
+        groupbyTagSecondLevelKey:
+          type: string
+          maxLength: 256
+          minLength: 0
+      required:
+        - groupbyTag
+        - groupbyTagEntity
+    MobileAppMetricResult:
+      type: object
+      properties:
+        empty:
+          type: boolean
     MobileAppMonitoringBeacon:
       type: object
       properties:
@@ -9115,6 +9318,36 @@ components:
         - formatter
         - label
         - metricId
+    MobileAppMonitoringMetricsConfiguration:
+      type: object
+      properties:
+        aggregation:
+          type: string
+          enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - P99_9
+            - P99_99
+            - DISTRIBUTION
+            - DISTINCT_COUNT
+            - SUM_POSITIVE
+        granularity:
+          type: integer
+          format: int32
+        metric:
+          type: string
+      required:
+        - aggregation
+        - metric
     MonitoringState:
       type: object
       properties:
