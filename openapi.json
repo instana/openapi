@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.220.437",
+    "version": "1.221.543",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -2193,6 +2193,13 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "in": "query",
+            "name": "filterEventUpdates",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -2220,7 +2227,7 @@
         "tags": [
           "Events"
         ],
-        "description": "This endpoint retrieves all available events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n### Example\n\nFetch all events that have been opened or closed within the last 30 minutes.\n\n```bash\ncurl --request GET 'https://<HOST>/api/events?windowSize=30000&filterEventUpdates=true' \\\n--header 'Authorization: apiToken <Token>'\n```"
+        "description": "This endpoint retrieves all available events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n### Example\n\nFetch all events that have been opened or closed within the last 30 minutes.\n\n```bash\ncurl --request GET 'https://<HOST>/api/events?windowSize=30000&filterEventUpdates=true' \\\n--header 'Authorization: apiToken <Token>'\n```"
       }
     },
     "/api/events/settings/alertingChannels": {
@@ -5680,7 +5687,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeaconGroupsResult"
+                  "$ref": "#/components/schemas/MobileAppBeaconGroupsResult"
                 }
               }
             }
@@ -5716,7 +5723,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeaconResult"
+                  "$ref": "#/components/schemas/MobileAppBeaconResult"
                 }
               }
             }
@@ -6205,6 +6212,7 @@
     },
     "/api/mobile-app-monitoring/metrics": {
       "post": {
+        "deprecated": true,
         "operationId": "getMobileAppBeaconMetrics",
         "requestBody": {
           "content": {
@@ -6291,6 +6299,42 @@
           }
         ],
         "summary": "Get session",
+        "tags": [
+          "Mobile App Metrics"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/v2/metrics": {
+      "post": {
+        "operationId": "getMobileAppBeaconMetricsV2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetMobileAppMetricsV2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricAPIResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get beacon metrics",
         "tags": [
           "Mobile App Metrics"
         ]
@@ -8250,7 +8294,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeaconGroupsResult"
+                  "$ref": "#/components/schemas/WebsiteBeaconGroupsResult"
                 }
               }
             }
@@ -8286,7 +8330,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeaconResult"
+                  "$ref": "#/components/schemas/WebsiteBeaconResult"
                 }
               }
             }
@@ -8828,6 +8872,7 @@
     },
     "/api/website-monitoring/metrics": {
       "post": {
+        "deprecated": true,
         "operationId": "getBeaconMetrics",
         "requestBody": {
           "content": {
@@ -8914,6 +8959,42 @@
           }
         ],
         "summary": "Get page load",
+        "tags": [
+          "Website Metrics"
+        ]
+      }
+    },
+    "/api/website-monitoring/v2/metrics": {
+      "post": {
+        "operationId": "getBeaconMetricsV2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetWebsiteMetricsV2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricAPIResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get beacon metrics",
         "tags": [
           "Website Metrics"
         ]
@@ -9077,6 +9158,23 @@
         "required": [
           "operator",
           "type"
+        ]
+      },
+      "AdjustedTimeframe": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "windowSize": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "to"
         ]
       },
       "AgentConfigurationUpdate": {
@@ -9587,6 +9685,7 @@
           "customPayloadFields",
           "description",
           "evaluationType",
+          "granularity",
           "name",
           "rule",
           "threshold",
@@ -9719,6 +9818,7 @@
           "customPayloadFields",
           "description",
           "evaluationType",
+          "granularity",
           "id",
           "name",
           "rule",
@@ -9871,6 +9971,9 @@
       "ApplicationMetricResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "items": {
             "type": "array",
             "items": {
@@ -10164,70 +10267,6 @@
           "traceId"
         ]
       },
-      "BeaconGroupsResult": {
-        "type": "object",
-        "properties": {
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
-            }
-          },
-          "totalHits": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          },
-          "totalRepresentedItemCount": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          },
-          "totalRetainedItemCount": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "BeaconResult": {
-        "type": "object",
-        "properties": {
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteBeaconsItem"
-            }
-          },
-          "totalHits": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          },
-          "totalRepresentedItemCount": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          },
-          "totalRetainedItemCount": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
       "BinaryOperatorDTO": {
         "type": "object",
         "allOf": [
@@ -10422,6 +10461,9 @@
       "CallGroupsResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "canLoadMore": {
             "type": "boolean"
           },
@@ -11043,6 +11085,9 @@
       "EndpointMetricResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "items": {
             "type": "array",
             "items": {
@@ -11864,6 +11909,39 @@
           "type"
         ]
       },
+      "GetMobileAppMetricsV2": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileAppMonitoringMetricsConfiguration"
+            },
+            "maxItems": 5,
+            "minItems": 1
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SESSION_START",
+              "HTTP_REQUEST",
+              "CRASH",
+              "CUSTOM",
+              "VIEW_CHANGE"
+            ]
+          }
+        },
+        "required": [
+          "metrics",
+          "type"
+        ]
+      },
       "GetServices": {
         "type": "object",
         "properties": {
@@ -12108,6 +12186,40 @@
           "type"
         ]
       },
+      "GetWebsiteMetricsV2": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
+            },
+            "maxItems": 5,
+            "minItems": 1
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PAGELOAD",
+              "RESOURCELOAD",
+              "HTTPREQUEST",
+              "ERROR",
+              "CUSTOM",
+              "PAGE_CHANGE"
+            ]
+          }
+        },
+        "required": [
+          "metrics",
+          "type"
+        ]
+      },
       "GlobalApplicationAlertConfigWithMetadata": {
         "type": "object",
         "properties": {
@@ -12239,6 +12351,7 @@
           "customPayloadFields",
           "description",
           "evaluationType",
+          "granularity",
           "id",
           "name",
           "rule",
@@ -12351,6 +12464,7 @@
           "customPayloadFields",
           "description",
           "evaluationType",
+          "granularity",
           "name",
           "rule",
           "threshold",
@@ -13073,6 +13187,29 @@
           }
         }
       },
+      "MetricAPIResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "metrics"
+        ]
+      },
       "MetricConfig": {
         "type": "object",
         "properties": {
@@ -13382,6 +13519,76 @@
           "name"
         ]
       },
+      "MobileAppBeaconGroupsResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileAppBeaconGroupsItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "MobileAppBeaconResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileAppBeaconsItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "MobileAppBeaconTagGroup": {
         "type": "object",
         "properties": {
@@ -13407,6 +13614,21 @@
         "required": [
           "groupbyTag",
           "groupbyTagEntity"
+        ]
+      },
+      "MobileAppBeaconsItem": {
+        "type": "object",
+        "properties": {
+          "beacon": {
+            "$ref": "#/components/schemas/MobileAppMonitoringBeacon"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          }
+        },
+        "required": [
+          "beacon",
+          "cursor"
         ]
       },
       "MobileAppMetricResult": {
@@ -14562,6 +14784,9 @@
       "ServiceMetricResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "items": {
             "type": "array",
             "items": {
@@ -16017,6 +16242,9 @@
       "TraceGroupsResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "canLoadMore": {
             "type": "boolean"
           },
@@ -16064,6 +16292,9 @@
       "TraceResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "canLoadMore": {
             "type": "boolean"
           },
@@ -16666,6 +16897,7 @@
           "alertChannelIds",
           "customPayloadFields",
           "description",
+          "granularity",
           "name",
           "rule",
           "threshold",
@@ -16766,6 +16998,7 @@
           "alertChannelIds",
           "customPayloadFields",
           "description",
+          "granularity",
           "id",
           "name",
           "rule",
@@ -16850,6 +17083,76 @@
           "cursor",
           "metrics",
           "name"
+        ]
+      },
+      "WebsiteBeaconGroupsResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "WebsiteBeaconResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteBeaconsItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
         ]
       },
       "WebsiteBeaconTagGroup": {
@@ -17644,6 +17947,7 @@
       "tags": [
         "Mobile App Metrics",
         "Mobile App Catalog",
+        "Mobile App Analyze",
         "Mobile App Configuration"
       ]
     },
