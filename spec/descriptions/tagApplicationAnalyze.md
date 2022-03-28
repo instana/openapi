@@ -23,6 +23,7 @@ Furthermore you can [search and filter all traces](#operation/getTraces) and ret
      (ms)       (unix-timestamp)
 <----------------------|
 ```
+The timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.
 
 **tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getApplicationCatalogTags)
 * *name* The name of the tag as returned by the catalog
