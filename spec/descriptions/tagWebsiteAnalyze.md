@@ -6,7 +6,7 @@ The following four endpoints expose our analyze functionality.
 
 **group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call
 * *groupByTag* select a tag by which the beacons are grouped 
-  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForWeb)
+  * a full list of available tags can be retrieved from [tags catalogue](#operation/getWebsiteCatalogTags)
 * *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.
 
 
@@ -26,7 +26,7 @@ The following four endpoints expose our analyze functionality.
 <----------------------|
 ```
 
-**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getTagsForApplication)
+**tagFilterExpression** As in the UI you are able to filter your query using tags and operators such as `AND` and `OR`. To get a list of all available tags you can query the [tag catalog](#operation/getWebsiteCatalogTags)
 * *name* The name of the tag as returned by the catalog, e.g `beacon.meta`, `beacon.http.path`
 * *value* The filter value of the tag, possible types are:
   * "STRING" alphanumerical values, valid operators: "EQUALS", "CONTAINS", "NOT_EQUAL", "NOT_CONTAIN", "NOT_EMPTY",  "IS_EMPTY"
@@ -38,11 +38,12 @@ The following four endpoints expose our analyze functionality.
 1. *metric* select a particular metric, available metrics in this context are
    * Latency Mean
    * Error Rate
-2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.
+2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getWebsiteCatalogMetrics) gives you the metrics with the available aggregations.
 3. *granularity* 
-   * if it is not set you will get a an aggregated value for the selected timeframe. 
-   * if the granularity is set you will get data points with the specified granularity in seconds
-   * The value can be selected freely between 1 - selected windowSize.
+   * If it is not set you will get a an aggregated value for the selected timeframe
+   * If the granularity is set you will get data points with the specified granularity **in seconds**
+    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)
+    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)
  
 
 ## Defaults:
