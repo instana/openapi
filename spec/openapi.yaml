@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.221.543
+  version: 1.221.625
   x-description: info
   x-logo:
     altText: instana logo
@@ -1333,6 +1333,31 @@ paths:
       tags:
       - Events
       x-description: getEvents
+    post:
+      operationId: getEventsByIds
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get events given a set of IDs
+      tags:
+      - Events
+      x-description: getEventsByIds
   /api/events/settings/alertingChannels:
     get:
       operationId: getAlertingChannels
@@ -5440,6 +5465,15 @@ components:
       type: object
       allOf:
       - $ref: '#/components/schemas/Threshold'
+      - type: object
+        properties:
+          deviationFactor:
+            type: number
+            format: double
+            exclusiveMaximum: false
+            exclusiveMinimum: false
+            maximum: 16.0
+            minimum: 0.5
       required:
       - operator
       - type
@@ -10386,6 +10420,7 @@ components:
       type: object
       discriminator:
         mapping:
+          adaptiveBaseline: '#/components/schemas/AdaptiveBaseline'
           historicBaseline: '#/components/schemas/HistoricBaseline'
           staticThreshold: '#/components/schemas/StaticThreshold'
         propertyName: type
