@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.222.523
+  version: 1.223.521
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -4789,6 +4789,31 @@ paths:
       summary: Update group
       tags:
         - Groups
+  '/api/settings/rbac/groups/{id}/user/{userId}':
+    delete:
+      operationId: removeUserFromGroup
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - ConfigureGroups
+      summary: Remove user from group
+      tags:
+        - Groups
   /api/settings/rbac/mappings:
     get:
       operationId: getGroupMappings
@@ -5386,6 +5411,171 @@ paths:
       summary: Generate SLI report
       tags:
         - SLI Report
+  /api/synthetics/settings/locations:
+    get:
+      operationId: getSyntheticLocations
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SyntheticLocation'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Experimental - All Synthetic locations
+      tags:
+        - Synthetic Settings
+  '/api/synthetics/settings/locations/{id}':
+    delete:
+      operationId: deleteSyntheticLocation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Experimental - Delete Synthetic location
+      tags:
+        - Synthetic Settings
+    get:
+      operationId: getSyntheticLocation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticLocation'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Experimental - Synthetic location
+      tags:
+        - Synthetic Settings
+  /api/synthetics/settings/tests:
+    get:
+      operationId: getSyntheticTests
+      parameters:
+        - in: query
+          name: applicationId
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SyntheticTest'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Experimental - All Synthetic tests
+      tags:
+        - Synthetic Settings
+    post:
+      operationId: createSyntheticTest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyntheticTest'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticTest'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Experimental - Create a Synthetic test
+      tags:
+        - Synthetic Settings
+  '/api/synthetics/settings/tests/{id}':
+    delete:
+      operationId: deleteSyntheticTest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Experimental - Delete a Synthetic test
+      tags:
+        - Synthetic Settings
+    get:
+      operationId: getSyntheticTest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticTest'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Experimental - A Synthetic test
+      tags:
+        - Synthetic Settings
+    put:
+      operationId: updateSyntheticTest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyntheticTest'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticTest'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Experimental - Update a Synthetic test
+      tags:
+        - Synthetic Settings
   /api/website-monitoring/analyze/beacon-groups:
     post:
       operationId: getBeaconGroups
@@ -5855,7 +6045,6 @@ components:
       properties:
         ruleType:
           type: string
-          description: 'Values: `"THRESHOLD"`  `"SYSTEM"`  `"ENTITY_VERIFICATION"` `"HOST_AVAILABILITY"`'
         severity:
           type: integer
           format: int32
@@ -5937,7 +6126,6 @@ components:
               minimum: 0.5
       required:
         - operator
-        - type
     AdjustedTimeframe:
       type: object
       properties:
@@ -6627,7 +6815,6 @@ components:
               type: string
       required:
         - boundaryScope
-        - sliType
     ApplicationTimeThreshold:
       type: object
       discriminator:
@@ -6729,7 +6916,6 @@ components:
               type: string
       required:
         - boundaryScope
-        - sliType
     BackendTraceReference:
       type: object
       properties:
@@ -6756,6 +6942,24 @@ components:
         - conjunction
         - left
         - right
+    BrowserScriptConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+        - type: object
+          properties:
+            browser:
+              type: string
+              enum:
+                - chrome
+                - firefox
+            script:
+              type: string
+              maxLength: 1048576
+              minLength: 0
+      required:
+        - script
+        - syntheticType
     BuiltInEventSpecification:
       type: object
       properties:
@@ -7211,7 +7415,6 @@ components:
               $ref: '#/components/schemas/DynamicFieldValue'
       required:
         - key
-        - type
         - value
     DynamicFieldValue:
       type: object
@@ -7415,13 +7618,11 @@ components:
         - matchingEntityLabel
         - matchingEntityType
         - matchingOperator
-        - ruleType
     ErrorRateApplicationAlertRule:
       type: object
       allOf:
         - $ref: '#/components/schemas/ApplicationAlertRule'
       required:
-        - alertType
         - metricName
     EventFilteringConfiguration:
       type: object
@@ -8459,7 +8660,6 @@ components:
       required:
         - operator
         - seasonality
-        - type
     HostAvailabilityRule:
       type: object
       allOf:
@@ -8475,8 +8675,54 @@ components:
               format: int64
             tagFilter:
               $ref: '#/components/schemas/TagFilter'
+    HttpActionConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+        - type: object
+          properties:
+            allowInsecure:
+              type: boolean
+            body:
+              type: string
+            expectStatus:
+              type: integer
+              format: int32
+            followRedirect:
+              type: boolean
+            headers:
+              type: object
+              additionalProperties:
+                type: string
+            operation:
+              type: string
+              enum:
+                - DELETE
+                - GET
+                - HEAD
+                - OPTIONS
+                - PATCH
+                - POST
+                - PUT
+            retries:
+              type: integer
+              format: int32
+              maximum: 10
+              minimum: 0
+            retryInterval:
+              type: integer
+              format: int32
+              maximum: 10
+              minimum: 1
+            url:
+              type: string
+              maxLength: 512
+              minLength: 0
+            validationString:
+              type: string
       required:
-        - ruleType
+        - syntheticType
+        - url
     HttpEndpointConfig:
       type: object
       properties:
@@ -8533,6 +8779,19 @@ components:
             - MATCH_ALL
       required:
         - type
+    HttpScriptConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+        - type: object
+          properties:
+            script:
+              type: string
+              maxLength: 1048576
+              minLength: 0
+      required:
+        - script
+        - syntheticType
     HyperParam:
       type: object
       properties:
@@ -8726,7 +8985,6 @@ components:
                 - NOT_STARTS_WITH
                 - NOT_ENDS_WITH
       required:
-        - alertType
         - level
         - metricName
         - operator
@@ -8839,6 +9097,8 @@ components:
       properties:
         type:
           type: string
+      required:
+        - type
     MetricAPIResult:
       type: object
       properties:
@@ -9804,8 +10064,6 @@ components:
               type: integer
               format: int32
               minimum: 1
-      required:
-        - type
     RuleInput:
       type: object
       properties:
@@ -10233,7 +10491,6 @@ components:
         - $ref: '#/components/schemas/ApplicationAlertRule'
       required:
         - aggregation
-        - alertType
         - metricName
     SlownessWebsiteAlertRule:
       type: object
@@ -10241,7 +10498,6 @@ components:
         - $ref: '#/components/schemas/WebsiteAlertRule'
       required:
         - aggregation
-        - alertType
         - metricName
     SnapshotItem:
       type: object
@@ -10443,7 +10699,6 @@ components:
             value:
               type: string
       required:
-        - alertType
         - metricName
         - operator
     SplunkIntegration:
@@ -10504,7 +10759,6 @@ components:
               type: string
       required:
         - key
-        - type
         - value
     StaticThreshold:
       type: object
@@ -10522,7 +10776,6 @@ components:
               minimum: 0
       required:
         - operator
-        - type
     StatusCodeApplicationAlertRule:
       type: object
       allOf:
@@ -10538,7 +10791,6 @@ components:
               format: int32
               minimum: 1
       required:
-        - alertType
         - metricName
     StatusCodeWebsiteAlertRule:
       type: object
@@ -10568,7 +10820,6 @@ components:
             value:
               type: string
       required:
-        - alertType
         - metricName
         - operator
         - value
@@ -10621,6 +10872,190 @@ components:
       required:
         - customRules
         - defaultRules
+    SyntheticGeoPoint:
+      type: object
+      properties:
+        cityName:
+          type: string
+        countryName:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+      required:
+        - cityName
+        - countryName
+        - latitude
+        - longitude
+    SyntheticLocation:
+      type: object
+      properties:
+        createdAt:
+          type: integer
+          format: int64
+        customProperties:
+          type: object
+          additionalProperties:
+            type: string
+        description:
+          type: string
+          maxLength: 512
+          minLength: 0
+        displayLabel:
+          type: string
+          maxLength: 128
+          minLength: 1
+        geoPoint:
+          $ref: '#/components/schemas/SyntheticGeoPoint'
+        id:
+          type: string
+          maxLength: 128
+          minLength: 1
+        label:
+          type: string
+          maxLength: 128
+          minLength: 1
+        locationType:
+          type: string
+        modifiedAt:
+          type: integer
+          format: int64
+        observedAt:
+          type: integer
+          format: int64
+        playbackCapabilities:
+          $ref: '#/components/schemas/SyntheticPlaybackCapabilities'
+        popVersion:
+          type: string
+          maxLength: 64
+          minLength: 1
+      required:
+        - geoPoint
+        - label
+        - locationType
+        - playbackCapabilities
+    SyntheticPlaybackCapabilities:
+      type: object
+      properties:
+        browserType:
+          type: array
+          items:
+            type: string
+            enum:
+              - chrome
+              - firefox
+        syntheticType:
+          type: array
+          items:
+            type: string
+            enum:
+              - BrowserScript
+              - HTTPAction
+              - HTTPScript
+      required:
+        - browserType
+        - syntheticType
+    SyntheticTest:
+      type: object
+      properties:
+        active:
+          type: boolean
+        applicationId:
+          type: string
+          maxLength: 512
+          minLength: 0
+        configuration:
+          $ref: '#/components/schemas/SyntheticTypeConfiguration'
+        createdAt:
+          type: integer
+          format: int64
+        createdBy:
+          type: string
+          maxLength: 128
+          minLength: 0
+        customProperties:
+          type: object
+          additionalProperties:
+            type: string
+        deleted:
+          type: boolean
+        deletedAt:
+          type: integer
+          format: int64
+        description:
+          type: string
+          maxLength: 512
+          minLength: 0
+        id:
+          type: string
+          maxLength: 128
+          minLength: 1
+        label:
+          type: string
+          maxLength: 128
+          minLength: 1
+        locations:
+          type: array
+          items:
+            type: string
+        modifiedAt:
+          type: integer
+          format: int64
+        modifiedBy:
+          type: string
+          maxLength: 128
+          minLength: 0
+        playbackMode:
+          type: string
+          enum:
+            - Simultaneous
+            - Staggered
+        serviceId:
+          type: string
+          maxLength: 512
+          minLength: 0
+        tenantId:
+          type: string
+        testFrequency:
+          type: integer
+          format: int32
+          maximum: 120
+          minimum: 1
+      required:
+        - active
+        - configuration
+        - label
+        - locations
+        - playbackMode
+        - testFrequency
+    SyntheticTypeConfiguration:
+      type: object
+      description: |-
+        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScriptConfiguration, HttpActionConfiguration, HttpScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration.
+
+        Only HttpActionConfiguration, HttpScriptConfiguration and BrowserScriptConfiguration 
+
+        are enabled at this time.
+      discriminator:
+        mapping:
+          BrowserScript: '#/components/schemas/BrowserScriptConfiguration'
+          HTTPAction: '#/components/schemas/HttpActionConfiguration'
+          HTTPScript: '#/components/schemas/HttpScriptConfiguration'
+          WebpageAction: '#/components/schemas/WebpageActionConfiguration'
+          WebpageScript: '#/components/schemas/WebpageScriptConfiguration'
+        propertyName: syntheticType
+      properties:
+        syntheticType:
+          type: string
+          enum:
+            - BrowserScript
+            - HTTPAction
+            - HTTPScript
+      required:
+        - syntheticType
     SystemRule:
       type: object
       allOf:
@@ -10630,7 +11065,6 @@ components:
             systemRuleId:
               type: string
       required:
-        - ruleType
         - systemRuleId
     SystemRuleLabel:
       type: object
@@ -10737,7 +11171,6 @@ components:
         - entity
         - name
         - operator
-        - type
     TagFilterExpression:
       type: object
       allOf:
@@ -10756,7 +11189,6 @@ components:
       required:
         - elements
         - logicalOperator
-        - type
     TagFilterExpressionElement:
       type: object
       discriminator:
@@ -10937,20 +11369,17 @@ components:
               format: int64
       required:
         - conditionOperator
-        - ruleType
     ThroughputApplicationAlertRule:
       type: object
       allOf:
         - $ref: '#/components/schemas/ApplicationAlertRule'
       required:
-        - alertType
         - metricName
     ThroughputWebsiteAlertRule:
       type: object
       allOf:
         - $ref: '#/components/schemas/WebsiteAlertRule'
       required:
-        - alertType
         - metricName
     TimeFrame:
       type: object
@@ -11133,7 +11562,6 @@ components:
               minimum: 1
       required:
         - impactMeasurementMethod
-        - type
     UserResult:
       type: object
       properties:
@@ -11332,8 +11760,6 @@ components:
               format: int32
               maximum: 12
               minimum: 1
-      required:
-        - type
     ViolationsInPeriodWebsiteTimeThreshold:
       type: object
       allOf:
@@ -11345,20 +11771,14 @@ components:
               format: int32
               maximum: 12
               minimum: 1
-      required:
-        - type
     ViolationsInSequenceApplicationTimeThreshold:
       type: object
       allOf:
         - $ref: '#/components/schemas/ApplicationTimeThreshold'
-      required:
-        - type
     ViolationsInSequenceWebsiteTimeThreshold:
       type: object
       allOf:
         - $ref: '#/components/schemas/WebsiteTimeThreshold'
-      required:
-        - type
     WatsonAIOpsWebhookIntegration:
       type: object
       allOf:
@@ -11404,6 +11824,69 @@ components:
         - kind
         - name
         - webhookUrls
+    WebpageActionConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+        - type: object
+          properties:
+            authentication:
+              $ref: '#/components/schemas/WebpageAuthentication'
+            blacklist:
+              type: array
+              items:
+                type: string
+            browser:
+              type: string
+              enum:
+                - chrome
+                - firefox
+            url:
+              type: string
+              maxLength: 512
+              minLength: 0
+            whitelist:
+              type: array
+              items:
+                type: string
+      required:
+        - syntheticType
+        - url
+    WebpageAuthentication:
+      type: object
+      properties:
+        password:
+          type: string
+        username:
+          type: string
+    WebpageScriptConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+        - type: object
+          properties:
+            authentication:
+              $ref: '#/components/schemas/WebpageAuthentication'
+            blacklist:
+              type: array
+              items:
+                type: string
+            browser:
+              type: string
+              enum:
+                - chrome
+                - firefox
+            script:
+              type: string
+              maxLength: 1048576
+              minLength: 0
+            whitelist:
+              type: array
+              items:
+                type: string
+      required:
+        - script
+        - syntheticType
     Website:
       type: object
       properties:
@@ -11725,7 +12208,6 @@ components:
         - badEventFilterExpression
         - beaconType
         - goodEventFilterExpression
-        - sliType
     WebsiteEventResult:
       type: object
       allOf:
@@ -12153,7 +12635,6 @@ components:
               type: string
       required:
         - beaconType
-        - sliType
     WebsiteTimeThreshold:
       type: object
       discriminator:
