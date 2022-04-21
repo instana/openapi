@@ -6,7 +6,7 @@ Furthermore you can [search and filter all traces](#operation/getTraces) and ret
 ### Mandatory Parameters (only for group Endpoints):
 **group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call
 * *groupByTag* select a tag by which the calls and traces are grouped 
-  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForApplication)
+  * a full list of available tags can be retrieved from the [application tag catalog](#operation/getApplicationTagCatalog)
   * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace
 * *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.
 
@@ -25,7 +25,7 @@ Furthermore you can [search and filter all traces](#operation/getTraces) and ret
 ```
 The timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.
 
-**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getApplicationCatalogTags)
+**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [application tag catalog](#operation/getApplicationTagCatalog)
 * *name* The name of the tag as returned by the catalog
 * *value* The filter value of the tag, possible types are:
   * "STRING" alphanumerical values, valid operators: "EQUALS", "CONTAINS", "NOT_EQUAL", "NOT_CONTAIN", "NOT_EMPTY",  "IS_EMPTY"
@@ -38,7 +38,7 @@ The timeFrame might be adjusted to fit the metric granularity so that there is n
    * Latency Mean
    * Error Rate
    * Traces Sum
-2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.
+2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.
 3. *granularity* 
    * If it is not set you will get a an aggregated value for the selected timeframe
    * If the granularity is set you will get data points with the specified granularity **in seconds**

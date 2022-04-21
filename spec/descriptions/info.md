@@ -172,7 +172,7 @@ func readTags() {
 		Prefix: "apiToken",
 	})
 
-	tags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)
+	tags, _, err := client.ApplicationCatalogApi.GetApplicationTagCatalog(auth)
 	if err != nil {
 		fmt.Fatalf("Error calling the API, aborting.")
 	}
