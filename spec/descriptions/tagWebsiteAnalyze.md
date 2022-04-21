@@ -6,7 +6,7 @@ The following four endpoints expose our analyze functionality.
 
 **group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call
 * *groupByTag* select a tag by which the beacons are grouped 
-  * a full list of available tags can be retrieved from [tags catalogue](#operation/getWebsiteCatalogTags)
+  * a full list of available tags can be retrieved from the [website tag catalog](#operation/getWebsiteCatalogTags)
 * *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.
 
 
@@ -38,7 +38,7 @@ The following four endpoints expose our analyze functionality.
 1. *metric* select a particular metric, available metrics in this context are
    * Latency Mean
    * Error Rate
-2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getWebsiteCatalogMetrics) gives you the metrics with the available aggregations.
+2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getWebsiteCatalogMetrics) gives you the metrics with the available aggregations.
 3. *granularity* 
    * If it is not set you will get a an aggregated value for the selected timeframe
    * If the granularity is set you will get data points with the specified granularity **in seconds**
