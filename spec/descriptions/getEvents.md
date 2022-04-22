@@ -11,10 +11,10 @@ This option is more restrictive than `filterEventUpdates` and does not inform ab
 
 ### Examples
 
-Fetch all events that have been opened within the last 30 seconds.
+Fetch all events that have been opened within the last 30 minutes.
 
 ```bash
-curl --request GET 'https://<Host>/api/events?windowSize=30000&excludeTriggeredBefore=true' \
+curl --request GET 'https://<Host>/api/events?windowSize=1800000&excludeTriggeredBefore=true' \
 --header 'Authorization: apiToken <Token>'
 ```
 
