@@ -8,6 +8,8 @@ This endpoint retrieves all available events for the requested timeframe.
 - **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.
 This option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.
 - **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.
+- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.
+- **eventTypeFilters:** Filters results to the specified event types. By default, events of any type are returned.
 
 ### Examples
 
@@ -22,5 +24,12 @@ Fetch all events that have been opened or closed within the last minute, using a
 
 ```bash
 TO_MILLIS=$((($(date +%s) - 120) * 1000)) curl --request GET "https://<Host>/api/events?windowSize=60000&to=$TO_MILLIS&filterEventUpdates=true" \
+--header 'Authorization: apiToken <Token>'
+```
+
+Fetch all incidents which duration overlaps with the last 10 minutes.
+
+```bash
+curl --request GET 'https://<Host>/api/events?eventTypeFilters=incident' \
 --header 'Authorization: apiToken <Token>'
 ```
