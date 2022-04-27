@@ -74,9 +74,10 @@ Invoke-WebRequest
 ## Backend REST API
 The Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.
 
-The API documentation referes to two crucial parameters that you need to know about before reading further:
-base: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.
-apiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.
+The API documentation refers to two crucial parameters that you need to know about before reading further:
+
+- `base`: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.
+- `apiToken`: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.
 
 ### Example
 Here is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.
