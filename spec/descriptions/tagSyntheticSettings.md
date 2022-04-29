@@ -1,0 +1,2 @@
+The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. 
+These endpoints are only available for customers who have opted-in for the Synthetic Monitoring Tech Preview.
