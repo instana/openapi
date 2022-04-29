@@ -1,5 +1,5 @@
 The endpoints of this group retrieve the results for defined Synthetic tests.
-These endpoints are only available for customers who have opted-in for the Synthetic Monitoring Technology Preview.
+These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
 ### Mandatory Parameters
 
 **metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
