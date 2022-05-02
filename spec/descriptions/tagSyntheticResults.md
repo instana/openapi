@@ -1,0 +1,84 @@
+The endpoints of this group retrieve the results for defined Synthetic tests.
+These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
+### Mandatory Parameters
+
+**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
+1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: response_time, response_size, status_code, request_size, upload_speed, download_speed, redirect_time, redirect_count, connect_count, and Status. The following metrics are only available for the HTTPAction type Synthetic Tests: blocking, dns, connect, ssl, sending, waiting, and receiving.
+2. *aggregation* depending on the selected metric different aggregations are available e.g., SUM, MEAN, P90. 
+
+### Optional Parameters
+
+**metrics** By default you will get an aggregated metric for the selected timeframe
+
+* *granularity*
+    * If it is not set you will get an aggregated value for the selected timeframe
+    * If the granularity is set you will get data points with the specified granularity **in seconds**
+    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)
+    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)
+    * The granularity values are the same for all metrics
+
+**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
+1. *page* select the page number you want to retrieve
+2. *pageSize* set the number of applications you want to return with one query
+
+**order** You can order the returned items alphanumerical by label, either ascending or descending
+1. *by* if the granularity is set to 1 you can use the metric name eg. "latency.p95" to order by that value
+1. *direction* either ascending or descending
+
+**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
+```
+  windowSize           to
+     (ms)       (unix-timestamp)
+<----------------------|
+```
+
+The timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.
+
+To narrow down the result set you have three options to search for a test.
+
+**locationId | applicationId | serviceId**
+
+* *locationId:* filter by locationId
+
+* *applicationId:* filter by applicationId
+
+* *serviceId:* filter by serviceId
+
+### Defaults
+
+**metrics**
+* *granularity:* 0
+
+**timeFrame**
+```
+"timeFrame": {
+	"windowSize": 60000,
+	"to": {current timestamp}
+}
+```
+**locationId | applicationId | serviceId**
+* no filters are applied in the default call
+
+### Sample payload to get a Synthetic test result
+```
+{
+    "testId": "tUmWgvzdo1Q1vpVRpzR5",
+    "//comment1": "Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)",
+    "//comment2": "The granularity values for response_time and response_size must be the same
+    "metrics": [
+     {
+        "aggregation": "MEAN",
+        "granularity": 600,    
+        "metric": "response_time"
+     },
+     {
+        "aggregation": "MEAN",
+        "granularity": 600,    
+        "metric": "response_size"
+     }],
+     "timeFrame": {
+       "to": 0,
+       "windowSize": 1800000  
+     }
+}
+```
