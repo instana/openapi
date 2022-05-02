@@ -6,7 +6,7 @@ The unit of the testFrequency parameter is minute.
 ## Sample script and payload: 
 - A sample script to create a simple Ping API test
 
-```json
+```
 curl -k -v -X POST \
 http://<hostname>/api/synthetics/settings/tests \
 -H 'authorization: apiToken valid-api-token' \
