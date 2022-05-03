@@ -8,13 +8,13 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.223.521",
+    "version": "1.224.428",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
       "url": "header-logo.svg"
     },
-    "description": "## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation referes to two crucial parameters that you need to know about before reading further:\nbase: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\napiToken: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n\n### Example\nHere is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.\n\n```bash\ncurl --request GET \\\n  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'\n```\n\nNext we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.\n\n```bash\ncurl --request POST \\\n  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"group\":{\n      \"groupbyTag\":\"endpoint.name\"\n  },\n  \"tagFilters\":[\n  \t{\n  \t\t\"name\":\"call.error.count\",\n  \t\t\"value\":\"0\",\n  \t\t\"operator\":\"GREATER_THAN\"\n  \t}\n  ],\n  \"metrics\":[\n  \t{\n  \t\t\"metric\":\"errors\",\n  \t\t\"aggregation\":\"MEAN\"\n  \t}\n  ]\n  }'\n```\n\n\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format.\nYou can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. Please make sure that you always use the latest version of the generator, as a number of improvements are regularly made.\nTo generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\n### Go\nFor example, to generate a client library for Go to interact with our backend, you can use the following script; mind replacing the values of the `UNIT_NAME` and `TENANT_NAME` environment variables using those for your tenant unit:\n\n```bash\n#!/bin/bash\n\n### This script assumes you have the `java` and `wget` commands on the path\n\nexport UNIT_NAME='myunit' # for example: prod\nexport TENANT_NAME='mytenant' # for example: awesomecompany\n\n//Download the generator to your current working directory:\nwget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar --server-variables \"tenant=${TENANT_NAME},unit=${UNIT_NAME}\"\n\n//generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n//(optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs, and you can start right away using the client from the example above:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetTagsForApplication(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n\n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n\n### Java\nDownload the latest openapi generator cli:\n```\nwget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar\n```\n\nA list for calls for different java http client implementations, which creates a valid generated source code for our spec.\n```\n//Nativ Java HTTP Client\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8 --library native\n\n//Spring WebClient\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library webclient\n\n//Spring RestTemplate\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library resttemplate\n\n```\n"
+    "description": "Searching for answers and best pratices? Check our [IBM Instana Community](https://community.ibm.com/community/user/aiops/communities/community-home?CommunityKey=58f324a3-3104-41be-9510-5b7c413cc48f).\n\n## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation refers to two crucial parameters that you need to know about before reading further:\n\n- `base`: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\n- `apiToken`: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n\n### Example\nHere is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.\n\n```bash\ncurl --request GET \\\n  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'\n```\n\nNext we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.\n\n```bash\ncurl --request POST \\\n  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"group\":{\n      \"groupbyTag\":\"endpoint.name\"\n  },\n  \"tagFilters\":[\n  \t{\n  \t\t\"name\":\"call.error.count\",\n  \t\t\"value\":\"0\",\n  \t\t\"operator\":\"GREATER_THAN\"\n  \t}\n  ],\n  \"metrics\":[\n  \t{\n  \t\t\"metric\":\"errors\",\n  \t\t\"aggregation\":\"MEAN\"\n  \t}\n  ]\n  }'\n```\n\n\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format.\nYou can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. Please make sure that you always use the latest version of the generator, as a number of improvements are regularly made.\nTo generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\n### Go\nFor example, to generate a client library for Go to interact with our backend, you can use the following script; mind replacing the values of the `UNIT_NAME` and `TENANT_NAME` environment variables using those for your tenant unit:\n\n```bash\n#!/bin/bash\n\n### This script assumes you have the `java` and `wget` commands on the path\n\nexport UNIT_NAME='myunit' # for example: prod\nexport TENANT_NAME='mytenant' # for example: awesomecompany\n\n//Download the generator to your current working directory:\nwget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar --server-variables \"tenant=${TENANT_NAME},unit=${UNIT_NAME}\"\n\n//generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n//(optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs, and you can start right away using the client from the example above:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetApplicationTagCatalog(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n\n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n\n### Java\nDownload the latest openapi generator cli:\n```\nwget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar\n```\n\nA list for calls for different java http client implementations, which creates a valid generated source code for our spec.\n```\n//Nativ Java HTTP Client\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8 --library native\n\n//Spring WebClient\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library webclient\n\n//Spring RestTemplate\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library resttemplate\n\n```\n"
   },
   "servers": [
     {
@@ -49,7 +49,7 @@
     },
     {
       "name": "Application Metrics",
-      "description": "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n### Mandatory Parameters\r\n\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\r\n\r\n### Optional Parameters\r\n\r\n**metrics** Default you will get an aggregated metric with for the selected timeframe \r\n\r\n* *granularity* \r\n   * If it is not set you will get a an aggregated value for the selected timeframe\r\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\r\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\r\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n\r\n### Defaults\r\n\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
+      "description": "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n### Mandatory Parameters\r\n\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalog endpoint](#operation/getApplicationCatalogMetrics)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\r\n\r\n### Optional Parameters\r\n\r\n**metrics** Default you will get an aggregated metric with for the selected timeframe \r\n\r\n* *granularity* \r\n   * If it is not set you will get a an aggregated value for the selected timeframe\r\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\r\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\r\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n\r\n### Defaults\r\n\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
     },
     {
       "name": "Application Catalog",
@@ -60,7 +60,7 @@
     },
     {
       "name": "Application Analyze",
-      "description": "The following four endpoints expose our analyze functionality.\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Parameters\n### Mandatory Parameters (only for group Endpoints):\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForApplication)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n### Optional Parameters\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getApplicationCatalogTags)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * If it is not set you will get a an aggregated value for the selected timeframe\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n\n### Defaults:\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
+      "description": "The following four endpoints expose our analyze functionality.\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Parameters\n### Mandatory Parameters (only for group Endpoints):\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from the [application tag catalog](#operation/getApplicationTagCatalog)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n### Optional Parameters\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [application tag catalog](#operation/getApplicationTagCatalog)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * If it is not set you will get a an aggregated value for the selected timeframe\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n\n### Defaults:\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
     },
     {
       "name": "Application Settings"
@@ -80,7 +80,7 @@
     },
     {
       "name": "Website Analyze",
-      "description": "The following four endpoints expose our analyze functionality.\n\n## Mandatory Parameters :\n\n**type** \n\n**group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the beacons are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getWebsiteCatalogTags)\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.\n\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilterExpression** As in the UI you are able to filter your query using tags and operators such as `AND` and `OR`. To get a list of all available tags you can query the [tag catalog](#operation/getWebsiteCatalogTags)\n* *name* The name of the tag as returned by the catalog, e.g `beacon.meta`, `beacon.http.path`\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" of you are using meta tags `beacon.meta` you can filter for those by setting `yourMetaTagName=foo` in the value field, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getWebsiteCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * If it is not set you will get a an aggregated value for the selected timeframe\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
+      "description": "The following four endpoints expose our analyze functionality.\n\n## Mandatory Parameters :\n\n**type** \n\n**group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the beacons are grouped \n  * a full list of available tags can be retrieved from the [website tag catalog](#operation/getWebsiteCatalogTags)\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.\n\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilterExpression** As in the UI you are able to filter your query using tags and operators such as `AND` and `OR`. To get a list of all available tags you can query the [tag catalog](#operation/getWebsiteCatalogTags)\n* *name* The name of the tag as returned by the catalog, e.g `beacon.meta`, `beacon.http.path`\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" of you are using meta tags `beacon.meta` you can filter for those by setting `yourMetaTagName=foo` in the value field, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getWebsiteCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * If it is not set you will get a an aggregated value for the selected timeframe\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
     },
     {
       "name": "Mobile App Metrics"
@@ -154,10 +154,12 @@
       "name": "Usage"
     },
     {
-      "name": "Synthetic Settings"
+      "name": "Synthetic Settings",
+      "description": "The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. \nThese endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview."
     },
     {
-      "name": "Synthetic Results"
+      "name": "Synthetic Results",
+      "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\nThese endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.\n### Mandatory Parameters\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: response_time, response_size, status_code, request_size, upload_speed, download_speed, redirect_time, redirect_count, connect_count, and Status. The following metrics are only available for the HTTPAction type Synthetic Tests: blocking, dns, connect, ssl, sending, waiting, and receiving.\n2. *aggregation* depending on the selected metric different aggregations are available e.g., SUM, MEAN, P90. \n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of applications you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\n1. *direction* either ascending or descending\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\nTo narrow down the result set you have three options to search for a test.\n\n**locationId | applicationId | serviceId**\n\n* *locationId:* filter by locationId\n\n* *applicationId:* filter by applicationId\n\n* *serviceId:* filter by serviceId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId | serviceId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": \"tUmWgvzdo1Q1vpVRpzR5\",\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```"
     }
   ],
   "paths": {
@@ -2227,7 +2229,7 @@
         "tags": [
           "Events"
         ],
-        "description": "This endpoint retrieves all available events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n### Example\n\nFetch all events that have been opened or closed within the last 30 minutes.\n\n```bash\ncurl --request GET 'https://<HOST>/api/events?windowSize=30000&filterEventUpdates=true' \\\n--header 'Authorization: apiToken <Token>'\n```"
+        "description": "This endpoint retrieves all available events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n### Examples\n\nFetch all events that have been opened within the last 30 minutes.\n\n```bash\ncurl --request GET 'https://<Host>/api/events?windowSize=1800000&excludeTriggeredBefore=true' \\\n--header 'Authorization: apiToken <Token>'\n```\n\nFetch all events that have been opened or closed within the last minute, using a fetch delay of 120 seconds.\n\n```bash\nTO_MILLIS=$((($(date +%s) - 120) * 1000)) curl --request GET \"https://<Host>/api/events?windowSize=60000&to=$TO_MILLIS&filterEventUpdates=true\" \\\n--header 'Authorization: apiToken <Token>'\n```\n"
       },
       "post": {
         "operationId": "getEventsByIds",
@@ -3430,6 +3432,41 @@
         "tags": [
           "Event Settings"
         ]
+      },
+      "post": {
+        "operationId": "postCustomEventSpecification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomEventSpecification"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomEventSpecificationWithLastUpdated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Create new custom event specification",
+        "tags": [
+          "Event Settings"
+        ]
       }
     },
     "/api/events/settings/event-specifications/custom/systemRules": {
@@ -3540,6 +3577,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "allowRestore",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "requestBody": {
@@ -3570,7 +3614,7 @@
             ]
           }
         ],
-        "summary": "Create or Update custom event specification",
+        "summary": "Create or update custom event specification",
         "tags": [
           "Event Settings"
         ],
@@ -8522,7 +8566,8 @@
         "summary": "Experimental - Create a Synthetic test",
         "tags": [
           "Synthetic Settings"
-        ]
+        ],
+        "description": "This API endpoint creates a Synthetic Test.\n\n## A note on testFrequency parameter:\nThe unit of the testFrequency parameter is minute. \n\n## Sample script and payload: \n- A sample script to create a simple Ping API test\n\n```\ncurl -k -v -X POST \\\nhttp://<hostname>/api/synthetics/settings/tests \\\n-H 'authorization: apiToken valid-api-token' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"label\":\"Test_SimplePing\",\n    \"description\":\"this is to test a simple ping API\",\n    \"serviceId\":\"serviceId001\",\n    \"applicationId\":\"applicationId001\",\n    \"active\":true,\n    \"testFrequency\":1,\n    \"playbackMode\":\"Simultaneous\",\n    \"locations\":[\n        \"saas_instana_test\"\n    ],\n    \"configuration\":{\n        \"syntheticType\":\"HTTPAction\",\n        \"url\":\"https://httpbin.org/post\",\n        \"operation\":\"POST\",\n        \"headers\":{\n            \"Content-Type\":\"text/plain\"\n        },\n        \"body\":\"Hello World!\",\n        \"validationString\":\"Hello World!\"\n    },\n    \"customProperties\":{\n        \"Team\":\"DevTeam\",\n        \"Purpose\":\"Demo\"\n    }\n  }'\n```"
       }
     },
     "/api/synthetics/settings/tests/{id}": {
@@ -9915,7 +9960,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "granularity": {
@@ -10239,7 +10285,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "alertType": {
@@ -11057,14 +11104,6 @@
       "CustomEventSpecification": {
         "type": "object",
         "properties": {
-          "applicationAlertConfigId": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 0
-          },
-          "deleted": {
-            "type": "boolean"
-          },
           "description": {
             "type": "string",
             "maxLength": 65536,
@@ -11081,14 +11120,6 @@
           "expirationTime": {
             "type": "integer",
             "format": "int64"
-          },
-          "id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 0
-          },
-          "migrated": {
-            "type": "boolean"
           },
           "name": {
             "type": "string",
@@ -11121,7 +11152,6 @@
         },
         "required": [
           "entityType",
-          "id",
           "name",
           "rules"
         ]
@@ -13725,7 +13755,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "granularity": {
@@ -13762,7 +13793,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "metricName": {
@@ -13802,7 +13834,8 @@
                 "P99_99",
                 "DISTRIBUTION",
                 "DISTINCT_COUNT",
-                "SUM_POSITIVE"
+                "SUM_POSITIVE",
+                "PER_SECOND"
               ]
             },
             "uniqueItems": true
@@ -13825,7 +13858,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "description": {
@@ -14481,7 +14515,8 @@
                 "P99_99",
                 "DISTRIBUTION",
                 "DISTINCT_COUNT",
-                "SUM_POSITIVE"
+                "SUM_POSITIVE",
+                "PER_SECOND"
               ]
             },
             "uniqueItems": true
@@ -14511,7 +14546,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "description": {
@@ -14567,7 +14603,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "granularity": {
@@ -17844,7 +17881,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "alertType": {
@@ -18486,7 +18524,8 @@
                 "P99_99",
                 "DISTRIBUTION",
                 "DISTINCT_COUNT",
-                "SUM_POSITIVE"
+                "SUM_POSITIVE",
+                "PER_SECOND"
               ]
             },
             "uniqueItems": true
@@ -18516,7 +18555,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "description": {
@@ -18572,7 +18612,8 @@
               "P99_99",
               "DISTRIBUTION",
               "DISTINCT_COUNT",
-              "SUM_POSITIVE"
+              "SUM_POSITIVE",
+              "PER_SECOND"
             ]
           },
           "granularity": {
