@@ -1,7 +1,7 @@
 This API endpoint creates a Synthetic Test.
 
 ## Parameters:
-- **id** The identifier for this Synthetic test resource.
+- **id** The unique identifier for this Synthetic test resource. It is auto generated when the test is created, not an user input.
 - **label** The identifier for this Synthetic test resource.
 - **description** The description of the Synthetic test.
 - **active** Indicates if the Synthetic test is started or not. The default is
@@ -9,7 +9,7 @@ This API endpoint creates a Synthetic Test.
 - **applicationId** Unique ID of the Application Perspective.
 - **configuration** This is an object which has all configuration properties unique to a
   specific syntheticType. 
-  - syntheticType** The type of Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
+  - **syntheticType** The type of Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
   and WebpageScript. The locations assigned to execute this Synthetic
   test must support this syntheticType, i.e. the location's
   playbackCapabilities property.
