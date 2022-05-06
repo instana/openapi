@@ -15,14 +15,14 @@ These endpoints are only available for invited customers for the Synthetic Monit
   - **browserType** Different types of supported Web browser when creating synthetic tests for  WebpageAction and WebpageScript. 
     Currently, only firefox is supported
 - **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. 
-- **popVersion** 
-- **customProperties**
+- **popVersion** PoP's version
+- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.
 - **createdAt** The location created time, following RFC3339 standard.
 - **modifiedAt** The location modified time, following RFC3339 standard.
 - **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.
 
 ## Synthetic Test Properties:
-- **id** Unique identifier of the Synthetic test resource. It is auto generated when the test is created, not an user input.
+- **id** Unique identifier of the Synthetic test resource.
 - **label** The identifier for this Synthetic test resource.
 - **description** The description of the Synthetic test.
 - **active** Indicates if the Synthetic test is started or not. The default is
