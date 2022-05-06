@@ -10,8 +10,8 @@ These endpoints are only available for invited customers for the Synthetic Monit
   The playbackCapability object has the following properties: 
   - **syntheticType** Different types of synthetic tests that can be executed at this location. 
     Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, and WebpageScript. 
-    The values correspond to the syntheticType parameter available in the createSyntheticTest endpoint.
-  - **browserType** Different types of supported Web browser when creating synthetic tests for  WebpageAction and WebpageScript. 
+    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.
+  - **browserType** Different types of supported Web browsers when creating synthetic tests for  WebpageAction and WebpageScript. 
     Currently, only firefox is supported
 - **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. 
 - **popVersion** PoP's version
@@ -22,21 +22,18 @@ These endpoints are only available for invited customers for the Synthetic Monit
 
 ## Synthetic Test Properties:
 - **id** Unique identifier of the Synthetic test resource.
-- **label** The identifier for this Synthetic test resource.
+- **label** Friendly name of the Synthetic test resource.
 - **description** The description of the Synthetic test.
-- **active** Indicates if the Synthetic test is started or not. The default is
-  true.
+- **active** Indicates if the Synthetic test is started or not. The default is true.
 - **applicationId** Unique identifier of the Application Perspective.
-- **configuration** This is an object which has all configuration properties unique to a
-  specific syntheticType.
-    - **syntheticType** The type of Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
+- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:
+    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
       and WebpageScript. The locations assigned to execute this Synthetic
-      test must support this syntheticType, i.e. the location's
-      playbackCapabilities property.
-    - These are configurations corresponding to the syntheticTypes: HTTPActionConfiguration, HTTPScriptConfiguration,
+      test must support this syntheticType, i.e. the location's playbackCapabilities property.
+    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
       BrowserScriptConfiguration, WebpageActionConfiguration, and WebpageScriptConfiguration. Right now, only HTTPActionConfiguration
       and HTTPScriptConfiguration are supported.
-        - HTTPActionConfiguration has the following properties:
+        - **HTTPActionConfiguration** has the following properties:
             - **url** The URL is being tested. It is required.
             - **syntheticType** Its value is HTTPAction. It is required.
             - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.
@@ -55,7 +52,7 @@ These endpoints are only available for invited customers for the Synthetic Monit
             - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.
             - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.
               This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.
-        - HTTPScriptConfiguration has the following properties:
+        - **HTTPScriptConfiguration** has the following properties:
             - **script** The Javascript content, it is plain text, not base64 encoded. It is required.
             - **syntheticType** Its value is HTTPScript. It is required.
 - **createdAt** The test created time, following RFC3339 standard.
