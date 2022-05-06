@@ -4,8 +4,7 @@ These endpoints are only available for invited customers for the Synthetic Monit
 ## Synthetic Location Properties:
 - **id** Unique identifier of the location resource.
 - **label** Friendly name of the location.
-- **description**
-- **displayLabel**
+- **description** The description of the location.
 - **locationType** Indicates if the location is public or private.
 - **playbackCapability** The playback capabilities provided by this location resource.
   The playbackCapability object has the following properties: 
