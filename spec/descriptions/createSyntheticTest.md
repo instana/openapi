@@ -1,8 +1,5 @@
 This API endpoint creates a Synthetic Test.
 
-## A note on testFrequency parameter:
-The unit of the testFrequency parameter is minute. 
-
 ## Sample script and payload: 
 - A sample script to create a simple Ping API test
 

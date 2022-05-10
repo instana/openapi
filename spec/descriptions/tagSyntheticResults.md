@@ -2,9 +2,15 @@ The endpoints of this group retrieve the results for defined Synthetic tests.
 These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
 ### Mandatory Parameters
 
+**testId** The unique identifier of a Synthetic test
 **metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
-1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: response_time, response_size, status_code, request_size, upload_speed, download_speed, redirect_time, redirect_count, connect_count, and Status. The following metrics are only available for the HTTPAction type Synthetic Tests: blocking, dns, connect, ssl, sending, waiting, and receiving.
-2. *aggregation* depending on the selected metric different aggregations are available e.g., SUM, MEAN, P90. 
+1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: 
+   response_time (ms), response_size (bytes), status_code (an integer represents a HTTP response code, e.g., 200, 401, 500), request_size (bytes), 
+   upload_speed (bytes per second), download_speed (bytes per second), 
+   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). 
+   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), 
+   sending (bytes), waiting (bytes), and receiving (bytes).
+2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. 
 
 ### Optional Parameters
 
