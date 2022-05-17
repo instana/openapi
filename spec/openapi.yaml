@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.224.428
+  version: 1.225.509
   x-description: info
   x-logo:
     altText: instana logo
@@ -97,7 +97,7 @@ tags:
   x-description: tagUsage
 - name: Synthetic Settings
   x-description: tagSyntheticSettings
-- name: Synthetic Results
+- name: Synthetic Test Playback Results
   x-description: tagSyntheticResults
 paths:
   /api/application-monitoring/analyze/backend-correlation:
@@ -1318,6 +1318,18 @@ paths:
         name: filterEventUpdates
         schema:
           type: boolean
+      - in: query
+        name: eventTypeFilters
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - INCIDENT
+            - ISSUE
+            - CHANGE
+          uniqueItems: true
       responses:
         default:
           content:
@@ -4970,6 +4982,84 @@ paths:
       summary: Generate SLI report
       tags:
       - SLI Report
+  /api/synthetics/results:
+    post:
+      operationId: getSyntheticResult
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTestResult'
+        x-payload: getSyntheticResults
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Experimental - Get Synthetic test playback results
+      tags:
+      - Synthetic Test Playback Results
+  /api/synthetics/results/{testid}/{testresultid}:
+    get:
+      operationId: getSyntheticResultMetadata
+      parameters:
+      - in: path
+        name: testid
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: testresultid
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResultMetadata'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Experimental - Get Synthetic test playback detail result description(metadata)
+      tags:
+      - Synthetic Test Playback Results
+  /api/synthetics/results/{testid}/{testresultid}/detail:
+    get:
+      operationId: getSyntheticResultDetailData
+      parameters:
+      - in: path
+        name: testid
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: testresultid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: type
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResultDetailData'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Experimental - Get Synthetic test playback result detail data
+      tags:
+      - Synthetic Test Playback Results
   /api/synthetics/settings/locations:
     get:
       operationId: getSyntheticLocations
@@ -6886,6 +6976,17 @@ components:
       - id
       - name
       - rules
+    CustomEventWebsiteAlertRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/WebsiteAlertRule'
+      - type: object
+        properties:
+          customEventName:
+            type: string
+      required:
+      - customEventName
+      - metricName
     CustomPayloadConfiguration:
       type: object
       properties:
@@ -7751,6 +7852,38 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
       - metrics
+    GetTestResult:
+      type: object
+      properties:
+        applicationId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        locationId:
+          type: array
+          items:
+            type: string
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyntheticMetricConfiguration'
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        serviceId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
+        testId:
+          type: string
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+      required:
+      - metrics
+      - testId
     GetTraceGroups:
       type: object
       properties:
@@ -10502,6 +10635,37 @@ components:
       - label
       - locationType
       - playbackCapabilities
+    SyntheticMetricConfiguration:
+      type: object
+      properties:
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - P99_9
+          - P99_99
+          - DISTRIBUTION
+          - DISTINCT_COUNT
+          - SUM_POSITIVE
+          - PER_SECOND
+        granularity:
+          type: integer
+          format: int32
+        metric:
+          type: string
+      required:
+      - aggregation
+      - metric
     SyntheticPlaybackCapabilities:
       type: object
       properties:
@@ -10873,6 +11037,78 @@ components:
       required:
       - label
       - tagName
+    TestResult:
+      type: object
+      properties:
+        testResult:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestResultItem'
+        testResultItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestResultItem'
+          writeOnly: true
+    TestResultDetailData:
+      type: object
+      properties:
+        har:
+          type: array
+          items:
+            type: string
+            format: byte
+        images:
+          type: array
+          items:
+            type: string
+            format: byte
+        logs:
+          type: string
+        subtransactions:
+          type: string
+        testId:
+          type: string
+        testResultId:
+          type: string
+        videos:
+          type: array
+          items:
+            type: string
+            format: byte
+    TestResultItem:
+      type: object
+      properties:
+        applicationId:
+          type: string
+        locationId:
+          type: array
+          items:
+            type: string
+        metrics:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+        serviceId:
+          type: string
+        testId:
+          type: string
+      required:
+      - testId
+    TestResultMetadata:
+      type: object
+      properties:
+        metadata:
+          type: object
+          additionalProperties:
+            type: object
+        testId:
+          type: string
+        testResultId:
+          type: string
+      required:
+      - testId
     Threshold:
       type: object
       discriminator:
@@ -10921,7 +11157,7 @@ components:
             format: double
           metricName:
             type: string
-            maxLength: 256
+            maxLength: 512
             minLength: 0
           metricPattern:
             $ref: '#/components/schemas/MetricPattern'
@@ -11612,6 +11848,7 @@ components:
       type: object
       discriminator:
         mapping:
+          customEvent: '#/components/schemas/CustomEventWebsiteAlertRule'
           slowness: '#/components/schemas/SlownessWebsiteAlertRule'
           specificJsError: '#/components/schemas/SpecificJsErrorsWebsiteAlertRule'
           statusCode: '#/components/schemas/StatusCodeWebsiteAlertRule'
@@ -12328,6 +12565,10 @@ x-tagGroups:
   tags:
   - Application Alert Configuration
   - Global Application Alert Configuration
+- name: Technology Preview Features
+  tags:
+  - Synthetic Settings
+  - Synthetic Test Playback Results
 - name: Instana
   tags:
   - Health
