@@ -1,11 +1,15 @@
 The endpoints of this group retrieve the results for defined Synthetic tests.
 These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
-### Mandatory Parameters
+
+## Get Synthetic test playback results 
+The endpoint returns the aggregated Synthetic test result data
+
+### Mandatory Parameters  
 
 **testId** The unique identifier of a Synthetic test
 **metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
 1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: 
-   response_time (ms), response_size (bytes), status_code (an integer represents a HTTP response code, e.g., 200, 401, 500), request_size (bytes), 
+   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), 
    upload_speed (bytes per second), download_speed (bytes per second), 
    redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). 
    The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), 
@@ -25,11 +29,11 @@ These endpoints are only available for invited customers for the Synthetic Monit
 
 **pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
 1. *page* select the page number you want to retrieve
-2. *pageSize* set the number of applications you want to return with one query
+2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* if the granularity is set to 1 you can use the metric name eg. "latency.p95" to order by that value
-1. *direction* either ascending or descending
+1. *by* Use the metric name, e.g. "response_time", to order by its value
+2. *direction* either ascending (ASC) or descending (DESC)
 
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
 ```
@@ -42,13 +46,11 @@ The timeFrame might be adjusted to fit the metric granularity so that there is n
 
 To narrow down the result set you have three options to search for a test.
 
-**locationId | applicationId | serviceId**
+**locationId | applicationId**
 
 * *locationId:* filter by locationId
 
 * *applicationId:* filter by applicationId
-
-* *serviceId:* filter by serviceId
 
 ### Defaults
 
@@ -62,7 +64,7 @@ To narrow down the result set you have three options to search for a test.
 	"to": {current timestamp}
 }
 ```
-**locationId | applicationId | serviceId**
+**locationId | applicationId**
 * no filters are applied in the default call
 
 ### Sample payload to get a Synthetic test result
@@ -86,5 +88,52 @@ To narrow down the result set you have three options to search for a test.
        "to": 0,
        "windowSize": 1800000  
      }
+}
+```
+
+## Get a list of Synthetic test playback results (no aggregation)
+### Mandatory Parameters
+**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), 
+response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),
+upload_speed (bytes per second), download_speed (bytes per second),
+redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).
+The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),
+sending (bytes), waiting (bytes), and receiving (bytes).
+
+### Optional Parameters
+**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
+1. *page* select the page number you want to retrieve
+2. *pageSize* set the number of Synthetic test results you want to return with one query
+
+**order** You can order the returned items alphanumerical by label, either ascending or descending
+1. *by* Use the metric name, e.g. "response_time" to order by that value
+2. *direction* either ascending (ASC) or descending (DESC)
+
+**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
+```
+  windowSize           to
+     (ms)       (unix-timestamp)
+<----------------------|
+```
+
+**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is the metric name. 
+
+### Sample payload to get a list of Synthetic test results
+```json
+{
+  "syntheticMetrics":["response_time","response_size"],
+  "order":{
+    "by":"response_time",
+    "direction":"DESC"
+  },
+  "tagFilters":[{
+    "stringValue":"hYziqsaXSJmQsehOWg1S",
+    "name":"testId",
+    "operator":"EQUALS"
+  }],
+  "timeFrame": {
+    "to": 0,
+    "windowSize": 1800000
+  }
 }
 ```
