@@ -58,8 +58,6 @@ These endpoints are only available for invited customers for the Synthetic Monit
 - **createdAt** The test created time, following RFC3339 standard.
 - **createdBy** The user identifier who created the test resource.
 - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
-- **deleted** Indicates if the Synthetic test is deleted or not. The default value is false.
-- **deletedAt** The test deleted time, following RFC3339 standard.
 - **locations** It is an array of the PoP location IDs where the Synthetic tests are located.
 - **modifiedAt** The test last updated time, following RFC3339 standard.
 - **modifiedBy** The user identifier who updated the test resource.
@@ -68,7 +66,5 @@ These endpoints are only available for invited customers for the Synthetic Monit
   Synthetic tests run at all locations simultaneously. Staggered
   Synthetic tests run from a different location at each interval.
   Default is Staggered.
-- **serviceId** Unique identifier of the Service Perspective.
-- **tenantId** The id of the tenant that this test instance belongs to.
 - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
   The default is every 15 minutes. 
