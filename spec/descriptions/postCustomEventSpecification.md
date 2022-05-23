@@ -77,3 +77,7 @@ curl --request POST 'https://<Host>/api/events/settings/event-specifications/cus
 "ruleType":"entity_verification","severity": 5}], "triggering":false
 }'
 ```
+
+### Deprecations:
+
+The entity types `application`, `service` and `endpoint` are deprecated for custom events and need to be migrated to a Smart Alert soon. We advise to configure a respective Smart Alert instead of a custom Event. For more information please [refer to our documentation](https://www.ibm.com/docs/en/obi/current?topic=applications-smart-alerts).

@@ -82,4 +82,8 @@ curl --request PUT 'https://<Host>/api/events/settings/event-specifications/cust
 
 ## Optional Parameters:
 
-- **allowRestore (Query Parameter):** Allows to restore a custom event specification that was previously deleted or migrated when set to `true`. This allows to have idempotent operations that can be useful in _configuration as code_ scenarios. By default, the ID of a deleted configuration cannot be reused anymore to enable links in previous Issues or Incidents to stay valid. 
+- **allowRestore (Query Parameter):** Allows to restore a custom event specification that was previously deleted or migrated when set to `true`. This allows to have idempotent operations that can be useful in _configuration as code_ scenarios. By default, the ID of a deleted configuration cannot be reused anymore to enable links in previous Issues or Incidents to stay valid.
+
+### Deprecations:
+
+The entity types `application`, `service` and `endpoint` are deprecated for custom events and need to be migrated to a Smart Alert soon. We advise to configure a respective Smart Alert instead of a custom Event. For more information please [refer to our documentation](https://www.ibm.com/docs/en/obi/current?topic=applications-smart-alerts).
