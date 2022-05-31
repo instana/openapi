@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.225.509
+  version: 1.226.389
   x-description: info
   x-logo:
     altText: instana logo
@@ -5003,6 +5003,27 @@ paths:
       summary: Experimental - Get Synthetic test playback results
       tags:
       - Synthetic Test Playback Results
+  /api/synthetics/results/list:
+    post:
+      operationId: getSyntheticResultList
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTestResultList'
+        x-payload: getSyntheticResultList
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResultListResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Experimental - Get a list of Synthetic test playback results
+      tags:
+      - Synthetic Test Playback Results
   /api/synthetics/results/{testid}/{testresultid}:
     get:
       operationId: getSyntheticResultMetadata
@@ -5033,6 +5054,21 @@ paths:
     get:
       operationId: getSyntheticResultDetailData
       parameters:
+      - description: "The type of the detailed data. Valid values are SUBTRANSACTIONS,\
+          \ LOGS, IMAGES, VIDEOS, HAR."
+        in: query
+        name: type
+        required: true
+        schema:
+          type: string
+      - description: |-
+          The name of the file to be retrieved, if more than one file available for the same type.
+
+          Used when type equals to LOGS or IMAGES
+        in: query
+        name: name
+        schema:
+          type: string
       - in: path
         name: testid
         required: true
@@ -5046,6 +5082,10 @@ paths:
       - in: query
         name: type
         required: true
+        schema:
+          type: string
+      - in: query
+        name: name
         schema:
           type: string
       responses:
@@ -7411,6 +7451,77 @@ components:
       - id
       - name
       - type
+    Filter:
+      type: object
+      properties:
+        application:
+          type: string
+          maxLength: 64
+          minLength: 0
+        applicationBoundaryScope:
+          type: string
+          enum:
+          - ALL
+          - INBOUND
+        endpoint:
+          type: string
+          maxLength: 64
+          minLength: 0
+        endpointName:
+          type: string
+          maxLength: 256
+          minLength: 0
+        endpointTypes:
+          type: array
+          items:
+            type: string
+            enum:
+            - UNDEFINED
+            - RPC
+            - EVENT
+            - GRAPHQL
+            - BATCH
+            - SHELL
+            - HTTP
+            - SDK
+            - OPENTELEMETRY
+            - INTERNAL
+            - DATABASE
+            - MESSAGING
+            - PAGE
+            - PAGE_RESOURCE
+          maxItems: 8
+          minItems: 0
+          uniqueItems: true
+        includeInternalCalls:
+          type: boolean
+        includeSyntheticCalls:
+          type: boolean
+        label:
+          type: string
+          maxLength: 256
+          minLength: 0
+        processReference:
+          $ref: '#/components/schemas/EntityId'
+        rbacRestrictions:
+          $ref: '#/components/schemas/RbacRestrictions'
+        service:
+          type: string
+          maxLength: 64
+          minLength: 0
+        technologies:
+          type: array
+          items:
+            type: string
+          maxItems: 128
+          minItems: 0
+          uniqueItems: true
+        timeConfig:
+          $ref: '#/components/schemas/TimeConfig'
+        useLongTermDataOnly:
+          type: boolean
+      required:
+      - timeConfig
     FixedHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -7884,6 +7995,30 @@ components:
       required:
       - metrics
       - testId
+    GetTestResultList:
+      type: object
+      properties:
+        filter:
+          $ref: '#/components/schemas/Filter'
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        syntheticMetrics:
+          type: array
+          items:
+            type: string
+        tagFilter:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+          writeOnly: true
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+      required:
+      - syntheticMetrics
     GetTraceGroups:
       type: object
       properties:
@@ -9251,6 +9386,10 @@ components:
           minLength: 0
         googlePlayServicesMissing:
           type: boolean
+        httpCallHeaders:
+          type: object
+          additionalProperties:
+            type: string
         httpCallMethod:
           type: string
           maxLength: 16
@@ -9676,6 +9815,39 @@ components:
       - kind
       - name
       - webhookUrl
+    RbacRestrictions:
+      type: object
+      properties:
+        applications:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        infraDfqFilter:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        kubernetesCluster:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        kubernetesNamespaces:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        mobileApps:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        websites:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
     Release:
       type: object
       properties:
@@ -10726,6 +10898,10 @@ components:
           type: string
           maxLength: 128
           minLength: 1
+        locationLabels:
+          type: array
+          items:
+            type: string
         locations:
           type: array
           items:
@@ -11049,6 +11225,24 @@ components:
           items:
             $ref: '#/components/schemas/TestResultItem'
           writeOnly: true
+    TestResultCommonProperties:
+      type: object
+      properties:
+        clientId:
+          type: string
+        id:
+          type: string
+        locationId:
+          type: string
+        locationLabel:
+          type: string
+        testId:
+          type: string
+      required:
+      - clientId
+      - id
+      - locationId
+      - testId
     TestResultDetailData:
       type: object
       properties:
@@ -11063,6 +11257,8 @@ components:
             type: string
             format: byte
         logs:
+          type: string
+        name:
           type: string
         subtransactions:
           type: string
@@ -11096,6 +11292,43 @@ components:
           type: string
       required:
       - testId
+    TestResultListItem:
+      type: object
+      properties:
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+        testResultCommonProperties:
+          $ref: '#/components/schemas/TestResultCommonProperties'
+      required:
+      - metrics
+      - testResultCommonProperties
+    TestResultListResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestResultListItem'
+        page:
+          type: integer
+          format: int32
+          minimum: 1
+        pageSize:
+          type: integer
+          format: int32
+          minimum: 1
+        totalHits:
+          type: integer
+          format: int64
+          minimum: 0
+      required:
+      - items
     TestResultMetadata:
       type: object
       properties:
@@ -11181,6 +11414,20 @@ components:
       - $ref: '#/components/schemas/WebsiteAlertRule'
       required:
       - metricName
+    TimeConfig:
+      type: object
+      properties:
+        autoRefresh:
+          type: boolean
+        focusedMoment:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
+        windowSize:
+          type: integer
+          format: int64
     TimeFrame:
       type: object
       properties:
