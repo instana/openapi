@@ -1,0 +1,1 @@
+Add one or more users to a group. The array contains the ids of the users to be added.
