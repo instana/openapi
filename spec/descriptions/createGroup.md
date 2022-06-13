@@ -1,4 +1,4 @@
-Creates a group on the tenant unit. Each group entry also needs a `Permission Set`.
+Creates a group on the tenant. Each group entry also needs a `Permission Set` per unit.
 
 The `Permission Set` object contains a set of permissions applied to the group.
 

@@ -1,4 +1,4 @@
-Retrieve the list of all groups on the tenant unit. Each group entry also includes a `Permission Set`.
+Retrieve the list of all groups on the tenant together with the `Permission Set` for the tenant unit.
 
 The `Permission Set` object contains a set of permissions applied to the group.
 
