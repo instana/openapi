@@ -30,6 +30,7 @@ These endpoints are only available for invited customers for the Synthetic Monit
     - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
       and WebpageScript. The locations assigned to execute this Synthetic
       test must support this syntheticType, i.e. the location's playbackCapabilities property.
+    - **markSyntheticCall** Flag used to set the Synthetic Test HTTP calls with "X-INSTANA-SYNTHETIC:1" header, so they will be marked as synthetic calls/endpoints in Instana backend and they will be ignored when calculating service and application KPIs, users can also check "Hide Synthetic Calls" checkbox to hide/show them in UI.
     - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
       BrowserScriptConfiguration, WebpageActionConfiguration, and WebpageScriptConfiguration. Right now, only HTTPActionConfiguration
       and HTTPScriptConfiguration are supported.
