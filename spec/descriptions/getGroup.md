@@ -1,0 +1,1 @@
+Returns group data, including the `Permission set`. See [get groups](#operation/getGroups) for more details.

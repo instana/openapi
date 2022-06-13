@@ -1,0 +1,1 @@
+Returns a list of all groups a user belongs to. This includes data from these groups, the `members`, the `name` and the `Permission set`.
