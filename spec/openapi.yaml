@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.226.389
+  version: 1.227.342
   x-description: info
   x-logo:
     altText: instana logo
@@ -6920,7 +6920,7 @@ components:
       properties:
         description:
           type: string
-          maxLength: 65536
+          maxLength: 32765
           minLength: 0
         enabled:
           type: boolean
@@ -6968,7 +6968,7 @@ components:
           type: boolean
         description:
           type: string
-          maxLength: 65536
+          maxLength: 32765
           minLength: 0
         enabled:
           type: boolean
@@ -7451,77 +7451,6 @@ components:
       - id
       - name
       - type
-    Filter:
-      type: object
-      properties:
-        application:
-          type: string
-          maxLength: 64
-          minLength: 0
-        applicationBoundaryScope:
-          type: string
-          enum:
-          - ALL
-          - INBOUND
-        endpoint:
-          type: string
-          maxLength: 64
-          minLength: 0
-        endpointName:
-          type: string
-          maxLength: 256
-          minLength: 0
-        endpointTypes:
-          type: array
-          items:
-            type: string
-            enum:
-            - UNDEFINED
-            - RPC
-            - EVENT
-            - GRAPHQL
-            - BATCH
-            - SHELL
-            - HTTP
-            - SDK
-            - OPENTELEMETRY
-            - INTERNAL
-            - DATABASE
-            - MESSAGING
-            - PAGE
-            - PAGE_RESOURCE
-          maxItems: 8
-          minItems: 0
-          uniqueItems: true
-        includeInternalCalls:
-          type: boolean
-        includeSyntheticCalls:
-          type: boolean
-        label:
-          type: string
-          maxLength: 256
-          minLength: 0
-        processReference:
-          $ref: '#/components/schemas/EntityId'
-        rbacRestrictions:
-          $ref: '#/components/schemas/RbacRestrictions'
-        service:
-          type: string
-          maxLength: 64
-          minLength: 0
-        technologies:
-          type: array
-          items:
-            type: string
-          maxItems: 128
-          minItems: 0
-          uniqueItems: true
-        timeConfig:
-          $ref: '#/components/schemas/TimeConfig'
-        useLongTermDataOnly:
-          type: boolean
-      required:
-      - timeConfig
     FixedHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -7998,8 +7927,10 @@ components:
     GetTestResultList:
       type: object
       properties:
-        filter:
-          $ref: '#/components/schemas/Filter'
+        applicationId:
+          type: string
+          maxLength: 64
+          minLength: 0
         order:
           $ref: '#/components/schemas/Order'
         pagination:
@@ -8008,15 +7939,12 @@ components:
           type: array
           items:
             type: string
-        tagFilter:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-          writeOnly: true
         tagFilters:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
       required:
       - syntheticMetrics
     GetTraceGroups:
@@ -9815,39 +9743,6 @@ components:
       - kind
       - name
       - webhookUrl
-    RbacRestrictions:
-      type: object
-      properties:
-        applications:
-          type: array
-          items:
-            type: string
-          uniqueItems: true
-        infraDfqFilter:
-          type: array
-          items:
-            type: string
-          uniqueItems: true
-        kubernetesCluster:
-          type: array
-          items:
-            type: string
-          uniqueItems: true
-        kubernetesNamespaces:
-          type: array
-          items:
-            type: string
-          uniqueItems: true
-        mobileApps:
-          type: array
-          items:
-            type: string
-          uniqueItems: true
-        websites:
-          type: array
-          items:
-            type: string
-          uniqueItems: true
     Release:
       type: object
       properties:
@@ -10868,6 +10763,10 @@ components:
           type: string
           maxLength: 512
           minLength: 0
+        applicationLabel:
+          type: string
+          maxLength: 512
+          minLength: 0
         configuration:
           $ref: '#/components/schemas/SyntheticTypeConfiguration'
         createdAt:
@@ -10881,11 +10780,6 @@ components:
           type: object
           additionalProperties:
             type: string
-        deleted:
-          type: boolean
-        deletedAt:
-          type: integer
-          format: int64
         description:
           type: string
           maxLength: 512
@@ -10918,12 +10812,6 @@ components:
           enum:
           - Simultaneous
           - Staggered
-        serviceId:
-          type: string
-          maxLength: 512
-          minLength: 0
-        tenantId:
-          type: string
         testFrequency:
           type: integer
           format: int32
@@ -11414,20 +11302,6 @@ components:
       - $ref: '#/components/schemas/WebsiteAlertRule'
       required:
       - metricName
-    TimeConfig:
-      type: object
-      properties:
-        autoRefresh:
-          type: boolean
-        focusedMoment:
-          type: integer
-          format: int64
-        to:
-          type: integer
-          format: int64
-        windowSize:
-          type: integer
-          format: int64
     TimeFrame:
       type: object
       properties:
