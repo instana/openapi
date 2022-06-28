@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.227.342
+  version: 1.228.405
   x-description: info
   x-logo:
     altText: instana logo
@@ -72,7 +72,7 @@ tags:
 - name: User
   x-description: tagUser
 - name: Groups
-  x-description: tagUser
+  x-description: tagGroups
 - name: Audit Log
   x-description: tagAuditLog
 - name: API Token
@@ -6108,6 +6108,8 @@ components:
           format: int32
         metric:
           type: string
+        numeratorTagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
       required:
       - aggregation
       - metric
@@ -6659,6 +6661,7 @@ components:
             maxLength: 1048576
             minLength: 0
       required:
+      - markSyntheticCall
       - script
       - syntheticType
     BuiltInEventSpecification:
@@ -8475,6 +8478,7 @@ components:
           validationString:
             type: string
       required:
+      - markSyntheticCall
       - syntheticType
       - url
     HttpEndpointConfig:
@@ -8544,6 +8548,7 @@ components:
             maxLength: 1048576
             minLength: 0
       required:
+      - markSyntheticCall
       - script
       - syntheticType
     HyperParam:
@@ -10840,6 +10845,8 @@ components:
           WebpageScript: '#/components/schemas/WebpageScriptConfiguration'
         propertyName: syntheticType
       properties:
+        markSyntheticCall:
+          type: boolean
         syntheticType:
           type: string
           enum:
@@ -10847,6 +10854,7 @@ components:
           - HTTPAction
           - HTTPScript
       required:
+      - markSyntheticCall
       - syntheticType
     SystemRule:
       type: object
@@ -11118,6 +11126,10 @@ components:
       properties:
         clientId:
           type: string
+        errors:
+          type: array
+          items:
+            type: string
         id:
           type: string
         locationId:
@@ -11148,8 +11160,15 @@ components:
           type: string
         name:
           type: string
+        subtransactionAvgMetrics:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
         subtransactions:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/TestResultSubtransaction'
         testId:
           type: string
         testResultId:
@@ -11230,6 +11249,20 @@ components:
           type: string
       required:
       - testId
+    TestResultSubtransaction:
+      type: object
+      properties:
+        metrics:
+          type: object
+          additionalProperties:
+            type: object
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+      required:
+      - metrics
+      - properties
     Threshold:
       type: object
       discriminator:
@@ -11771,6 +11804,7 @@ components:
             items:
               type: string
       required:
+      - markSyntheticCall
       - syntheticType
       - url
     WebpageAuthentication:
@@ -11806,6 +11840,7 @@ components:
             items:
               type: string
       required:
+      - markSyntheticCall
       - script
       - syntheticType
     Website:
@@ -12646,8 +12681,6 @@ x-tagGroups:
   - Application Analyze
   - Application Settings
   - Application Topology
-  - Application Alert Configuration
-  - Global Application Alert Configuration
 - name: Website Monitoring
   tags:
   - Website Metrics
@@ -12684,8 +12717,10 @@ x-tagGroups:
   tags:
   - SLI Settings
   - SLI Report
-#- name: BETA Features
-#  tags:
+- name: BETA Features
+  tags:
+  - Application Alert Configuration
+  - Global Application Alert Configuration
 - name: Technology Preview Features
   tags:
   - Synthetic Settings
