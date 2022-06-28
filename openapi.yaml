@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.227.342
+  version: 1.228.405
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -55,8 +55,7 @@ tags:
   - name: Event Settings
   - name: Application Alert Configuration
     description: |-
-      The API endpoints of this group can be used to manage Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature "Application Smart Alerts".
-      In order to use this feature or to have more information, please contact <support@instana.com>.
+      The API endpoints of this group can be used to manage Application alert configurations.
 
       ## Parameters:
 
@@ -153,8 +152,7 @@ tags:
       - **applicationId:** Unique ID of the Application Perspective. It is replaced by **applications**.
   - name: Global Application Alert Configuration
     description: |
-      The API endpoints of this group can be used to manage Global Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature "Application Smart Alerts".
-      In order to use this feature or to have more information, please contact <support@instana.com>.
+      The API endpoints of this group can be used to manage Global Application alert configurations.
 
       ## Parameters:
 
@@ -180,6 +178,12 @@ tags:
     description: 'Endpoints of this group can be used to list and configure host agents. '
   - name: User
   - name: Groups
+    description: |
+      Groups are used to permit individual users to perform specific actions and get visibility to an access scope. Each user can be assigned to multiple groups, every one coming with its associated permissions. In addition a group sets the access scope and you can configure the visible areas for the group members.
+
+      When you are a member of multiple groups, your permissions have an additive effect.
+
+      Granting access to certain entities within Instana (e.g. Applications, Kubernetes Clusters etc.) is done through a corresponding entry in the `permissionSet` payload.
   - name: Audit Log
   - name: API Token
   - name: Session Settings
@@ -205,7 +209,7 @@ tags:
       our internal IDs for users and API tokens.
   - name: Usage
   - name: Synthetic Settings
-    description: |-
+    description: |
       The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. 
       These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
 
@@ -238,6 +242,7 @@ tags:
           - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
             and WebpageScript. The locations assigned to execute this Synthetic
             test must support this syntheticType, i.e. the location's playbackCapabilities property.
+          - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check "Hide Synthetic Calls" checkbox to hide/show them in UI.
           - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
             BrowserScriptConfiguration, WebpageActionConfiguration, and WebpageScriptConfiguration. Right now, only HTTPActionConfiguration
             and HTTPScriptConfiguration are supported.
@@ -7015,6 +7020,8 @@ components:
           format: int32
         metric:
           type: string
+        numeratorTagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
       required:
         - aggregation
         - metric
@@ -7566,6 +7573,7 @@ components:
               maxLength: 1048576
               minLength: 0
       required:
+        - markSyntheticCall
         - script
         - syntheticType
     BuiltInEventSpecification:
@@ -9382,6 +9390,7 @@ components:
             validationString:
               type: string
       required:
+        - markSyntheticCall
         - syntheticType
         - url
     HttpEndpointConfig:
@@ -9451,6 +9460,7 @@ components:
               maxLength: 1048576
               minLength: 0
       required:
+        - markSyntheticCall
         - script
         - syntheticType
     HyperParam:
@@ -11748,6 +11758,8 @@ components:
           WebpageScript: '#/components/schemas/WebpageScriptConfiguration'
         propertyName: syntheticType
       properties:
+        markSyntheticCall:
+          type: boolean
         syntheticType:
           type: string
           enum:
@@ -11755,6 +11767,7 @@ components:
             - HTTPAction
             - HTTPScript
       required:
+        - markSyntheticCall
         - syntheticType
     SystemRule:
       type: object
@@ -12026,6 +12039,10 @@ components:
       properties:
         clientId:
           type: string
+        errors:
+          type: array
+          items:
+            type: string
         id:
           type: string
         locationId:
@@ -12056,8 +12073,15 @@ components:
           type: string
         name:
           type: string
+        subtransactionAvgMetrics:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
         subtransactions:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/TestResultSubtransaction'
         testId:
           type: string
         testResultId:
@@ -12138,6 +12162,20 @@ components:
           type: string
       required:
         - testId
+    TestResultSubtransaction:
+      type: object
+      properties:
+        metrics:
+          type: object
+          additionalProperties:
+            type: object
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+      required:
+        - metrics
+        - properties
     Threshold:
       type: object
       discriminator:
@@ -12679,6 +12717,7 @@ components:
               items:
                 type: string
       required:
+        - markSyntheticCall
         - syntheticType
         - url
     WebpageAuthentication:
@@ -12714,6 +12753,7 @@ components:
               items:
                 type: string
       required:
+        - markSyntheticCall
         - script
         - syntheticType
     Website:
