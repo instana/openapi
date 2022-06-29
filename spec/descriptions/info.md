@@ -73,6 +73,116 @@ Invoke-WebRequest
     -Method Post
     -Body '{"title":"PowerShell Event ", "text": "You used PowerShell to create this event!", "duration": 5000, "severity": -1}'
 ```
+### Trace SDK REST Web Service
+Using the Trace SDK REST Web Service, it is possible to integrate Instana into any application regardless of language. Each active Instana Agent can be used to feed manually captured traces into the Web Service, which can be joined with automatically captured traces or be completely separate. The Agent offers an endpoint that listens on `http://localhost:42699/com.instana.plugin.generic.trace` and accepts the following JSON via a POST request:
+
+```json
+{
+  "spanId": <string>,
+  "parentId": <string>,
+  "traceId": <string>,
+  "timestamp": <64 bit long>,
+  "duration": <64 bit long>,
+  "name": <string>,
+  "type": <string>,
+  "error": <boolean>,
+  "data": {
+    <string> : <string>
+  }
+}
+```
+
+spanId is the unique identifier for any particular span. The trace is defined by a root span, that is, a span that does not have a parentId. The traceId needs to be identical for all spans that belong to the same trace, and is allowed to be overlapping with a spanId. traceId, spanId and parentId are 64-bit unique values encoded as hex string like b0789916ff8f319f. Spans form a hierarchy by referencing the spanId of the parent as parentId. An example of a span hierarchy in a trace is shown below:
+
+```text
+  root (spanId=1, traceId=1, type=Entry)
+    child A (spanId=2, traceId=1, parentId=1, type=Exit)
+      child A (spanId=3, traceId=1, parentId=2, type=Entry)
+        child B (spanId=4, traceId=1, parentId=3, type=Exit)
+  child B (spanId=5, traceId=1, parentId=4, type=Entry)
+```
+
+The timestamp and duration fields are in milliseconds. The timestamp must be the epoch timestamp coordinated to Coordinated Universal Time.
+
+The name field can be any string that is used to visualize and group traces, and can contain any text. However, simplicity is recommended.
+
+The type field is optional, when absent is treated as ENTRY. Options are ENTRY, EXIT, INTERMEDIATE, or EUM. Setting the type is important for the UI. It is assumed that after an ENTRY, child spans are INTERMEDIATE or EXIT. After an EXIT an ENTRY should follow. This is visualized as a remote call.
+
+The data field is optional and can contain arbitrary key-value pairs. The behavior of supplying duplicate keys is unspecified.
+
+The error field is optional and can be set to true to indicate an erroneous span.
+
+The endpoint also accepts a batch of spans, which then need to be given as an array:
+
+```json
+[
+  {
+    // span as above
+  },
+  {
+    // span as above
+  }
+]
+```
+
+For traces received via the Trace SDK Web Service the same rules regarding [Conversion and Service/Endpoint Naming](https://www.ibm.com/docs/en/obi/current?topic=references-java-trace-sdk#conversion-and-naming) are applied as for the Java Trace SDK. In particular these key-value pairs in data are used for naming: service, endpoint and call.name.
+
+Note: The optional [Instana Agent Service](https://www.ibm.com/docs/en/obi/current?topic=requirements-installing-host-agent-kubernetes#instana-agent-service) provided on Kubernetes via the Instana Agent Helm Chart is very useful in combination with the Trace Web SDK support, as it ensures that the data is pushed to the Instana Agent running on the same Kubernetes node, ensuring the Instana Agent can correctly fill in the infrastructure correlation data.
+
+#### Curl Example
+
+The following example shows how to send to the host agent data about a matching ENTRY and EXIT call, which simulates a process that receives an HTTP GET request targeted to the https://orders.happyshop.com/my/service/asdasd URL and routes it to an upstream service at the https://crm.internal/orders/asdasd URL.
+
+```bash
+#!/bin/bash
+
+curl -0 -v -X POST 'http://localhost:42699/com.instana.plugin.generic.trace' -H 'Content-Type: application/json; charset=utf-8' -d @- <<EOF
+[
+  {
+    "spanId": "8165b19a37094800",
+    "traceId": "1368e0592a91fe00",
+    "timestamp": 1591346182000,
+    "duration": 134,
+    "name": "GET /my/service/asdasd",
+    "type": "ENTRY",
+    "error": false,
+    "data": {
+      "http.url": "https://orders.happyshop.com/my/service/asdasd",
+      "http.method": "GET",
+      "http.status_code": 200,
+      "http.path": "/my/service/asdasd",
+      "http.host": "orders.happyshop.com"
+    }
+  },
+  {
+    "spanId": "7ddf6b31b320cc00",
+    "parentId": "8165b19a37094800",
+    "traceId": "1368e0592a91fe00",
+    "timestamp": 1591346182010,
+    "duration": 97,
+    "name": "GET /orders/asdasd",
+    "type": "EXIT",
+    "error": false,
+    "data": {
+      "http.url": "https://crm.internal/orders/asdasd",
+      "http.method": "GET",
+      "http.status_code": 200,
+      "http.path": "/orders/asdasd",
+      "http.host": "crm.internal"
+    }
+  }
+]
+EOF
+```
+
+#### Limitations
+
+Adhere to the following rate limits for the trace web service:
+
+- Maximum API calls/sec: 20  
+- Maximum payload per POST request: A span must not exceed 4 KiB. The request size must not exceed 4 MiB.  
+- Maximum batch size (spans/array): 1000  
+
 ## Backend REST API
 The Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.
 
