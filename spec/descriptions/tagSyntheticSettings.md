@@ -31,6 +31,12 @@ These endpoints are only available for invited customers for the Synthetic Monit
       and WebpageScript. The locations assigned to execute this Synthetic
       test must support this syntheticType, i.e. the location's playbackCapabilities property.
     - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check "Hide Synthetic Calls" checkbox to hide/show them in UI.
+    - **retries** An integer type from 0 to 2, 0 by default.
+      It indicates how many attempts (max 10) will be allowed
+      to get a successful connection (not necessarily a successful result).
+      Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.
+    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.
+    - **timeout** The timeout to be used by the PoP playback engines running the test. Values in integer followed by time unit (ms, s, m). If timeout is not provided the playback engine will use its own timeout value.
     - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
       BrowserScriptConfiguration, WebpageActionConfiguration, and WebpageScriptConfiguration. Right now, only HTTPActionConfiguration
       and HTTPScriptConfiguration are supported.
@@ -46,16 +52,14 @@ These endpoints are only available for invited customers for the Synthetic Monit
             - **followRedirect** A boolean type, true by default; to allow redirect.
             - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates
               (expired, self-signed, etc).
-            - **retries** An integer type from 0 to 10, 0 by default.
-              It indicates how many attempts (max 10) will be allowed
-              to get a successful connection (not necessarily a successful result).
-              Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.
-            - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.
             - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.
               This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.
         - **HTTPScriptConfiguration** has the following properties:
-            - **script** The Javascript content, it is plain text, not base64 encoded. It is required.
-            - **syntheticType** Its value is HTTPScript. It is required.
+          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.
+          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.
+              - **scriptFile** The name of the file to run
+              - **bundle** All required js files bundled up into a single zip file with base64 encoded
+          - **syntheticType** Its value is HTTPScript. It is required.
 - **createdAt** The test created time, following RFC3339 standard.
 - **createdBy** The user identifier who created the test resource.
 - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
