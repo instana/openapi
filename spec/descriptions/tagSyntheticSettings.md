@@ -54,6 +54,10 @@ These endpoints are only available for invited customers for the Synthetic Monit
               (expired, self-signed, etc).
             - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.
               This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.
+            - **expectJson** An optional object to be used to check against the test response object.
+            - **expectMatch** An optional regular expression string to be used to check the test response.
+            - **expectExists** An optional list of property labels used to check if they are present in the test response object.
+            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.
         - **HTTPScriptConfiguration** has the following properties:
           - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.
           - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.
