@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.228.433",
+    "version": "1.229.462",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -161,6 +161,9 @@
     {
       "name": "Synthetic Test Playback Results",
       "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\nThese endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** The unique identifier of a Synthetic test\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), \n   upload_speed (bytes per second), download_speed (bytes per second), \n   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). \n   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), \n   sending (bytes), waiting (bytes), and receiving (bytes).\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. \n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\nTo narrow down the result set you have three options to search for a test.\n\n**locationId | applicationId**\n\n* *locationId:* filter by locationId\n\n* *applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": \"tUmWgvzdo1Q1vpVRpzR5\",\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), \nresponse_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),\nupload_speed (bytes per second), download_speed (bytes per second),\nredirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).\nThe following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),\nsending (bytes), waiting (bytes), and receiving (bytes).\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is the metric name. \n\n### Sample payload to get a list of Synthetic test results\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```"
+    },
+    {
+      "name": "Automation Settings"
     }
   ],
   "paths": {
@@ -10078,6 +10081,9 @@
           "canConfigureAuthenticationMethods": {
             "type": "boolean"
           },
+          "canConfigureAutomationActions": {
+            "type": "boolean"
+          },
           "canConfigureCustomAlerts": {
             "type": "boolean"
           },
@@ -16599,6 +16605,9 @@
             "type": "string",
             "maxLength": 64,
             "minLength": 1
+          },
+          "status": {
+            "type": "string"
           }
         },
         "required": [
@@ -17165,6 +17174,46 @@
           "tagName"
         ]
       },
+      "TestCommonProperties": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "applicationId": {
+            "type": "string"
+          },
+          "applicationLabel": {
+            "type": "string"
+          },
+          "frequency": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "serviceId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "active",
+          "applicationId",
+          "applicationLabel",
+          "frequency",
+          "id",
+          "label",
+          "serviceId",
+          "type"
+        ]
+      },
       "TestResult": {
         "type": "object",
         "properties": {
@@ -17204,13 +17253,15 @@
           "locationLabel": {
             "type": "string"
           },
+          "testCommonProperties": {
+            "$ref": "#/components/schemas/TestCommonProperties"
+          },
           "testId": {
             "type": "string"
           }
         },
         "required": [
           "clientId",
-          "id",
           "locationId",
           "testId"
         ]
@@ -19426,7 +19477,8 @@
         "API Token",
         "Maintenance Configuration",
         "Synthetic Calls",
-        "Session Settings"
+        "Session Settings",
+        "Automation Settings"
       ]
     },
     {
