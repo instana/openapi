@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.229.462
+  version: 1.230.301
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -7571,13 +7571,16 @@ components:
               enum:
                 - chrome
                 - firefox
+            recordVideo:
+              type: boolean
             script:
               type: string
               maxLength: 1048576
               minLength: 0
+            scripts:
+              $ref: '#/components/schemas/MultipleScripts'
       required:
         - markSyntheticCall
-        - script
         - syntheticType
     BuiltInEventSpecification:
       type: object
@@ -9357,6 +9360,20 @@ components:
               type: boolean
             body:
               type: string
+            expectExists:
+              type: array
+              items:
+                type: string
+            expectJson:
+              type: object
+              additionalProperties:
+                type: object
+            expectMatch:
+              type: string
+            expectNotEmpty:
+              type: array
+              items:
+                type: string
             expectStatus:
               type: integer
               format: int32
@@ -9376,16 +9393,6 @@ components:
                 - PATCH
                 - POST
                 - PUT
-            retries:
-              type: integer
-              format: int32
-              maximum: 10
-              minimum: 0
-            retryInterval:
-              type: integer
-              format: int32
-              maximum: 10
-              minimum: 1
             url:
               type: string
               maxLength: 512
@@ -9462,9 +9469,10 @@ components:
               type: string
               maxLength: 1048576
               minLength: 0
+            scripts:
+              $ref: '#/components/schemas/MultipleScripts'
       required:
         - markSyntheticCall
-        - script
         - syntheticType
     HyperParam:
       type: object
@@ -10490,6 +10498,15 @@ components:
         serverlessCount:
           type: integer
           format: int32
+    MultipleScripts:
+      type: object
+      properties:
+        bundle:
+          type: string
+        scriptFile:
+          type: string
+        valid:
+          type: boolean
     NewApplicationConfig:
       type: object
       properties:
@@ -11673,6 +11690,8 @@ components:
               - BrowserScript
               - HTTPAction
               - HTTPScript
+              - WebpageAction
+              - WebpageScript
       required:
         - browserType
         - syntheticType
@@ -11765,12 +11784,26 @@ components:
       properties:
         markSyntheticCall:
           type: boolean
+        retries:
+          type: integer
+          format: int32
+          maximum: 2
+          minimum: 0
+        retryInterval:
+          type: integer
+          format: int32
+          maximum: 10
+          minimum: 1
         syntheticType:
           type: string
           enum:
             - BrowserScript
             - HTTPAction
             - HTTPScript
+            - WebpageAction
+            - WebpageScript
+        timeout:
+          type: string
       required:
         - markSyntheticCall
         - syntheticType
@@ -12732,12 +12765,6 @@ components:
         - $ref: '#/components/schemas/SyntheticTypeConfiguration'
         - type: object
           properties:
-            authentication:
-              $ref: '#/components/schemas/WebpageAuthentication'
-            blacklist:
-              type: array
-              items:
-                type: string
             browser:
               type: string
               enum:
@@ -12747,46 +12774,27 @@ components:
               type: string
               maxLength: 512
               minLength: 0
-            whitelist:
-              type: array
-              items:
-                type: string
       required:
         - markSyntheticCall
         - syntheticType
         - url
-    WebpageAuthentication:
-      type: object
-      properties:
-        password:
-          type: string
-        username:
-          type: string
     WebpageScriptConfiguration:
       type: object
       allOf:
         - $ref: '#/components/schemas/SyntheticTypeConfiguration'
         - type: object
           properties:
-            authentication:
-              $ref: '#/components/schemas/WebpageAuthentication'
-            blacklist:
-              type: array
-              items:
-                type: string
             browser:
               type: string
               enum:
                 - chrome
                 - firefox
+            recordVideo:
+              type: boolean
             script:
               type: string
               maxLength: 1048576
               minLength: 0
-            whitelist:
-              type: array
-              items:
-                type: string
       required:
         - markSyntheticCall
         - script
@@ -13100,10 +13108,10 @@ components:
             beaconType:
               type: string
               enum:
-                - PAGELOAD
-                - RESOURCELOAD
-                - HTTPREQUEST
-                - ERROR
+                - PAGE_LOAD
+                - PAGE_RESOURCE
+                - HTTP_REQUEST
+                - JS_ERROR
                 - CUSTOM
                 - PAGE_CHANGE
             goodEventFilterExpression:
@@ -13532,10 +13540,10 @@ components:
             beaconType:
               type: string
               enum:
-                - PAGELOAD
-                - RESOURCELOAD
-                - HTTPREQUEST
-                - ERROR
+                - PAGE_LOAD
+                - PAGE_RESOURCE
+                - HTTP_REQUEST
+                - JS_ERROR
                 - CUSTOM
                 - PAGE_CHANGE
             filterExpression:

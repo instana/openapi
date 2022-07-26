@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.229.462",
+    "version": "1.230.301",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -10974,17 +10974,22 @@
                   "firefox"
                 ]
               },
+              "recordVideo": {
+                "type": "boolean"
+              },
               "script": {
                 "type": "string",
                 "maxLength": 1048576,
                 "minLength": 0
+              },
+              "scripts": {
+                "$ref": "#/components/schemas/MultipleScripts"
               }
             }
           }
         ],
         "required": [
           "markSyntheticCall",
-          "script",
           "syntheticType"
         ]
       },
@@ -13460,6 +13465,27 @@
               "body": {
                 "type": "string"
               },
+              "expectExists": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expectJson": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object"
+                }
+              },
+              "expectMatch": {
+                "type": "string"
+              },
+              "expectNotEmpty": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "expectStatus": {
                 "type": "integer",
                 "format": "int32"
@@ -13484,18 +13510,6 @@
                   "POST",
                   "PUT"
                 ]
-              },
-              "retries": {
-                "type": "integer",
-                "format": "int32",
-                "maximum": 10,
-                "minimum": 0
-              },
-              "retryInterval": {
-                "type": "integer",
-                "format": "int32",
-                "maximum": 10,
-                "minimum": 1
               },
               "url": {
                 "type": "string",
@@ -13606,13 +13620,15 @@
                 "type": "string",
                 "maxLength": 1048576,
                 "minLength": 0
+              },
+              "scripts": {
+                "$ref": "#/components/schemas/MultipleScripts"
               }
             }
           }
         ],
         "required": [
           "markSyntheticCall",
-          "script",
           "syntheticType"
         ]
       },
@@ -14976,6 +14992,20 @@
           "serverlessCount": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "MultipleScripts": {
+        "type": "object",
+        "properties": {
+          "bundle": {
+            "type": "string"
+          },
+          "scriptFile": {
+            "type": "string"
+          },
+          "valid": {
+            "type": "boolean"
           }
         }
       },
@@ -16675,7 +16705,9 @@
               "enum": [
                 "BrowserScript",
                 "HTTPAction",
-                "HTTPScript"
+                "HTTPScript",
+                "WebpageAction",
+                "WebpageScript"
               ]
             }
           }
@@ -16795,13 +16827,30 @@
           "markSyntheticCall": {
             "type": "boolean"
           },
+          "retries": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 2,
+            "minimum": 0
+          },
+          "retryInterval": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 10,
+            "minimum": 1
+          },
           "syntheticType": {
             "type": "string",
             "enum": [
               "BrowserScript",
               "HTTPAction",
-              "HTTPScript"
+              "HTTPScript",
+              "WebpageAction",
+              "WebpageScript"
             ]
+          },
+          "timeout": {
+            "type": "string"
           }
         },
         "required": [
@@ -18208,15 +18257,6 @@
           {
             "type": "object",
             "properties": {
-              "authentication": {
-                "$ref": "#/components/schemas/WebpageAuthentication"
-              },
-              "blacklist": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
               "browser": {
                 "type": "string",
                 "enum": [
@@ -18228,12 +18268,6 @@
                 "type": "string",
                 "maxLength": 512,
                 "minLength": 0
-              },
-              "whitelist": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
               }
             }
           }
@@ -18244,17 +18278,6 @@
           "url"
         ]
       },
-      "WebpageAuthentication": {
-        "type": "object",
-        "properties": {
-          "password": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          }
-        }
-      },
       "WebpageScriptConfiguration": {
         "type": "object",
         "allOf": [
@@ -18264,15 +18287,6 @@
           {
             "type": "object",
             "properties": {
-              "authentication": {
-                "$ref": "#/components/schemas/WebpageAuthentication"
-              },
-              "blacklist": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
               "browser": {
                 "type": "string",
                 "enum": [
@@ -18280,16 +18294,13 @@
                   "firefox"
                 ]
               },
+              "recordVideo": {
+                "type": "boolean"
+              },
               "script": {
                 "type": "string",
                 "maxLength": 1048576,
                 "minLength": 0
-              },
-              "whitelist": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
               }
             }
           }
@@ -18712,10 +18723,10 @@
               "beaconType": {
                 "type": "string",
                 "enum": [
-                  "PAGELOAD",
-                  "RESOURCELOAD",
-                  "HTTPREQUEST",
-                  "ERROR",
+                  "PAGE_LOAD",
+                  "PAGE_RESOURCE",
+                  "HTTP_REQUEST",
+                  "JS_ERROR",
                   "CUSTOM",
                   "PAGE_CHANGE"
                 ]
@@ -19296,10 +19307,10 @@
               "beaconType": {
                 "type": "string",
                 "enum": [
-                  "PAGELOAD",
-                  "RESOURCELOAD",
-                  "HTTPREQUEST",
-                  "ERROR",
+                  "PAGE_LOAD",
+                  "PAGE_RESOURCE",
+                  "HTTP_REQUEST",
+                  "JS_ERROR",
                   "CUSTOM",
                   "PAGE_CHANGE"
                 ]
