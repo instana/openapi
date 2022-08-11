@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.230.301",
+    "version": "1.231.286",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -698,6 +698,7 @@
                 "SMART_ALERTS",
                 "SMART_ALERTS_LOGS",
                 "SMART_ALERTS_ADAPTIVE_BASELINE",
+                "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
@@ -795,6 +796,7 @@
                 "SMART_ALERTS",
                 "SMART_ALERTS_LOGS",
                 "SMART_ALERTS_ADAPTIVE_BASELINE",
+                "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
@@ -5875,6 +5877,7 @@
                 "SMART_ALERTS",
                 "SMART_ALERTS_LOGS",
                 "SMART_ALERTS_ADAPTIVE_BASELINE",
+                "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
@@ -7023,9 +7026,15 @@
         "responses": {
           "default": {
             "content": {
-              "application/json": {}
-            },
-            "description": "default response"
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvitationResponse"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -9016,6 +9025,7 @@
                 "SMART_ALERTS",
                 "SMART_ALERTS_LOGS",
                 "SMART_ALERTS_ADAPTIVE_BASELINE",
+                "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
@@ -13772,24 +13782,32 @@
           "groupId"
         ]
       },
+      "InvitationResponse": {
+        "type": "object",
+        "properties": {
+          "invitationResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvitationResult"
+            }
+          }
+        }
+      },
       "InvitationResult": {
         "type": "object",
         "properties": {
-          "email": {
-            "type": "string"
+          "invitationStatus": {
+            "type": "string",
+            "enum": [
+              "SUCCESS",
+              "INTERNAL_ERROR",
+              "FAILURE_USER_ALREADY_EXISTS"
+            ]
           },
-          "groupId": {
-            "type": "string"
-          },
-          "id": {
+          "userEmail": {
             "type": "string"
           }
-        },
-        "required": [
-          "email",
-          "groupId",
-          "id"
-        ]
+        }
       },
       "IpMaskingConfiguration": {
         "type": "object",
@@ -13823,6 +13841,29 @@
             "$ref": "#/components/schemas/SnapshotPreview"
           }
         }
+      },
+      "LocationStatus": {
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string"
+          },
+          "successRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "successRuns": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalTestRuns": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "locationId"
+        ]
       },
       "LogEntryActor": {
         "type": "object",
@@ -17245,6 +17286,24 @@
           "label": {
             "type": "string"
           },
+          "locationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "locationLabels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "locationStatusList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LocationStatus"
+            }
+          },
           "serviceId": {
             "type": "string"
           },
@@ -18344,7 +18403,7 @@
           "customPayloadFields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StaticStringField"
+              "$ref": "#/components/schemas/CustomPayloadField"
             },
             "maxItems": 20,
             "minItems": 0
@@ -18434,7 +18493,7 @@
           "customPayloadFields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StaticStringField"
+              "$ref": "#/components/schemas/CustomPayloadField"
             },
             "maxItems": 20,
             "minItems": 0
