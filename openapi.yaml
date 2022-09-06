@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.232.303
+  version: 1.233.324
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -1416,6 +1416,26 @@ paths:
       summary: Gets the service topology
       tags:
         - Application Topology
+  /api/application-monitoring/v2/metrics:
+    post:
+      operationId: getApplicationDataMetricsV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetApplicationMetrics'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricAPIResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get Application Data Metrics
+      tags:
+        - Application Metrics
   /api/custom-dashboard:
     get:
       operationId: getCustomDashboards
@@ -5113,44 +5133,7 @@ paths:
       summary: Add users to group
       tags:
         - Groups
-      description: |
-        Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.
-
-        Examples of `Permissions`:
-
-        - `CAN_CONFIGURE_SERVICE_MAPPING`
-        - `CAN_CONFIGURE_APPLICATIONS`
-        - `CAN_CONFIGURE_EUM_APPLICATIONS`
-        - `CAN_CONFIGURE_MOBILE_APP_MONITORING`
-        - `CAN_CONFIGURE_USERS`
-        - `CAN_INSTALL_NEW_AGENTS`
-        - `CAN_SEE_USAGE_INFORMATION`
-        - `CAN_CONFIGURE_INTEGRATIONS`
-        - `CAN_SEE_ON_PREM_LICENE_INFORMATION`
-        - `CAN_CONFIGURE_CUSTOM_ALERTS`
-        - `CAN_CONFIGURE_API_TOKENS`
-        - `CAN_CONFIGURE_PERSONAL_API_TOKENS`
-        - `CAN_CONFIGURE_AGENT_RUN_MODE`
-        - `CAN_VIEW_AUDIT_LOG`
-        - `CAN_CONFIGURE_AGENTS`
-        - `CAN_CONFIGURE_AUTHENTICATION_METHODS`
-        - `CAN_CONFIGURE_TEAMS`
-        - `CAN_CONFIGURE_RELEASES`
-        - `CAN_CONFIGURE_LOG_MANAGEMENT`
-        - `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`
-        - `CAN_VIEW_LOGS`
-        - `CAN_VIEW_TRACE_DETAILS`
-        - `CAN_CONFIGURE_SESSION_SETTINGS`
-        - `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`
-        - `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`
-        - `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`
-        - `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`
-        - `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`
-        - `RESTRICTED_ACCESS`
-        - `ACCESS_APPLICATIONS`
-        - `ACCESS_KUBERNETES`
-        - `ACCESS_WEBSITES`
-        - `ACCESS_MOBILE_APPS`
+      description: Add one or more users to a group. The array contains the ids of the users to be added.
   '/api/settings/rbac/groups/{id}':
     delete:
       operationId: deleteGroup
@@ -6995,6 +6978,8 @@ components:
           type: boolean
         canInstallNewAgents:
           type: boolean
+        canRunAutomationActions:
+          type: boolean
         canSeeOnPremLicenseInformation:
           type: boolean
         canSeeUsageInformation:
@@ -7599,6 +7584,11 @@ components:
               type: string
               maxLength: 1048576
               minLength: 0
+            scriptType:
+              type: string
+              enum:
+                - Basic
+                - Jest
             scripts:
               $ref: '#/components/schemas/MultipleScripts'
       required:
@@ -8488,6 +8478,26 @@ components:
           minLength: 0
       required:
         - name
+    GetApplicationMetrics:
+      type: object
+      properties:
+        includeInternal:
+          type: boolean
+          writeOnly: true
+        includeSynthetic:
+          type: boolean
+          writeOnly: true
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppDataMetricConfiguration'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+      required:
+        - metrics
+        - timeFrame
     GetApplications:
       type: object
       properties:
@@ -9491,6 +9501,11 @@ components:
               type: string
               maxLength: 1048576
               minLength: 0
+            scriptType:
+              type: string
+              enum:
+                - Basic
+                - Jest
             scripts:
               $ref: '#/components/schemas/MultipleScripts'
       required:
@@ -11679,6 +11694,9 @@ components:
           minLength: 1
         status:
           type: string
+        totalTests:
+          type: integer
+          format: int32
       required:
         - geoPoint
         - label
@@ -12183,10 +12201,9 @@ components:
       type: object
       properties:
         har:
-          type: array
-          items:
-            type: string
-            format: byte
+          type: object
+          additionalProperties:
+            type: object
         images:
           type: array
           items:
@@ -12199,8 +12216,7 @@ components:
         subtransactionAvgMetrics:
           type: object
           additionalProperties:
-            type: number
-            format: double
+            type: object
         subtransactions:
           type: array
           items:

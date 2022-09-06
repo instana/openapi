@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.232.303",
+    "version": "1.233.324",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -1911,6 +1911,42 @@
         "summary": "Gets the service topology",
         "tags": [
           "Application Topology"
+        ]
+      }
+    },
+    "/api/application-monitoring/v2/metrics": {
+      "post": {
+        "operationId": "getApplicationDataMetricsV2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetApplicationMetrics"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricAPIResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get Application Data Metrics",
+        "tags": [
+          "Application Metrics"
         ]
       }
     },
@@ -7432,7 +7468,7 @@
         "tags": [
           "Groups"
         ],
-        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_USERS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `RESTRICTED_ACCESS`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_KUBERNETES`\n- `ACCESS_WEBSITES`\n- `ACCESS_MOBILE_APPS`\n"
+        "description": "Add one or more users to a group. The array contains the ids of the users to be added."
       }
     },
     "/api/settings/rbac/groups/{id}": {
@@ -10167,6 +10203,9 @@
           "canInstallNewAgents": {
             "type": "boolean"
           },
+          "canRunAutomationActions": {
+            "type": "boolean"
+          },
           "canSeeOnPremLicenseInformation": {
             "type": "boolean"
           },
@@ -11013,6 +11052,13 @@
                 "type": "string",
                 "maxLength": 1048576,
                 "minLength": 0
+              },
+              "scriptType": {
+                "type": "string",
+                "enum": [
+                  "Basic",
+                  "Jest"
+                ]
               },
               "scripts": {
                 "$ref": "#/components/schemas/MultipleScripts"
@@ -12263,6 +12309,35 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "GetApplicationMetrics": {
+        "type": "object",
+        "properties": {
+          "includeInternal": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "includeSynthetic": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppDataMetricConfiguration"
+            }
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          }
+        },
+        "required": [
+          "metrics",
+          "timeFrame"
         ]
       },
       "GetApplications": {
@@ -13652,6 +13727,13 @@
                 "type": "string",
                 "maxLength": 1048576,
                 "minLength": 0
+              },
+              "scriptType": {
+                "type": "string",
+                "enum": [
+                  "Basic",
+                  "Jest"
+                ]
               },
               "scripts": {
                 "$ref": "#/components/schemas/MultipleScripts"
@@ -16701,6 +16783,10 @@
           },
           "status": {
             "type": "string"
+          },
+          "totalTests": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "required": [
@@ -17400,10 +17486,9 @@
         "type": "object",
         "properties": {
           "har": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "byte"
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
             }
           },
           "images": {
@@ -17422,8 +17507,7 @@
           "subtransactionAvgMetrics": {
             "type": "object",
             "additionalProperties": {
-              "type": "number",
-              "format": "double"
+              "type": "object"
             }
           },
           "subtransactions": {
