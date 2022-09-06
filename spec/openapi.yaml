@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.232.303
+  version: 1.233.324
   x-description: info
   x-logo:
     altText: instana logo
@@ -1152,6 +1152,26 @@ paths:
       summary: Gets the service topology
       tags:
       - Application Topology
+  /api/application-monitoring/v2/metrics:
+    post:
+      operationId: getApplicationDataMetricsV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetApplicationMetrics'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricAPIResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get Application Data Metrics
+      tags:
+      - Application Metrics
   /api/custom-dashboard:
     get:
       operationId: getCustomDashboards
@@ -4405,7 +4425,7 @@ paths:
       summary: Add users to group
       tags:
       - Groups
-      x-description: updateGroup
+      x-description: addUsersToGroup
   /api/settings/rbac/groups/{id}:
     delete:
       operationId: deleteGroup
@@ -6086,6 +6106,8 @@ components:
           type: boolean
         canInstallNewAgents:
           type: boolean
+        canRunAutomationActions:
+          type: boolean
         canSeeOnPremLicenseInformation:
           type: boolean
         canSeeUsageInformation:
@@ -6690,6 +6712,11 @@ components:
             type: string
             maxLength: 1048576
             minLength: 0
+          scriptType:
+            type: string
+            enum:
+            - Basic
+            - Jest
           scripts:
             $ref: '#/components/schemas/MultipleScripts'
       required:
@@ -7579,6 +7606,26 @@ components:
           minLength: 0
       required:
       - name
+    GetApplicationMetrics:
+      type: object
+      properties:
+        includeInternal:
+          type: boolean
+          writeOnly: true
+        includeSynthetic:
+          type: boolean
+          writeOnly: true
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppDataMetricConfiguration'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+      required:
+      - metrics
+      - timeFrame
     GetApplications:
       type: object
       properties:
@@ -8582,6 +8629,11 @@ components:
             type: string
             maxLength: 1048576
             minLength: 0
+          scriptType:
+            type: string
+            enum:
+            - Basic
+            - Jest
           scripts:
             $ref: '#/components/schemas/MultipleScripts'
       required:
@@ -10770,6 +10822,9 @@ components:
           minLength: 1
         status:
           type: string
+        totalTests:
+          type: integer
+          format: int32
       required:
       - geoPoint
       - label
@@ -11273,10 +11328,9 @@ components:
       type: object
       properties:
         har:
-          type: array
-          items:
-            type: string
-            format: byte
+          type: object
+          additionalProperties:
+            type: object
         images:
           type: array
           items:
@@ -11289,8 +11343,7 @@ components:
         subtransactionAvgMetrics:
           type: object
           additionalProperties:
-            type: number
-            format: double
+            type: object
         subtransactions:
           type: array
           items:
