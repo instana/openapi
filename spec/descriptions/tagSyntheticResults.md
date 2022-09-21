@@ -44,7 +44,7 @@ The endpoint returns the aggregated Synthetic test result data
 
 The timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.
 
-To narrow down the result set you have three options to search for a test.
+To narrow down the result set you have two options to search for a test.
 
 **locationId | applicationId**
 
@@ -135,5 +135,78 @@ sending (bytes), waiting (bytes), and receiving (bytes).
     "to": 0,
     "windowSize": 1800000
   }
+}
+```
+
+## Get a list of Synthetic tests with Success Rate and Average Response Time metrics
+The endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data
+
+### Mandatory Parameters
+
+**metrics**
+1. *metric* select a particular metric. Right now, only response_time (ms) is supported.
+2. *aggregation* MEAN
+3. *granularity* 60
+
+### Optional Parameters
+
+**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
+1. *page* select the page number you want to retrieve
+2. *pageSize* set the number of Synthetic test results you want to return with one query
+
+**order** You can order the returned items alphanumerical by label, either ascending or descending
+1. *by* Use the metric name, "response_time", to order by its value
+2. *direction* either ascending (ASC) or descending (DESC)
+
+**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
+```
+  windowSize           to
+     (ms)       (unix-timestamp)
+<----------------------|
+```
+**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: synthetic_type, location_id, and application_id.
+```
+"tagFilters":[{
+  "stringValue":"hYziqsaXSJmQsehOWg1S",
+  "name":"application_id",
+  "operator":"EQUALS"
+}]
+```
+
+To narrow down the result set you have three options to search for a test.
+
+**synthetic_type | location_id | application_id**
+
+* *synthetic_type:* filter by syntheticType, either HTTPAction or HTTPScript
+
+* *location_id:* filter by locationId
+
+* *application_id:* filter by applicationId
+
+### Defaults
+
+**timeFrame**
+```
+"timeFrame": {
+	"windowSize": 60000,
+	"to": {current timestamp}
+}
+```
+**synthetic_type | location_id | application_id**
+* no filters are applied in the default call
+
+### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results
+```
+{
+    "metrics": [
+     {
+        "aggregation": "MEAN",
+        "granularity": 60,    
+        "metric": "response_time"
+     }],
+     "timeFrame": {
+       "to": 0,
+       "windowSize": 3600000  
+     }
 }
 ```
