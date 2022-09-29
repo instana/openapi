@@ -23,5 +23,3 @@ This API endpoint creates the Website Alert Configuration.
 - **timeThreshold:** Indicates the type of violation of the defined threshold.
 
 - **alertChannelIds:** List of IDs of alert channels defined in Instana.
-
-## Deprecated Parameters
