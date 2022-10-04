@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.234.301
+  version: 1.235.465
   x-description: info
   x-logo:
     altText: instana logo
@@ -5069,6 +5069,28 @@ paths:
       summary: Experimental - Get a list of Synthetic test playback results
       tags:
       - Synthetic Test Playback Results
+  /api/synthetics/results/testsummarylist:
+    post:
+      operationId: getTestSummaryList
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTestResult'
+        x-payload: getTestSummaryList
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResultListResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Experimental - Get a list of Synthetic tests with success rate and
+        average response time data
+      tags:
+      - Synthetic Test Playback Results
   /api/synthetics/results/{testid}/{testresultid}:
     get:
       operationId: getSyntheticResultMetadata
@@ -5099,21 +5121,6 @@ paths:
     get:
       operationId: getSyntheticResultDetailData
       parameters:
-      - description: "The type of the detailed data. Valid values are SUBTRANSACTIONS,\
-          \ LOGS, IMAGES, VIDEOS, HAR."
-        in: query
-        name: type
-        required: true
-        schema:
-          type: string
-      - description: |-
-          The name of the file to be retrieved, if more than one file available for the same type.
-
-          Used when type equals to LOGS or IMAGES
-        in: query
-        name: name
-        schema:
-          type: string
       - in: path
         name: testid
         required: true
@@ -5856,6 +5863,49 @@ components:
       required:
       - accessType
       - relationType
+    Action:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        description:
+          type: string
+          maxLength: 512
+          minLength: 0
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+        id:
+          type: string
+          maxLength: 128
+          minLength: 1
+        modifiedAt:
+          type: string
+          format: date-time
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parameter'
+        tags:
+          type: array
+          items:
+            type: string
+        type:
+          type: string
+          maxLength: 128
+          minLength: 0
+      required:
+      - createdAt
+      - id
+      - modifiedAt
+      - name
+      - type
     AdaptiveBaseline:
       type: object
       allOf:
@@ -6207,7 +6257,7 @@ components:
         customPayloadFields:
           type: array
           items:
-            $ref: '#/components/schemas/StaticStringField'
+            $ref: '#/components/schemas/CustomPayloadField'
           maxItems: 20
           minItems: 0
         description:
@@ -6249,9 +6299,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
-          maxItems: 1024
-          minItems: 0
           uniqueItems: true
+          writeOnly: true
         threshold:
           $ref: '#/components/schemas/Threshold'
         timeThreshold:
@@ -6268,6 +6317,7 @@ components:
       - granularity
       - name
       - rule
+      - tagFilterExpression
       - threshold
       - timeThreshold
     ApplicationAlertConfigWithMetadata:
@@ -6300,7 +6350,7 @@ components:
         customPayloadFields:
           type: array
           items:
-            $ref: '#/components/schemas/StaticStringField'
+            $ref: '#/components/schemas/CustomPayloadField'
           maxItems: 20
           minItems: 0
         description:
@@ -6350,9 +6400,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
-          maxItems: 1024
-          minItems: 0
           uniqueItems: true
+          writeOnly: true
         threshold:
           $ref: '#/components/schemas/Threshold'
         timeThreshold:
@@ -6370,6 +6419,7 @@ components:
       - id
       - name
       - rule
+      - tagFilterExpression
       - threshold
       - timeThreshold
     ApplicationAlertRule:
@@ -6979,6 +7029,10 @@ components:
     CustomEventSpecification:
       type: object
       properties:
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
         description:
           type: string
           maxLength: 32765
@@ -7021,6 +7075,10 @@ components:
     CustomEventSpecificationWithLastUpdated:
       type: object
       properties:
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
         applicationAlertConfigId:
           type: string
           maxLength: 64
@@ -7512,6 +7570,21 @@ components:
       - id
       - name
       - type
+    Field:
+      type: object
+      properties:
+        description:
+          type: string
+        encoding:
+          type: string
+        name:
+          type: string
+        value:
+          type: string
+      required:
+      - encoding
+      - name
+      - value
     FixedHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -7998,13 +8071,16 @@ components:
           minLength: 0
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpression'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
         testId:
           type: string
         timeFrame:
           $ref: '#/components/schemas/TimeFrame'
       required:
       - metrics
-      - testId
     GetTestResultList:
       type: object
       properties:
@@ -8216,7 +8292,7 @@ components:
         customPayloadFields:
           type: array
           items:
-            $ref: '#/components/schemas/StaticStringField'
+            $ref: '#/components/schemas/CustomPayloadField'
           maxItems: 20
           minItems: 0
         description:
@@ -8262,13 +8338,6 @@ components:
           format: int32
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
-        tagFilters:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-          maxItems: 1024
-          minItems: 0
-          uniqueItems: true
         threshold:
           $ref: '#/components/schemas/Threshold'
         timeThreshold:
@@ -8286,6 +8355,7 @@ components:
       - id
       - name
       - rule
+      - tagFilterExpression
       - threshold
       - timeThreshold
     GlobalApplicationsAlertConfig:
@@ -8310,7 +8380,7 @@ components:
         customPayloadFields:
           type: array
           items:
-            $ref: '#/components/schemas/StaticStringField'
+            $ref: '#/components/schemas/CustomPayloadField'
           maxItems: 20
           minItems: 0
         description:
@@ -8348,13 +8418,6 @@ components:
           format: int32
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
-        tagFilters:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagFilter'
-          maxItems: 1024
-          minItems: 0
-          uniqueItems: true
         threshold:
           $ref: '#/components/schemas/Threshold'
         timeThreshold:
@@ -8371,6 +8434,7 @@ components:
       - granularity
       - name
       - rule
+      - tagFilterExpression
       - threshold
       - timeThreshold
     GoogleChatIntegration:
@@ -9678,6 +9742,8 @@ components:
         firstKnownReportingTime:
           type: integer
           format: int64
+        hasEntities:
+          type: boolean
         hostCount:
           type: integer
           format: int32
@@ -9818,6 +9884,13 @@ components:
           format: int32
           maximum: 200
           minimum: 1
+    Parameter:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+      - name
     PathParameterHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -11282,12 +11355,9 @@ components:
           type: string
       required:
       - active
-      - applicationId
-      - applicationLabel
       - frequency
       - id
       - label
-      - serviceId
       - type
     TestResult:
       type: object
@@ -11322,7 +11392,6 @@ components:
           type: string
       required:
       - clientId
-      - locationId
       - testId
     TestResultDetailData:
       type: object
@@ -12050,13 +12119,14 @@ components:
         severity:
           type: integer
           format: int32
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
-          maxItems: 1024
-          minItems: 0
           uniqueItems: true
+          writeOnly: true
         threshold:
           $ref: '#/components/schemas/Threshold'
         timeThreshold:
@@ -12074,6 +12144,7 @@ components:
       - granularity
       - name
       - rule
+      - tagFilterExpression
       - threshold
       - timeThreshold
       - websiteId
@@ -12128,13 +12199,14 @@ components:
         severity:
           type: integer
           format: int32
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           items:
             $ref: '#/components/schemas/TagFilter'
-          maxItems: 1024
-          minItems: 0
           uniqueItems: true
+          writeOnly: true
         threshold:
           $ref: '#/components/schemas/Threshold'
         timeThreshold:
@@ -12153,6 +12225,7 @@ components:
       - id
       - name
       - rule
+      - tagFilterExpression
       - threshold
       - timeThreshold
       - websiteId
