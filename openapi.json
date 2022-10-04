@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.234.301",
+    "version": "1.235.465",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -35,7 +35,7 @@
   "tags": [
     {
       "name": "Infrastructure Metrics",
-      "description": "This endpoint retrieves the metrics for infrastructure components.\r\n\r\n### Mandatory Parameters\r\n**plugin:** Plugins are entities' for which we collect metrics, for example : \"Host\", \"Cassandra node\", \"Cassandra Connection\".\r\n\r\nThe available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getInfrastructureCatalogPlugins) where we have data for you.\r\n\r\n**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)\r\n\r\nTo make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:\r\n1. Search metrics with a query\r\n  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.\r\n  To get usable search parameters you can either query the search [catalog endpoint](#operation/getInfrastructureCatalogSearchFields) or use the UI\r\n\r\n1. Search for metrics for snapshotIds\r\n  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute\r\n\r\n**metrics:** Id of the exact metric you want to retrieve, eg. \"cpu.user\", \"clientrequests.read.mean\"\r\n\r\nOnce you have selected the plugin you can define up to five metrics you want to retrieve with the call.\r\nPlease use our [metrics catalog call](#operation/getInfrastructureCatalogMetrics) to get the available metrics for the selected plugin.\r\n\r\n### Optional Parameters\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\n**rollup:** Depending on the selected timeFrame its possible to selected the rollup.\r\n\r\nThe available rollup is depending on two factors:\r\n1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)\r\n\r\n\tFor example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min\r\n1. Size of the selected windowSize\r\n\r\n\tThe limitation is that we only return 600 Data points per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s\r\n\r\nValid rollups are:\r\n\r\n| rollup  | value |\r\n| ------------- | ------------- |\r\n| 1 second  | 1 |\r\n| 5 seconds  | 5  |\r\n| 1 minute  | 60 |\r\n| 5 minutes  | 300  |\r\n| 1 hour  | 3600  |\r\n\r\n\r\n### Defaults\r\n**timeframe:**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**rollup**: 1\r\n\r\n### Limits\r\n500 Calls per Hour\r\n1000 Calls per Hour\r\n\r\nTo keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]\r\n\r\nA maximum of 600 data points are returned per metric.\r\n\r\nYou can only retrieve metrics [above](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter. Work around can be found under [2]\r\n\r\nThe following example will return an empty result, because the selected plugin \"host\" is below the dynamic focus filter \"java\" :\r\n```\r\nquery=entity.selfType:java\r\nplugin=host\r\nmetric=cpu.steal\r\n```\r\n### Tips\r\n[1] **Pagination**\r\nSometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds\r\n\r\n\r\n[2] **Application filter**\r\nYou can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name\r\n```\r\nquery=entity.application.name:\"Java Applications\"\r\n```\r\n"
+      "description": "This endpoint retrieves the metrics for infrastructure components.\r\n\r\n### Mandatory Parameters\r\n**plugin:** Plugins are entities' for which we collect metrics, for example : \"Host\", \"Cassandra node\", \"Cassandra Connection\".\r\n\r\nThe available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getInfrastructureCatalogPlugins) where we have data for you.\r\n\r\n**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)\r\n\r\nTo make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:\r\n1. Search metrics with a query\r\n  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.\r\n  To get usable search parameters you can either query the search [catalog endpoint](#operation/getInfrastructureCatalogSearchFields) or use the UI\r\n\r\n1. Search for metrics for snapshotIds\r\n  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds.\r\n\r\n**metrics:** Id of the exact metric you want to retrieve, eg. \"cpu.user\", \"clientrequests.read.mean\"\r\n\r\nOnce you have selected the plugin you can define up to five metrics you want to retrieve with the call.\r\nPlease use our [metrics catalog call](#operation/getInfrastructureCatalogMetrics) to get the available metrics for the selected plugin.\r\n\r\n### Optional Parameters\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\n**rollup:** Depending on the selected timeFrame its possible to selected the rollup.\r\n\r\nThe available rollup is depending on two factors:\r\n1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)\r\n\r\n\tFor example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min\r\n1. Size of the selected windowSize\r\n\r\n\tThe limitation is that we only return 600 Data points per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s\r\n\r\nValid rollups are:\r\n\r\n| rollup  | value |\r\n| ------------- | ------------- |\r\n| 1 second  | 1 |\r\n| 5 seconds  | 5  |\r\n| 1 minute  | 60 |\r\n| 5 minutes  | 300  |\r\n| 1 hour  | 3600  |\r\n\r\n\r\n### Defaults\r\n**timeframe:**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**rollup**: 1\r\n\r\n### Limits\r\n1000 Calls per Hour\r\n\r\nTo keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]\r\n\r\nA maximum of 600 data points are returned per metric.\r\n\r\nYou can only retrieve metrics [above](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter. Work around can be found under [2]\r\n\r\nThe following example will return an empty result, because the selected plugin \"host\" is below the dynamic focus filter \"java\" :\r\n```\r\nquery=entity.selfType:java\r\nplugin=host\r\nmetric=cpu.steal\r\n```\r\n### Tips\r\n[1] **Pagination**\r\nSometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds\r\n\r\n\r\n[2] **Application filter**\r\nYou can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name\r\n```\r\nquery=entity.application.name:\"Java Applications\"\r\n```\r\n"
     },
     {
       "name": "Infrastructure Resources"
@@ -160,7 +160,7 @@
     },
     {
       "name": "Synthetic Test Playback Results",
-      "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\nThese endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** The unique identifier of a Synthetic test\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), \n   upload_speed (bytes per second), download_speed (bytes per second), \n   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). \n   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), \n   sending (bytes), waiting (bytes), and receiving (bytes).\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. \n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\nTo narrow down the result set you have three options to search for a test.\n\n**locationId | applicationId**\n\n* *locationId:* filter by locationId\n\n* *applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": \"tUmWgvzdo1Q1vpVRpzR5\",\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), \nresponse_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),\nupload_speed (bytes per second), download_speed (bytes per second),\nredirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).\nThe following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),\nsending (bytes), waiting (bytes), and receiving (bytes).\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is the metric name. \n\n### Sample payload to get a list of Synthetic test results\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```"
+      "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\nThese endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** The unique identifier of a Synthetic test\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), \n   upload_speed (bytes per second), download_speed (bytes per second), \n   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). \n   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), \n   sending (bytes), waiting (bytes), and receiving (bytes).\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. \n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *locationId:* filter by locationId\n\n* *applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": \"tUmWgvzdo1Q1vpVRpzR5\",\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), \nresponse_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),\nupload_speed (bytes per second), download_speed (bytes per second),\nredirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).\nThe following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),\nsending (bytes), waiting (bytes), and receiving (bytes).\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is the metric name. \n\n### Sample payload to get a list of Synthetic test results\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only response_time (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: synthetic_type, location_id, and application_id.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"application_id\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have three options to search for a test.\n\n**synthetic_type | location_id | application_id**\n\n* *synthetic_type:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *location_id:* filter by locationId\n\n* *application_id:* filter by applicationId\n\n### Defaults\n\n**synthetic_type | location_id | application_id**\n* no filters are applied in the default call\n\n### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"response_time\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n* *type* The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR.\n* *name* The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES"
     },
     {
       "name": "Automation Settings"
@@ -8568,6 +8568,42 @@
         ]
       }
     },
+    "/api/synthetics/results/testsummarylist": {
+      "post": {
+        "operationId": "getTestSummaryList",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetTestResult"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResultListResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Experimental - Get a list of Synthetic tests with success rate and average response time data",
+        "tags": [
+          "Synthetic Test Playback Results"
+        ]
+      }
+    },
     "/api/synthetics/results/{testid}/{testresultid}": {
       "get": {
         "operationId": "getSyntheticResultMetadata",
@@ -8617,23 +8653,6 @@
       "get": {
         "operationId": "getSyntheticResultDetailData",
         "parameters": [
-          {
-            "description": "The type of the detailed data. Valid values are SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, HAR.",
-            "in": "query",
-            "name": "type",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "The name of the file to be retrieved, if more than one file available for the same type.\n\nUsed when type equals to LOGS or IMAGES",
-            "in": "query",
-            "name": "name",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "in": "path",
             "name": "testid",
@@ -9858,6 +9877,64 @@
           "relationType"
         ]
       },
+      "Action": {
+        "type": "object",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 0
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Field"
+            }
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "modifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Parameter"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "createdAt",
+          "id",
+          "modifiedAt",
+          "name",
+          "type"
+        ]
+      },
       "AdaptiveBaseline": {
         "type": "object",
         "allOf": [
@@ -10340,7 +10417,7 @@
           "customPayloadFields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StaticStringField"
+              "$ref": "#/components/schemas/CustomPayloadField"
             },
             "maxItems": 20,
             "minItems": 0
@@ -10396,9 +10473,8 @@
             "items": {
               "$ref": "#/components/schemas/TagFilter"
             },
-            "maxItems": 1024,
-            "minItems": 0,
-            "uniqueItems": true
+            "uniqueItems": true,
+            "writeOnly": true
           },
           "threshold": {
             "$ref": "#/components/schemas/Threshold"
@@ -10420,6 +10496,7 @@
           "granularity",
           "name",
           "rule",
+          "tagFilterExpression",
           "threshold",
           "timeThreshold"
         ]
@@ -10462,7 +10539,7 @@
           "customPayloadFields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StaticStringField"
+              "$ref": "#/components/schemas/CustomPayloadField"
             },
             "maxItems": 20,
             "minItems": 0
@@ -10529,9 +10606,8 @@
             "items": {
               "$ref": "#/components/schemas/TagFilter"
             },
-            "maxItems": 1024,
-            "minItems": 0,
-            "uniqueItems": true
+            "uniqueItems": true,
+            "writeOnly": true
           },
           "threshold": {
             "$ref": "#/components/schemas/Threshold"
@@ -10554,6 +10630,7 @@
           "id",
           "name",
           "rule",
+          "tagFilterExpression",
           "threshold",
           "timeThreshold"
         ]
@@ -11421,6 +11498,12 @@
       "CustomEventSpecification": {
         "type": "object",
         "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Action"
+            }
+          },
           "description": {
             "type": "string",
             "maxLength": 32765,
@@ -11476,6 +11559,12 @@
       "CustomEventSpecificationWithLastUpdated": {
         "type": "object",
         "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Action"
+            }
+          },
           "applicationAlertConfigId": {
             "type": "string",
             "maxLength": 64,
@@ -12175,6 +12264,28 @@
           "type"
         ]
       },
+      "Field": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "encoding": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "encoding",
+          "name",
+          "value"
+        ]
+      },
       "FixedHttpPathSegmentMatchingRule": {
         "type": "object",
         "allOf": [
@@ -12842,6 +12953,12 @@
           "tagFilterExpression": {
             "$ref": "#/components/schemas/TagFilterExpression"
           },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
           "testId": {
             "type": "string"
           },
@@ -12850,8 +12967,7 @@
           }
         },
         "required": [
-          "metrics",
-          "testId"
+          "metrics"
         ]
       },
       "GetTestResultList": {
@@ -13145,7 +13261,7 @@
           "customPayloadFields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StaticStringField"
+              "$ref": "#/components/schemas/CustomPayloadField"
             },
             "maxItems": 20,
             "minItems": 0
@@ -13207,15 +13323,6 @@
           "tagFilterExpression": {
             "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
-          "tagFilters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            },
-            "maxItems": 1024,
-            "minItems": 0,
-            "uniqueItems": true
-          },
           "threshold": {
             "$ref": "#/components/schemas/Threshold"
           },
@@ -13237,6 +13344,7 @@
           "id",
           "name",
           "rule",
+          "tagFilterExpression",
           "threshold",
           "timeThreshold"
         ]
@@ -13269,7 +13377,7 @@
           "customPayloadFields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StaticStringField"
+              "$ref": "#/components/schemas/CustomPayloadField"
             },
             "maxItems": 20,
             "minItems": 0
@@ -13320,15 +13428,6 @@
           "tagFilterExpression": {
             "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
-          "tagFilters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            },
-            "maxItems": 1024,
-            "minItems": 0,
-            "uniqueItems": true
-          },
           "threshold": {
             "$ref": "#/components/schemas/Threshold"
           },
@@ -13349,6 +13448,7 @@
           "granularity",
           "name",
           "rule",
+          "tagFilterExpression",
           "threshold",
           "timeThreshold"
         ]
@@ -15130,6 +15230,9 @@
             "type": "integer",
             "format": "int64"
           },
+          "hasEntities": {
+            "type": "boolean"
+          },
           "hostCount": {
             "type": "integer",
             "format": "int32"
@@ -15340,6 +15443,17 @@
             "minimum": 1
           }
         }
+      },
+      "Parameter": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
       },
       "PathParameterHttpPathSegmentMatchingRule": {
         "type": "object",
@@ -17422,12 +17536,9 @@
         },
         "required": [
           "active",
-          "applicationId",
-          "applicationLabel",
           "frequency",
           "id",
           "label",
-          "serviceId",
           "type"
         ]
       },
@@ -17479,7 +17590,6 @@
         },
         "required": [
           "clientId",
-          "locationId",
           "testId"
         ]
       },
@@ -18547,14 +18657,16 @@
             "type": "integer",
             "format": "int32"
           },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
           "tagFilters": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TagFilter"
             },
-            "maxItems": 1024,
-            "minItems": 0,
-            "uniqueItems": true
+            "uniqueItems": true,
+            "writeOnly": true
           },
           "threshold": {
             "$ref": "#/components/schemas/Threshold"
@@ -18578,6 +18690,7 @@
           "granularity",
           "name",
           "rule",
+          "tagFilterExpression",
           "threshold",
           "timeThreshold",
           "websiteId"
@@ -18648,14 +18761,16 @@
             "type": "integer",
             "format": "int32"
           },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
           "tagFilters": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TagFilter"
             },
-            "maxItems": 1024,
-            "minItems": 0,
-            "uniqueItems": true
+            "uniqueItems": true,
+            "writeOnly": true
           },
           "threshold": {
             "$ref": "#/components/schemas/Threshold"
@@ -18680,6 +18795,7 @@
           "id",
           "name",
           "rule",
+          "tagFilterExpression",
           "threshold",
           "timeThreshold",
           "websiteId"
