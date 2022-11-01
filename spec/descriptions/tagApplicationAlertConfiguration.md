@@ -90,6 +90,4 @@ The API endpoints of this group can be used to manage Application alert configur
 
 ## Deprecated Parameters
 
-- **tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**.
-
 - **applicationId:** Unique ID of the Application Perspective. It is replaced by **applications**.

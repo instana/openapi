@@ -13,7 +13,7 @@ To make the it easy to get started this endpoint has two modes that can be used 
   To get usable search parameters you can either query the search [catalog endpoint](#operation/getInfrastructureCatalogSearchFields) or use the UI
 
 1. Search for metrics for snapshotIds
-  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds. This also pushes the API call limit for this endpoint from 500 to 1000 calls per Minute
+  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds.
 
 **metrics:** Id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"
 
@@ -61,7 +61,6 @@ Valid rollups are:
 **rollup**: 1
 
 ### Limits
-500 Calls per Hour
 1000 Calls per Hour
 
 To keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]
