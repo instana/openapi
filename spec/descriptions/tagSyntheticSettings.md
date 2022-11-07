@@ -9,7 +9,7 @@ These endpoints are only available for invited customers for the Synthetic Monit
 - **playbackCapability** The playback capabilities provided by this location resource.
   The playbackCapability object has the following properties: 
   - **syntheticType** Different types of synthetic tests that can be executed at this location. 
-    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, and WebpageScript. 
+    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and DNSAction. 
     The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.
   - **browserType** Different types of supported Web browsers when creating synthetic tests for  WebpageAction and WebpageScript. 
     Currently, only firefox is supported
@@ -28,11 +28,11 @@ These endpoints are only available for invited customers for the Synthetic Monit
 - **applicationId** Unique identifier of the Application Perspective.
 - **configuration** An object which has two properties: syntheticType and the corresponding configuration object:
     - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
-      and WebpageScript. The locations assigned to execute this Synthetic
+      WebpageScript, and DNSAction. The locations assigned to execute this Synthetic
       test must support this syntheticType, i.e. the location's playbackCapabilities property.
     - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check "Hide Synthetic Calls" checkbox to hide/show them in UI.
     - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
-      BrowserScriptConfiguration, WebpageActionConfiguration, and WebpageScriptConfiguration. Right now, only HTTPActionConfiguration
+      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and DNSActionConfiguration. Right now, only HTTPActionConfiguration
       and HTTPScriptConfiguration are supported.
         - **HTTPActionConfiguration** has the following properties:
             - **url** The URL is being tested. It is required.
