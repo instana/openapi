@@ -4,7 +4,7 @@ This endpoint creates a new Custom Event Specification.
 
 - **name:** Name for the custom event
 
-- **entityType:** Name of tha available plugins for the selected source
+- **entityType:** Name of the available plugins for the selected source
 
 - **rules.ruleType:** Type of the rule being set for the custom event
 
