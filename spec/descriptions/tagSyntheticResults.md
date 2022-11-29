@@ -6,7 +6,8 @@ The endpoint returns the aggregated Synthetic test result data
 
 ### Mandatory Parameters  
 
-**testId** The unique identifier of a Synthetic test
+**testId** An array of the unique identifiers of Synthetic tests
+
 **metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
 1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: 
    response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), 
@@ -69,7 +70,7 @@ To narrow down the result set you have two options to search for a test.
 ### Sample payload to get a Synthetic test result
 ```
 {
-    "testId": "tUmWgvzdo1Q1vpVRpzR5",
+    "testId": ["tUmWgvzdo1Q1vpVRpzR5", "Pg0Q1UqHRd7OMysohVLd"],
     "//comment1": "Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)",
     "//comment2": "The granularity values for response_time and response_size must be the same
     "metrics": [
@@ -212,5 +213,11 @@ To narrow down the result set you have three options to search for a test.
 ## Get Synthetic test playback result detail data
 
 ### Query Parameters
-* *type* The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR.
-* *name* The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES
+**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR.
+
+**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES
+
+## Download a Synthetic test playback result detail data file
+
+### Query Parameter
+**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR.
