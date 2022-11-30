@@ -32,7 +32,7 @@ These endpoints are only available for invited customers for the Synthetic Monit
       test must support this syntheticType, i.e. the location's playbackCapabilities property.
     - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check "Hide Synthetic Calls" checkbox to hide/show them in UI.
     - **retries** An integer type from 0 to 2, 0 by default.
-      It indicates how many attempts (max 10) will be allowed
+      It indicates how many attempts (max 2) will be allowed
       to get a successful connection (not necessarily a successful result).
       Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.
     - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.
