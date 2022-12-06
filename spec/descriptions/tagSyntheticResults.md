@@ -213,7 +213,7 @@ To narrow down the result set you have three options to search for a test.
 ## Get Synthetic test playback result detail data
 
 ### Query Parameters
-**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR.
+**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.
 
 **name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES
 
