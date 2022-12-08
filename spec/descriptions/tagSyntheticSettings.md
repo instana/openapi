@@ -76,4 +76,4 @@ These endpoints are only available for invited customers for the Synthetic Monit
   Synthetic tests run from a different location at each interval.
   Default is Staggered.
 - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
-  The default is every 15 minutes. 
+  The default is every 15 minutes. The range is from 1 minute to 120 minutes.
