@@ -74,6 +74,6 @@ These endpoints are only available for invited customers for the Synthetic Monit
   PoPs. Possible values are Simultaneous or Staggered. Simultaneous
   Synthetic tests run at all locations simultaneously. Staggered
   Synthetic tests run from a different location at each interval.
-  Default is Staggered.
+  This property is optional, and its default value is Simultaneous.
 - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
   The default is every 15 minutes. The range is from 1 minute to 120 minutes.
