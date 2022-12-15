@@ -117,8 +117,14 @@ sending (bytes), waiting (bytes), and receiving (bytes).
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is the metric name. 
+It will be replaced by **tagFilterExpression**.
 
-### Sample payload to get a list of Synthetic test results
+**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with 
+logical operators AND or OR.`
+
+A payload only needs either tagFilters or tagFilterExpression as a filter, not both. 
+
+### Sample payload to get a list of Synthetic test results with tagFilters
 ```json
 {
   "syntheticMetrics":["response_time","response_size"],
@@ -131,6 +137,34 @@ sending (bytes), waiting (bytes), and receiving (bytes).
     "name":"testId",
     "operator":"EQUALS"
   }],
+  "timeFrame": {
+    "to": 0,
+    "windowSize": 1800000
+  }
+}
+```
+
+### Sample payload to get a list of Synthetic test results with tagFilterExpression
+```json
+{
+  "syntheticMetrics":["response_time","response_size"],
+  "order":{
+    "by":"response_time",
+    "direction":"DESC"
+  },
+  "tagFilterExpression": { 
+    "type":"EXPRESSION",
+    "logicalOperator":"AND",
+    "elements":[{
+      "stringValue":"hYziqsaXSJmQsehOWg1S",
+      "name":"testId",
+      "operator":"EQUALS"
+    }, {
+      "name": "location_id", 
+      "operator": "EQUALS", 
+      "stringValue": "abcdefgXSJmQsehOWg1S"
+    }]
+  },
   "timeFrame": {
     "to": 0,
     "windowSize": 1800000
@@ -171,6 +205,7 @@ The endpoint returns a list of Synthetic tests with Success Rate and Average Res
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: synthetic_type, location_id, and application_id.
+It will be replaced by **tagFilterExpression**.
 ```
 "tagFilters":[{
   "stringValue":"hYziqsaXSJmQsehOWg1S",
@@ -178,6 +213,26 @@ The endpoint returns a list of Synthetic tests with Success Rate and Average Res
   "operator":"EQUALS"
 }]
 ```
+
+**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with
+logical operators AND or OR.
+```
+"tagFilterExpression": { 
+  "type":"EXPRESSION",
+  "logicalOperator":"AND",
+  "elements":[{
+    "name": "status", 
+    "operator": "EQUALS", 
+    "numberValue": 1
+  }, {
+    "name": "location_id", 
+    "operator": "EQUALS", 
+    "stringValue":"WnjlKKbgzLDnyGra6PAs"
+  }]
+}
+```
+
+A payload only needs either tagFilters or tagFilterExpression as a filter, not both.
 
 To narrow down the result set you have three options to search for a test.
 
