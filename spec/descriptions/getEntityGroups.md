@@ -1,7 +1,7 @@
 This endpoint groups entities for a given filter and aggregates metrics for these groups
 
 ```
-curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/analyze/metrics' \
+curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/analyze/entity-groups' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: apiToken <Token>' \
 --data-raw '{
