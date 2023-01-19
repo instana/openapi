@@ -17,28 +17,28 @@ curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/ana
   "pagination": { "retrievalSize": 20, "fullData": false },
   "groupBy": ["host.name"],
   "type": "jvmRuntimePlatform",
-  "metrics": {
-    "memory.used.MEAN": {
+  "metrics": [
+    {
       "metric": "memory.used",
       "granularity": 3600000,
       "aggregation": "MEAN"
     },
-    "memory.used.MEAN.series": {
+    {
       "metric": "memory.used",
       "granularity": 600000,
       "aggregation": "MEAN"
     },
-    "threads.blocked.MEAN": {
+    {
       "metric": "threads.blocked",
       "granularity": 3600000,
       "aggregation": "MEAN"
     },
-    "threads.blocked.MEAN.series": {
+    {
       "metric": "threads.blocked",
       "granularity": 600000,
       "aggregation": "MEAN"
     }
-  },
+  ],
   "order": { "by": "label", "direction": "ASC" }
 }'
 ```
