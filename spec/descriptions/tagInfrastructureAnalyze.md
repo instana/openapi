@@ -1,5 +1,5 @@
 This endpoint group exposes the functions that used by the Instana **Analyze Infrastructure** dashboards.
-Two endpoints allow to [list entity types](#operation/getAvailablePlugins) and [metrics for an entity type](#operation/getAvailableMetrics)
+Two of the endpoints provide a [list of entity types](#operation/getAvailablePlugins) and [metrics for an entity type](#operation/getAvailableMetrics).
 It is possible to [search and filter entities](#operation/getEntities) and even to [aggregate metrics on similar entities](#operation/getEntityGroups)
 
 ## Common Parameters
