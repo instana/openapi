@@ -42,4 +42,4 @@ curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/ana
   "order": { "by": "label", "direction": "ASC" }
 }'
 ```
-This above example retrieves JVM entities grouped with the same host name, aggregating memory used and blocked threads, with aggregates on the whole hour timeframe and by the minute.
+This above example retrieves JVM entities grouped with the same host name, aggregating memory used and blocked threads (both using a one hour granularity and a one minute granularity).

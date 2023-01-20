@@ -41,4 +41,4 @@ curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/ana
   ]
 }'
 ```
-The above example retrieves JVM entities ordered by label with metrics on memory and threads aggregated the whole hour timeframe and aggregated by the minute.
+The above example retrieves JVM entities ordered by label with metrics for memory used and blocked threads (both using a one hour granularity and a one minute granularity).
