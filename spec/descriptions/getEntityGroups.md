@@ -1,1 +1,0 @@
-This endpoint groups entities for a given entity type and aggregates metrics for these groups.

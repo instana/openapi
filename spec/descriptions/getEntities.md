@@ -1,1 +1,0 @@
-This endpoint retrieves entities for a given entity type along with the requested metrics.

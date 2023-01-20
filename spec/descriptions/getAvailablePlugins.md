@@ -1,1 +1,0 @@
-This endpoint retrieves available entity types.
