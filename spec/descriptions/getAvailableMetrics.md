@@ -1,4 +1,4 @@
-This endpoint retrieves available metrics on an entity type
+This endpoint retrieves available metrics for an entity type.
 
 ```
 curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/analyze/metrics' \
@@ -18,4 +18,4 @@ curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/ana
   "type": "jvmRuntimePlatform"
 }'
 ```
-The above example retrieves all available metrics on JVM entities.
+The above example retrieves all available metrics for JVM entities.

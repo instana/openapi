@@ -1,4 +1,4 @@
-This endpoint retrieves entities for a given filter along with requested metrics
+This endpoint retrieves entities for a given entity type along with the requested metrics.
 
 ```
 curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/analyze/entities' \

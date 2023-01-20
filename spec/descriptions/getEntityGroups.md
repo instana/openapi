@@ -1,4 +1,4 @@
-This endpoint groups entities for a given filter and aggregates metrics for these groups
+This endpoint groups entities for a given entity type and aggregates metrics for these groups.
 
 ```
 curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/analyze/entity-groups' \

@@ -1,4 +1,4 @@
-This endpoint retrieves available entity types
+This endpoint retrieves available entity types.
 
 ```
 curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/analyze/entity-types' \
@@ -16,4 +16,4 @@ curl --location --request POST 'https://<Host>/api/infrastructure-monitoring/ana
   }
 }'
 ```
-The above example retrieves all entity types
+The above example retrieves all entity types.
