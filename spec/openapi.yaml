@@ -2,11 +2,11 @@ openapi: 3.0.1
 info:
   contact:
     email: support@instana.com
-    name: © Instana
+    name: ?? Instana
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.236.406
+  version: 1.0.0-SNAPSHOT
   x-description: info
   x-logo:
     altText: instana logo
@@ -23,6 +23,8 @@ servers:
       default: unit
       description: Customer tenant name
 tags:
+- name: Infrastructure Analyze
+  x-description: tagInfrastructureAnalyze
 - name: Infrastructure Metrics
   x-description: tagInfrastructureMetrics
 - name: Infrastructure Resources
@@ -67,6 +69,10 @@ tags:
   x-description: tagApplicationAlertConfiguration
 - name: Global Application Alert Configuration
   x-description: tagGlobalApplicationAlertConfiguration
+- name: Infrastructure Alert Configuration
+  x-description: tagInfrastructureAlertConfiguration
+- name: Synthetic Alert Configuration
+  x-description: tagSyntheticAlertConfiguration
 - name: Host Agent
   x-description: tagHostAgent
 - name: User
@@ -322,6 +328,11 @@ paths:
           enum:
           - ALL
           - INBOUND
+      - description: Include snapshot ids in the results
+        in: query
+        name: includeSnapshotIds
+        schema:
+          type: boolean
       responses:
         default:
           content:
@@ -571,6 +582,10 @@ paths:
         name: fillTimeSeries
         schema:
           type: boolean
+      - in: query
+        name: includeSnapshotIds
+        schema:
+          type: boolean
       requestBody:
         content:
           application/json:
@@ -623,6 +638,11 @@ paths:
         schema:
           type: integer
           format: int32
+      - description: Include snapshot ids in the results
+        in: query
+        name: includeSnapshotIds
+        schema:
+          type: boolean
       responses:
         default:
           content:
@@ -1256,7 +1276,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UserResult'
+                  $ref: '#/components/schemas/UserBasicResult'
       security:
       - ApiKeyAuth:
         - Default
@@ -1863,6 +1883,25 @@ paths:
       summary: Restore Application Alert Config
       tags:
       - Application Alert Configuration
+  /api/events/settings/application-alert-configs/{id}/update-baseline:
+    post:
+      description: Recalculate and update the baseline given the id of the config.
+        The LastUpdated field of the config is changed to the current time.
+      operationId: updateApplicationHistoricBaseline
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Recalculate a Static Seasonal Threshold
+      tags:
+      - Application Alert Configuration
   /api/events/settings/application-alert-configs/{id}/versions:
     get:
       description: Find all versions of a Application Alert Config by ID. This will
@@ -1905,6 +1944,16 @@ paths:
       - Event Settings
     get:
       operationId: getCustomPayloadConfigurations
+      parameters:
+      - in: query
+        name: context
+        schema:
+          type: string
+          default: ALL
+          enum:
+          - ALL
+          - APPLICATION
+          - WEBSITE
       responses:
         default:
           content:
@@ -2743,6 +2792,28 @@ paths:
       summary: Restore Website Alert Config
       tags:
       - Event Settings
+  /api/events/settings/website-alert-configs/{id}/update-baseline:
+    post:
+      description: Recalculate and update the baseline given the id of the config.
+        The LastUpdated field of the config is changed to the current time.
+      operationId: updateWebsiteHistoricBaseline
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureCustomAlerts
+      summary: Recalculate a Static Seasonal Threshold
+      tags:
+      - Event Settings
   /api/events/settings/website-alert-configs/{id}/versions:
     get:
       description: Find all versions of a Website Alert Config by ID. This will deliver
@@ -2992,6 +3063,193 @@ paths:
       summary: Get host agent snapshot details
       tags:
       - Host Agent
+  /api/infrastructure-monitoring/analyze/entities:
+    post:
+      description: This endpoint retrieves entities for a given entity type along
+        with the requested metrics.
+      operationId: getEntities
+      requestBody:
+        content:
+          application/json:
+            examples:
+              ? This example retrieves JVM entities ordered by label with metrics
+                for memory used and blocked threads (both using a one hour granularity
+                and a one minute granularity).
+              : description: This example retrieves JVM entities ordered by label
+                  with metrics for memory used and blocked threads (both using a one
+                  hour granularity and a one minute granularity).
+                value:
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: AND
+                    elements: []
+                  timeFrame:
+                    to: 1673969562715
+                    windowSize: 3600000
+                  order:
+                    by: label
+                    direction: ASC
+                  pagination:
+                    retrievalSize: 200
+                    fullData: false
+                  type: jvmRuntimePlatform
+                  metrics:
+                  - metric: memory.used
+                    granularity: 3600000
+                    aggregation: MEAN
+                  - metric: memory.used
+                    granularity: 600000
+                    aggregation: MEAN
+                  - metric: threads.blocked
+                    granularity: 3600000
+                    aggregation: MEAN
+                  - metric: threads.blocked
+                    granularity: 600000
+                    aggregation: MEAN
+            schema:
+              $ref: '#/components/schemas/GetInfrastructureQuery'
+        x-payload: getInfrastructureQuery
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureEntitiesResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get infrastructure entities
+      tags:
+      - Infrastructure Analyze
+  /api/infrastructure-monitoring/analyze/entity-groups:
+    post:
+      description: This endpoint groups entities for a given entity type and aggregates
+        metrics for these groups.
+      operationId: getEntityGroups
+      requestBody:
+        content:
+          application/json:
+            examples:
+              ? This example retrieves JVM entities grouped with the same host name,
+                aggregating memory used and blocked threads (both using a one hour
+                granularity and a one minute granularity).
+              : description: "This example retrieves JVM entities grouped with the\
+                  \ same host name, aggregating memory used and blocked threads (both\
+                  \ using a one hour granularity and a one minute granularity)."
+                value:
+                  timeFrame:
+                    to: 1674075565075
+                    windowSize: 3600000
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: AND
+                    elements: []
+                  pagination:
+                    retrievalSize: 20
+                    fullData: false
+                  groupBy:
+                  - host.name
+                  type: jvmRuntimePlatform
+                  metrics:
+                  - metric: memory.used
+                    granularity: 3600000
+                    aggregation: MEAN
+                  - metric: memory.used
+                    granularity: 600000
+                    aggregation: MEAN
+                  - metric: threads.blocked
+                    granularity: 3600000
+                    aggregation: MEAN
+                  - metric: threads.blocked
+                    granularity: 600000
+                    aggregation: MEAN
+                  order:
+                    by: label
+                    direction: ASC
+            schema:
+              $ref: '#/components/schemas/GetInfrastructureGroupsQuery'
+        x-payload: GetInfrastructureGroupsQuery
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureGroupsResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get grouped infrastructure entities with aggregated metrics
+      tags:
+      - Infrastructure Analyze
+  /api/infrastructure-monitoring/analyze/entity-types:
+    post:
+      description: This endpoint retrieves available entity types.
+      operationId: getAvailablePlugins
+      requestBody:
+        content:
+          application/json:
+            examples:
+              This example retrieves all entity types.:
+                description: This example retrieves all entity types.
+                value:
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: AND
+                    elements: []
+                  timeFrame:
+                    to: 1673969562715
+                    windowSize: 3600000
+            schema:
+              $ref: '#/components/schemas/GetAvailablePluginsQuery'
+        x-payload: GetAvailablePluginsQuery
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailablePlugins'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get available entity types
+      tags:
+      - Infrastructure Analyze
+  /api/infrastructure-monitoring/analyze/metrics:
+    post:
+      description: This endpoint retrieves available metrics for an entity type.
+      operationId: getAvailableMetrics
+      requestBody:
+        content:
+          application/json:
+            examples:
+              This example retrieves all available metrics for JVM entities.:
+                description: This example retrieves all available metrics for JVM
+                  entities.
+                value:
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: AND
+                    elements: []
+                  timeFrame:
+                    to: 1673969562715
+                    windowSize: 3600000
+                  query: ""
+                  type: jvmRuntimePlatform
+            schema:
+              $ref: '#/components/schemas/GetAvailableMetricsQuery'
+        x-payload: GetAvailableMetricsQuery
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableMetrics'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get available metrics
+      tags:
+      - Infrastructure Analyze
   /api/infrastructure-monitoring/catalog/metrics/{plugin}:
     get:
       operationId: getInfrastructureCatalogMetrics
@@ -4013,7 +4271,7 @@ paths:
         - ViewAuditLog
       summary: Access log
       tags:
-      - Access Log
+      - Audit Log
   /api/settings/api-tokens:
     get:
       operationId: getApiTokens
@@ -5139,7 +5397,9 @@ paths:
       - in: query
         name: name
         schema:
-          type: string
+          type: array
+          items:
+            type: string
       responses:
         default:
           content:
@@ -5150,6 +5410,36 @@ paths:
       - ApiKeyAuth:
         - Default
       summary: Experimental - Get Synthetic test playback result detail data
+      tags:
+      - Synthetic Test Playback Results
+  /api/synthetics/results/{testid}/{testresultid}/file:
+    get:
+      operationId: getSyntheticResultDetailDataFile
+      parameters:
+      - in: path
+        name: testid
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: testresultid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: type
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/octet-stream: {}
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Experimental - Download the synthetic test playback result detail data
+        file
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/settings/locations:
@@ -5767,6 +6057,7 @@ components:
           OPS_GENIE: '#/components/schemas/OpsgenieIntegration'
           PAGER_DUTY: '#/components/schemas/PagerdutyIntegration'
           PROMETHEUS_WEBHOOK: '#/components/schemas/PrometheusWebhookIntegration'
+          SERVICE_NOW_WEBHOOK: '#/components/schemas/ServiceNowIntegration'
           SLACK: '#/components/schemas/SlackIntegration'
           SPLUNK: '#/components/schemas/SplunkIntegration'
           VICTOR_OPS: '#/components/schemas/VictorOpsIntegration'
@@ -5881,6 +6172,10 @@ components:
           type: string
           maxLength: 128
           minLength: 1
+        inputParameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parameter'
         modifiedAt:
           type: string
           format: date-time
@@ -5888,7 +6183,7 @@ components:
           type: string
           maxLength: 128
           minLength: 1
-        parameters:
+        outputParameters:
           type: array
           items:
             $ref: '#/components/schemas/Parameter'
@@ -6457,9 +6752,6 @@ components:
           type: string
         metricName:
           type: string
-        stableHash:
-          type: integer
-          format: int32
       required:
       - alertType
       - metricName
@@ -6622,7 +6914,7 @@ components:
       type: object
       discriminator:
         mapping:
-          requestImpact: '#/components/schemas/RequestImpactApplicationTimeThreshold'
+          requestImpact: '#/components/schemas/TraceImpactApplicationTimeThreshold'
           violationsInPeriod: '#/components/schemas/ViolationsInPeriodApplicationTimeThreshold'
           violationsInSequence: '#/components/schemas/ViolationsInSequenceApplicationTimeThreshold'
         propertyName: type
@@ -6719,6 +7011,22 @@ components:
             type: string
       required:
       - boundaryScope
+    AvailableMetrics:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricMetadata'
+          uniqueItems: true
+    AvailablePlugins:
+      type: object
+      properties:
+        plugins:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
     BackendTraceReference:
       type: object
       properties:
@@ -6978,6 +7286,15 @@ components:
           format: int32
           maximum: 200
           minimum: 1
+    CursorPaginationInfraExploreCursor:
+      type: object
+      properties:
+        cursor:
+          $ref: '#/components/schemas/InfraExploreCursor'
+        retrievalSize:
+          type: integer
+          format: int32
+          description: number of values to return
     CustomDashboard:
       type: object
       properties:
@@ -7058,16 +7375,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AbstractRule'
-          maxItems: 1
+          maxItems: 5
           minItems: 1
-          uniqueItems: true
         triggering:
           type: boolean
-        validVersion:
-          type: integer
-          format: int32
-          maximum: 1
-          minimum: 0
       required:
       - entityType
       - name
@@ -7120,16 +7431,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AbstractRule'
-          maxItems: 1
+          maxItems: 5
           minItems: 1
-          uniqueItems: true
         triggering:
           type: boolean
-        validVersion:
-          type: integer
-          format: int32
-          maximum: 1
-          minimum: 0
       required:
       - entityType
       - id
@@ -7187,6 +7492,57 @@ components:
           minimum: 1
       required:
       - fields
+    DNSActionConfiguration:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+      - type: object
+        properties:
+          acceptCNAME:
+            type: boolean
+          lookup:
+            type: string
+          lookupServerName:
+            type: boolean
+          port:
+            type: integer
+            format: int32
+          queryType:
+            type: string
+            enum:
+            - A
+            - AAAA
+            - ANY
+            - AXFR
+            - CNAME
+            - HINFO
+            - MAILB
+            - MAILA
+            - MINFO
+            - MB
+            - MD
+            - MF
+            - MG
+            - MR
+            - MX
+            - "NULL"
+            - NS
+            - PTR
+            - SOA
+            - TXT
+            - WKS
+          recursiveLookups:
+            type: boolean
+          server:
+            type: string
+          serverRetries:
+            type: integer
+            format: int32
+      required:
+      - lookup
+      - markSyntheticCall
+      - server
+      - syntheticType
     DeprecatedTagFilter:
       type: object
       properties:
@@ -7395,6 +7751,21 @@ components:
         totalHits:
           type: integer
           format: int32
+    EntityHealthInfo:
+      type: object
+      properties:
+        maxSeverity:
+          type: number
+          format: double
+          maximum: 10
+          minimum: 0
+        openIssues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+          uniqueItems: true
+      required:
+      - openIssues
     EntityId:
       type: object
       properties:
@@ -7442,6 +7813,66 @@ components:
       - $ref: '#/components/schemas/ApplicationAlertRule'
       required:
       - metricName
+    Event:
+      type: object
+      properties:
+        end:
+          type: integer
+          format: int64
+          minimum: 1
+        endpointServiceId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        entityId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        entityType:
+          type: string
+          enum:
+          - Entity10
+          - App20
+          - Service20
+          - Endpoint20
+          - Website
+          - Synthetic
+        id:
+          type: string
+          maxLength: 64
+          minLength: 0
+        metadata:
+          type: object
+          additionalProperties:
+            type: object
+        metricAccessId:
+          type: string
+          maxLength: 64
+          minLength: 0
+        plugin:
+          type: string
+          maxLength: 256
+          minLength: 0
+        problem:
+          $ref: '#/components/schemas/Problem'
+        start:
+          type: integer
+          format: int64
+          minimum: 1
+        state:
+          type: string
+          maxLength: 8
+          minLength: 0
+        type:
+          type: string
+          maxLength: 64
+          minLength: 0
+      required:
+      - entityId
+      - id
+      - plugin
+      - state
+      - type
     EventFilteringConfiguration:
       type: object
       properties:
@@ -7529,9 +7960,6 @@ components:
           format: int64
         state:
           type: string
-        triggeringTime:
-          type: integer
-          format: int64
         type:
           type: string
     EventSpecificationInfo:
@@ -7579,6 +8007,8 @@ components:
           type: string
         name:
           type: string
+        secured:
+          type: boolean
         value:
           type: string
       required:
@@ -7764,6 +8194,30 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
       - metrics
+    GetAvailableMetricsQuery:
+      type: object
+      properties:
+        query:
+          type: string
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        type:
+          type: string
+      required:
+      - tagFilterExpression
+      - timeFrame
+    GetAvailablePluginsQuery:
+      type: object
+      properties:
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+      required:
+      - tagFilterExpression
+      - timeFrame
     GetCallGroups:
       type: object
       properties:
@@ -7887,6 +8341,61 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
       - metrics
+    GetInfrastructureGroupsQuery:
+      type: object
+      properties:
+        groupBy:
+          type: array
+          items:
+            type: string
+          maxItems: 1
+          minItems: 0
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/InfraMetricConfiguration'
+          maxItems: 10
+          minItems: 0
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/CursorPaginationInfraExploreCursor'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        type:
+          type: string
+          description: Type of entities
+      required:
+      - groupBy
+      - pagination
+      - tagFilterExpression
+      - timeFrame
+    GetInfrastructureQuery:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/InfraMetricConfiguration'
+          maxItems: 10
+          minItems: 0
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/CursorPaginationInfraExploreCursor'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+        type:
+          type: string
+          description: Type of entities
+      required:
+      - pagination
+      - tagFilterExpression
+      - timeFrame
     GetMobileAppBeaconGroups:
       type: object
       properties:
@@ -8076,7 +8585,9 @@ components:
           items:
             $ref: '#/components/schemas/TagFilter'
         testId:
-          type: string
+          type: array
+          items:
+            type: string
         timeFrame:
           $ref: '#/components/schemas/TimeFrame'
       required:
@@ -8096,6 +8607,8 @@ components:
           type: array
           items:
             type: string
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
         tagFilters:
           type: array
           items:
@@ -8748,6 +9261,159 @@ components:
       type: object
       allOf:
       - $ref: '#/components/schemas/EventResult'
+    InfraExploreCursor:
+      type: object
+    InfraMetricConfiguration:
+      type: object
+      properties:
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - P99_9
+          - P99_99
+          - DISTRIBUTION
+          - DISTINCT_COUNT
+          - SUM_POSITIVE
+          - PER_SECOND
+        crossSeriesAggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - P99_9
+          - P99_99
+          - DISTRIBUTION
+          - DISTINCT_COUNT
+          - SUM_POSITIVE
+          - PER_SECOND
+        granularity:
+          type: integer
+          format: int32
+          description: |2
+               * If granularity is not specified an aggregated value for the selected timeframe is returned.
+               * If granularity is specified data points are returned with the specified granularity **in seconds**
+                * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)
+                * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)
+          title: granularity in seconds
+        metric:
+          type: string
+      required:
+      - aggregation
+      - metric
+    InfrastructureEntitiesResult:
+      type: object
+      properties:
+        adjustedTimeframe:
+          $ref: '#/components/schemas/AdjustedTimeframe'
+        canLoadMore:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InfrastructureItem'
+        next:
+          $ref: '#/components/schemas/InfraExploreCursor'
+        totalHits:
+          type: integer
+          format: int64
+          minimum: 0
+        totalRepresentedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
+        totalRetainedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
+      required:
+      - items
+    InfrastructureGroup:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int64
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+        tags:
+          type: object
+          additionalProperties:
+            type: object
+    InfrastructureGroupsResult:
+      type: object
+      properties:
+        adjustedTimeframe:
+          $ref: '#/components/schemas/AdjustedTimeframe'
+        canLoadMore:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InfrastructureGroup'
+        next:
+          $ref: '#/components/schemas/InfraExploreCursor'
+        totalHits:
+          type: integer
+          format: int64
+          minimum: 0
+        totalRepresentedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
+        totalRetainedItemCount:
+          type: integer
+          format: int64
+          minimum: 0
+      required:
+      - items
+    InfrastructureItem:
+      type: object
+      properties:
+        entityHealthInfo:
+          $ref: '#/components/schemas/EntityHealthInfo'
+        label:
+          type: string
+        metrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+        plugin:
+          type: string
+        snapshotId:
+          type: string
+        time:
+          type: integer
+          format: int64
     InfrastructureMetricResult:
       type: object
       properties:
@@ -8757,15 +9423,6 @@ components:
             $ref: '#/components/schemas/MetricItem'
     IngestionOffsetCursor:
       type: object
-      properties:
-        ingestionTime:
-          type: integer
-          format: int64
-          minimum: 0
-        offset:
-          type: integer
-          format: int32
-          minimum: 0
     InstanaVersionInfo:
       type: object
       properties:
@@ -9229,6 +9886,90 @@ components:
         to:
           type: integer
           format: int64
+    MetricMetadata:
+      type: object
+      properties:
+        category:
+          type: string
+        crossSeriesAggregations:
+          type: array
+          items:
+            type: string
+            enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - P99_9
+            - P99_99
+            - DISTRIBUTION
+            - DISTINCT_COUNT
+            - SUM_POSITIVE
+            - PER_SECOND
+          uniqueItems: true
+        description:
+          type: string
+        format:
+          type: string
+          enum:
+          - NUMBER
+          - BYTES
+          - PERCENTAGE
+          - LATENCY
+          - MILLIS
+          - SECONDS
+          - MICROS
+          - RATE
+          - BYTE_RATE
+          - UNDEFINED
+        id:
+          type: string
+        infraTagCategory:
+          type: string
+          enum:
+          - OTHERS
+          - KUBERNETES
+          - CLOUD_FOUNDRY
+          - VSHPERE
+          - ALICLOUD
+          - AWS
+          - AZURE
+          - GCP
+          - CONTAINER
+          - SELF_MONITORING
+          - IBM_CLOUD
+          - IBM_DATAPOWER
+          - IBM_I_SERIES
+          - IBM_MQ
+          - IBM_OPENSTACK
+          - IBM_MQMFT
+          - CLR
+          - ACE
+          - CASSANDRA
+          - COCKROACH
+          - CONSUL
+          - COUCHBASE
+          - ELASTICSEARCH
+          - HADOOP_YARN
+          - HAZELCAST
+          - KAFKA_CONNECT
+          - MONGO_DB
+          - REDIS
+          - SOLR
+          - SPARK
+        label:
+          type: string
+        ownerType:
+          type: string
+      required:
+      - infraTagCategory
     MetricPattern:
       type: object
       properties:
@@ -9884,10 +10625,29 @@ components:
     Parameter:
       type: object
       properties:
+        description:
+          type: string
+        hidden:
+          type: boolean
+        label:
+          type: string
         name:
           type: string
+        required:
+          type: boolean
+        secured:
+          type: boolean
+        type:
+          type: string
+        value:
+          type: string
+        valueType:
+          type: string
       required:
+      - label
       - name
+      - type
+      - valueType
     PathParameterHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -9921,6 +10681,26 @@ components:
           type: string
         plugin:
           type: string
+    Problem:
+      type: object
+      properties:
+        fixSuggestion:
+          type: string
+          maxLength: 65536
+          minLength: 0
+        id:
+          type: string
+          maxLength: 64
+          minLength: 0
+        problemText:
+          type: string
+          maxLength: 2048
+          minLength: 0
+        severity:
+          type: integer
+          format: int32
+      required:
+      - id
     PrometheusWebhookIntegration:
       type: object
       allOf:
@@ -10012,16 +10792,6 @@ components:
       required:
       - id
       - name
-    RequestImpactApplicationTimeThreshold:
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/ApplicationTimeThreshold'
-      - type: object
-        properties:
-          requests:
-            type: integer
-            format: int32
-            minimum: 1
     RuleInput:
       type: object
       properties:
@@ -10093,6 +10863,11 @@ components:
           type: integer
           format: int32
           minimum: 0
+        snapshotIds:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
         technologies:
           type: array
           items:
@@ -10122,6 +10897,7 @@ components:
       - applications
       - id
       - label
+      - snapshotIds
       - technologies
       - types
     ServiceConfig:
@@ -10265,6 +11041,25 @@ components:
       required:
       - endpoints
       - serviceId
+    ServiceNowIntegration:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AbstractIntegration'
+      - type: object
+        properties:
+          password:
+            type: string
+          serviceNowUrl:
+            type: string
+          username:
+            type: string
+      required:
+      - id
+      - kind
+      - name
+      - password
+      - serviceNowUrl
+      - username
     ServiceResult:
       type: object
       properties:
@@ -10351,8 +11146,6 @@ components:
           webhookUrl:
             type: string
       required:
-      - channel
-      - iconUrl
       - id
       - kind
       - name
@@ -10851,6 +11644,8 @@ components:
     SyntheticLocation:
       type: object
       properties:
+        configuration:
+          $ref: '#/components/schemas/SyntheticLocationConfiguration'
         createdAt:
           type: integer
           format: int64
@@ -10900,6 +11695,13 @@ components:
       - label
       - locationType
       - playbackCapabilities
+    SyntheticLocationConfiguration:
+      type: object
+      properties:
+        clusterName:
+          type: string
+        namespace:
+          type: string
     SyntheticMetricConfiguration:
       type: object
       properties:
@@ -10947,6 +11749,7 @@ components:
             type: string
             enum:
             - BrowserScript
+            - DNSAction
             - HTTPAction
             - HTTPScript
             - WebpageAction
@@ -11028,18 +11831,17 @@ components:
       - configuration
       - label
       - locations
-      - playbackMode
       - testFrequency
     SyntheticTypeConfiguration:
       type: object
-      description: "Synthetic test configuration that is unique to a synthetic type.\
-        \ Valid types are BrowserScriptConfiguration, HttpActionConfiguration, HttpScriptConfiguration,\
-        \ WebpageActionConfiguration, WebpageScriptConfiguration.\n\nOnly HttpActionConfiguration,\
-        \ HttpScriptConfiguration and BrowserScriptConfiguration \n\nare enabled at\
-        \ this time."
+      description: |-
+        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScriptConfiguration, DNSActionConfiguration, HttpActionConfiguration, HttpScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration.
+
+        Only HttpActionConfiguration and HttpScriptConfiguration are enabled at this time.
       discriminator:
         mapping:
           BrowserScript: '#/components/schemas/BrowserScriptConfiguration'
+          DNSAction: '#/components/schemas/DNSActionConfiguration'
           HTTPAction: '#/components/schemas/HttpActionConfiguration'
           HTTPScript: '#/components/schemas/HttpScriptConfiguration'
           WebpageAction: '#/components/schemas/WebpageActionConfiguration'
@@ -11062,6 +11864,7 @@ components:
           type: string
           enum:
           - BrowserScript
+          - DNSAction
           - HTTPAction
           - HTTPScript
           - WebpageAction
@@ -11138,25 +11941,24 @@ components:
       - $ref: '#/components/schemas/TagFilterExpressionElement'
       - type: object
         properties:
-          booleanValue:
-            type: boolean
           entity:
             type: string
+            description: "SOURCE or DESTINATION tag in case of a call tag. For Infrastructure,\
+              \ always set to NOT_APPLICABLE"
             enum:
             - NOT_APPLICABLE
             - DESTINATION
             - SOURCE
           key:
             type: string
+            description: Tag key in case of a key/value tag
             maxLength: 512
             minLength: 0
           name:
             type: string
+            description: Name of the tag
             maxLength: 128
             minLength: 0
-          numberValue:
-            type: integer
-            format: int64
           operator:
             type: string
             enum:
@@ -11176,10 +11978,9 @@ components:
             - ENDS_WITH
             - NOT_STARTS_WITH
             - NOT_ENDS_WITH
-          stringValue:
-            type: string
           value:
             type: object
+            description: Tag value to filter on
       required:
       - entity
       - name
@@ -11405,14 +12206,18 @@ components:
           type: object
           additionalProperties:
             type: object
-        images:
-          type: array
-          items:
+        imageFiles:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+              format: byte
+        logFiles:
+          type: object
+          additionalProperties:
             type: string
-            format: byte
         logs:
-          type: string
-        name:
           type: string
         subtransactionAvgMetrics:
           type: object
@@ -11596,9 +12401,11 @@ components:
         to:
           type: integer
           format: int64
+          description: end of timeframe in seconds
         windowSize:
           type: integer
           format: int64
+          description: windowSize in milliseconds
           maximum: 2678400000
           minimum: 0
     Topology:
@@ -11684,6 +12491,16 @@ components:
           minimum: 0
       required:
       - items
+    TraceImpactApplicationTimeThreshold:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/ApplicationTimeThreshold'
+      - type: object
+        properties:
+          requests:
+            type: integer
+            format: int32
+            minimum: 1
     TraceItem:
       type: object
       properties:
@@ -11747,6 +12564,19 @@ components:
         sims:
           type: integer
           format: int64
+    UserBasicResult:
+      type: object
+      properties:
+        email:
+          type: string
+        fullName:
+          type: string
+        id:
+          type: string
+      required:
+      - email
+      - fullName
+      - id
     UserImpactWebsiteTimeThreshold:
       type: object
       allOf:
@@ -11778,6 +12608,9 @@ components:
           type: string
         fullName:
           type: string
+        groupCount:
+          type: integer
+          format: int64
         id:
           type: string
         lastLoggedIn:
@@ -11930,6 +12763,7 @@ components:
           - SCHEDULED
           - ACTIVE
           - FINISHED
+          - PAUSED
         windows:
           type: array
           items:
@@ -11994,6 +12828,10 @@ components:
       - $ref: '#/components/schemas/AbstractIntegration'
       - type: object
         properties:
+          headers:
+            type: array
+            items:
+              type: string
           webhookUrl:
             type: string
       required:
@@ -12905,6 +13743,7 @@ components:
 x-tagGroups:
 - name: Infrastructure Monitoring
   tags:
+  - Infrastructure Analyze
   - Infrastructure Metrics
   - Infrastructure Resources
   - Infrastructure Catalog
@@ -12956,10 +13795,12 @@ x-tagGroups:
   tags:
   - SLI Settings
   - SLI Report
-- name: Technology Preview Features
+- name: Closed Beta Features
   tags:
   - Synthetic Settings
   - Synthetic Test Playback Results
+  - Synthetic Alert Configuration
+  - Infrastructure Alert Configuration
 - name: Instana
   tags:
   - Health

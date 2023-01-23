@@ -17,7 +17,11 @@ The timeFrame might be adjusted to fit the metric granularity so that there is n
 ### Metrics
 
 **metric** refers to the metric name. Query the [list of available metrics](#operation/getAvailableMetrics) for existing metrics on an entity type.
-This is to be used when requesting metrics or when ordering by a metric. For **order.by**, `label` may also be used.
+
+### Order
+**by** represents are requested metric name. `label` may also be used to sort by entity label.
+
+**entity** set to `NOT_APPLICABLE`
 
 ### Filtering
 
