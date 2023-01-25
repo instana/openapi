@@ -30,7 +30,8 @@ curl -u "${DELIVERY_INSTANA_USR}:${DELIVERY_INSTANA_PWD}" \
     -o ${SCRIPT_ROOT_DIR}/spec/openapi.yaml \
     https://delivery.instana.io/artifactory/int-maven-backend-local/com/instana/openapi/${VERSION}/openapi-${VERSION}.yaml
 
-echo "${DELIVERY_INSTANA_USR}:${DELIVERY_INSTANA_PWD}"
+echo "user <${DELIVERY_INSTANA_USR}>"
+echo "password <${DELIVERY_INSTANA_PWD}>"
 ls -l ${SCRIPT_ROOT_DIR}/spec/openapi.yaml
 cat ${SCRIPT_ROOT_DIR}/spec/openapi.yaml
 
