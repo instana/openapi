@@ -31,6 +31,7 @@ curl -u "${DELIVERY_INSTANA_USR}:${DELIVERY_INSTANA_PWD}" \
     https://delivery.instana.io/artifactory/int-maven-backend-local/com/instana/openapi/${VERSION}/openapi-${VERSION}.yaml
 
 ls -l ${SCRIPT_ROOT_DIR}/spec/openapi.yaml
+cat ${SCRIPT_ROOT_DIR}/spec/openapi.yaml
 
 echo "Installing dependencies..."
 source $HOME/.nvm/nvm.sh
