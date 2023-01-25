@@ -26,7 +26,8 @@ BRANCH_NAME=${BRANCH_NAME:='master'}
 SCRIPT_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
 
 echo "Downloading new OpenAPI spec..."
-mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
+mvn -s ci/maven-settings.xml \
+    org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
     -Dartifact=com.instana:openapi:${VERSION}:yaml \
     -Ddest=${SCRIPT_ROOT_DIR}/spec/openapi.yaml
 
