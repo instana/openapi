@@ -18,11 +18,9 @@ stage('Checkout') {
 stage ('Generate and publish OpenAPI specs') {
   node {
     timeout(time: 10, unit: 'MINUTES') {
-      if (env.BRANCH_NAME == 'master') {
         withCredentials([usernamePassword(credentialsId: 'delivery-instana-io-internal-project-artifact-read-writer-creds', passwordVariable: 'DELIVERY_INSTANA_USR', usernameVariable: 'DELIVERY_INSTANA_PWD')]) {
           sh "./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
         }
-      }
     }
   }
 }
