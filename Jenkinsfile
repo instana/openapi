@@ -16,6 +16,10 @@ stage('Checkout') {
 }
 
 stage ('Generate and publish OpenAPI specs') {
+  environment {
+    DELIVERY_INSTANA = credentials('delivery-instana-io-internal-project-artifact-read-writer-creds')
+  }
+
   node {
     timeout(time: 10, unit: 'MINUTES') {
       if (env.BRANCH_NAME == 'master') {

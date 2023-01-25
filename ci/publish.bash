@@ -26,9 +26,9 @@ BRANCH_NAME=${BRANCH_NAME:='master'}
 SCRIPT_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
 
 echo "Downloading new OpenAPI spec..."
-mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
-    -Dartifact=com.instana:openapi:${VERSION}:yaml \
-    -Ddest=${SCRIPT_ROOT_DIR}/spec/openapi.yaml
+curl -u "${DELIVERY_INSTANA_USR}:${DELIVERY_INSTANA_PWD}" \
+    -o ${SCRIPT_ROOT_DIR}/spec/openapi.yaml \
+    https://delivery.instana.io/artifactory/int-maven-backend-local/com/instana/openapi/${VERSION}/openapi-${VERSION}.yaml
 
 # Replace version placeholder
 sed -i -e "s/INSTANA_BACKEND_BUILD_VERSION/${VERSION}/g" ${SCRIPT_ROOT_DIR}/spec/openapi.yaml
