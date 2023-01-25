@@ -30,9 +30,6 @@ curl -u "${DELIVERY_INSTANA_USR}:${DELIVERY_INSTANA_PWD}" \
     -o ${SCRIPT_ROOT_DIR}/spec/openapi.yaml \
     https://delivery.instana.io/artifactory/int-maven-backend-local/com/instana/openapi/${VERSION}/openapi-${VERSION}.yaml
 
-# Replace version placeholder
-sed -i -e "s/INSTANA_BACKEND_BUILD_VERSION/${VERSION}/g" ${SCRIPT_ROOT_DIR}/spec/openapi.yaml
-
 echo "Installing dependencies..."
 source $HOME/.nvm/nvm.sh
 nvm use
