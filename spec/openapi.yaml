@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.236.406
+  version: 1.241.414
   x-description: info
   x-logo:
     altText: instana logo
@@ -322,6 +322,11 @@ paths:
           enum:
           - ALL
           - INBOUND
+      - description: Include snapshot ids in the results
+        in: query
+        name: includeSnapshotIds
+        schema:
+          type: boolean
       responses:
         default:
           content:
@@ -571,6 +576,10 @@ paths:
         name: fillTimeSeries
         schema:
           type: boolean
+      - in: query
+        name: includeSnapshotIds
+        schema:
+          type: boolean
       requestBody:
         content:
           application/json:
@@ -623,6 +632,11 @@ paths:
         schema:
           type: integer
           format: int32
+      - description: Include snapshot ids in the results
+        in: query
+        name: includeSnapshotIds
+        schema:
+          type: boolean
       responses:
         default:
           content:
@@ -1256,7 +1270,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UserResult'
+                  $ref: '#/components/schemas/UserBasicResult'
       security:
       - ApiKeyAuth:
         - Default
@@ -1863,6 +1877,25 @@ paths:
       summary: Restore Application Alert Config
       tags:
       - Application Alert Configuration
+  /api/events/settings/application-alert-configs/{id}/update-baseline:
+    post:
+      description: Recalculate and update the baseline given the id of the config.
+        The LastUpdated field of the config is changed to the current time.
+      operationId: updateApplicationHistoricBaseline
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Recalculate a Static Seasonal Threshold
+      tags:
+      - Application Alert Configuration
   /api/events/settings/application-alert-configs/{id}/versions:
     get:
       description: Find all versions of a Application Alert Config by ID. This will
@@ -1905,6 +1938,16 @@ paths:
       - Event Settings
     get:
       operationId: getCustomPayloadConfigurations
+      parameters:
+      - in: query
+        name: context
+        schema:
+          type: string
+          default: ALL
+          enum:
+          - ALL
+          - APPLICATION
+          - WEBSITE
       responses:
         default:
           content:
@@ -2741,6 +2784,28 @@ paths:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
       summary: Restore Website Alert Config
+      tags:
+      - Event Settings
+  /api/events/settings/website-alert-configs/{id}/update-baseline:
+    post:
+      description: Recalculate and update the baseline given the id of the config.
+        The LastUpdated field of the config is changed to the current time.
+      operationId: updateWebsiteHistoricBaseline
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureCustomAlerts
+      summary: Recalculate a Static Seasonal Threshold
       tags:
       - Event Settings
   /api/events/settings/website-alert-configs/{id}/versions:
@@ -4013,7 +4078,7 @@ paths:
         - ViewAuditLog
       summary: Access log
       tags:
-      - Access Log
+      - Audit Log
   /api/settings/api-tokens:
     get:
       operationId: getApiTokens
@@ -5139,7 +5204,9 @@ paths:
       - in: query
         name: name
         schema:
-          type: string
+          type: array
+          items:
+            type: string
       responses:
         default:
           content:
@@ -5150,6 +5217,36 @@ paths:
       - ApiKeyAuth:
         - Default
       summary: Experimental - Get Synthetic test playback result detail data
+      tags:
+      - Synthetic Test Playback Results
+  /api/synthetics/results/{testid}/{testresultid}/file:
+    get:
+      operationId: getSyntheticResultDetailDataFile
+      parameters:
+      - in: path
+        name: testid
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: testresultid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: type
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/octet-stream: {}
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Experimental - Download the synthetic test playback result detail data
+        file
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/settings/locations:
@@ -5767,6 +5864,7 @@ components:
           OPS_GENIE: '#/components/schemas/OpsgenieIntegration'
           PAGER_DUTY: '#/components/schemas/PagerdutyIntegration'
           PROMETHEUS_WEBHOOK: '#/components/schemas/PrometheusWebhookIntegration'
+          SERVICE_NOW_WEBHOOK: '#/components/schemas/ServiceNowIntegration'
           SLACK: '#/components/schemas/SlackIntegration'
           SPLUNK: '#/components/schemas/SplunkIntegration'
           VICTOR_OPS: '#/components/schemas/VictorOpsIntegration'
@@ -6457,9 +6555,6 @@ components:
           type: string
         metricName:
           type: string
-        stableHash:
-          type: integer
-          format: int32
       required:
       - alertType
       - metricName
@@ -6622,7 +6717,7 @@ components:
       type: object
       discriminator:
         mapping:
-          requestImpact: '#/components/schemas/RequestImpactApplicationTimeThreshold'
+          requestImpact: '#/components/schemas/TraceImpactApplicationTimeThreshold'
           violationsInPeriod: '#/components/schemas/ViolationsInPeriodApplicationTimeThreshold'
           violationsInSequence: '#/components/schemas/ViolationsInSequenceApplicationTimeThreshold'
         propertyName: type
@@ -7058,16 +7153,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AbstractRule'
-          maxItems: 1
+          maxItems: 5
           minItems: 1
-          uniqueItems: true
         triggering:
           type: boolean
-        validVersion:
-          type: integer
-          format: int32
-          maximum: 1
-          minimum: 0
       required:
       - entityType
       - name
@@ -7120,16 +7209,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AbstractRule'
-          maxItems: 1
+          maxItems: 5
           minItems: 1
-          uniqueItems: true
         triggering:
           type: boolean
-        validVersion:
-          type: integer
-          format: int32
-          maximum: 1
-          minimum: 0
       required:
       - entityType
       - id
@@ -7187,6 +7270,57 @@ components:
           minimum: 1
       required:
       - fields
+    DNSActionConfiguration:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+      - type: object
+        properties:
+          acceptCNAME:
+            type: boolean
+          lookup:
+            type: string
+          lookupServerName:
+            type: boolean
+          port:
+            type: integer
+            format: int32
+          queryType:
+            type: string
+            enum:
+            - A
+            - AAAA
+            - ANY
+            - AXFR
+            - CNAME
+            - HINFO
+            - MAILB
+            - MAILA
+            - MINFO
+            - MB
+            - MD
+            - MF
+            - MG
+            - MR
+            - MX
+            - "NULL"
+            - NS
+            - PTR
+            - SOA
+            - TXT
+            - WKS
+          recursiveLookups:
+            type: boolean
+          server:
+            type: string
+          serverRetries:
+            type: integer
+            format: int32
+      required:
+      - lookup
+      - markSyntheticCall
+      - server
+      - syntheticType
     DeprecatedTagFilter:
       type: object
       properties:
@@ -7529,9 +7663,6 @@ components:
           format: int64
         state:
           type: string
-        triggeringTime:
-          type: integer
-          format: int64
         type:
           type: string
     EventSpecificationInfo:
@@ -7577,6 +7708,8 @@ components:
           type: string
         encoding:
           type: string
+        isSecure:
+          type: boolean
         name:
           type: string
         value:
@@ -8076,7 +8209,9 @@ components:
           items:
             $ref: '#/components/schemas/TagFilter'
         testId:
-          type: string
+          type: array
+          items:
+            type: string
         timeFrame:
           $ref: '#/components/schemas/TimeFrame'
       required:
@@ -8096,6 +8231,8 @@ components:
           type: array
           items:
             type: string
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
         tagFilters:
           type: array
           items:
@@ -10012,16 +10149,6 @@ components:
       required:
       - id
       - name
-    RequestImpactApplicationTimeThreshold:
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/ApplicationTimeThreshold'
-      - type: object
-        properties:
-          requests:
-            type: integer
-            format: int32
-            minimum: 1
     RuleInput:
       type: object
       properties:
@@ -10093,6 +10220,11 @@ components:
           type: integer
           format: int32
           minimum: 0
+        snapshotIds:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
         technologies:
           type: array
           items:
@@ -10122,6 +10254,7 @@ components:
       - applications
       - id
       - label
+      - snapshotIds
       - technologies
       - types
     ServiceConfig:
@@ -10265,6 +10398,25 @@ components:
       required:
       - endpoints
       - serviceId
+    ServiceNowIntegration:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AbstractIntegration'
+      - type: object
+        properties:
+          password:
+            type: string
+          serviceNowUrl:
+            type: string
+          username:
+            type: string
+      required:
+      - id
+      - kind
+      - name
+      - password
+      - serviceNowUrl
+      - username
     ServiceResult:
       type: object
       properties:
@@ -10351,8 +10503,6 @@ components:
           webhookUrl:
             type: string
       required:
-      - channel
-      - iconUrl
       - id
       - kind
       - name
@@ -10851,6 +11001,8 @@ components:
     SyntheticLocation:
       type: object
       properties:
+        configuration:
+          $ref: '#/components/schemas/SyntheticLocationConfiguration'
         createdAt:
           type: integer
           format: int64
@@ -10900,6 +11052,13 @@ components:
       - label
       - locationType
       - playbackCapabilities
+    SyntheticLocationConfiguration:
+      type: object
+      properties:
+        clusterName:
+          type: string
+        namespace:
+          type: string
     SyntheticMetricConfiguration:
       type: object
       properties:
@@ -10947,6 +11106,7 @@ components:
             type: string
             enum:
             - BrowserScript
+            - DNSAction
             - HTTPAction
             - HTTPScript
             - WebpageAction
@@ -11028,18 +11188,17 @@ components:
       - configuration
       - label
       - locations
-      - playbackMode
       - testFrequency
     SyntheticTypeConfiguration:
       type: object
-      description: "Synthetic test configuration that is unique to a synthetic type.\
-        \ Valid types are BrowserScriptConfiguration, HttpActionConfiguration, HttpScriptConfiguration,\
-        \ WebpageActionConfiguration, WebpageScriptConfiguration.\n\nOnly HttpActionConfiguration,\
-        \ HttpScriptConfiguration and BrowserScriptConfiguration \n\nare enabled at\
-        \ this time."
+      description: |-
+        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScriptConfiguration, DNSActionConfiguration, HttpActionConfiguration, HttpScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration.
+
+        Only HttpActionConfiguration and HttpScriptConfiguration are enabled at this time.
       discriminator:
         mapping:
           BrowserScript: '#/components/schemas/BrowserScriptConfiguration'
+          DNSAction: '#/components/schemas/DNSActionConfiguration'
           HTTPAction: '#/components/schemas/HttpActionConfiguration'
           HTTPScript: '#/components/schemas/HttpScriptConfiguration'
           WebpageAction: '#/components/schemas/WebpageActionConfiguration'
@@ -11062,6 +11221,7 @@ components:
           type: string
           enum:
           - BrowserScript
+          - DNSAction
           - HTTPAction
           - HTTPScript
           - WebpageAction
@@ -11138,8 +11298,6 @@ components:
       - $ref: '#/components/schemas/TagFilterExpressionElement'
       - type: object
         properties:
-          booleanValue:
-            type: boolean
           entity:
             type: string
             enum:
@@ -11154,9 +11312,6 @@ components:
             type: string
             maxLength: 128
             minLength: 0
-          numberValue:
-            type: integer
-            format: int64
           operator:
             type: string
             enum:
@@ -11176,8 +11331,6 @@ components:
             - ENDS_WITH
             - NOT_STARTS_WITH
             - NOT_ENDS_WITH
-          stringValue:
-            type: string
           value:
             type: object
       required:
@@ -11405,14 +11558,18 @@ components:
           type: object
           additionalProperties:
             type: object
-        images:
-          type: array
-          items:
+        imageFiles:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+              format: byte
+        logFiles:
+          type: object
+          additionalProperties:
             type: string
-            format: byte
         logs:
-          type: string
-        name:
           type: string
         subtransactionAvgMetrics:
           type: object
@@ -11684,6 +11841,16 @@ components:
           minimum: 0
       required:
       - items
+    TraceImpactApplicationTimeThreshold:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/ApplicationTimeThreshold'
+      - type: object
+        properties:
+          requests:
+            type: integer
+            format: int32
+            minimum: 1
     TraceItem:
       type: object
       properties:
@@ -11747,6 +11914,19 @@ components:
         sims:
           type: integer
           format: int64
+    UserBasicResult:
+      type: object
+      properties:
+        email:
+          type: string
+        fullName:
+          type: string
+        id:
+          type: string
+      required:
+      - email
+      - fullName
+      - id
     UserImpactWebsiteTimeThreshold:
       type: object
       allOf:
@@ -11778,6 +11958,9 @@ components:
           type: string
         fullName:
           type: string
+        groupCount:
+          type: integer
+          format: int64
         id:
           type: string
         lastLoggedIn:
@@ -11930,6 +12113,7 @@ components:
           - SCHEDULED
           - ACTIVE
           - FINISHED
+          - PAUSED
         windows:
           type: array
           items:
@@ -11994,6 +12178,10 @@ components:
       - $ref: '#/components/schemas/AbstractIntegration'
       - type: object
         properties:
+          headers:
+            type: array
+            items:
+              type: string
           webhookUrl:
             type: string
       required:
@@ -12956,7 +13144,7 @@ x-tagGroups:
   tags:
   - SLI Settings
   - SLI Report
-- name: Technology Preview Features
+- name: Closed Beta Features
   tags:
   - Synthetic Settings
   - Synthetic Test Playback Results
