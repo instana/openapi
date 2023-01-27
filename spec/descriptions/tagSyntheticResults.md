@@ -288,7 +288,7 @@ The endpoint returns a list of Synthetic locations with Last Test Run on (each l
 1. *page* select the page number you want to retrieve
 2. *pageSize* set the number of Synthetic locations you want to return with one query
 
-**order** You can order the returned items alphanumerical by label, either ascending or descending
+**order** You can order the returned items alphanumerically by label, either ascending or descending
 1. *by* Use the metric name, e.g., "location_name", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
