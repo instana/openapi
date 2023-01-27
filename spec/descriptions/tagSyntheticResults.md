@@ -286,7 +286,7 @@ The endpoint returns a list of Synthetic locations with Last Test Run on (each l
 
 **pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
 1. *page* select the page number you want to retrieve
-2. *pageSize* set the number of Synthetic test results you want to return with one query
+2. *pageSize* set the number of Synthetic locations you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
 1. *by* Use the metric name, e.g., "location_name", to order by its value
@@ -295,7 +295,8 @@ The endpoint returns a list of Synthetic locations with Last Test Run on (each l
    The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,
    last_test_run, and namespace
 
-**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: synthetic_type, location_id, and application_id.
+**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: location_name, 
+location_label, location_id, type, status, and last_test_run, and namespace.
 It will be replaced by **tagFilterExpression**.
 ```
 "tagFilters":[{
@@ -324,12 +325,6 @@ logical operators AND or OR.
 ```
 
 A payload only needs either tagFilters or tagFilterExpression as a filter, not both.
-
-To narrow down the result set, you can use **location_label** to search for a location.
-
-### Defaults
-
-* no filters are applied in the default call
 
 ### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data
 ```
