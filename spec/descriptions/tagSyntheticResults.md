@@ -284,7 +284,7 @@ The endpoint returns a list of Synthetic locations with Last Test Run on (each l
 
 ### Optional Parameters
 
-**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
+**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query
 1. *page* select the page number you want to retrieve
 2. *pageSize* set the number of Synthetic locations you want to return with one query
 
