@@ -265,6 +265,86 @@ To narrow down the result set you have three options to search for a test.
 }
 ```
 
+## Get a list of Synthetic locations with Last Test Run on (each location) data
+The endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data
+
+### Mandatory Parameters
+
+**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
+```
+  windowSize           to
+     (ms)       (unix-timestamp)
+<----------------------|
+
+"timeFrame": {
+	"windowSize": 60000,
+	"to": {current timestamp}
+}
+```
+
+### Optional Parameters
+
+**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
+1. *page* select the page number you want to retrieve
+2. *pageSize* set the number of Synthetic test results you want to return with one query
+
+**order** You can order the returned items alphanumerical by label, either ascending or descending
+1. *by* Use the metric name, e.g., "location_name", to order by its value
+2. *direction* either ascending (ASC) or descending (DESC)
+
+   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,
+   last_test_run, and namespace
+
+**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: synthetic_type, location_id, and application_id.
+It will be replaced by **tagFilterExpression**.
+```
+"tagFilters":[{
+  "stringValue":"hYziqsaXSJmQsehOWg1S",
+  "name":"location_id",
+  "operator":"EQUALS"
+}]
+```
+
+**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with
+logical operators AND or OR.
+```
+"tagFilterExpression": { 
+  "type":"EXPRESSION",
+  "logicalOperator":"AND",
+  "elements":[{
+    "name": "status", 
+    "operator": "EQUALS", 
+    "numberValue": 1
+  }, {
+    "name": "location_id", 
+    "operator": "EQUALS", 
+    "stringValue":"WnjlKKbgzLDnyGra6PAs"
+  }]
+}
+```
+
+A payload only needs either tagFilters or tagFilterExpression as a filter, not both.
+
+To narrow down the result set, you can use **location_label** to search for a location.
+
+### Defaults
+
+* no filters are applied in the default call
+
+### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data
+```
+{
+    "order": {
+     	"by": "status", 
+     	"direction": "Desc"
+     },
+     "timeFrame": {
+       "to": 0,
+       "windowSize": 3600000  
+     }
+}
+```
+
 ## Get Synthetic test playback result detail data
 
 ### Query Parameters
