@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.241.414",
+    "version": "1.242.494",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -33,6 +33,10 @@
     }
   ],
   "tags": [
+    {
+      "name": "Infrastructure Analyze",
+      "description": "This endpoint group exposes the functions that are used by the Instana **Analyze Infrastructure** dashboards.\nTwo of the endpoints provide a [list of entity types](#operation/getAvailablePlugins) and [metrics for an entity type](#operation/getAvailableMetrics).\nIt is also possible to [search and filter entities](#operation/getEntities) and [aggregate metrics on similar entities](#operation/getEntityGroups).\n\n## Important notes\n\n### Timeframe\n\n**timeFrame** As in the Instana dashboards, you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with specified granularity, a default granularity will be used for adjustment.\n\n### Metrics\n\n**metric** refers to the metric name. Query the [list of available metrics](#operation/getAvailableMetrics) for existing metrics on an entity type.\nThis is to be used when requesting metrics or when ordering by a metric. For **order.by**, `label` may also be used.\n\n### Filtering\n\nAs in the Instana dashboards, you can **filter by a tag**. Query the [infrastructure tag catalog](#operation/getInfrastructureCatalogMetrics) to retrieve a list of available tags."
+    },
     {
       "name": "Infrastructure Metrics",
       "description": "This endpoint retrieves the metrics for infrastructure components.\r\n\r\n### Mandatory Parameters\r\n**plugin:** Plugins are entities' for which we collect metrics, for example : \"Host\", \"Cassandra node\", \"Cassandra Connection\".\r\n\r\nThe available plugins are depending on the system you are monitoring. Therefore you will need to [retrieve plugins](#operation/getInfrastructureCatalogPlugins) where we have data for you.\r\n\r\n**query or snapshotIds:** choose between dynamic focus query or [snapshotId](#operation/getSnapshots) (a unique identifier the metrics are assigned to)\r\n\r\nTo make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:\r\n1. Search metrics with a query\r\n  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.\r\n  To get usable search parameters you can either query the search [catalog endpoint](#operation/getInfrastructureCatalogSearchFields) or use the UI\r\n\r\n1. Search for metrics for snapshotIds\r\n  For advanced use cases, pagination for example, its recommended to use fixed snapshotIds.\r\n\r\n**metrics:** Id of the exact metric you want to retrieve, eg. \"cpu.user\", \"clientrequests.read.mean\"\r\n\r\nOnce you have selected the plugin you can define up to five metrics you want to retrieve with the call.\r\nPlease use our [metrics catalog call](#operation/getInfrastructureCatalogMetrics) to get the available metrics for the selected plugin.\r\n\r\n### Optional Parameters\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\n**rollup:** Depending on the selected timeFrame its possible to selected the rollup.\r\n\r\nThe available rollup is depending on two factors:\r\n1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)\r\n\r\n\tFor example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min\r\n1. Size of the selected windowSize\r\n\r\n\tThe limitation is that we only return 600 Data points per call, thus if you select a windowSize of 1hour the most accurate rollup you can query for would be 5s\r\n\r\nValid rollups are:\r\n\r\n| rollup  | value |\r\n| ------------- | ------------- |\r\n| 1 second  | 1 |\r\n| 5 seconds  | 5  |\r\n| 1 minute  | 60 |\r\n| 5 minutes  | 300  |\r\n| 1 hour  | 3600  |\r\n\r\n\r\n### Defaults\r\n**timeframe:**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n\r\n**rollup**: 1\r\n\r\n### Limits\r\n1000 Calls per Hour\r\n\r\nTo keep the response size reasonable the limit is set to 30 retrieved items. To implement pagination see [1]\r\n\r\nA maximum of 600 data points are returned per metric.\r\n\r\nYou can only retrieve metrics [above](https://docs.instana.io/core_concepts/dynamic_graph/) the selected Dynamic Focus filter. Work around can be found under [2]\r\n\r\nThe following example will return an empty result, because the selected plugin \"host\" is below the dynamic focus filter \"java\" :\r\n```\r\nquery=entity.selfType:java\r\nplugin=host\r\nmetric=cpu.steal\r\n```\r\n### Tips\r\n[1] **Pagination**\r\nSometimes the query you are interested in returns more than 30 items, you have to use the [find snapshots](#operation/getSnapshots) endpoint to get a full list of Ids for your query and then use the [metrics endpoint](#operation/getInfrastructureMetrics) with the returned snapshotIds\r\n\r\n\r\n[2] **Application filter**\r\nYou can work around the aforementioned limitation by querying one of the crosscutting entities like applications, services and endpoints. For the example above you could create an Application with jvm.version isPresent filter. And search Query then for the created application name\r\n```\r\nquery=entity.application.name:\"Java Applications\"\r\n```\r\n"
@@ -107,6 +111,12 @@
     {
       "name": "Global Application Alert Configuration",
       "description": "The API endpoints of this group can be used to manage Global Application alert configurations.\n\n## Parameters:\n\nAll parameters and deprecated parameters are similar to Application Alert Configuration except **applications**\n\n- **applications:** Selection of applications, services and endpoints in scope. It allows more than one application to define a global rule across different Application Perspectives.\n\n  #### Example: Select multiple Application Perspectives\n\n  To select multiple applications with IDs `<appId1>`, `<appId2>` including all its services and endpoints, simply provide the following selection object:\n\n  ```json\n  \"applications\": {\n      \"<appId1>\": {\n          \"applicationId\": \"<appId1>\"\n      },\n      \"<appId2>\": {\n           \"applicationId\": \"<appId2>\"\n      }\n  }\n  ```\n"
+    },
+    {
+      "name": "Infrastructure Alert Configuration"
+    },
+    {
+      "name": "Synthetic Alert Configuration"
     },
     {
       "name": "Host Agent",
@@ -2982,14 +2992,24 @@
           "required": true
         },
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApplicationAlertConfigWithMetadata"
                 }
               }
-            }
+            },
+            "description": "Application Smart Alert successfully updated"
+          },
+          "204": {
+            "description": "Application Smart Alert did not change"
+          },
+          "400": {
+            "description": "Invalid Application ID provided"
+          },
+          "500": {
+            "description": "Internal error"
           }
         },
         "security": [
@@ -4124,14 +4144,18 @@
           "required": true
         },
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GlobalApplicationAlertConfigWithMetadata"
                 }
               }
-            }
+            },
+            "description": "Global Smart Alert successfully updated"
+          },
+          "204": {
+            "description": "Global Smart Alert did not change"
           }
         },
         "security": [
@@ -4518,14 +4542,24 @@
           "required": true
         },
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WebsiteAlertConfigWithMetadata"
                 }
               }
-            }
+            },
+            "description": "Website Smart Alert successfully updated"
+          },
+          "204": {
+            "description": "Website Smart Alert did not change"
+          },
+          "400": {
+            "description": "Invalid Website ID provided"
+          },
+          "500": {
+            "description": "Internal error"
           }
         },
         "security": [
@@ -5139,6 +5173,281 @@
         "summary": "Get host agent snapshot details",
         "tags": [
           "Host Agent"
+        ]
+      }
+    },
+    "/api/infrastructure-monitoring/analyze/entities": {
+      "post": {
+        "description": "This endpoint retrieves entities for a given entity type along with the requested metrics.",
+        "operationId": "getEntities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "This example retrieves a JVM entity labeled \"custom-metrics.jar\" with metrics for memory used and blocked threads (both using a one hour granularity and a one minute granularity).": {
+                  "description": "This example retrieves a JVM entity labeled \"custom-metrics.jar\" with metrics for memory used and blocked threads (both using a one hour granularity and a one minute granularity).",
+                  "value": {
+                    "tagFilterExpression": {
+                      "type": "TAG_FILTER",
+                      "entity": "NOT_APPLICABLE",
+                      "name": "label",
+                      "operator": "EQUALS",
+                      "value": "custom-metrics.jar"
+                    },
+                    "timeFrame": {
+                      "to": 1673969562715,
+                      "windowSize": 3600000
+                    },
+                    "pagination": {
+                      "retrievalSize": 200
+                    },
+                    "type": "jvmRuntimePlatform",
+                    "metrics": [
+                      {
+                        "metric": "memory.used",
+                        "granularity": 3600000,
+                        "aggregation": "MAX"
+                      },
+                      {
+                        "metric": "memory.used",
+                        "granularity": 600000,
+                        "aggregation": "MAX"
+                      },
+                      {
+                        "metric": "threads.blocked",
+                        "granularity": 3600000,
+                        "aggregation": "MEAN"
+                      },
+                      {
+                        "metric": "threads.blocked",
+                        "granularity": 600000,
+                        "aggregation": "MEAN"
+                      }
+                    ]
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GetInfrastructureQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureEntitiesResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get infrastructure entities",
+        "tags": [
+          "Infrastructure Analyze"
+        ]
+      }
+    },
+    "/api/infrastructure-monitoring/analyze/entity-groups": {
+      "post": {
+        "description": "This endpoint groups entities for a given entity type and aggregates metrics for these groups.",
+        "operationId": "getEntityGroups",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "This example retrieves JVM entities grouped with the same host name ordered by label, aggregating memory used and blocked threads (both using a one hour granularity and a one minute granularity).": {
+                  "description": "This example retrieves JVM entities grouped with the same host name ordered by label, aggregating memory used and blocked threads (both using a one hour granularity and a one minute granularity).",
+                  "value": {
+                    "timeFrame": {
+                      "to": 1674075565075,
+                      "windowSize": 3600000
+                    },
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": []
+                    },
+                    "pagination": {
+                      "retrievalSize": 20
+                    },
+                    "groupBy": [
+                      "host.name"
+                    ],
+                    "type": "jvmRuntimePlatform",
+                    "metrics": [
+                      {
+                        "metric": "memory.used",
+                        "granularity": 3600000,
+                        "aggregation": "MEAN"
+                      },
+                      {
+                        "metric": "memory.used",
+                        "granularity": 600000,
+                        "aggregation": "MEAN"
+                      },
+                      {
+                        "metric": "threads.blocked",
+                        "granularity": 3600000,
+                        "aggregation": "MEAN"
+                      },
+                      {
+                        "metric": "threads.blocked",
+                        "granularity": 600000,
+                        "aggregation": "MEAN"
+                      }
+                    ],
+                    "order": {
+                      "by": "label",
+                      "direction": "ASC"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GetInfrastructureGroupsQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureGroupsResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get grouped infrastructure entities with aggregated metrics",
+        "tags": [
+          "Infrastructure Analyze"
+        ]
+      }
+    },
+    "/api/infrastructure-monitoring/analyze/entity-types": {
+      "post": {
+        "description": "This endpoint retrieves available entity types.",
+        "operationId": "getAvailablePlugins",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "This example retrieves all entity types.": {
+                  "description": "This example retrieves all entity types.",
+                  "value": {
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": []
+                    },
+                    "timeFrame": {
+                      "to": 1673969562715,
+                      "windowSize": 3600000
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GetAvailablePluginsQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailablePlugins"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get available entity types",
+        "tags": [
+          "Infrastructure Analyze"
+        ]
+      }
+    },
+    "/api/infrastructure-monitoring/analyze/metrics": {
+      "post": {
+        "description": "This endpoint retrieves available metrics for an entity type.",
+        "operationId": "getAvailableMetrics",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "This example retrieves all available metrics for JVM entities.": {
+                  "description": "This example retrieves all available metrics for JVM entities.",
+                  "value": {
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": []
+                    },
+                    "timeFrame": {
+                      "to": 1673969562715,
+                      "windowSize": 3600000
+                    },
+                    "query": "",
+                    "type": "jvmRuntimePlatform"
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GetAvailableMetricsQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailableMetrics"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get available metrics",
+        "tags": [
+          "Infrastructure Analyze"
         ]
       }
     },
@@ -10054,6 +10363,12 @@
             "maxLength": 128,
             "minLength": 1
           },
+          "inputParameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Parameter"
+            }
+          },
           "modifiedAt": {
             "type": "string",
             "format": "date-time"
@@ -10063,7 +10378,7 @@
             "maxLength": 128,
             "minLength": 1
           },
-          "parameters": {
+          "outputParameters": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Parameter"
@@ -11214,6 +11529,30 @@
           "boundaryScope"
         ]
       },
+      "AvailableMetrics": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricMetadata"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "AvailablePlugins": {
+        "type": "object",
+        "properties": {
+          "plugins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
       "BackendTraceReference": {
         "type": "object",
         "properties": {
@@ -11577,6 +11916,19 @@
             "format": "int32",
             "maximum": 200,
             "minimum": 1
+          }
+        }
+      },
+      "CursorPaginationInfraExploreCursor": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "$ref": "#/components/schemas/InfraExploreCursor"
+          },
+          "retrievalSize": {
+            "type": "integer",
+            "format": "int32",
+            "description": "number of values to return"
           }
         }
       },
@@ -12221,6 +12573,27 @@
           }
         }
       },
+      "EntityHealthInfo": {
+        "type": "object",
+        "properties": {
+          "maxSeverity": {
+            "type": "number",
+            "format": "double",
+            "maximum": 10,
+            "minimum": 0
+          },
+          "openIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "openIssues"
+        ]
+      },
       "EntityId": {
         "type": "object",
         "properties": {
@@ -12290,6 +12663,83 @@
         ],
         "required": [
           "metricName"
+        ]
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "end": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "endpointServiceId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "entityId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "Entity10",
+              "App20",
+              "Service20",
+              "Endpoint20",
+              "Website",
+              "Synthetic"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "metricAccessId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "plugin": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "problem": {
+            "$ref": "#/components/schemas/Problem"
+          },
+          "start": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 0
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "entityId",
+          "id",
+          "plugin",
+          "state",
+          "type"
         ]
       },
       "EventFilteringConfiguration": {
@@ -12464,6 +12914,88 @@
           "type"
         ]
       },
+      "ExtendedService": {
+        "type": "object",
+        "properties": {
+          "applications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "APPLICATION",
+              "SERVICE",
+              "ENDPOINT"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "maxSeverity": {
+            "type": "number",
+            "format": "double",
+            "maximum": 10,
+            "minimum": 0
+          },
+          "numberOfOpenIssues": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "snapshotIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "technologies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNDEFINED",
+                "RPC",
+                "EVENT",
+                "GRAPHQL",
+                "BATCH",
+                "SHELL",
+                "HTTP",
+                "SDK",
+                "OPENTELEMETRY",
+                "INTERNAL",
+                "DATABASE",
+                "MESSAGING",
+                "PAGE",
+                "PAGE_RESOURCE"
+              ]
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "applications",
+          "id",
+          "label",
+          "snapshotIds",
+          "technologies",
+          "types"
+        ]
+      },
       "Field": {
         "type": "object",
         "properties": {
@@ -12473,11 +13005,11 @@
           "encoding": {
             "type": "string"
           },
-          "isSecure": {
-            "type": "boolean"
-          },
           "name": {
             "type": "string"
+          },
+          "secured": {
+            "type": "boolean"
           },
           "value": {
             "type": "string"
@@ -12738,6 +13270,42 @@
           "metrics"
         ]
       },
+      "GetAvailableMetricsQuery": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tagFilterExpression",
+          "timeFrame"
+        ]
+      },
+      "GetAvailablePluginsQuery": {
+        "type": "object",
+        "properties": {
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          }
+        },
+        "required": [
+          "tagFilterExpression",
+          "timeFrame"
+        ]
+      },
       "GetCallGroups": {
         "type": "object",
         "properties": {
@@ -12902,6 +13470,85 @@
         },
         "required": [
           "metrics"
+        ]
+      },
+      "GetInfrastructureGroupsQuery": {
+        "type": "object",
+        "properties": {
+          "groupBy": {
+            "type": "array",
+            "description": "Entity grouping tag. Use the Instana Analyze Infrastructure dashboard to determine the entity grouping tag name.",
+            "items": {
+              "type": "string",
+              "description": "Entity grouping tag. Use the Instana Analyze Infrastructure dashboard to determine the entity grouping tag name."
+            },
+            "maxItems": 1,
+            "minItems": 0
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfraMetricConfiguration"
+            },
+            "maxItems": 10,
+            "minItems": 0
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPaginationInfraExploreCursor"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of entities"
+          }
+        },
+        "required": [
+          "groupBy",
+          "pagination",
+          "tagFilterExpression",
+          "timeFrame"
+        ]
+      },
+      "GetInfrastructureQuery": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfraMetricConfiguration"
+            },
+            "maxItems": 10,
+            "minItems": 0
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPaginationInfraExploreCursor"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of entities"
+          }
+        },
+        "required": [
+          "pagination",
+          "tagFilterExpression",
+          "timeFrame"
         ]
       },
       "GetMobileAppBeaconGroups": {
@@ -14115,6 +14762,190 @@
           }
         ]
       },
+      "InfraExploreCursor": {
+        "type": "object",
+        "description": "cursor to use between successive queries"
+      },
+      "InfraMetricConfiguration": {
+        "type": "object",
+        "properties": {
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "P99_9",
+              "P99_99",
+              "DISTRIBUTION",
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE",
+              "PER_SECOND"
+            ]
+          },
+          "crossSeriesAggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "P99_9",
+              "P99_99",
+              "DISTRIBUTION",
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE",
+              "PER_SECOND"
+            ]
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "   * If granularity is not specified an aggregated value for the selected timeframe is returned.\n   * If granularity is specified data points are returned with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n",
+            "title": "granularity in seconds"
+          },
+          "metric": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "aggregation",
+          "metric"
+        ]
+      },
+      "InfrastructureEntitiesResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfrastructureItem"
+            }
+          },
+          "next": {
+            "$ref": "#/components/schemas/InfraExploreCursor"
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "description": "represents the total number of results",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "InfrastructureGroup": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "InfrastructureGroupsResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfrastructureGroup"
+            }
+          },
+          "next": {
+            "$ref": "#/components/schemas/InfraExploreCursor"
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "description": "represents the total number of results",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "InfrastructureItem": {
+        "type": "object",
+        "properties": {
+          "entityHealthInfo": {
+            "$ref": "#/components/schemas/EntityHealthInfo"
+          },
+          "label": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "plugin": {
+            "type": "string"
+          },
+          "snapshotId": {
+            "type": "string"
+          },
+          "time": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "InfrastructureMetricResult": {
         "type": "object",
         "properties": {
@@ -14127,19 +14958,7 @@
         }
       },
       "IngestionOffsetCursor": {
-        "type": "object",
-        "properties": {
-          "ingestionTime": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          },
-          "offset": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 0
-          }
-        }
+        "type": "object"
       },
       "InstanaVersionInfo": {
         "type": "object",
@@ -14772,6 +15591,105 @@
             "format": "int64"
           }
         }
+      },
+      "MetricMetadata": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "crossSeriesAggregations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "SUM",
+                "MEAN",
+                "MAX",
+                "MIN",
+                "P25",
+                "P50",
+                "P75",
+                "P90",
+                "P95",
+                "P98",
+                "P99",
+                "P99_9",
+                "P99_99",
+                "DISTRIBUTION",
+                "DISTINCT_COUNT",
+                "SUM_POSITIVE",
+                "PER_SECOND"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "description": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "NUMBER",
+              "BYTES",
+              "PERCENTAGE",
+              "LATENCY",
+              "MILLIS",
+              "SECONDS",
+              "MICROS",
+              "RATE",
+              "BYTE_RATE",
+              "UNDEFINED"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "infraTagCategory": {
+            "type": "string",
+            "enum": [
+              "ACE",
+              "ALICLOUD",
+              "AWS",
+              "AZURE",
+              "CASSANDRA",
+              "CLOUD_FOUNDRY",
+              "CLR",
+              "COCKROACH",
+              "CONSUL",
+              "CONTAINER",
+              "COUCHBASE",
+              "ELASTICSEARCH",
+              "GCP",
+              "HADOOP_YARN",
+              "HAZELCAST",
+              "IBM_CLOUD",
+              "IBM_DATAPOWER",
+              "IBM_I_SERIES",
+              "IBM_MQ",
+              "IBM_MQMFT",
+              "IBM_OPENSTACK",
+              "KAFKA_CONNECT",
+              "KUBERNETES",
+              "MONGO_DB",
+              "OTHERS",
+              "REDIS",
+              "SELF_MONITORING",
+              "SOLR",
+              "SPARK",
+              "VSHPERE"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "ownerType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "infraTagCategory"
+        ]
       },
       "MetricPattern": {
         "type": "object",
@@ -15596,7 +16514,8 @@
             "type": "string"
           },
           "collation": {
-            "type": "string"
+            "type": "string",
+            "description": "language code used for sorting. Ignored for infrastructure queries."
           },
           "direction": {
             "type": "string",
@@ -15652,12 +16571,39 @@
       "Parameter": {
         "type": "object",
         "properties": {
+          "description": {
+            "type": "string"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "label": {
+            "type": "string"
+          },
           "name": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "secured": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueType": {
             "type": "string"
           }
         },
         "required": [
-          "name"
+          "label",
+          "name",
+          "type",
+          "valueType"
         ]
       },
       "PathParameterHttpPathSegmentMatchingRule": {
@@ -15713,6 +16659,33 @@
             "type": "string"
           }
         }
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "fixSuggestion": {
+            "type": "string",
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "problemText": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 0
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "id"
+        ]
       },
       "PrometheusWebhookIntegration": {
         "type": "object",
@@ -15908,13 +16881,6 @@
       "Service": {
         "type": "object",
         "properties": {
-          "applications": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": true
-          },
           "entityType": {
             "type": "string",
             "enum": [
@@ -15928,17 +16894,6 @@
           },
           "label": {
             "type": "string"
-          },
-          "maxSeverity": {
-            "type": "number",
-            "format": "double",
-            "maximum": 10,
-            "minimum": 0
-          },
-          "numberOfOpenIssues": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 0
           },
           "snapshotIds": {
             "type": "array",
@@ -15979,7 +16934,6 @@
           }
         },
         "required": [
-          "applications",
           "id",
           "label",
           "snapshotIds",
@@ -16079,7 +17033,7 @@
           "services": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Service"
+              "$ref": "#/components/schemas/ExtendedService"
             },
             "uniqueItems": true
           }
@@ -17415,6 +18369,9 @@
           "description": {
             "type": "string"
           },
+          "idTag": {
+            "type": "boolean"
+          },
           "label": {
             "type": "string",
             "maxLength": 256,
@@ -17472,6 +18429,7 @@
             "properties": {
               "entity": {
                 "type": "string",
+                "description": "SOURCE or DESTINATION tag in case of a call tag. For Infrastructure, always set to NOT_APPLICABLE.",
                 "enum": [
                   "NOT_APPLICABLE",
                   "DESTINATION",
@@ -17480,11 +18438,13 @@
               },
               "key": {
                 "type": "string",
+                "description": "Tag key in case of a key/value tag.",
                 "maxLength": 512,
                 "minLength": 0
               },
               "name": {
                 "type": "string",
+                "description": "Name of the tag.",
                 "maxLength": 128,
                 "minLength": 0
               },
@@ -17510,7 +18470,8 @@
                 ]
               },
               "value": {
-                "type": "object"
+                "type": "object",
+                "description": "Tag value to filter on. Can be a string, number, or boolean value."
               }
             }
           }
@@ -18130,11 +19091,13 @@
         "properties": {
           "to": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "end of timeframe expressed as the Unix epoch time in milliseconds"
           },
           "windowSize": {
             "type": "integer",
             "format": "int64",
+            "description": "windowSize in milliseconds",
             "maximum": 2678400000,
             "minimum": 0
           }
@@ -20011,6 +20974,7 @@
     {
       "name": "Infrastructure Monitoring",
       "tags": [
+        "Infrastructure Analyze",
         "Infrastructure Metrics",
         "Infrastructure Resources",
         "Infrastructure Catalog",
@@ -20089,10 +21053,18 @@
       ]
     },
     {
+      "name": "Open Beta Features",
+      "tags": [
+        "Infrastructure Analyze"
+      ]
+    },
+    {
       "name": "Closed Beta Features",
       "tags": [
         "Synthetic Settings",
-        "Synthetic Test Playback Results"
+        "Synthetic Test Playback Results",
+        "Synthetic Alert Configuration",
+        "Infrastructure Alert Configuration"
       ]
     },
     {
