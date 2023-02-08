@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.242.494
+  version: 1.242.504
   x-description: info
   x-logo:
     altText: instana logo
@@ -2591,6 +2591,244 @@ paths:
       summary: Get versions of Global Application Alert Config
       tags:
       - Global Application Alert Configuration
+  /api/events/settings/global-alert-configs/synthetics:
+    get:
+      description: Configs are sorted descending by their created date.
+      operationId: findActiveSyntheticAlertConfigs
+      parameters:
+      - in: query
+        name: syntheticTestId
+        schema:
+          type: string
+      - in: query
+        name: alertIds
+        schema:
+          type: array
+          items:
+            type: string
+          maxItems: 1000
+          minItems: 0
+          uniqueItems: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SyntheticAlertConfigWithMetadata'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: All Synthetic Alert Configs
+      tags:
+      - Synthetic Alert Configuration
+    post:
+      operationId: createSyntheticAlertConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyntheticAlertConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticAlertConfigWithMetadata'
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Create Synthetic Alert Config
+      tags:
+      - Synthetic Alert Configuration
+  /api/events/settings/global-alert-configs/synthetics/{id}:
+    delete:
+      operationId: deleteSyntheticAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Delete Synthetic Alert Config
+      tags:
+      - Synthetic Alert Configuration
+    get:
+      description: Find a Synthetic Alert Config by ID. This will deliver deleted
+        configs too.
+      operationId: findSyntheticAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: validOn
+        schema:
+          type: integer
+          format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticAlertConfigWithMetadata'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get Synthetic Alert Config
+      tags:
+      - Synthetic Alert Configuration
+    post:
+      operationId: updateSyntheticAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyntheticAlertConfig'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticAlertConfigWithMetadata'
+          description: Synthetic Smart Alert successfully updated
+        "204":
+          description: Synthetic Smart Alert did not change
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Update Synthetic Alert Config
+      tags:
+      - Synthetic Alert Configuration
+  /api/events/settings/global-alert-configs/synthetics/{id}/disable:
+    put:
+      operationId: disableSyntheticAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Disable Synthetic Alert Config
+      tags:
+      - Synthetic Alert Configuration
+  /api/events/settings/global-alert-configs/synthetics/{id}/enable:
+    put:
+      operationId: enableSyntheticAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Enable Synthetic Alert Config
+      tags:
+      - Synthetic Alert Configuration
+  /api/events/settings/global-alert-configs/synthetics/{id}/restore/{created}:
+    put:
+      operationId: restoreSyntheticAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: created
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Restore Synthetic Alert Config
+      tags:
+      - Synthetic Alert Configuration
+  /api/events/settings/global-alert-configs/synthetics/{id}/versions:
+    get:
+      description: Find all versions of a Synthetic Alert Config by ID. This will
+        deliver deleted configs too. Configs are sorted descending by their created
+        date.
+      operationId: findSyntheticAlertConfigVersions
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConfigVersion'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get versions of Synthetic Alert Config
+      tags:
+      - Synthetic Alert Configuration
   /api/events/settings/website-alert-configs:
     get:
       description: Configs are sorted descending by their created date.
@@ -8076,6 +8314,12 @@ components:
       - snapshotIds
       - technologies
       - types
+    FailureSyntheticAlertRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/SyntheticAlertRule'
+      required:
+      - metricName
     Field:
       type: object
       properties:
@@ -11630,6 +11874,131 @@ components:
       - metricName
       - operator
       - value
+    SyntheticAlertConfig:
+      type: object
+      properties:
+        alertChannelIds:
+          type: array
+          items:
+            type: string
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        description:
+          type: string
+          maxLength: 65536
+          minLength: 0
+        name:
+          type: string
+          maxLength: 256
+          minLength: 0
+        rule:
+          $ref: '#/components/schemas/SyntheticAlertRule'
+        severity:
+          type: integer
+          format: int32
+        syntheticTestIds:
+          type: array
+          items:
+            type: string
+          maxItems: 500
+          minItems: 0
+          uniqueItems: true
+        timeThreshold:
+          $ref: '#/components/schemas/SyntheticTimeThreshold'
+      required:
+      - alertChannelIds
+      - description
+      - name
+      - rule
+      - syntheticTestIds
+      - timeThreshold
+    SyntheticAlertConfigWithMetadata:
+      type: object
+      properties:
+        alertChannelIds:
+          type: array
+          items:
+            type: string
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        created:
+          type: integer
+          format: int64
+          minimum: 1
+        description:
+          type: string
+          maxLength: 65536
+          minLength: 0
+        enabled:
+          type: boolean
+        id:
+          type: string
+          maxLength: 64
+          minLength: 0
+        name:
+          type: string
+          maxLength: 256
+          minLength: 0
+        readOnly:
+          type: boolean
+        rule:
+          $ref: '#/components/schemas/SyntheticAlertRule'
+        severity:
+          type: integer
+          format: int32
+        syntheticTestIds:
+          type: array
+          items:
+            type: string
+          maxItems: 500
+          minItems: 0
+          uniqueItems: true
+        timeThreshold:
+          $ref: '#/components/schemas/SyntheticTimeThreshold'
+      required:
+      - alertChannelIds
+      - description
+      - id
+      - name
+      - rule
+      - syntheticTestIds
+      - timeThreshold
+    SyntheticAlertRule:
+      type: object
+      discriminator:
+        mapping:
+          failure: '#/components/schemas/FailureSyntheticAlertRule'
+        propertyName: alertType
+      properties:
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - P99_9
+          - P99_99
+          - DISTRIBUTION
+          - DISTINCT_COUNT
+          - SUM_POSITIVE
+          - PER_SECOND
+        alertType:
+          type: string
+        metricName:
+          type: string
+      required:
+      - alertType
+      - metricName
     SyntheticCallConfig:
       type: object
       properties:
@@ -11888,6 +12257,22 @@ components:
       - label
       - locations
       - testFrequency
+    SyntheticTimeThreshold:
+      type: object
+      discriminator:
+        mapping:
+          violationsInSequence: '#/components/schemas/ViolationsInSequenceSyntheticTimeThreshold'
+        propertyName: type
+      properties:
+        type:
+          type: string
+        violationsCount:
+          type: integer
+          format: int32
+          maximum: 12
+          minimum: 1
+      required:
+      - type
     SyntheticTypeConfiguration:
       type: object
       description: |-
@@ -12877,6 +13262,10 @@ components:
       type: object
       allOf:
       - $ref: '#/components/schemas/ApplicationTimeThreshold'
+    ViolationsInSequenceSyntheticTimeThreshold:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/SyntheticTimeThreshold'
     ViolationsInSequenceWebsiteTimeThreshold:
       type: object
       allOf:
@@ -13857,11 +14246,11 @@ x-tagGroups:
 - name: Open Beta Features
   tags:
   - Infrastructure Analyze
-- name: Closed Beta Features
-  tags:
   - Synthetic Settings
   - Synthetic Test Playback Results
   - Synthetic Alert Configuration
+- name: Closed Beta Features
+  tags:
   - Infrastructure Alert Configuration
 - name: Instana
   tags:
