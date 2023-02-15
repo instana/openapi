@@ -5,8 +5,8 @@ This API endpoint creates a Synthetic Test.
 
 ```
 curl -k -v -X POST \
-http://<hostname>/api/synthetics/settings/tests \
--H 'authorization: apiToken valid-api-token' \
+https://<Host>/api/synthetics/settings/tests \
+-H 'authorization: apiToken <Token>' \
 -H 'content-type: application/json' \
 -d '{
     "label":"Test_SimplePing",
