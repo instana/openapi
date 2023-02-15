@@ -7,8 +7,8 @@ This API endpoint updates selected attributes of a Synthetic Test.
 
 ```
 curl -k -v -X PATCH \
-http://<hostname>/api/synthetics/settings/tests/Ilfs9bW97KkTxuyGtxBF \
--H 'authorization: apiToken valid-api-token' \
+https://<Host>/api/synthetics/settings/tests/Ilfs9bW97KkTxuyGtxBF \
+-H 'authorization: apiToken <Token>' \
 -H 'content-type: application/json' \
 -d '{
     "active":false
