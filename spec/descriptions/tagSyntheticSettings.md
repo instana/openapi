@@ -1,5 +1,4 @@
 The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. 
-These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
 
 ## Synthetic Location Properties:
 - **id** Unique identifier of the location resource.

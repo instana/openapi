@@ -1,11 +1,12 @@
 The endpoints of this group retrieve the results for defined Synthetic tests.
-These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
 
-**Note on name in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\<name\>.
+**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\<name\>.
 It can be one of the following: synthetic.id (id is the test result id), synthetic.testId,
 synthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,
 synthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\<MetricName\>.
 For example, synthetic.metricsResponseTime, synthetic.metricsStatus.
+
+The names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.
 
 ## Get Synthetic test playback results 
 The endpoint returns the aggregated Synthetic test result data
