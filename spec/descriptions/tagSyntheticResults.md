@@ -1,5 +1,12 @@
 The endpoints of this group retrieve the results for defined Synthetic tests.
-These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
+
+**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\<name\>.
+It can be one of the following: synthetic.id (id is the test result id), synthetic.testId,
+synthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,
+synthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\<MetricName\>.
+For example, synthetic.metricsResponseTime, synthetic.metricsStatus.
+
+The names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.
 
 ## Get Synthetic test playback results 
 The endpoint returns the aggregated Synthetic test result data
@@ -48,9 +55,9 @@ To narrow down the result set you have two options to search for a test.
 
 **locationId | applicationId**
 
-* *locationId:* filter by locationId
+* *synthetic.locationId:* filter by locationId
 
-* *applicationId:* filter by applicationId
+* *synthetic.applicationId:* filter by applicationId
 
 ### Defaults
 
@@ -72,7 +79,7 @@ To narrow down the result set you have two options to search for a test.
 {
     "testId": ["tUmWgvzdo1Q1vpVRpzR5", "Pg0Q1UqHRd7OMysohVLd"],
     "//comment1": "Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)",
-    "//comment2": "The granularity values for response_time and response_size must be the same
+    "//comment2": "The granularity values for response_time and response_size must be the same"
     "metrics": [
      {
         "aggregation": "MEAN",
@@ -116,11 +123,11 @@ sending (bytes), waiting (bytes), and receiving (bytes).
 1. *by* Use the metric name, e.g. "response_time" to order by that value
 2. *direction* either ascending (ASC) or descending (DESC)
 
-**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is the metric name. 
+**tagFilters** It serves as a filter to narrow down return results. 
 It will be replaced by **tagFilterExpression**.
 
 **tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with 
-logical operators AND or OR.`
+logical operators AND or OR.
 
 A payload only needs either tagFilters or tagFilterExpression as a filter, not both. 
 
@@ -134,7 +141,7 @@ A payload only needs either tagFilters or tagFilterExpression as a filter, not b
   },
   "tagFilters":[{
     "stringValue":"hYziqsaXSJmQsehOWg1S",
-    "name":"testId",
+    "name":"synthetic.testId",
     "operator":"EQUALS"
   }],
   "timeFrame": {
@@ -157,10 +164,10 @@ A payload only needs either tagFilters or tagFilterExpression as a filter, not b
     "logicalOperator":"AND",
     "elements":[{
       "stringValue":"hYziqsaXSJmQsehOWg1S",
-      "name":"testId",
+      "name":"synthetic.testId",
       "operator":"EQUALS"
     }, {
-      "name": "location_id", 
+      "name": "synthetic.locationId", 
       "operator": "EQUALS", 
       "stringValue": "abcdefgXSJmQsehOWg1S"
     }]
@@ -204,12 +211,13 @@ The endpoint returns a list of Synthetic tests with Success Rate and Average Res
 1. *by* Use the metric name, "response_time", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
-**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: synthetic_type, location_id, and application_id.
+**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: 
+synthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.
 It will be replaced by **tagFilterExpression**.
 ```
 "tagFilters":[{
   "stringValue":"hYziqsaXSJmQsehOWg1S",
-  "name":"application_id",
+  "name":"synthetic.applicationId",
   "operator":"EQUALS"
 }]
 ```
@@ -221,11 +229,11 @@ logical operators AND or OR.
   "type":"EXPRESSION",
   "logicalOperator":"AND",
   "elements":[{
-    "name": "status", 
+    "name": "synthetic.metricsStatus", 
     "operator": "EQUALS", 
     "numberValue": 1
   }, {
-    "name": "location_id", 
+    "name": "synthetic.locationId", 
     "operator": "EQUALS", 
     "stringValue":"WnjlKKbgzLDnyGra6PAs"
   }]
@@ -238,11 +246,11 @@ To narrow down the result set you have three options to search for a test.
 
 **synthetic_type | location_id | application_id**
 
-* *synthetic_type:* filter by syntheticType, either HTTPAction or HTTPScript
+* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript
 
-* *location_id:* filter by locationId
+* *synthetic.locationId:* filter by locationId
 
-* *application_id:* filter by applicationId
+* *synthetic.applicationId:* filter by applicationId
 
 ### Defaults
 
@@ -295,13 +303,13 @@ The endpoint returns a list of Synthetic locations with Last Test Run on (each l
    The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,
    last_test_run, and namespace
 
-**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: location_name, 
-location_label, location_id, type, status, and last_test_run, and namespace.
+**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: 
+synthetic.locationName, synthetic.locationLabel, and synthetic.locationId.
 It will be replaced by **tagFilterExpression**.
 ```
 "tagFilters":[{
   "stringValue":"hYziqsaXSJmQsehOWg1S",
-  "name":"location_id",
+  "name":"synthetic.locationId",
   "operator":"EQUALS"
 }]
 ```
@@ -311,13 +319,9 @@ logical operators AND or OR.
 ```
 "tagFilterExpression": { 
   "type":"EXPRESSION",
-  "logicalOperator":"AND",
+  "logicalOperator":"OR",
   "elements":[{
-    "name": "status", 
-    "operator": "EQUALS", 
-    "numberValue": 1
-  }, {
-    "name": "location_id", 
+    "name": "synthetic.locationId", 
     "operator": "EQUALS", 
     "stringValue":"WnjlKKbgzLDnyGra6PAs"
   }]
