@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.242.504
+  version: 1.243.511
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -200,6 +200,27 @@ tags:
         ```
   - name: Infrastructure Alert Configuration
   - name: Synthetic Alert Configuration
+    description: |+
+      The API endpoints of this group can be used to manage alert configurations for Synthetic Monitoring.
+
+      ## Parameters:
+
+      - **id:** ID of the alert configuration.
+
+      - **name:** Name for the synthetic alert configuration, which is used as the title of the event when triggered.
+
+      - **description:** Description for the synthetic alert configuration, which is used as the detials of the triggerd event.
+
+      - **severity:** The severity of the alert when triggered, which is either `5` (Warning), or `10` (Critical).
+
+      - **syntheticTestIds:** List of synthetic test IDs this alert configuration is applied to. Check out APIs in [Synthetic Monitoring](#tag/Synthetic-Settings) to e.g. get a [list of all synthetic tests](#operation/getSyntheticTests) available.
+
+      - **rule:** Indicates the type of rule this alert configuration is about. The only `alertType` available so far is `"failure"`, where the metric name `"status"` is expected. This boolean metric requires no threshold to be specified, because value of `status=0` indicates a test failure.
+
+      - **timeThreshold:** Defines the triggering condition in time, such as how many consecutive test failures are required to open an event. Setting a higher value for `violationsCount` helps to reduce the number of alerts.
+
+      - **alertChannelIds:** List of IDs of alert channels defined in Instana.
+
   - name: Host Agent
     description: 'Endpoints of this group can be used to list and configure host agents. '
   - name: User
@@ -237,7 +258,6 @@ tags:
   - name: Synthetic Settings
     description: |
       The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. 
-      These endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.
 
       ## Synthetic Location Properties:
       - **id** Unique identifier of the location resource.
@@ -317,7 +337,7 @@ tags:
       - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
         The default is every 15 minutes. The range is from 1 minute to 120 minutes.
   - name: Synthetic Test Playback Results
-    description: "The endpoints of this group retrieve the results for defined Synthetic tests.\nThese endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), \n   upload_speed (bytes per second), download_speed (bytes per second), \n   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). \n   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), \n   sending (bytes), waiting (bytes), and receiving (bytes).\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. \n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *locationId:* filter by locationId\n\n* *applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), \nresponse_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),\nupload_speed (bytes per second), download_speed (bytes per second),\nredirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).\nThe following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),\nsending (bytes), waiting (bytes), and receiving (bytes).\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is the metric name. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.`\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both. \n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"location_id\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only response_time (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: synthetic_type, location_id, and application_id.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"application_id\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"status\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"location_id\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nTo narrow down the result set you have three options to search for a test.\n\n**synthetic_type | location_id | application_id**\n\n* *synthetic_type:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *location_id:* filter by locationId\n\n* *application_id:* filter by applicationId\n\n### Defaults\n\n**synthetic_type | location_id | application_id**\n* no filters are applied in the default call\n\n### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"response_time\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
+    description: "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), \n   upload_speed (bytes per second), download_speed (bytes per second), \n   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). \n   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), \n   sending (bytes), waiting (bytes), and receiving (bytes).\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. \n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), \nresponse_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),\nupload_speed (bytes per second), download_speed (bytes per second),\nredirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).\nThe following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),\nsending (bytes), waiting (bytes), and receiving (bytes).\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both. \n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only response_time (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nTo narrow down the result set you have three options to search for a test.\n\n**synthetic_type | location_id | application_id**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**synthetic_type | location_id | application_id**\n* no filters are applied in the default call\n\n### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"response_time\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
   - name: Automation Settings
 paths:
   /api/application-monitoring/analyze/backend-correlation:
@@ -2491,7 +2511,7 @@ paths:
 
         - **name:** Name for the custom event
 
-        - **entityType:** Name of tha available plugins for the selected source
+        - **entityType:** Name of the available plugins for the selected source
 
         - **rules.ruleType:** Type of the rule being set for the custom event
 
@@ -2683,7 +2703,7 @@ paths:
 
         - **name:** Name for the custom event
 
-        - **entityType:** Name of tha available plugins for the selected source
+        - **entityType:** Name of the available plugins for the selected source
 
         - **rules.ruleType:** Type of the rule being set for the custom event
 
@@ -3147,6 +3167,25 @@ paths:
       summary: Create Synthetic Alert Config
       tags:
         - Synthetic Alert Configuration
+      description: |
+        Use this API endpoint to create a Synthetic Smart Alert.
+
+        #### Example
+
+        ```bash
+        curl -k --request POST \
+          --url https://<Host>/api/events/settings/global-alert-configs/synthetics \
+          --header 'authorization: apiToken <Token>' -H 'Content-Type: application/json' \
+          --data '{
+              "name":"Synthetics Smart Alert via API",
+              "description":"Synthetic test failed at least 3 times in sequence.",
+              "syntheticTestIds":["CKAGfbW0xMakCNUHlVlr"],
+              "severity":10,
+              "rule":{"alertType":"failure","metricName":"status"},
+              "alertChannelIds":["qyCAhNzNnYPCzzmm"],
+              "timeThreshold":{"type":"violationsInSequence","violationsCount":3}
+            }'
+        ```
   '/api/events/settings/global-alert-configs/synthetics/{id}':
     delete:
       operationId: deleteSyntheticAlertConfig
@@ -3222,6 +3261,26 @@ paths:
       summary: Update Synthetic Alert Config
       tags:
         - Synthetic Alert Configuration
+      description: |
+        Use this API endpoint to update a Synthetic Smart Alert by ID. Effectively, it creates a new revision instead of replacing the previous configuration.
+
+        #### Example
+
+        ```bash
+        curl -k --request POST \
+          --url https://<Host>/api/events/settings/global-alert-configs/synthetics/<ID> \
+          --header 'authorization: apiToken <Token>' -H 'Content-Type: application/json' \
+          --data '{
+              "id":"<ID>",
+              "name":"Updated Synthetics Smart Alert via API",
+              "description":"Synthetic test failed.",
+              "syntheticTestIds":["CKAGfbW0xMakCNUHlVlr"],
+              "severity":5,
+              "rule":{"alertType":"failure","metricName":"status"},
+              "alertChannelIds":["qyCAhNzNnYPCzzmm"],
+              "timeThreshold":{"type":"violationsInSequence","violationsCount":1}
+            }'
+        ```
   '/api/events/settings/global-alert-configs/synthetics/{id}/disable':
     put:
       operationId: disableSyntheticAlertConfig
@@ -6402,7 +6461,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Get Synthetic test playback results
+      summary: Get Synthetic test playback results
       tags:
         - Synthetic Test Playback Results
   /api/synthetics/results/list:
@@ -6422,7 +6481,27 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Get a list of Synthetic test playback results
+      summary: Get a list of Synthetic test playback results
+      tags:
+        - Synthetic Test Playback Results
+  /api/synthetics/results/locationsummarylist:
+    post:
+      operationId: getLocationSummaryList
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTestResultBase'
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResultListResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get a list of Synthetic locations with last run test on each location data
       tags:
         - Synthetic Test Playback Results
   /api/synthetics/results/testsummarylist:
@@ -6442,7 +6521,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Get a list of Synthetic tests with success rate and average response time data
+      summary: Get a list of Synthetic tests with success rate and average response time data
       tags:
         - Synthetic Test Playback Results
   '/api/synthetics/results/{testid}/{testresultid}':
@@ -6468,7 +6547,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Get Synthetic test playback detail result description(metadata)
+      summary: Get Synthetic test playback detail result description(metadata)
       tags:
         - Synthetic Test Playback Results
   '/api/synthetics/results/{testid}/{testresultid}/detail':
@@ -6505,7 +6584,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Get Synthetic test playback result detail data
+      summary: Get Synthetic test playback result detail data
       tags:
         - Synthetic Test Playback Results
   '/api/synthetics/results/{testid}/{testresultid}/file':
@@ -6534,7 +6613,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Download the synthetic test playback result detail data file
+      summary: Download the synthetic test playback result detail data file
       tags:
         - Synthetic Test Playback Results
   /api/synthetics/settings/locations:
@@ -6551,7 +6630,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - All Synthetic locations
+      summary: All Synthetic locations
       tags:
         - Synthetic Settings
   '/api/synthetics/settings/locations/{id}':
@@ -6571,7 +6650,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Delete Synthetic location
+      summary: Delete Synthetic location
       tags:
         - Synthetic Settings
     get:
@@ -6591,7 +6670,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Synthetic location
+      summary: Synthetic location
       tags:
         - Synthetic Settings
   /api/synthetics/settings/tests:
@@ -6613,7 +6692,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - All Synthetic tests
+      summary: All Synthetic tests
       tags:
         - Synthetic Settings
     post:
@@ -6633,7 +6712,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Create a Synthetic test
+      summary: Create a Synthetic test
       tags:
         - Synthetic Settings
       description: |-
@@ -6644,8 +6723,8 @@ paths:
 
         ```
         curl -k -v -X POST \
-        http://<hostname>/api/synthetics/settings/tests \
-        -H 'authorization: apiToken valid-api-token' \
+        https://<Host>/api/synthetics/settings/tests \
+        -H 'authorization: apiToken <Token>' \
         -H 'content-type: application/json' \
         -d '{
             "label":"Test_SimplePing",
@@ -6691,7 +6770,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Delete a Synthetic test
+      summary: Delete a Synthetic test
       tags:
         - Synthetic Settings
     get:
@@ -6711,9 +6790,52 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - A Synthetic test
+      summary: A Synthetic test
       tags:
         - Synthetic Settings
+    patch:
+      operationId: patchSyntheticTest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyntheticTest'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticTest'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Patch a Synthetic test
+      tags:
+        - Synthetic Settings
+      description: |-
+        This API endpoint updates selected attributes of a Synthetic Test.
+
+        - All attributes listed as in the schema, including the required ones, are optional for this call.
+
+        ## Sample script and payload: 
+        - A sample script to patch a simple Ping API test to disable it.
+
+        ```
+        curl -k -v -X PATCH \
+        https://<Host>/api/synthetics/settings/tests/Ilfs9bW97KkTxuyGtxBF \
+        -H 'authorization: apiToken <Token>' \
+        -H 'content-type: application/json' \
+        -d '{
+            "active":false
+          }'
+        ```
     put:
       operationId: updateSyntheticTest
       parameters:
@@ -6737,7 +6859,7 @@ paths:
       security:
         - ApiKeyAuth:
             - Default
-      summary: Experimental - Update a Synthetic test
+      summary: Update a Synthetic test
       tags:
         - Synthetic Settings
   /api/website-monitoring/analyze/beacon-groups:
@@ -7564,6 +7686,10 @@ components:
           type: boolean
         canConfigureSessionSettings:
           type: boolean
+        canConfigureSyntheticLocations:
+          type: boolean
+        canConfigureSyntheticTests:
+          type: boolean
         canConfigureTeams:
           type: boolean
         canConfigureUsers:
@@ -7585,6 +7711,12 @@ components:
         canViewAuditLog:
           type: boolean
         canViewLogs:
+          type: boolean
+        canViewSyntheticLocations:
+          type: boolean
+        canViewSyntheticTestResults:
+          type: boolean
+        canViewSyntheticTests:
           type: boolean
         canViewTraceDetails:
           type: boolean
@@ -9787,6 +9919,25 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
         - metrics
+    GetTestResultBase:
+      type: object
+      properties:
+        locationId:
+          type: array
+          items:
+            type: string
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
     GetTestResultList:
       type: object
       properties:
@@ -9794,6 +9945,10 @@ components:
           type: string
           maxLength: 64
           minLength: 0
+        locationId:
+          type: array
+          items:
+            type: string
         order:
           $ref: '#/components/schemas/Order'
         pagination:
@@ -10507,10 +10662,10 @@ components:
           format: int32
           description: |2
                * If granularity is not specified an aggregated value for the selected timeframe is returned.
-               * If granularity is specified data points are returned with the specified granularity **in seconds**
-                * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)
+               * If granularity is specified data points are returned with the specified granularity
+                * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in milliseconds)
                 * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)
-          title: granularity in seconds
+          title: granularity in milliseconds
         metric:
           type: string
       required:

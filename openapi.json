@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.242.504",
+    "version": "1.243.511",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -116,7 +116,8 @@
       "name": "Infrastructure Alert Configuration"
     },
     {
-      "name": "Synthetic Alert Configuration"
+      "name": "Synthetic Alert Configuration",
+      "description": "The API endpoints of this group can be used to manage alert configurations for Synthetic Monitoring.\n\n## Parameters:\n\n- **id:** ID of the alert configuration.\n\n- **name:** Name for the synthetic alert configuration, which is used as the title of the event when triggered.\n\n- **description:** Description for the synthetic alert configuration, which is used as the detials of the triggerd event.\n\n- **severity:** The severity of the alert when triggered, which is either `5` (Warning), or `10` (Critical).\n\n- **syntheticTestIds:** List of synthetic test IDs this alert configuration is applied to. Check out APIs in [Synthetic Monitoring](#tag/Synthetic-Settings) to e.g. get a [list of all synthetic tests](#operation/getSyntheticTests) available.\n\n- **rule:** Indicates the type of rule this alert configuration is about. The only `alertType` available so far is `\"failure\"`, where the metric name `\"status\"` is expected. This boolean metric requires no threshold to be specified, because value of `status=0` indicates a test failure.\n\n- **timeThreshold:** Defines the triggering condition in time, such as how many consecutive test failures are required to open an event. Setting a higher value for `violationsCount` helps to reduce the number of alerts.\n\n- **alertChannelIds:** List of IDs of alert channels defined in Instana.\n\n"
     },
     {
       "name": "Host Agent",
@@ -166,11 +167,11 @@
     },
     {
       "name": "Synthetic Settings",
-      "description": "The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. \nThese endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.\n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is public or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and DNSAction. \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for  WebpageAction and WebpageScript. \n    Currently, only firefox is supported\n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,\n      WebpageScript, and DNSAction. The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values in integer followed by time unit (ms, s, m). If timeout is not provided the playback engine will use its own timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and DNSActionConfiguration. Right now, only HTTPActionConfiguration\n      and HTTPScriptConfiguration are supported.\n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=preview-api-script\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. Possible values are Simultaneous or Staggered. Simultaneous\n  Synthetic tests run at all locations simultaneously. Staggered\n  Synthetic tests run from a different location at each interval.\n  This property is optional, and its default value is Simultaneous.\n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes.\n"
+      "description": "The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. \n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is public or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and DNSAction. \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for  WebpageAction and WebpageScript. \n    Currently, only firefox is supported\n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,\n      WebpageScript, and DNSAction. The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values in integer followed by time unit (ms, s, m). If timeout is not provided the playback engine will use its own timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and DNSActionConfiguration. Right now, only HTTPActionConfiguration\n      and HTTPScriptConfiguration are supported.\n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=preview-api-script\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. Possible values are Simultaneous or Staggered. Simultaneous\n  Synthetic tests run at all locations simultaneously. Staggered\n  Synthetic tests run from a different location at each interval.\n  This property is optional, and its default value is Simultaneous.\n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes.\n"
     },
     {
       "name": "Synthetic Test Playback Results",
-      "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\nThese endpoints are only available for invited customers for the Synthetic Monitoring Technology Preview.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), \n   upload_speed (bytes per second), download_speed (bytes per second), \n   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). \n   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), \n   sending (bytes), waiting (bytes), and receiving (bytes).\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. \n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *locationId:* filter by locationId\n\n* *applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), \nresponse_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),\nupload_speed (bytes per second), download_speed (bytes per second),\nredirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).\nThe following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),\nsending (bytes), waiting (bytes), and receiving (bytes).\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is the metric name. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.`\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both. \n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"location_id\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only response_time (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: synthetic_type, location_id, and application_id.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"application_id\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"status\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"location_id\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nTo narrow down the result set you have three options to search for a test.\n\n**synthetic_type | location_id | application_id**\n\n* *synthetic_type:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *location_id:* filter by locationId\n\n* *application_id:* filter by applicationId\n\n### Defaults\n\n**synthetic_type | location_id | application_id**\n* no filters are applied in the default call\n\n### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"response_time\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
+      "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), \n   upload_speed (bytes per second), download_speed (bytes per second), \n   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). \n   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), \n   sending (bytes), waiting (bytes), and receiving (bytes).\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. \n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), \nresponse_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),\nupload_speed (bytes per second), download_speed (bytes per second),\nredirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).\nThe following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),\nsending (bytes), waiting (bytes), and receiving (bytes).\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both. \n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only response_time (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nTo narrow down the result set you have three options to search for a test.\n\n**synthetic_type | location_id | application_id**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**synthetic_type | location_id | application_id**\n* no filters are applied in the default call\n\n### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"response_time\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
     },
     {
       "name": "Automation Settings"
@@ -3634,7 +3635,7 @@
         "tags": [
           "Event Settings"
         ],
-        "description": "This endpoint creates a new Custom Event Specification.\n\n## Mandatory Parameters:\n\n- **name:** Name for the custom event\n\n- **entityType:** Name of tha available plugins for the selected source\n\n- **rules.ruleType:** Type of the rule being set for the custom event\n\n### Rule-type specific parameters\n\nDepending on the chosen `ruleType`, there are further required parameters:\n\n#### Threshold Rule using a dynamic built-in metric by pattern :\n\n- **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window\n\n- **rules.metricPattern.prefix:** Prefix pattern for the metric\n\n- **rules.metricPattern.operator:** Operator for matching the metric\n\n```\ncurl --request POST 'https://<Host>/api/events/settings/event-specifications/custom' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\"name\":\"Event for OpenAPI documentation\",\n\"query\":<Query>, \n\"rules\":[{\"aggregation\":\"sum\",\"conditionOperator\":\">\", \"conditionValue\":0.1, \"metricName\":null, \"metricPattern\":{\"prefix\":\"fs\", \"postfix\":\"free\", \"operator\":\"endsWith\", \"placeholder\":\"/xvda1\"},\n\"rollup\":null, \"ruleType\":\"threshold\", \"severity\":10, \"window\":30000}], \"triggering\":false\n}'\n```\nThe above example creates a custom event that matches disk devices that end with \"/xvda1\" for the metric \"fs.{device}.free\" for any host in scope.\n\n#### Threshold Rule using fixed metric :\n\n- **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window\n\n- **rules.metricName:** Metric name for the event\n\n```\ncurl --request POST 'https://<Host>/api/events/settings/event-specifications/custom' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation fixed Metric\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI documentation fixed metric\",\"rules\":[{\"aggregation\":\"sum\",\"conditionOperator\":\">\", \"conditionValue\":0.1, \"metricName\":\"fs./dev/xvda1.free\", \n\"rollup\":null, \"ruleType\":\"threshold\", \"severity\":10, \"window\":30000}], \"triggering\":false\n}'\n```\n\n#### System Rule:\n\n- **rules.systemRuleId:** Id of the System Rule being set \n\n```\ncurl --request POST 'https://<Host>/api/events/settings/event-specifications/custom' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation System Rule\", \"enabled\":true,\"entityType\":\"any\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI documentation System Rule\", \"rules\":[{\"ruleType\":\"system\", \"systemRuleId\":\"entity.offline\",\"severity\":10}], \"triggering\":false\n}'\n```\n\n#### Entity Verification Rule:\n\n- **rules.matchingEntityType:** Type of the Entity\n- **rules.matchingOperator:** Operator for matching the Entity name\n- **rules.matchingEntityLabel:** Name Pattern for the Entity\n\n```\ncurl --request POST 'https://<Host>/api/events/settings/event-specifications/custom' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI Entity Verification Rule\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI Entity Verification Rule\",\n\"rules\":[{\"matchingEntityLabel\":\"test\", \"matchingEntityType\":\"jvmRuntimePlatform\",\"matchingOperator\":\"startsWith\",\"offlineDuration\":1800000, \n\"ruleType\":\"entity_verification\",\"severity\": 5}], \"triggering\":false\n}'\n```\n\n### Deprecations:\n\nThe entity types `application`, `service` and `endpoint` are deprecated for custom events and need to be migrated to a Smart Alert soon. We advise to configure a respective Smart Alert instead of a custom Event. For more information please [refer to our documentation](https://www.ibm.com/docs/en/obi/current?topic=applications-smart-alerts).\n"
+        "description": "This endpoint creates a new Custom Event Specification.\n\n## Mandatory Parameters:\n\n- **name:** Name for the custom event\n\n- **entityType:** Name of the available plugins for the selected source\n\n- **rules.ruleType:** Type of the rule being set for the custom event\n\n### Rule-type specific parameters\n\nDepending on the chosen `ruleType`, there are further required parameters:\n\n#### Threshold Rule using a dynamic built-in metric by pattern :\n\n- **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window\n\n- **rules.metricPattern.prefix:** Prefix pattern for the metric\n\n- **rules.metricPattern.operator:** Operator for matching the metric\n\n```\ncurl --request POST 'https://<Host>/api/events/settings/event-specifications/custom' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\"name\":\"Event for OpenAPI documentation\",\n\"query\":<Query>, \n\"rules\":[{\"aggregation\":\"sum\",\"conditionOperator\":\">\", \"conditionValue\":0.1, \"metricName\":null, \"metricPattern\":{\"prefix\":\"fs\", \"postfix\":\"free\", \"operator\":\"endsWith\", \"placeholder\":\"/xvda1\"},\n\"rollup\":null, \"ruleType\":\"threshold\", \"severity\":10, \"window\":30000}], \"triggering\":false\n}'\n```\nThe above example creates a custom event that matches disk devices that end with \"/xvda1\" for the metric \"fs.{device}.free\" for any host in scope.\n\n#### Threshold Rule using fixed metric :\n\n- **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window\n\n- **rules.metricName:** Metric name for the event\n\n```\ncurl --request POST 'https://<Host>/api/events/settings/event-specifications/custom' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation fixed Metric\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI documentation fixed metric\",\"rules\":[{\"aggregation\":\"sum\",\"conditionOperator\":\">\", \"conditionValue\":0.1, \"metricName\":\"fs./dev/xvda1.free\", \n\"rollup\":null, \"ruleType\":\"threshold\", \"severity\":10, \"window\":30000}], \"triggering\":false\n}'\n```\n\n#### System Rule:\n\n- **rules.systemRuleId:** Id of the System Rule being set \n\n```\ncurl --request POST 'https://<Host>/api/events/settings/event-specifications/custom' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation System Rule\", \"enabled\":true,\"entityType\":\"any\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI documentation System Rule\", \"rules\":[{\"ruleType\":\"system\", \"systemRuleId\":\"entity.offline\",\"severity\":10}], \"triggering\":false\n}'\n```\n\n#### Entity Verification Rule:\n\n- **rules.matchingEntityType:** Type of the Entity\n- **rules.matchingOperator:** Operator for matching the Entity name\n- **rules.matchingEntityLabel:** Name Pattern for the Entity\n\n```\ncurl --request POST 'https://<Host>/api/events/settings/event-specifications/custom' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI Entity Verification Rule\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI Entity Verification Rule\",\n\"rules\":[{\"matchingEntityLabel\":\"test\", \"matchingEntityType\":\"jvmRuntimePlatform\",\"matchingOperator\":\"startsWith\",\"offlineDuration\":1800000, \n\"ruleType\":\"entity_verification\",\"severity\": 5}], \"triggering\":false\n}'\n```\n\n### Deprecations:\n\nThe entity types `application`, `service` and `endpoint` are deprecated for custom events and need to be migrated to a Smart Alert soon. We advise to configure a respective Smart Alert instead of a custom Event. For more information please [refer to our documentation](https://www.ibm.com/docs/en/obi/current?topic=applications-smart-alerts).\n"
       }
     },
     "/api/events/settings/event-specifications/custom/systemRules": {
@@ -3787,7 +3788,7 @@
         "tags": [
           "Event Settings"
         ],
-        "description": "This endpoint creates or updates a Custom Event Specification.\n\n## Mandatory Parameters:\n\n- **eventSpecificationId (Path Parameter):** A unique identifier for each custom event\n\n- **name:** Name for the custom event\n\n- **entityType:** Name of tha available plugins for the selected source\n\n- **rules.ruleType:** Type of the rule being set for the custom event\n\n### Rule-type specific parameters\n\nDepending on the chosen `ruleType`, there are further required parameters:\n\n#### Threshold Rule using a dynamic built-in metric by pattern :\n\n- **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window\n\n- **rules.metricPattern.prefix:** Prefix pattern for the metric\n\n- **rules.metricPattern.operator:** Operator for matching the metric\n\n```\ncurl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\"name\":\"Event for OpenAPI documentation\",\n\"query\":<Query>, \n\"rules\":[{\"aggregation\":\"sum\",\"conditionOperator\":\">\", \"conditionValue\":0.1, \"metricName\":null, \"metricPattern\":{\"prefix\":\"fs\", \"postfix\":\"free\", \"operator\":\"endsWith\", \"placeholder\":\"/xvda1\"},\n\"rollup\":null, \"ruleType\":\"threshold\", \"severity\":10, \"window\":30000}], \"triggering\":false\n}'\n```\nThe above example creates a custom event that matches disk devices that end with \"/xvda1\" for the metric \"fs.{device}.free\" for any host in scope.\n\n#### Threshold Rule using fixed metric :\n\n- **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window\n\n- **rules.metricName:** Metric name for the event\n\n```\ncurl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation fixed Metric\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI documentation fixed metric\",\"rules\":[{\"aggregation\":\"sum\",\"conditionOperator\":\">\", \"conditionValue\":0.1, \"metricName\":\"fs./dev/xvda1.free\", \n\"rollup\":null, \"ruleType\":\"threshold\", \"severity\":10, \"window\":30000}], \"triggering\":false\n}'\n```\n\n#### System Rule:\n\n- **rules.systemRuleId:** Id of the System Rule being set \n\n```\ncurl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation System Rule\", \"enabled\":true,\"entityType\":\"any\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI documentation System Rule\", \"rules\":[{\"ruleType\":\"system\", \"systemRuleId\":\"entity.offline\",\"severity\":10}], \"triggering\":false\n}'\n```\n\n#### Entity Verification Rule:\n\n- **rules.matchingEntityType:** Type of the Entity\n- **rules.matchingOperator:** Operator for matching the Entity name\n- **rules.matchingEntityLabel:** Name Pattern for the Entity\n\n```\ncurl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI Entity Verification Rule\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI Entity Verification Rule\",\n\"rules\":[{\"matchingEntityLabel\":\"test\", \"matchingEntityType\":\"jvmRuntimePlatform\",\"matchingOperator\":\"startsWith\",\"offlineDuration\":1800000, \n\"ruleType\":\"entity_verification\",\"severity\": 5}], \"triggering\":false\n}'\n```\n\n## Optional Parameters:\n\n- **allowRestore (Query Parameter):** Allows to restore a custom event specification that was previously deleted or migrated when set to `true`. This allows to have idempotent operations that can be useful in _configuration as code_ scenarios. By default, the ID of a deleted configuration cannot be reused anymore to enable links in previous Issues or Incidents to stay valid.\n\n### Deprecations:\n\nThe entity types `application`, `service` and `endpoint` are deprecated for custom events and need to be migrated to a Smart Alert soon. We advise to configure a respective Smart Alert instead of a custom Event. For more information please [refer to our documentation](https://www.ibm.com/docs/en/obi/current?topic=applications-smart-alerts).\n"
+        "description": "This endpoint creates or updates a Custom Event Specification.\n\n## Mandatory Parameters:\n\n- **eventSpecificationId (Path Parameter):** A unique identifier for each custom event\n\n- **name:** Name for the custom event\n\n- **entityType:** Name of the available plugins for the selected source\n\n- **rules.ruleType:** Type of the rule being set for the custom event\n\n### Rule-type specific parameters\n\nDepending on the chosen `ruleType`, there are further required parameters:\n\n#### Threshold Rule using a dynamic built-in metric by pattern :\n\n- **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window\n\n- **rules.metricPattern.prefix:** Prefix pattern for the metric\n\n- **rules.metricPattern.operator:** Operator for matching the metric\n\n```\ncurl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\"name\":\"Event for OpenAPI documentation\",\n\"query\":<Query>, \n\"rules\":[{\"aggregation\":\"sum\",\"conditionOperator\":\">\", \"conditionValue\":0.1, \"metricName\":null, \"metricPattern\":{\"prefix\":\"fs\", \"postfix\":\"free\", \"operator\":\"endsWith\", \"placeholder\":\"/xvda1\"},\n\"rollup\":null, \"ruleType\":\"threshold\", \"severity\":10, \"window\":30000}], \"triggering\":false\n}'\n```\nThe above example creates a custom event that matches disk devices that end with \"/xvda1\" for the metric \"fs.{device}.free\" for any host in scope.\n\n#### Threshold Rule using fixed metric :\n\n- **rules.conditionOperator:** Conditional operator for the aggregation for the provided time window\n\n- **rules.metricName:** Metric name for the event\n\n```\ncurl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation fixed Metric\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI documentation fixed metric\",\"rules\":[{\"aggregation\":\"sum\",\"conditionOperator\":\">\", \"conditionValue\":0.1, \"metricName\":\"fs./dev/xvda1.free\", \n\"rollup\":null, \"ruleType\":\"threshold\", \"severity\":10, \"window\":30000}], \"triggering\":false\n}'\n```\n\n#### System Rule:\n\n- **rules.systemRuleId:** Id of the System Rule being set \n\n```\ncurl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI documentation System Rule\", \"enabled\":true,\"entityType\":\"any\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI documentation System Rule\", \"rules\":[{\"ruleType\":\"system\", \"systemRuleId\":\"entity.offline\",\"severity\":10}], \"triggering\":false\n}'\n```\n\n#### Entity Verification Rule:\n\n- **rules.matchingEntityType:** Type of the Entity\n- **rules.matchingOperator:** Operator for matching the Entity name\n- **rules.matchingEntityLabel:** Name Pattern for the Entity\n\n```\ncurl --request PUT 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json' \\\n--data-raw '{ \"description\":\"Event for OpenAPI Entity Verification Rule\", \"enabled\":true,\"entityType\":\"host\",\"expirationTime\":\"60000\",\n\"name\":\"Event for OpenAPI Entity Verification Rule\",\n\"rules\":[{\"matchingEntityLabel\":\"test\", \"matchingEntityType\":\"jvmRuntimePlatform\",\"matchingOperator\":\"startsWith\",\"offlineDuration\":1800000, \n\"ruleType\":\"entity_verification\",\"severity\": 5}], \"triggering\":false\n}'\n```\n\n## Optional Parameters:\n\n- **allowRestore (Query Parameter):** Allows to restore a custom event specification that was previously deleted or migrated when set to `true`. This allows to have idempotent operations that can be useful in _configuration as code_ scenarios. By default, the ID of a deleted configuration cannot be reused anymore to enable links in previous Issues or Incidents to stay valid.\n\n### Deprecations:\n\nThe entity types `application`, `service` and `endpoint` are deprecated for custom events and need to be migrated to a Smart Alert soon. We advise to configure a respective Smart Alert instead of a custom Event. For more information please [refer to our documentation](https://www.ibm.com/docs/en/obi/current?topic=applications-smart-alerts).\n"
       }
     },
     "/api/events/settings/event-specifications/custom/{eventSpecificationId}/disable": {
@@ -4438,7 +4439,8 @@
         "summary": "Create Synthetic Alert Config",
         "tags": [
           "Synthetic Alert Configuration"
-        ]
+        ],
+        "description": "Use this API endpoint to create a Synthetic Smart Alert.\n\n#### Example\n\n```bash\ncurl -k --request POST \\\n  --url https://<Host>/api/events/settings/global-alert-configs/synthetics \\\n  --header 'authorization: apiToken <Token>' -H 'Content-Type: application/json' \\\n  --data '{\n      \"name\":\"Synthetics Smart Alert via API\",\n      \"description\":\"Synthetic test failed at least 3 times in sequence.\",\n      \"syntheticTestIds\":[\"CKAGfbW0xMakCNUHlVlr\"],\n      \"severity\":10,\n      \"rule\":{\"alertType\":\"failure\",\"metricName\":\"status\"},\n      \"alertChannelIds\":[\"qyCAhNzNnYPCzzmm\"],\n      \"timeThreshold\":{\"type\":\"violationsInSequence\",\"violationsCount\":3}\n    }'\n```\n"
       }
     },
     "/api/events/settings/global-alert-configs/synthetics/{id}": {
@@ -4565,7 +4567,8 @@
         "summary": "Update Synthetic Alert Config",
         "tags": [
           "Synthetic Alert Configuration"
-        ]
+        ],
+        "description": "Use this API endpoint to update a Synthetic Smart Alert by ID. Effectively, it creates a new revision instead of replacing the previous configuration.\n\n#### Example\n\n```bash\ncurl -k --request POST \\\n  --url https://<Host>/api/events/settings/global-alert-configs/synthetics/<ID> \\\n  --header 'authorization: apiToken <Token>' -H 'Content-Type: application/json' \\\n  --data '{\n      \"id\":\"<ID>\",\n      \"name\":\"Updated Synthetics Smart Alert via API\",\n      \"description\":\"Synthetic test failed.\",\n      \"syntheticTestIds\":[\"CKAGfbW0xMakCNUHlVlr\"],\n      \"severity\":5,\n      \"rule\":{\"alertType\":\"failure\",\"metricName\":\"status\"},\n      \"alertChannelIds\":[\"qyCAhNzNnYPCzzmm\"],\n      \"timeThreshold\":{\"type\":\"violationsInSequence\",\"violationsCount\":1}\n    }'\n```\n"
       }
     },
     "/api/events/settings/global-alert-configs/synthetics/{id}/disable": {
@@ -9333,7 +9336,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Get Synthetic test playback results",
+        "summary": "Get Synthetic test playback results",
         "tags": [
           "Synthetic Test Playback Results"
         ]
@@ -9369,7 +9372,43 @@
             ]
           }
         ],
-        "summary": "Experimental - Get a list of Synthetic test playback results",
+        "summary": "Get a list of Synthetic test playback results",
+        "tags": [
+          "Synthetic Test Playback Results"
+        ]
+      }
+    },
+    "/api/synthetics/results/locationsummarylist": {
+      "post": {
+        "operationId": "getLocationSummaryList",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetTestResultBase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResultListResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get a list of Synthetic locations with last run test on each location data",
         "tags": [
           "Synthetic Test Playback Results"
         ]
@@ -9405,7 +9444,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Get a list of Synthetic tests with success rate and average response time data",
+        "summary": "Get a list of Synthetic tests with success rate and average response time data",
         "tags": [
           "Synthetic Test Playback Results"
         ]
@@ -9450,7 +9489,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Get Synthetic test playback detail result description(metadata)",
+        "summary": "Get Synthetic test playback detail result description(metadata)",
         "tags": [
           "Synthetic Test Playback Results"
         ]
@@ -9513,7 +9552,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Get Synthetic test playback result detail data",
+        "summary": "Get Synthetic test playback result detail data",
         "tags": [
           "Synthetic Test Playback Results"
         ]
@@ -9562,7 +9601,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Download the synthetic test playback result detail data file",
+        "summary": "Download the synthetic test playback result detail data file",
         "tags": [
           "Synthetic Test Playback Results"
         ]
@@ -9592,7 +9631,7 @@
             ]
           }
         ],
-        "summary": "Experimental - All Synthetic locations",
+        "summary": "All Synthetic locations",
         "tags": [
           "Synthetic Settings"
         ]
@@ -9626,7 +9665,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Delete Synthetic location",
+        "summary": "Delete Synthetic location",
         "tags": [
           "Synthetic Settings"
         ]
@@ -9661,7 +9700,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Synthetic location",
+        "summary": "Synthetic location",
         "tags": [
           "Synthetic Settings"
         ]
@@ -9700,7 +9739,7 @@
             ]
           }
         ],
-        "summary": "Experimental - All Synthetic tests",
+        "summary": "All Synthetic tests",
         "tags": [
           "Synthetic Settings"
         ]
@@ -9735,11 +9774,11 @@
             ]
           }
         ],
-        "summary": "Experimental - Create a Synthetic test",
+        "summary": "Create a Synthetic test",
         "tags": [
           "Synthetic Settings"
         ],
-        "description": "This API endpoint creates a Synthetic Test.\n\n## Sample script and payload: \n- A sample script to create a simple Ping API test\n\n```\ncurl -k -v -X POST \\\nhttp://<hostname>/api/synthetics/settings/tests \\\n-H 'authorization: apiToken valid-api-token' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"label\":\"Test_SimplePing\",\n    \"description\":\"this is to test a simple ping API\",\n    \"serviceId\":\"serviceId001\",\n    \"applicationId\":\"applicationId001\",\n    \"active\":true,\n    \"testFrequency\":1,\n    \"playbackMode\":\"Simultaneous\",\n    \"locations\":[\n        \"saas_instana_test\"\n    ],\n    \"configuration\":{\n        \"syntheticType\":\"HTTPAction\",\n        \"url\":\"https://httpbin.org/post\",\n        \"operation\":\"POST\",\n        \"headers\":{\n            \"Content-Type\":\"text/plain\"\n        },\n        \"body\":\"Hello World!\",\n        \"validationString\":\"Hello World!\"\n    },\n    \"customProperties\":{\n        \"Team\":\"DevTeam\",\n        \"Purpose\":\"Demo\"\n    }\n  }'\n```"
+        "description": "This API endpoint creates a Synthetic Test.\n\n## Sample script and payload: \n- A sample script to create a simple Ping API test\n\n```\ncurl -k -v -X POST \\\nhttps://<Host>/api/synthetics/settings/tests \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"label\":\"Test_SimplePing\",\n    \"description\":\"this is to test a simple ping API\",\n    \"serviceId\":\"serviceId001\",\n    \"applicationId\":\"applicationId001\",\n    \"active\":true,\n    \"testFrequency\":1,\n    \"playbackMode\":\"Simultaneous\",\n    \"locations\":[\n        \"saas_instana_test\"\n    ],\n    \"configuration\":{\n        \"syntheticType\":\"HTTPAction\",\n        \"url\":\"https://httpbin.org/post\",\n        \"operation\":\"POST\",\n        \"headers\":{\n            \"Content-Type\":\"text/plain\"\n        },\n        \"body\":\"Hello World!\",\n        \"validationString\":\"Hello World!\"\n    },\n    \"customProperties\":{\n        \"Team\":\"DevTeam\",\n        \"Purpose\":\"Demo\"\n    }\n  }'\n```"
       }
     },
     "/api/synthetics/settings/tests/{id}": {
@@ -9770,7 +9809,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Delete a Synthetic test",
+        "summary": "Delete a Synthetic test",
         "tags": [
           "Synthetic Settings"
         ]
@@ -9805,10 +9844,56 @@
             ]
           }
         ],
-        "summary": "Experimental - A Synthetic test",
+        "summary": "A Synthetic test",
         "tags": [
           "Synthetic Settings"
         ]
+      },
+      "patch": {
+        "operationId": "patchSyntheticTest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyntheticTest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyntheticTest"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Patch a Synthetic test",
+        "tags": [
+          "Synthetic Settings"
+        ],
+        "description": "This API endpoint updates selected attributes of a Synthetic Test.\n\n- All attributes listed as in the schema, including the required ones, are optional for this call.\n\n## Sample script and payload: \n- A sample script to patch a simple Ping API test to disable it.\n\n```\ncurl -k -v -X PATCH \\\nhttps://<Host>/api/synthetics/settings/tests/Ilfs9bW97KkTxuyGtxBF \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"active\":false\n  }'\n```"
       },
       "put": {
         "operationId": "updateSyntheticTest",
@@ -9850,7 +9935,7 @@
             ]
           }
         ],
-        "summary": "Experimental - Update a Synthetic test",
+        "summary": "Update a Synthetic test",
         "tags": [
           "Synthetic Settings"
         ]
@@ -11131,6 +11216,12 @@
           "canConfigureSessionSettings": {
             "type": "boolean"
           },
+          "canConfigureSyntheticLocations": {
+            "type": "boolean"
+          },
+          "canConfigureSyntheticTests": {
+            "type": "boolean"
+          },
           "canConfigureTeams": {
             "type": "boolean"
           },
@@ -11162,6 +11253,15 @@
             "type": "boolean"
           },
           "canViewLogs": {
+            "type": "boolean"
+          },
+          "canViewSyntheticLocations": {
+            "type": "boolean"
+          },
+          "canViewSyntheticTestResults": {
+            "type": "boolean"
+          },
+          "canViewSyntheticTests": {
             "type": "boolean"
           },
           "canViewTraceDetails": {
@@ -14231,6 +14331,35 @@
           "metrics"
         ]
       },
+      "GetTestResultBase": {
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpression"
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          }
+        }
+      },
       "GetTestResultList": {
         "type": "object",
         "properties": {
@@ -14238,6 +14367,12 @@
             "type": "string",
             "maxLength": 64,
             "minLength": 0
+          },
+          "locationId": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "order": {
             "$ref": "#/components/schemas/Order"
@@ -15224,8 +15359,8 @@
           "granularity": {
             "type": "integer",
             "format": "int32",
-            "description": "   * If granularity is not specified an aggregated value for the selected timeframe is returned.\n   * If granularity is specified data points are returned with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n",
-            "title": "granularity in seconds"
+            "description": "   * If granularity is not specified an aggregated value for the selected timeframe is returned.\n   * If granularity is specified data points are returned with the specified granularity\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in milliseconds)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n",
+            "title": "granularity in milliseconds"
           },
           "metric": {
             "type": "string"
