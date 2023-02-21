@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.242.504
+  version: 1.243.511
   x-description: info
   x-logo:
     altText: instana logo
@@ -2643,6 +2643,7 @@ paths:
       summary: Create Synthetic Alert Config
       tags:
       - Synthetic Alert Configuration
+      x-description: createSyntheticAlertConfig
   /api/events/settings/global-alert-configs/synthetics/{id}:
     delete:
       operationId: deleteSyntheticAlertConfig
@@ -2719,6 +2720,7 @@ paths:
       summary: Update Synthetic Alert Config
       tags:
       - Synthetic Alert Configuration
+      x-description: updateSyntheticAlertConfig
   /api/events/settings/global-alert-configs/synthetics/{id}/disable:
     put:
       operationId: disableSyntheticAlertConfig
@@ -5555,7 +5557,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Get Synthetic test playback results
+      summary: Get Synthetic test playback results
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/results/list:
@@ -5576,7 +5578,29 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Get a list of Synthetic test playback results
+      summary: Get a list of Synthetic test playback results
+      tags:
+      - Synthetic Test Playback Results
+  /api/synthetics/results/locationsummarylist:
+    post:
+      operationId: getLocationSummaryList
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTestResultBase'
+        x-payload: getLocationSummaryList
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResultListResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get a list of Synthetic locations with last run test on each location
+        data
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/results/testsummarylist:
@@ -5597,8 +5621,8 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Get a list of Synthetic tests with success rate and
-        average response time data
+      summary: Get a list of Synthetic tests with success rate and average response
+        time data
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/results/{testid}/{testresultid}:
@@ -5624,7 +5648,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Get Synthetic test playback detail result description(metadata)
+      summary: Get Synthetic test playback detail result description(metadata)
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/results/{testid}/{testresultid}/detail:
@@ -5661,7 +5685,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Get Synthetic test playback result detail data
+      summary: Get Synthetic test playback result detail data
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/results/{testid}/{testresultid}/file:
@@ -5690,8 +5714,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Download the synthetic test playback result detail data
-        file
+      summary: Download the synthetic test playback result detail data file
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/settings/locations:
@@ -5708,7 +5731,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - All Synthetic locations
+      summary: All Synthetic locations
       tags:
       - Synthetic Settings
   /api/synthetics/settings/locations/{id}:
@@ -5728,7 +5751,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Delete Synthetic location
+      summary: Delete Synthetic location
       tags:
       - Synthetic Settings
     get:
@@ -5748,7 +5771,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Synthetic location
+      summary: Synthetic location
       tags:
       - Synthetic Settings
   /api/synthetics/settings/tests:
@@ -5770,7 +5793,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - All Synthetic tests
+      summary: All Synthetic tests
       tags:
       - Synthetic Settings
     post:
@@ -5791,7 +5814,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Create a Synthetic test
+      summary: Create a Synthetic test
       tags:
       - Synthetic Settings
       x-description: createSyntheticTest
@@ -5812,7 +5835,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Delete a Synthetic test
+      summary: Delete a Synthetic test
       tags:
       - Synthetic Settings
     get:
@@ -5832,9 +5855,37 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - A Synthetic test
+      summary: A Synthetic test
       tags:
       - Synthetic Settings
+    patch:
+      operationId: patchSyntheticTest
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyntheticTest'
+        required: true
+        x-payload: patchSyntheticTest
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticTest'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Patch a Synthetic test
+      tags:
+      - Synthetic Settings
+      x-description: patchSyntheticTest
     put:
       operationId: updateSyntheticTest
       parameters:
@@ -5859,7 +5910,7 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Experimental - Update a Synthetic test
+      summary: Update a Synthetic test
       tags:
       - Synthetic Settings
       x-description: updateSyntheticTest
@@ -6693,6 +6744,10 @@ components:
           type: boolean
         canConfigureSessionSettings:
           type: boolean
+        canConfigureSyntheticLocations:
+          type: boolean
+        canConfigureSyntheticTests:
+          type: boolean
         canConfigureTeams:
           type: boolean
         canConfigureUsers:
@@ -6714,6 +6769,12 @@ components:
         canViewAuditLog:
           type: boolean
         canViewLogs:
+          type: boolean
+        canViewSyntheticLocations:
+          type: boolean
+        canViewSyntheticTestResults:
+          type: boolean
+        canViewSyntheticTests:
           type: boolean
         canViewTraceDetails:
           type: boolean
@@ -8918,6 +8979,25 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
       - metrics
+    GetTestResultBase:
+      type: object
+      properties:
+        locationId:
+          type: array
+          items:
+            type: string
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
     GetTestResultList:
       type: object
       properties:
@@ -8925,6 +9005,10 @@ components:
           type: string
           maxLength: 64
           minLength: 0
+        locationId:
+          type: array
+          items:
+            type: string
         order:
           $ref: '#/components/schemas/Order'
         pagination:
@@ -9638,10 +9722,10 @@ components:
           format: int32
           description: |2
                * If granularity is not specified an aggregated value for the selected timeframe is returned.
-               * If granularity is specified data points are returned with the specified granularity **in seconds**
-                * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)
+               * If granularity is specified data points are returned with the specified granularity
+                * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in milliseconds)
                 * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)
-          title: granularity in seconds
+          title: granularity in milliseconds
         metric:
           type: string
       required:
