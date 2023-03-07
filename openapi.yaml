@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.243.511
+  version: 1.244.473
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -255,6 +255,7 @@ tags:
       `/api/custom-dashboard/shareable-api-tokens` endpoints. These endpoints return
       our internal IDs for users and API tokens.
   - name: Usage
+  - name: Synthetic Catalog
   - name: Synthetic Settings
     description: |
       The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. 
@@ -6444,6 +6445,37 @@ paths:
       summary: Generate SLI report
       tags:
         - SLI Report
+  /api/synthetics/catalog:
+    get:
+      operationId: getSyntheticTagCatalog
+      parameters:
+        - in: query
+          name: useCase
+          required: true
+          schema:
+            type: string
+            enum:
+              - GROUPING
+              - FILTERING
+              - SMART_ALERTS
+              - SMART_ALERTS_LOGS
+              - SMART_ALERTS_ADAPTIVE_BASELINE
+              - SMART_ALERTS_CUSTOM_PAYLOAD
+              - SLI_MANAGEMENT
+              - APPLICATION_CONFIG
+              - APPLICATION_CONFIG_BLUEPRINT
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagCatalog'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get synthetic tag catalog
+      tags:
+        - Synthetic Catalog
   /api/synthetics/results:
     post:
       operationId: getSyntheticResult
@@ -9092,6 +9124,7 @@ components:
             - Endpoint20
             - Website
             - Synthetic
+            - MobileApp
         id:
           type: string
           maxLength: 64
@@ -12927,6 +12960,8 @@ components:
           maxItems: 500
           minItems: 0
           uniqueItems: true
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         timeThreshold:
           $ref: '#/components/schemas/SyntheticTimeThreshold'
       required:
@@ -12935,6 +12970,7 @@ components:
         - name
         - rule
         - syntheticTestIds
+        - tagFilterExpression
         - timeThreshold
     SyntheticAlertConfigWithMetadata:
       type: object
@@ -12978,6 +13014,8 @@ components:
           maxItems: 500
           minItems: 0
           uniqueItems: true
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         timeThreshold:
           $ref: '#/components/schemas/SyntheticTimeThreshold'
       required:
@@ -12987,6 +13025,7 @@ components:
         - name
         - rule
         - syntheticTestIds
+        - tagFilterExpression
         - timeThreshold
     SyntheticAlertRule:
       type: object
@@ -15270,6 +15309,7 @@ x-tagGroups:
   - name: Open Beta Features
     tags:
       - Infrastructure Analyze
+      - Synthetic Catalog
       - Synthetic Settings
       - Synthetic Test Playback Results
       - Synthetic Alert Configuration
