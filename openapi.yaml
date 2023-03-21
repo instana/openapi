@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.244.473
+  version: 1.245.533
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -341,6 +341,40 @@ tags:
     description: "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), \n   upload_speed (bytes per second), download_speed (bytes per second), \n   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). \n   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), \n   sending (bytes), waiting (bytes), and receiving (bytes).\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. \n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for response_time and response_size must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_time\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"response_size\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), \nresponse_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),\nupload_speed (bytes per second), download_speed (bytes per second),\nredirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).\nThe following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),\nsending (bytes), waiting (bytes), and receiving (bytes).\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"response_time\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both. \n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"response_time\",\"response_size\"],\n  \"order\":{\n    \"by\":\"response_time\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only response_time (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"response_time\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nTo narrow down the result set you have three options to search for a test.\n\n**synthetic_type | location_id | application_id**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**synthetic_type | location_id | application_id**\n* no filters are applied in the default call\n\n### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"response_time\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
   - name: Automation Settings
 paths:
+  '/api/apdex/report/{apdexId}':
+    get:
+      operationId: getApdexReport
+      parameters:
+        - in: path
+          name: apdexId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApdexReport'
+      security:
+        - ApiKeyAuth: []
+      summary: Generate Apdex report
+      tags:
+        - Apdex Report
   /api/application-monitoring/analyze/backend-correlation:
     get:
       operationId: getCorrelatedTraces
@@ -5161,6 +5195,109 @@ paths:
       summary: Access log
       tags:
         - Audit Log
+  /api/settings/apdex:
+    get:
+      operationId: getAllApdexConfigurations
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApdexConfiguration'
+      security:
+        - ApiKeyAuth: []
+      summary: Get All Apdex Configurations
+      tags:
+        - Apdex Settings
+    post:
+      operationId: createApdexConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApdexConfigurationInput'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApdexConfiguration'
+      security:
+        - ApiKeyAuth: []
+      summary: Create Apdex Configuration
+      tags:
+        - Apdex Settings
+  '/api/settings/apdex/{entityType}/{entityId}':
+    get:
+      operationId: getApdexConfigurationsForEntityTypeAndId
+      parameters:
+        - in: path
+          name: entityType
+          required: true
+          schema:
+            type: string
+            enum:
+              - APPLICATION
+              - WEBSITE
+        - in: path
+          name: entityId
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApdexConfiguration'
+      security:
+        - ApiKeyAuth: []
+      summary: Get all Apdex configurations for entity type and entity id
+      tags:
+        - Apdex Settings
+  '/api/settings/apdex/{id}':
+    delete:
+      operationId: deleteApdexConfiguration
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth: []
+      summary: Delete Apdex Configuration
+      tags:
+        - Apdex Settings
+    get:
+      operationId: getApdexConfiguration
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApdexConfiguration'
+      security:
+        - ApiKeyAuth: []
+      summary: Get Apdex Configuration
+      tags:
+        - Apdex Settings
   /api/settings/api-tokens:
     get:
       operationId: getApiTokens
@@ -6367,6 +6504,37 @@ paths:
 
         All of these filters can be included using the list of TagFilterExpressions via **sliEntity.goodEventFilterExpression** and **sliEntity.badEventFilterExpression**.
         These parameters will be removed in the upcoming releases.
+  '/api/settings/v2/sli/{entityType}/{entityId}':
+    get:
+      operationId: getSliConfigsForEntityTypeAndIdV2
+      parameters:
+        - in: path
+          name: entityType
+          required: true
+          schema:
+            type: string
+            enum:
+              - APPLICATION
+              - WEBSITE
+        - in: path
+          name: entityId
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+        - ApiKeyAuth:
+            - canConfigureServiceLevelIndicators
+      summary: Get all SLI configs for entity type and entity id
+      tags:
+        - SLI Settings
   '/api/settings/v2/sli/{id}':
     delete:
       operationId: deleteSliConfigV2
@@ -7594,6 +7762,77 @@ components:
         - eventFilteringConfiguration
         - id
         - integrationIds
+    ApdexConfiguration:
+      type: object
+      properties:
+        apdexEntity:
+          $ref: '#/components/schemas/ApdexEntity'
+        apdexName:
+          type: string
+          maxLength: 256
+          minLength: 0
+        createdAt:
+          type: integer
+          format: int64
+        id:
+          type: string
+          maxLength: 64
+          minLength: 0
+      required:
+        - apdexEntity
+        - apdexName
+        - id
+    ApdexConfigurationInput:
+      type: object
+      properties:
+        apdexEntity:
+          $ref: '#/components/schemas/ApdexEntity'
+        apdexName:
+          type: string
+          maxLength: 256
+          minLength: 0
+      required:
+        - apdexEntity
+        - apdexName
+    ApdexEntity:
+      type: object
+      discriminator:
+        mapping:
+          application: '#/components/schemas/ApplicationApdexEntity'
+          website: '#/components/schemas/WebsiteApdexEntity'
+        propertyName: apdexType
+      properties:
+        apdexType:
+          type: string
+        entityId:
+          type: string
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+      required:
+        - apdexType
+        - entityId
+        - tagFilterExpression
+    ApdexReport:
+      type: object
+      properties:
+        apdexId:
+          type: string
+        apdexScore:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
     ApiGroup:
       type: object
       properties:
@@ -8042,6 +8281,25 @@ components:
       required:
         - alertType
         - metricName
+    ApplicationApdexEntity:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ApdexEntity'
+        - type: object
+          properties:
+            boundaryScope:
+              type: string
+              enum:
+                - ALL
+                - INBOUND
+            includeInternal:
+              type: boolean
+            includeSynthetic:
+              type: boolean
+      required:
+        - boundaryScope
+        - entityId
+        - tagFilterExpression
     ApplicationConfig:
       type: object
       properties:
@@ -12560,6 +12818,8 @@ components:
         mapping:
           application: '#/components/schemas/ApplicationSliEntity'
           availability: '#/components/schemas/AvailabilitySliEntity'
+          websiteEventBased: '#/components/schemas/WebsiteEventBasedSliEntity'
+          websiteTimeBased: '#/components/schemas/WebsiteTimeBasedSliEntity'
         propertyName: sliType
       properties:
         sliType:
@@ -14620,6 +14880,25 @@ components:
       required:
         - alertType
         - metricName
+    WebsiteApdexEntity:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ApdexEntity'
+        - type: object
+          properties:
+            beaconType:
+              type: string
+              enum:
+                - pageLoad
+                - resourceLoad
+                - httpRequest
+                - error
+                - custom
+                - pageChange
+      required:
+        - beaconType
+        - entityId
+        - tagFilterExpression
     WebsiteBeaconGroupsItem:
       type: object
       properties:
@@ -14734,12 +15013,12 @@ components:
             beaconType:
               type: string
               enum:
-                - PAGE_LOAD
-                - PAGE_RESOURCE
-                - HTTP_REQUEST
-                - JS_ERROR
-                - CUSTOM
-                - PAGE_CHANGE
+                - pageLoad
+                - resourceLoad
+                - httpRequest
+                - error
+                - custom
+                - pageChange
             goodEventFilterExpression:
               $ref: '#/components/schemas/TagFilterExpressionElement'
             websiteId:
@@ -15166,12 +15445,12 @@ components:
             beaconType:
               type: string
               enum:
-                - PAGE_LOAD
-                - PAGE_RESOURCE
-                - HTTP_REQUEST
-                - JS_ERROR
-                - CUSTOM
-                - PAGE_CHANGE
+                - pageLoad
+                - resourceLoad
+                - httpRequest
+                - error
+                - custom
+                - pageChange
             filterExpression:
               $ref: '#/components/schemas/TagFilterExpressionElement'
             websiteId:
