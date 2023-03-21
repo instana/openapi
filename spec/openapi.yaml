@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.244.473
+  version: 1.245.533
   x-description: info
   x-logo:
     altText: instana logo
@@ -110,6 +110,40 @@ tags:
 - name: Automation Settings
   x-description: tagAutomationSettings
 paths:
+  /api/apdex/report/{apdexId}:
+    get:
+      operationId: getApdexReport
+      parameters:
+      - in: path
+        name: apdexId
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: from
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: to
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApdexReport'
+      security:
+      - ApiKeyAuth: []
+      summary: Generate Apdex report
+      tags:
+      - Apdex Report
   /api/application-monitoring/analyze/backend-correlation:
     get:
       operationId: getCorrelatedTraces
@@ -4528,6 +4562,110 @@ paths:
       summary: Access log
       tags:
       - Audit Log
+  /api/settings/apdex:
+    get:
+      operationId: getAllApdexConfigurations
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApdexConfiguration'
+      security:
+      - ApiKeyAuth: []
+      summary: Get All Apdex Configurations
+      tags:
+      - Apdex Settings
+    post:
+      operationId: createApdexConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApdexConfigurationInput'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApdexConfiguration'
+      security:
+      - ApiKeyAuth: []
+      summary: Create Apdex Configuration
+      tags:
+      - Apdex Settings
+      x-description: createApdexConfiguration
+  /api/settings/apdex/{entityType}/{entityId}:
+    get:
+      operationId: getApdexConfigurationsForEntityTypeAndId
+      parameters:
+      - in: path
+        name: entityType
+        required: true
+        schema:
+          type: string
+          enum:
+          - APPLICATION
+          - WEBSITE
+      - in: path
+        name: entityId
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApdexConfiguration'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all Apdex configurations for entity type and entity id
+      tags:
+      - Apdex Settings
+  /api/settings/apdex/{id}:
+    delete:
+      operationId: deleteApdexConfiguration
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Apdex Configuration
+      tags:
+      - Apdex Settings
+    get:
+      operationId: getApdexConfiguration
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApdexConfiguration'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Apdex Configuration
+      tags:
+      - Apdex Settings
   /api/settings/api-tokens:
     get:
       operationId: getApiTokens
@@ -5463,6 +5601,37 @@ paths:
       tags:
       - SLI Settings
       x-description: createSliConfiguration
+  /api/settings/v2/sli/{entityType}/{entityId}:
+    get:
+      operationId: getSliConfigsForEntityTypeAndIdV2
+      parameters:
+      - in: path
+        name: entityType
+        required: true
+        schema:
+          type: string
+          enum:
+          - APPLICATION
+          - WEBSITE
+      - in: path
+        name: entityId
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SliConfigurationWithLastUpdated'
+      security:
+      - ApiKeyAuth:
+        - canConfigureServiceLevelIndicators
+      summary: Get all SLI configs for entity type and entity id
+      tags:
+      - SLI Settings
   /api/settings/v2/sli/{id}:
     delete:
       operationId: deleteSliConfigV2
@@ -6654,6 +6823,77 @@ components:
       - eventFilteringConfiguration
       - id
       - integrationIds
+    ApdexConfiguration:
+      type: object
+      properties:
+        apdexEntity:
+          $ref: '#/components/schemas/ApdexEntity'
+        apdexName:
+          type: string
+          maxLength: 256
+          minLength: 0
+        createdAt:
+          type: integer
+          format: int64
+        id:
+          type: string
+          maxLength: 64
+          minLength: 0
+      required:
+      - apdexEntity
+      - apdexName
+      - id
+    ApdexConfigurationInput:
+      type: object
+      properties:
+        apdexEntity:
+          $ref: '#/components/schemas/ApdexEntity'
+        apdexName:
+          type: string
+          maxLength: 256
+          minLength: 0
+      required:
+      - apdexEntity
+      - apdexName
+    ApdexEntity:
+      type: object
+      discriminator:
+        mapping:
+          application: '#/components/schemas/ApplicationApdexEntity'
+          website: '#/components/schemas/WebsiteApdexEntity'
+        propertyName: apdexType
+      properties:
+        apdexType:
+          type: string
+        entityId:
+          type: string
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+      required:
+      - apdexType
+      - entityId
+      - tagFilterExpression
+    ApdexReport:
+      type: object
+      properties:
+        apdexId:
+          type: string
+        apdexScore:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
     ApiGroup:
       type: object
       properties:
@@ -7102,6 +7342,25 @@ components:
       required:
       - alertType
       - metricName
+    ApplicationApdexEntity:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/ApdexEntity'
+      - type: object
+        properties:
+          boundaryScope:
+            type: string
+            enum:
+            - ALL
+            - INBOUND
+          includeInternal:
+            type: boolean
+          includeSynthetic:
+            type: boolean
+      required:
+      - boundaryScope
+      - entityId
+      - tagFilterExpression
     ApplicationConfig:
       type: object
       properties:
@@ -11623,6 +11882,8 @@ components:
         mapping:
           application: '#/components/schemas/ApplicationSliEntity'
           availability: '#/components/schemas/AvailabilitySliEntity'
+          websiteEventBased: '#/components/schemas/WebsiteEventBasedSliEntity'
+          websiteTimeBased: '#/components/schemas/WebsiteTimeBasedSliEntity'
         propertyName: sliType
       properties:
         sliType:
@@ -13685,6 +13946,25 @@ components:
       required:
       - alertType
       - metricName
+    WebsiteApdexEntity:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/ApdexEntity'
+      - type: object
+        properties:
+          beaconType:
+            type: string
+            enum:
+            - pageLoad
+            - resourceLoad
+            - httpRequest
+            - error
+            - custom
+            - pageChange
+      required:
+      - beaconType
+      - entityId
+      - tagFilterExpression
     WebsiteBeaconGroupsItem:
       type: object
       properties:
@@ -13799,12 +14079,12 @@ components:
           beaconType:
             type: string
             enum:
-            - PAGE_LOAD
-            - PAGE_RESOURCE
-            - HTTP_REQUEST
-            - JS_ERROR
-            - CUSTOM
-            - PAGE_CHANGE
+            - pageLoad
+            - resourceLoad
+            - httpRequest
+            - error
+            - custom
+            - pageChange
           goodEventFilterExpression:
             $ref: '#/components/schemas/TagFilterExpressionElement'
           websiteId:
@@ -14231,12 +14511,12 @@ components:
           beaconType:
             type: string
             enum:
-            - PAGE_LOAD
-            - PAGE_RESOURCE
-            - HTTP_REQUEST
-            - JS_ERROR
-            - CUSTOM
-            - PAGE_CHANGE
+            - pageLoad
+            - resourceLoad
+            - httpRequest
+            - error
+            - custom
+            - pageChange
           filterExpression:
             $ref: '#/components/schemas/TagFilterExpressionElement'
           websiteId:
