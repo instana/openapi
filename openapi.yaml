@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.245.533
+  version: 1.246.614
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -6819,6 +6819,25 @@ paths:
   /api/synthetics/settings/locations:
     get:
       operationId: getSyntheticLocations
+      parameters:
+        - in: query
+          name: sort
+          schema:
+            type: string
+        - in: query
+          name: offset
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: string
+        - in: query
+          name: filter
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         default:
           content:
@@ -9463,7 +9482,9 @@ components:
           APPLICATION: '#/components/schemas/ApplicationEventResult'
           ENDPOINT: '#/components/schemas/EndpointEventResult'
           INFRASTRUCTURE: '#/components/schemas/InfraEventResult'
+          MOBILE_APP: '#/components/schemas/MobileAppEventResult'
           SERVICE: '#/components/schemas/ServiceEventResult'
+          SYNTHETICS: '#/components/schemas/SyntheticsEventResult'
           WEBSITE: '#/components/schemas/WebsiteEventResult'
         propertyName: entityType
       properties:
@@ -10886,11 +10907,14 @@ components:
           enum:
             - NUMBER
             - BYTES
+            - KILO_BYTES
+            - MEGA_BYTES
             - PERCENTAGE
             - LATENCY
+            - NANOS
             - MILLIS
-            - SECONDS
             - MICROS
+            - SECONDS
             - RATE
             - BYTE_RATE
             - UNDEFINED
@@ -11465,11 +11489,14 @@ components:
           enum:
             - NUMBER
             - BYTES
+            - KILO_BYTES
+            - MEGA_BYTES
             - PERCENTAGE
             - LATENCY
+            - NANOS
             - MILLIS
-            - SECONDS
             - MICROS
+            - SECONDS
             - RATE
             - BYTE_RATE
             - UNDEFINED
@@ -11549,11 +11576,14 @@ components:
           enum:
             - NUMBER
             - BYTES
+            - KILO_BYTES
+            - MEGA_BYTES
             - PERCENTAGE
             - LATENCY
+            - NANOS
             - MILLIS
-            - SECONDS
             - MICROS
+            - SECONDS
             - RATE
             - BYTE_RATE
             - UNDEFINED
@@ -11735,6 +11765,14 @@ components:
       required:
         - beacon
         - cursor
+    MobileAppEventResult:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/EventResult'
+        - type: object
+          properties:
+            mobileAppId:
+              type: string
     MobileAppMetricResult:
       type: object
       properties:
@@ -13637,6 +13675,18 @@ components:
       required:
         - markSyntheticCall
         - syntheticType
+    SyntheticsEventResult:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/EventResult'
+        - type: object
+          properties:
+            locationIds:
+              type: array
+              items:
+                type: string
+            syntheticTestId:
+              type: string
     SystemRule:
       type: object
       allOf:
@@ -14444,6 +14494,7 @@ components:
             - WebsiteSmartAlert
             - ApplicationSmartAlert
             - GlobalApplicationSmartAlert
+            - SyntheticSmartAlert
       required:
         - id
         - label
