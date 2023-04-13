@@ -4,6 +4,11 @@ It is also possible to [search and filter entities](#operation/getEntities) and 
 
 ## Important notes
 
+### Prerequisites
+
+For self-hosted installations, BeeInstana is required for this endpoint group.
+See this [documentation for enabling BeeInstana](https://www.ibm.com/docs/en/instana-observability/current?topic=premises-installing-instana-backend-docker#beeinstana-metric-pipeline-beta).
+
 ### Timeframe
 
 **timeFrame** As in the Instana dashboards, you can specify the timeframe for metrics retrieval.
