@@ -4,6 +4,10 @@ It is also possible to [search and filter entities](#operation/getEntities) and 
 
 ## Important notes
 
+### Prerequisites
+
+For self-hosted installations, Beeinstana is required for this endpoint group.
+
 ### Timeframe
 
 **timeFrame** As in the Instana dashboards, you can specify the timeframe for metrics retrieval.
