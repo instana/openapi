@@ -20,8 +20,12 @@ The endpoint returns the aggregated Synthetic test result data
    response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), 
    upload_speed (bytes per second), download_speed (bytes per second), 
    redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). 
+   
    The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), 
    sending (bytes), waiting (bytes), and receiving (bytes).
+
+   The metric synthetic.tags will add the latest list of custom properties to the response.  This metric cannot be *aggregated*.
+
 2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. 
 
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
@@ -104,8 +108,11 @@ To narrow down the result set you have two options to search for a test.
 response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),
 upload_speed (bytes per second), download_speed (bytes per second),
 redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).
+
 The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),
 sending (bytes), waiting (bytes), and receiving (bytes).
+
+The metric synthetic.tags will add the latest list of custom properties to the response.
 
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
 ```
@@ -129,7 +136,17 @@ It will be replaced by **tagFilterExpression**.
 **tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with 
 logical operators AND or OR.
 
-A payload only needs either tagFilters or tagFilterExpression as a filter, not both. 
+A payload only needs either tagFilters or tagFilterExpression as a filter, not both.
+
+Either tagFilters or tagFilterExpression can specify a custom property by its key and value.
+```
+"tagFilters":[{
+  "name":"synthetic.tags",
+  "key":"location",
+  "value":"Denver",
+  "operator":"EQUALS"
+}]
+```
 
 ### Sample payload to get a list of Synthetic test results with tagFilters
 ```json
@@ -241,6 +258,16 @@ logical operators AND or OR.
 ```
 
 A payload only needs either tagFilters or tagFilterExpression as a filter, not both.
+
+Either tagFilters or tagFilterExpression can specify a custom property by its key and value.
+```
+"tagFilters":[{
+  "name":"synthetic.tags",
+  "key":"location",
+  "value":"Denver",
+  "operator":"EQUALS"
+}]
+```
 
 To narrow down the result set you have three options to search for a test.
 
