@@ -101,7 +101,7 @@ To narrow down the result set you have two options to search for a test.
 {
     "testId": ["tUmWgvzdo1Q1vpVRpzR5", "Pg0Q1UqHRd7OMysohVLd"],
     "//comment1": "Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)",
-    "//comment2": "The granularity values for responsTime and responseSize must be the same"
+    "//comment2": "The granularity values for responseTime and responseSize must be the same"
     "metrics": [
      {
         "aggregation": "MEAN",
