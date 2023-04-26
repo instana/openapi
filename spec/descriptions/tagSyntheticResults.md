@@ -19,12 +19,10 @@ The endpoint returns the aggregated Synthetic test result data
 1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: 
    synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes), 
    synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second), 
-   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (custom properties). 
+   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, and synthetic.metricsStatus (an integer, 1-success or 0-failure). 
    
    The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), 
    synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).
-
-   The metric synthetic.tags adds the latest list of custom properties to the response.  Do not specify *aggregation* for this metric.
 
 2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. 
 
@@ -52,7 +50,7 @@ The timeFrame might be adjusted to fit the metric granularity so that there is n
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, e.g. "synthetic.metricsResponseTime", to order by its value
+1. *by* Use the metric name, e.g. "response_time", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results.
@@ -145,7 +143,7 @@ The metric synthetic.tags adds the latest list of custom properties to the respo
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, e.g. "synthetic.metricsResponseTime" to order by that value
+1. *by* Use the metric name, e.g. "response_time" to order by that value
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results. 
@@ -171,7 +169,7 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
 {
   "syntheticMetrics":["synthetic.metricsResponseTime","synthetic.metricsResponseSize"],
   "order":{
-    "by":"synthetic.metricsResponseTime",
+    "by":"response_time",
     "direction":"DESC"
   },
   "tagFilters":[{
@@ -191,7 +189,7 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
 {
   "syntheticMetrics":["synthetic.metricsResponseTime","synthetic.metricsResponseSize"],
   "order":{
-    "by":"synthetic.metricsResponseTime",
+    "by":"response_time",
     "direction":"DESC"
   },
   "tagFilterExpression": { 
@@ -243,7 +241,7 @@ The endpoint returns a list of Synthetic tests with Success Rate and Average Res
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, "synthetic.metricsResponseTime", to order by its value
+1. *by* Use the metric name, "response_time", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: 
@@ -342,7 +340,7 @@ The endpoint returns a list of Synthetic locations with Last Test Run on (each l
 2. *pageSize* set the number of Synthetic locations you want to return with one query
 
 **order** You can order the returned items alphanumerically by label, either ascending or descending
-1. *by* Use the metric name, e.g., "synthetic.locationName", to order by its value
+1. *by* Use the metric name, e.g., "location_name", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
    The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,
@@ -379,7 +377,7 @@ A payload only needs either tagFilters or tagFilterExpression as a filter, not b
 ```
 {
     "order": {
-     	"by": "synthetic.metricsStatus", 
+     	"by": "status", 
      	"direction": "Desc"
      },
      "timeFrame": {
