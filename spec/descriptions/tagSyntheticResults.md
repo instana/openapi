@@ -24,7 +24,7 @@ The endpoint returns the aggregated Synthetic test result data
    The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), 
    sending (bytes), waiting (bytes), and receiving (bytes).
 
-   The metric synthetic.tags will add the latest list of custom properties to the response.  This metric cannot be *aggregated*.
+   The metric synthetic.tags will include the latest list of custom properties to the response.  This metric cannot be *aggregated*.
 
 2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. 
 
@@ -112,7 +112,7 @@ redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-suc
 The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),
 sending (bytes), waiting (bytes), and receiving (bytes).
 
-The metric synthetic.tags will add the latest list of custom properties to the response.
+The metric synthetic.tags will include the latest list of custom properties to the response.
 
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
 ```
