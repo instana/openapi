@@ -17,14 +17,14 @@ The endpoint returns the aggregated Synthetic test result data
 
 **metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
 1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: 
-   response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes), 
-   upload_speed (bytes per second), download_speed (bytes per second), 
-   redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure). 
+   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes), 
+   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second), 
+   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (custom properties). 
    
-   The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes), 
-   sending (bytes), waiting (bytes), and receiving (bytes).
+   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), 
+   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).
 
-   The metric synthetic.tags will add the latest list of custom properties to the response.  This metric cannot be *aggregated*.
+   The metric synthetic.tags adds the latest list of custom properties to the response.  Do not specify *aggregation* for this metric.
 
 2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), and DISTINCT_COUNT. 
 
@@ -52,8 +52,26 @@ The timeFrame might be adjusted to fit the metric granularity so that there is n
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, e.g. "response_time", to order by its value
+1. *by* Use the metric name, e.g. "synthetic.metricsResponseTime", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
+
+**tagFilters** It serves as a filter to narrow down return results.
+It will be replaced by **tagFilterExpression**.
+
+**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with
+logical operators AND or OR.
+
+A payload only needs either tagFilters or tagFilterExpression as a filter, not both.
+
+Either tagFilters or tagFilterExpression can specify a custom property by its key and value.
+```
+"tagFilters":[{
+  "name":"synthetic.tags",
+  "key":"location",
+  "value":"Denver",
+  "operator":"EQUALS"
+}]
+```
 
 To narrow down the result set you have two options to search for a test.
 
@@ -83,17 +101,17 @@ To narrow down the result set you have two options to search for a test.
 {
     "testId": ["tUmWgvzdo1Q1vpVRpzR5", "Pg0Q1UqHRd7OMysohVLd"],
     "//comment1": "Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)",
-    "//comment2": "The granularity values for response_time and response_size must be the same"
+    "//comment2": "The granularity values for responsTime and responseSize must be the same"
     "metrics": [
      {
         "aggregation": "MEAN",
         "granularity": 600,    
-        "metric": "response_time"
+        "metric": "synthetic.metricsResponseTime"
      },
      {
         "aggregation": "MEAN",
         "granularity": 600,    
-        "metric": "response_size"
+        "metric": "synthetic.metricsResponseSize"
      }],
      "timeFrame": {
        "to": 0,
@@ -104,15 +122,15 @@ To narrow down the result set you have two options to search for a test.
 
 ## Get a list of Synthetic test playback results (no aggregation)
 ### Mandatory Parameters
-**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: id (a string representing the test result ID), 
-response_time (ms), response_size (bytes), status_code (an integer represents an HTTP response code, e.g., 200, 401, 500), request_size (bytes),
-upload_speed (bytes per second), download_speed (bytes per second),
-redirect_time (ms), redirect_count, connect_count, and status (an integer, 1-success or 0-failure).
+**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: synthetic.id (a string representing the test result ID), 
+synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),
+synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),
+synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (custom properties).
 
-The following metrics are only available for the HTTPAction type Synthetic Tests: blocking (bytes), dns (bytes), connect (bytes), ssl (bytes),
-sending (bytes), waiting (bytes), and receiving (bytes).
+The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),
+synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).
 
-The metric synthetic.tags will add the latest list of custom properties to the response.
+The metric synthetic.tags adds the latest list of custom properties to the response.
 
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
 ```
@@ -127,7 +145,7 @@ The metric synthetic.tags will add the latest list of custom properties to the r
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, e.g. "response_time" to order by that value
+1. *by* Use the metric name, e.g. "synthetic.metricsResponseTime" to order by that value
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results. 
@@ -151,9 +169,9 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
 ### Sample payload to get a list of Synthetic test results with tagFilters
 ```json
 {
-  "syntheticMetrics":["response_time","response_size"],
+  "syntheticMetrics":["synthetic.metricsResponseTime","synthetic.metricsResponseSize"],
   "order":{
-    "by":"response_time",
+    "by":"synthetic.metricsResponseTime",
     "direction":"DESC"
   },
   "tagFilters":[{
@@ -171,9 +189,9 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
 ### Sample payload to get a list of Synthetic test results with tagFilterExpression
 ```json
 {
-  "syntheticMetrics":["response_time","response_size"],
+  "syntheticMetrics":["synthetic.metricsResponseTime","synthetic.metricsResponseSize"],
   "order":{
-    "by":"response_time",
+    "by":"synthetic.metricsResponseTime",
     "direction":"DESC"
   },
   "tagFilterExpression": { 
@@ -202,7 +220,7 @@ The endpoint returns a list of Synthetic tests with Success Rate and Average Res
 ### Mandatory Parameters
 
 **metrics**
-1. *metric* select a particular metric. Right now, only response_time (ms) is supported.
+1. *metric* select a particular metric. Right now, only synthetic.metricsResponseTime (ms) is supported.
 2. *aggregation* MEAN
 3. *granularity* 60
 
@@ -225,7 +243,7 @@ The endpoint returns a list of Synthetic tests with Success Rate and Average Res
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, "response_time", to order by its value
+1. *by* Use the metric name, "synthetic.metricsResponseTime", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: 
@@ -271,7 +289,7 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
 
 To narrow down the result set you have three options to search for a test.
 
-**synthetic_type | location_id | application_id**
+**syntheticType | locationId | applicationId**
 
 * *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript
 
@@ -281,7 +299,7 @@ To narrow down the result set you have three options to search for a test.
 
 ### Defaults
 
-**synthetic_type | location_id | application_id**
+**syntheticType | locationId | applicationId**
 * no filters are applied in the default call
 
 ### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results
@@ -291,7 +309,7 @@ To narrow down the result set you have three options to search for a test.
      {
         "aggregation": "MEAN",
         "granularity": 60,    
-        "metric": "response_time"
+        "metric": "synthetic.metricsResponseTime"
      }],
      "timeFrame": {
        "to": 0,
@@ -324,7 +342,7 @@ The endpoint returns a list of Synthetic locations with Last Test Run on (each l
 2. *pageSize* set the number of Synthetic locations you want to return with one query
 
 **order** You can order the returned items alphanumerically by label, either ascending or descending
-1. *by* Use the metric name, e.g., "location_name", to order by its value
+1. *by* Use the metric name, e.g., "synthetic.locationName", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
    The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,
@@ -361,7 +379,7 @@ A payload only needs either tagFilters or tagFilterExpression as a filter, not b
 ```
 {
     "order": {
-     	"by": "status", 
+     	"by": "synthetic.metricsStatus", 
      	"direction": "Desc"
      },
      "timeFrame": {
