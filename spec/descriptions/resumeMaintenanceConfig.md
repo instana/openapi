@@ -4,4 +4,4 @@ This endpoint resumes a maintenance configuration given its ID.
 
 - **id:** The ID of the maintenance config to resume.
 
-Note: When you resume a maintenance configuration, you will start receiving alerts again.
+_Note: When you resume a maintenance configuration, you will not receive alerts for the scope defined in the maintenance configuration._

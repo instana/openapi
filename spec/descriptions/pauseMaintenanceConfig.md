@@ -4,5 +4,4 @@ This endpoint pauses a maintenance configuration given its ID.
 
 - **id:** The ID of the maintenance config to pause.
 
-Note: When you pause a Maintenance Configuration, you will not receive alerts.
-
+_Note: When you pause a maintenance configuration, you will start receiving alerts again for the scope defined in the maintenance configuration._
