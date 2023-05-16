@@ -18,5 +18,6 @@ These are the possible states the Maintenance Configuration can be in:
 - FINISHED
 - SCHEDULED
 - UNSCHEDULED
+- PAUSED
 
 _NOTE: Maintenance Status is based on how the recurrence is configured. Maintenance Status is separate from pausing a maintenance window._
