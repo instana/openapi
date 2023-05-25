@@ -52,7 +52,7 @@ The timeFrame might be adjusted to fit the metric granularity so that there is n
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, e.g. "response_time", to order by its value
+1. *by* Use the metric name, e.g. "synthetic.metricsResponseTime", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results.
@@ -145,7 +145,7 @@ The metric synthetic.tags adds the latest list of custom properties to the respo
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, e.g. "response_time" to order by that value
+1. *by* Use the metric name, e.g. "synthetic.metricsResponseTime" to order by that value
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results. 
@@ -171,7 +171,7 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
 {
   "syntheticMetrics":["synthetic.metricsResponseTime","synthetic.metricsResponseSize"],
   "order":{
-    "by":"response_time",
+    "by":"synthetic.metricsResponseTime",
     "direction":"DESC"
   },
   "tagFilters":[{
@@ -191,7 +191,7 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
 {
   "syntheticMetrics":["synthetic.metricsResponseTime","synthetic.metricsResponseSize"],
   "order":{
-    "by":"response_time",
+    "by":"synthetic.metricsResponseTime",
     "direction":"DESC"
   },
   "tagFilterExpression": { 
@@ -243,7 +243,7 @@ The endpoint returns a list of Synthetic tests with Success Rate and Average Res
 2. *pageSize* set the number of Synthetic test results you want to return with one query
 
 **order** You can order the returned items alphanumerical by label, either ascending or descending
-1. *by* Use the metric name, "response_time", to order by its value
+1. *by* Use the metric name, "synthetic.metricsResponseTime", to order by its value
 2. *direction* either ascending (ASC) or descending (DESC)
 
 **tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: 
