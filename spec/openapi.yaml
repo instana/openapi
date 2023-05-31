@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.249.570
+  version: 1.250.634
   x-description: info
   x-logo:
     altText: instana logo
@@ -1505,6 +1505,16 @@ paths:
           type: boolean
           example: null
       - in: query
+        name: includeAgentMonitoringIssues
+        schema:
+          type: boolean
+          example: null
+      - in: query
+        name: includeKubernetesInfoEvents
+        schema:
+          type: boolean
+          example: null
+      - in: query
         name: eventTypeFilters
         required: true
         schema:
@@ -2125,6 +2135,7 @@ paths:
           - ALL
           - APPLICATION
           - WEBSITE
+          - SYNTHETIC
           example: null
       responses:
         default:
@@ -4106,7 +4117,7 @@ paths:
                   $ref: '#/components/schemas/UsageResult'
       security:
       - ApiKeyAuth:
-        - CanSeeUsageInformation
+        - CanViewAccountAndBillingInformation
       summary: API usage by customer
       tags:
       - Usage
@@ -4146,7 +4157,7 @@ paths:
                   $ref: '#/components/schemas/UsageResult'
       security:
       - ApiKeyAuth:
-        - CanSeeUsageInformation
+        - CanViewAccountAndBillingInformation
       summary: API usage day / month / year
       tags:
       - Usage
@@ -4179,7 +4190,7 @@ paths:
                   $ref: '#/components/schemas/UsageResult'
       security:
       - ApiKeyAuth:
-        - CanSeeUsageInformation
+        - CanViewAccountAndBillingInformation
       summary: API usage month / year
       tags:
       - Usage
@@ -4219,7 +4230,7 @@ paths:
                   $ref: '#/components/schemas/UsageResult'
       security:
       - ApiKeyAuth:
-        - CanSeeUsageInformation
+        - CanViewAccountAndBillingInformation
       summary: Host count day / month / year
       tags:
       - Usage
@@ -4252,7 +4263,7 @@ paths:
                   $ref: '#/components/schemas/UsageResult'
       security:
       - ApiKeyAuth:
-        - CanSeeUsageInformation
+        - CanViewAccountAndBillingInformation
       summary: Host count month / year
       tags:
       - Usage
@@ -4538,7 +4549,7 @@ paths:
         - ConfigureMobileAppMonitoring
       summary: Get custom geo mapping rules for mobile app
       tags:
-      - Website Configuration
+      - Mobile App Configuration
     put:
       operationId: setMobileAppGeoMappingRules
       parameters:
@@ -4563,7 +4574,7 @@ paths:
         - ConfigureMobileAppMonitoring
       summary: Set custom geo mapping rules for mobile app
       tags:
-      - Website Configuration
+      - Mobile App Configuration
   /api/mobile-app-monitoring/config/{mobileAppId}/ip-masking:
     get:
       operationId: getMobileAppIpMaskingConfiguration
@@ -6063,6 +6074,43 @@ paths:
       summary: Generate SLI report
       tags:
       - SLI Report
+  /api/slo/report/{sloId}:
+    get:
+      operationId: getSlo
+      parameters:
+      - in: path
+        name: sloId
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: query
+        name: from
+        schema:
+          type: integer
+          format: int64
+          example: null
+      - in: query
+        name: to
+        schema:
+          type: integer
+          format: int64
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/SliReport'
+      security:
+      - ApiKeyAuth:
+        - canConfigureServiceLevelIndicators
+      summary: Generate SLI report
+      tags:
+      - SLO Report
   /api/synthetics/catalog:
     get:
       operationId: getSyntheticTagCatalog
@@ -6893,6 +6941,77 @@ paths:
       summary: Update IP masking configuration for website
       tags:
       - Website Configuration
+  /api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}/clear:
+    put:
+      operationId: clearSourceMapUploadConfiguration
+      parameters:
+      - in: path
+        name: websiteId
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: path
+        name: sourceMapConfigId
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "204":
+          description: Source map files in the source map upload configuration successfully
+            cleared
+      security:
+      - ApiKeyAuth:
+        - ConfigureEumApplications
+      summary: Clear source map files for source map upload configuration
+      tags:
+      - Website Configuration
+  /api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}/form:
+    put:
+      operationId: uploadSourceMapFile
+      parameters:
+      - in: path
+        name: websiteId
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: path
+        name: sourceMapConfigId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              example: null
+              properties:
+                fileFormat:
+                  type: string
+                  example: null
+                sourceMap:
+                  type: string
+                  format: binary
+                  example: null
+                url:
+                  type: string
+                  example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceMapUploadConfig'
+      security:
+      - ApiKeyAuth:
+        - ConfigureEumApplications
+      summary: Upload source map file for website
+      tags:
+      - Website Configuration
   /api/website-monitoring/metrics:
     post:
       deprecated: true
@@ -7013,6 +7132,7 @@ components:
       type: object
       discriminator:
         mapping:
+          entity_count: '#/components/schemas/EntityCountRule'
           entity_verification: '#/components/schemas/EntityVerificationRule'
           host_availability: '#/components/schemas/HostAvailabilityRule'
           system: '#/components/schemas/SystemRule'
@@ -7575,16 +7695,13 @@ components:
         canRunAutomationActions:
           type: boolean
           example: null
-        canSeeOnPremLicenseInformation:
-          type: boolean
-          example: null
-        canSeeUsageInformation:
-          type: boolean
-          example: null
         canViewAccountAndBillingInformation:
           type: boolean
           example: null
         canViewAuditLog:
+          type: boolean
+          example: null
+        canViewAutomationActionInstances:
           type: boolean
           example: null
         canViewBizAlerts:
@@ -7918,7 +8035,8 @@ components:
       type: object
       discriminator:
         mapping:
-          errorRate: '#/components/schemas/ErrorRateApplicationAlertRule'
+          errorRate: '#/components/schemas/ErrorsApplicationAlertRule'
+          errors: '#/components/schemas/ErrorsApplicationAlertRule'
           logs: '#/components/schemas/LogsApplicationAlertRule'
           slowness: '#/components/schemas/SlownessApplicationAlertRule'
           statusCode: '#/components/schemas/StatusCodeApplicationAlertRule'
@@ -8746,6 +8864,12 @@ components:
           example: null
           maxLength: 2048
           minLength: 0
+        ruleLogicalOperator:
+          type: string
+          enum:
+          - AND
+          - OR
+          example: null
         rules:
           type: array
           example: null
@@ -8817,6 +8941,12 @@ components:
           example: null
           maxLength: 2048
           minLength: 0
+        ruleLogicalOperator:
+          type: string
+          enum:
+          - AND
+          - OR
+          example: null
         rules:
           type: array
           example: null
@@ -9216,6 +9346,30 @@ components:
           type: integer
           format: int32
           example: null
+    EntityCountRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AbstractRule'
+      - type: object
+        example: null
+        properties:
+          conditionOperator:
+            type: string
+            enum:
+            - '>'
+            - '>='
+            - <
+            - <=
+            - =
+            - '!='
+            example: null
+          conditionValue:
+            type: number
+            format: double
+            example: null
+      example: null
+      required:
+      - conditionOperator
     EntityHealthInfo:
       type: object
       example: null
@@ -9285,7 +9439,7 @@ components:
       - matchingEntityLabel
       - matchingEntityType
       - matchingOperator
-    ErrorRateApplicationAlertRule:
+    ErrorsApplicationAlertRule:
       type: object
       allOf:
       - $ref: '#/components/schemas/ApplicationAlertRule'
@@ -13745,6 +13899,62 @@ components:
       - type
       - usedBy
       - version
+    SourceMapFileMeta:
+      type: object
+      example: null
+      properties:
+        format:
+          type: string
+          example: null
+        size:
+          type: integer
+          format: int64
+          example: null
+        sizeOnDisk:
+          type: integer
+          format: int64
+          example: null
+        type:
+          type: string
+          enum:
+          - JS_MAP
+          - JS
+          example: null
+        url:
+          type: string
+          example: null
+      required:
+      - format
+      - type
+      - url
+    SourceMapUploadConfig:
+      type: object
+      example: null
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          example: null
+        description:
+          type: string
+          example: null
+        id:
+          type: string
+          example: null
+        metadata:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/SourceMapFileMeta'
+          maxItems: 500
+          minItems: 0
+        modifiedAt:
+          type: string
+          format: date-time
+          example: null
+      required:
+      - id
+      - metadata
     Span:
       type: object
       example: null
@@ -14055,11 +14265,25 @@ components:
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
         description:
           type: string
           example: null
           maxLength: 65536
           minLength: 0
+        dynamicCustomPayloadFields:
+          type: object
+          example: null
+          properties:
+            parallel:
+              type: boolean
+              example: null
         name:
           type: string
           example: null
@@ -14071,6 +14295,13 @@ components:
           type: integer
           format: int32
           example: null
+        staticCustomPayloadFields:
+          type: object
+          example: null
+          properties:
+            parallel:
+              type: boolean
+              example: null
         syntheticTestIds:
           type: array
           example: null
@@ -14086,6 +14317,7 @@ components:
           $ref: '#/components/schemas/SyntheticTimeThreshold'
       required:
       - alertChannelIds
+      - customPayloadFields
       - description
       - name
       - rule
@@ -14110,11 +14342,25 @@ components:
           format: int64
           example: null
           minimum: 1
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
         description:
           type: string
           example: null
           maxLength: 65536
           minLength: 0
+        dynamicCustomPayloadFields:
+          type: object
+          example: null
+          properties:
+            parallel:
+              type: boolean
+              example: null
         enabled:
           type: boolean
           example: null
@@ -14137,6 +14383,13 @@ components:
           type: integer
           format: int32
           example: null
+        staticCustomPayloadFields:
+          type: object
+          example: null
+          properties:
+            parallel:
+              type: boolean
+              example: null
         syntheticTestIds:
           type: array
           example: null
@@ -14152,6 +14405,7 @@ components:
           $ref: '#/components/schemas/SyntheticTimeThreshold'
       required:
       - alertChannelIds
+      - customPayloadFields
       - description
       - id
       - name
@@ -15003,6 +15257,9 @@ components:
             type: string
             example: null
         id:
+          type: string
+          example: null
+        locationDisplayLabel:
           type: string
           example: null
         locationId:
