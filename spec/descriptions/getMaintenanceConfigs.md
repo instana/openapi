@@ -1,1 +1,1 @@
-This endpoint retrieves all available maintenance configurations.
+This endpoint retrieves all available maintenance configurations.  
