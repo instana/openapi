@@ -15,7 +15,7 @@ _NOTE: Pausing unmutes alerts. Maintenance Status is separate from pausing a mai
 ### Maintenance Status
 These are the possible states the Maintenance Configuration can be in:
 - ACTIVE
-- FINISHED
+- EXPIRED
 - SCHEDULED
 - UNSCHEDULED
 - PAUSED
