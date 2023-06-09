@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.0.0-SNAPSHOT
+  version: 1.250.634
   x-description: info
   x-logo:
     altText: instana logo
@@ -5188,7 +5188,6 @@ paths:
       - User
   /api/settings/maintenance:
     get:
-      deprecated: true
       operationId: getMaintenanceConfigs
       responses:
         default:
@@ -5207,7 +5206,6 @@ paths:
       - Maintenance Configuration
   /api/settings/maintenance/{id}:
     delete:
-      deprecated: true
       operationId: deleteMaintenanceConfig
       parameters:
       - in: path
@@ -5228,7 +5226,6 @@ paths:
       tags:
       - Maintenance Configuration
     get:
-      deprecated: true
       operationId: getMaintenanceConfig
       parameters:
       - in: path
@@ -5250,7 +5247,6 @@ paths:
       tags:
       - Maintenance Configuration
     put:
-      deprecated: true
       operationId: putMaintenanceConfig
       parameters:
       - in: path
@@ -5920,271 +5916,6 @@ paths:
       summary: Get single user
       tags:
       - User
-  /api/settings/v2/maintenance:
-    get:
-      operationId: getMaintenanceConfigsV2
-      responses:
-        default:
-          content:
-            application/json:
-              example:
-              - id: maintenanceConfigId
-                name: maintenanceConfig
-                query: entity.application.id:"anApplicationId"
-                scheduling:
-                  start: 1680703219486
-                  duration:
-                    amount: 2
-                    unit: HOURS
-                  rrule: FREQ=DAILY;INTERVAL=1;COUNT=1
-                  type: RECURRENT
-                paused: false
-                lastUpdated: 1680703219678
-                state: EXPIRED
-                validVersion: 1
-                occurrence:
-                  start: 1680703219000
-                  end: 1680710419000
-                invalid: false
-                applicationNames:
-                - anApplicationName
-              - id: anotherMaintenanceConfigId
-                name: anotherMaintenanceConfig
-                query: entity.type:ibmz.db2
-                scheduling:
-                  start: 1680703219486
-                  duration:
-                    amount: 2
-                    unit: HOURS
-                  rrule: FREQ=DAILY;INTERVAL=1;COUNT=1
-                  type: RECURRENT
-                paused: false
-                lastUpdated: 1680703219678
-                state: EXPIRED
-                validVersion: 1
-                occurrence:
-                  start: 1680703219000
-                  end: 1680710419000
-                invalid: false
-                applicationNames: []
-              schema:
-                type: array
-                example: null
-                items:
-                  $ref: '#/components/schemas/ValidatedMaintenanceConfigV2WithStateAndOccurrence'
-      security:
-      - ApiKeyAuth:
-        - ConfigureCustomAlerts
-      summary: All maintenance configurations
-      tags:
-      - Maintenance Configuration
-      x-description: getMaintenanceConfigs
-  /api/settings/v2/maintenance/{id}:
-    delete:
-      operationId: deleteMaintenanceConfigV2
-      parameters:
-      - example: exampleMaintenanceConfigId
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-          example: null
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-      - ApiKeyAuth:
-        - ConfigureCustomAlerts
-      summary: Delete maintenance configuration
-      tags:
-      - Maintenance Configuration
-      x-description: deleteMaintenanceConfig
-    get:
-      operationId: getMaintenanceConfigV2
-      parameters:
-      - example: exampleMaintenanceConfigId
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-          example: null
-      responses:
-        default:
-          content:
-            application/json:
-              example:
-                id: maintenanceConfigId
-                name: maintenanceConfig
-                query: ""
-                scheduling:
-                  start: 1683864000000
-                  duration:
-                    amount: 24
-                    unit: HOURS
-                  type: ONE_TIME
-                paused: false
-                validVersion: 1
-                lastUpdated: 1683901553115
-                state: EXPIRED
-                occurrence:
-                  start: 1683864000000
-                  end: 1683950400000
-              schema:
-                $ref: '#/components/schemas/MaintenanceConfigV2WithStateAndOccurrence'
-      security:
-      - ApiKeyAuth:
-        - ConfigureCustomAlerts
-      summary: Get maintenance configuration
-      tags:
-      - Maintenance Configuration
-      x-description: getMaintenanceConfig
-    put:
-      operationId: putMaintenanceConfigV2
-      parameters:
-      - example: exampleMaintenanceConfigId
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-          example: null
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MaintenanceConfigV2'
-        required: true
-        x-payload: putMaintenanceConfig
-      responses:
-        "200":
-          content:
-            application/json:
-              example:
-                id: maintenanceConfigId
-                name: maintenanceConfig
-                query: entity.application.id:"anApplicationId"
-                scheduling:
-                  start: 1684249020728
-                  duration:
-                    amount: 2
-                    unit: HOURS
-                  type: ONE_TIME
-                paused: false
-                validVersion: 1
-                lastUpdated: 1684249021306
-                state: ACTIVE
-                occurrence:
-                  start: 1684249020728
-                  end: 1684256220728
-          description: "Maintenance config has been created or updated, and successfully\
-            \ scheduled immediately if needed"
-        "202":
-          description: "Maintenance config has been created or updated, but could\
-            \ not to be scheduled immediately. It will therefore be scheduled during\
-            \ the next auto-refresh with a delay of up to 4 minutes."
-        "400":
-          description: The provided maintenance configuration is invalid.
-        "422":
-          description: The provided maintenance configuration is incomplete or cannot
-            be processed.
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MaintenanceConfigV2WithStateAndOccurrence'
-      security:
-      - ApiKeyAuth:
-        - ConfigureCustomAlerts
-      summary: Create or update maintenance configuration
-      tags:
-      - Maintenance Configuration
-      x-description: putMaintenanceConfig
-  /api/settings/v2/maintenance/{id}/pause:
-    put:
-      operationId: pauseRecurrentMaintenanceConfiguration
-      parameters:
-      - example: exampleMaintenanceConfigId
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-          example: null
-      responses:
-        default:
-          content:
-            application/json:
-              example:
-                id: maintenanceConfigId
-                name: maintenanceConfig
-                query: entity.application.id:"anApplicationId"
-                scheduling:
-                  start: 1684251745262
-                  duration:
-                    amount: 2
-                    unit: HOURS
-                  type: ONE_TIME
-                paused: true
-                validVersion: 1
-                lastUpdated: 1684251750475
-                state: PAUSED
-                occurrence:
-                  start: 1684251745262
-                  end: 1684258945262
-              schema:
-                $ref: '#/components/schemas/MaintenanceConfigV2WithStateAndOccurrence'
-      security:
-      - ApiKeyAuth:
-        - ConfigureCustomAlerts
-      summary: Pause maintenance configuration
-      tags:
-      - Maintenance Configuration
-      x-description: pauseMaintenanceConfig
-  /api/settings/v2/maintenance/{id}/resume:
-    put:
-      operationId: resumeRecurrentMaintenanceConfiguration
-      parameters:
-      - example: exampleMaintenanceConfigId
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-          example: null
-      responses:
-        default:
-          content:
-            application/json:
-              example:
-                id: maintenanceConfigId
-                name: maintenanceConfig
-                query: entity.application.id:"anApplicationId"
-                scheduling:
-                  start: 1684251745262
-                  duration:
-                    amount: 2
-                    unit: HOURS
-                  type: ONE_TIME
-                paused: false
-                validVersion: 1
-                lastUpdated: 1684251933433
-                state: ACTIVE
-                occurrence:
-                  start: 1684251745262
-                  end: 1684258945262
-              schema:
-                $ref: '#/components/schemas/MaintenanceConfigV2WithStateAndOccurrence'
-      security:
-      - ApiKeyAuth:
-        - ConfigureCustomAlerts
-      summary: Resume maintenance configuration
-      tags:
-      - Maintenance Configuration
-      x-description: resumeMaintenanceConfig
   /api/settings/v2/sli:
     get:
       operationId: getAllSliConfigsV2
@@ -7381,7 +7112,6 @@ components:
           WATSON_AIOPS_WEBHOOK: '#/components/schemas/WatsonAIOpsWebhookIntegration'
           WEBEX_TEAMS_WEBHOOK: '#/components/schemas/WebexTeamsWebhookIntegration'
           WEB_HOOK: '#/components/schemas/WebhookIntegration'
-          Z_CHATOPS: '#/components/schemas/ZChatOpsIntegration'
         propertyName: kind
       example: null
       properties:
@@ -7954,9 +7684,6 @@ components:
           type: boolean
           example: null
         canCreatePublicCustomDashboards:
-          type: boolean
-          example: null
-        canDeleteLogs:
           type: boolean
           example: null
         canEditAllAccessibleCustomDashboards:
@@ -9400,25 +9127,6 @@ components:
       - name
       - operator
       - value
-    Duration:
-      type: object
-      example: null
-      properties:
-        amount:
-          type: integer
-          format: int64
-          example: null
-          minimum: 1
-        unit:
-          type: string
-          enum:
-          - MINUTES
-          - HOURS
-          - DAYS
-          example: null
-      required:
-      - amount
-      - unit
     DynamicField:
       type: object
       allOf:
@@ -12042,106 +11750,6 @@ components:
       - id
       - name
       - query
-    MaintenanceConfigScheduling:
-      type: object
-      discriminator:
-        mapping:
-          ONE_TIME: '#/components/schemas/OneTimeMaintenanceWindow'
-          RECURRENT: '#/components/schemas/RecurrentMaintenanceWindow'
-        propertyName: type
-      example: null
-      properties:
-        duration:
-          $ref: '#/components/schemas/Duration'
-        start:
-          type: integer
-          format: int64
-          example: null
-          minimum: 1
-        type:
-          type: string
-          example: null
-          maxLength: 2048
-          minLength: 0
-      required:
-      - duration
-      - start
-      - type
-    MaintenanceConfigV2:
-      type: object
-      example: null
-      properties:
-        id:
-          type: string
-          example: null
-          maxLength: 64
-          minLength: 0
-        name:
-          type: string
-          example: null
-          maxLength: 256
-          minLength: 0
-        paused:
-          type: boolean
-          example: null
-        query:
-          type: string
-          example: null
-          maxLength: 2048
-          minLength: 0
-        scheduling:
-          $ref: '#/components/schemas/MaintenanceConfigScheduling'
-      required:
-      - id
-      - name
-      - query
-      - scheduling
-    MaintenanceConfigV2WithStateAndOccurrence:
-      type: object
-      example: null
-      properties:
-        id:
-          type: string
-          example: null
-          maxLength: 64
-          minLength: 0
-        lastUpdated:
-          type: integer
-          format: int64
-          example: null
-          minimum: 1
-        name:
-          type: string
-          example: null
-          maxLength: 256
-          minLength: 0
-        occurrence:
-          $ref: '#/components/schemas/Occurrence'
-        paused:
-          type: boolean
-          example: null
-        query:
-          type: string
-          example: null
-          maxLength: 2048
-          minLength: 0
-        scheduling:
-          $ref: '#/components/schemas/MaintenanceConfigScheduling'
-        state:
-          type: string
-          enum:
-          - UNSCHEDULED
-          - SCHEDULED
-          - ACTIVE
-          - PAUSED
-          - EXPIRED
-          example: null
-      required:
-      - id
-      - name
-      - occurrence
-      - query
-      - scheduling
     MaintenanceConfigWithLastUpdated:
       type: object
       example: null
@@ -13312,20 +12920,6 @@ components:
           example: null
       required:
       - tagFilterExpression
-    Occurrence:
-      type: object
-      example: null
-      properties:
-        end:
-          type: integer
-          format: int64
-          example: null
-          minimum: 1
-        start:
-          type: integer
-          format: int64
-          example: null
-          minimum: 0
     Office365Integration:
       type: object
       allOf:
@@ -13342,15 +12936,6 @@ components:
       - kind
       - name
       - webhookUrl
-    OneTimeMaintenanceWindow:
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/MaintenanceConfigScheduling'
-      example: null
-      required:
-      - duration
-      - start
-      - type
     OpsgenieIntegration:
       type: object
       allOf:
@@ -13552,22 +13137,6 @@ components:
       - kind
       - name
       - webhookUrl
-    RecurrentMaintenanceWindow:
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/MaintenanceConfigScheduling'
-      - type: object
-        example: null
-        properties:
-          rrule:
-            type: string
-            example: null
-      example: null
-      required:
-      - duration
-      - rrule
-      - start
-      - type
     Release:
       type: object
       example: null
@@ -16395,62 +15964,6 @@ components:
       - eventFilteringConfiguration
       - id
       - integrationIds
-    ValidatedMaintenanceConfigV2WithStateAndOccurrence:
-      type: object
-      example: null
-      properties:
-        applicationNames:
-          type: array
-          example: null
-          items:
-            type: string
-            example: null
-          uniqueItems: true
-        id:
-          type: string
-          example: null
-          maxLength: 64
-          minLength: 0
-        invalid:
-          type: boolean
-          example: null
-        lastUpdated:
-          type: integer
-          format: int64
-          example: null
-          minimum: 1
-        name:
-          type: string
-          example: null
-          maxLength: 256
-          minLength: 0
-        occurrence:
-          $ref: '#/components/schemas/Occurrence'
-        paused:
-          type: boolean
-          example: null
-        query:
-          type: string
-          example: null
-          maxLength: 2048
-          minLength: 0
-        scheduling:
-          $ref: '#/components/schemas/MaintenanceConfigScheduling'
-        state:
-          type: string
-          enum:
-          - UNSCHEDULED
-          - SCHEDULED
-          - ACTIVE
-          - PAUSED
-          - EXPIRED
-          example: null
-      required:
-      - id
-      - name
-      - occurrence
-      - query
-      - scheduling
     ValidatedMaintenanceConfigWithStatus:
       type: object
       example: null
@@ -16485,7 +15998,6 @@ components:
           - SCHEDULED
           - ACTIVE
           - FINISHED
-          - PAUSED
           example: null
         windows:
           type: array
@@ -17721,34 +17233,6 @@ components:
             type: string
             example: null
       example: null
-    ZChatOpsIntegration:
-      type: object
-      allOf:
-      - $ref: '#/components/schemas/AbstractIntegration'
-      - type: object
-        example: null
-        properties:
-          bearerAuthToken:
-            type: string
-            example: null
-          channels:
-            type: array
-            example: null
-            items:
-              type: string
-              example: null
-            maxItems: 1
-            minItems: 0
-          zchatOpsIncidentsUrl:
-            type: string
-            example: null
-      example: null
-      required:
-      - bearerAuthToken
-      - id
-      - kind
-      - name
-      - zchatOpsIncidentsUrl
   securitySchemes:
     ApiKeyAuth:
       description: "In order to use the REST API, you need to create an API token\
