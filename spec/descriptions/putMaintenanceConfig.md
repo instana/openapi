@@ -4,35 +4,32 @@ This endpoint creates or updates a maintenance configuration given its ID.
 
 - **id:** The ID of the maintenance config to create or update.
 
-### Types of Maintenance Configurations
-- One-Time Maintenance Window
-- Recurrent Maintenance Window
+### Maintenance Configuration Input
+This is a description for the fields in the request body:
 
-### **Recurrent Maintenance Window**
-Support for scheduling recurrent maintenance configurations is possible using the RRULE standard from the [iCalendar Spec](https://datatracker.ietf.org/doc/html/rfc5545).
+**id**: maintenance configuration unique id  
+**name**: maintenance configuration name  
+**query**: dynamic focus query used to filter alert notifications that will be muted  
+**scheduling**: defines when the maintenance configuration will be scheduled
+- **start**: time in milliseconds from epoch
+- **duration**: duration of each maintenance window occurrence in the maintenance configuration
+    - **amount**: the amount of time
+    - **unit**: the unit of time
+- **type**: `ONE_TIME` or `RECURRENT`
+- **rrule**:  for `RECURRENT` mainteance configurations, the RRULE standard from the [iCalendar Spec](https://datatracker.ietf.org/doc/html/rfc5545)
 
-The following RRULE tokens are supported:  
-"FREQ", "UNTIL", "COUNT", "INTERVAL", "BYDAY", "BYMONTHDAY", "BYMONTH".
+### **RRULE Support**
+You can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.
 
-- FREQ
-    - DAILY
-        - Example: every 2 days
-    - WEEKLY
-        - Example: on Friday and Sunday every 3 weeks
-    - MONTHLY
-        - Example: 21st of every 2nd month
-        - (monthly by day) `BYDAY` → one specified, not multiple
-        - (monthly by date) `BYMONTHDAY` → one specified, not multiple
-    - YEARLY
-        - Example: every year on December 25th
-        - (monthly by day) `BYDAY` → one specified, not multiple
-        - (monthly by date) `BYMONTHDAY` → one specified, not multiple
-- UNTIL
-    - If provided, only UTC specification
-- INTERVAL
-    - The maximum for DAILY is 365
-    - The maximum for WEEKLY is 52
-    - The maximum for MONTHLY is 12
-    - The maximum for YEARLY is 1
 
-_FYI:_ Here is an online [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.
+The following RRULE tokens are supported: `FREQ`, `UNTIL`, `COUNT`, `INTERVAL`, `BYDAY`, `BYMONTHDAY`, `BYMONTH`.
+
+**Additional Constraints:**
+
+1. For `MONTHLY` and `YEARLY`, you can only specify one value for `BYDAY` and `BYMONTHDAY`.  
+2. The maximum `INTERVAL` allowed is as follows:  
+    - DAILY is 365
+    - WEEKLY is 52
+    - MONTHLY is 12
+    - YEARLY is 1
+3. If an `UNTIL` date is specified, the value needs to be in UTC.
