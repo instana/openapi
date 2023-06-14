@@ -1,7 +1,7 @@
 This API endpoint creates a Synthetic Test.
 
 ## Sample script and payload: 
-- A sample script to create a simple Ping API test
+- A sample script to create an API Simple test
 
 ```
 curl -k -v -X POST \
