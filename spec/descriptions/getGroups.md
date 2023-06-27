@@ -2,11 +2,9 @@ Retrieve the list of all groups on the tenant together with the `Permission Set`
 
 The `Permission Set` object contains a set of permissions applied to the group.
 
-In case `permissions` include the entry `RESTRICTED_ACCESS`, this group will have a scope limited by its areas.
+In case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.
 
 The areas are included inside the `permissionSet`.
-
-When `permissions` contains `RESTRICTED_ACCESS`, permissions with preffix `ACCESS_*`are applied.
 
 The scopeRoleId is a fixed value for each area type:
 
@@ -35,12 +33,16 @@ For example:
         "permissionSet": {
         "permissions": [
             "CAN_VIEW_LOGS",
-            "ACCESS_APPLICATIONS",
-            "ACCESS_KUBERNETES",
             "CAN_VIEW_TRACE_DETAILS",
-            "ACCESS_MOBILE_APPS",
-            "RESTRICTED_ACCESS",
-            "CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS"
+            "CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS",
+            "ACCESS_APPLICATIONS",
+            "LIMITED_APPLICATIONS_SCOPE",            
+            "ACCESS_KUBERNETES",
+            "LIMITED_KUBERNETES_SCOPE",
+            "ACCESS_INFRASTRUCTURE_APPS",
+            "LIMITED_INFRASTRUCTURE_SCOPE",
+            "LIMITED_WEBSITES_SCOPE",
+            
         ],
         "applicationIds": [
             {
@@ -55,14 +57,8 @@ For example:
             }
         ],
         "kubernetesNamespaceUIDs": [],
-        "websiteIds": [
-        ],
-        "mobileAppIds": [
-            {
-            "scopeId": "GYSddOsgTZGtLx7wI8FZcQ",
-            "scopeRoleId": "-500"
-            }
-        ],
+        "websiteIds": [],
+        "mobileAppIds": [],
         "infraDfqFilter": {
             "scopeId": "production",
             "scopeRoleId": "-600"
@@ -70,9 +66,9 @@ For example:
     }
 ]
 ```
-In this case `Scoped Group` has no access to websites due to having `RESTRICTED_ACCESS` but not `ACCESS_WEBSITES`.
+In this case `Scoped Group` has no access to websites due to having `LIMITED_WEBSITES_SCOPE` but not `ACCESS_WEBSITES`.
 
-Also due to having `RESTRICTED_ACCESS`, the only visible application is the one with this id: `1qvWgVfLTNqi9gGTcCaNUw`.
+Also due to having `LIMITED_APPLICATIONS_SCOPE`, the only visible application is the one with this id: `1qvWgVfLTNqi9gGTcCaNUw`.
 
-Same applies to `kubernetesClusterUUIDs`, `kubernetesNamespaceUIDs`, `mobileAppIds`and `infraDfqFilter`, with the only difference is that `infraDfqFilter`
-uses a filter "production" instead of an id. 
+Same applies to `kubernetesClusterUUIDs`, `kubernetesNamespaceUIDs` and `infraDfqFilter`, with the only difference is that `infraDfqFilter`
+uses a filter "production" instead of an id.
