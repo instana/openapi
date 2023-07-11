@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.252.726
+  version: 1.253.720
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -524,6 +524,8 @@ paths:
       description: "This endpoint retrieves the metrics for traces.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
   '/api/application-monitoring/analyze/traces/{id}':
     get:
+      deprecated: true
+      description: 'Replaced by /api/application-monitoring/v2/analyze/traces/{id}'
       operationId: getTrace
       parameters:
         - in: path
@@ -1613,6 +1615,48 @@ paths:
       summary: Gets the service topology
       tags:
         - Application Topology
+  '/api/application-monitoring/v2/analyze/traces/{id}':
+    get:
+      operationId: getTraceDownload
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+        - in: query
+          name: retrievalSize
+          schema:
+            type: integer
+            format: int32
+            example: null
+            maximum: 10000
+            minimum: 1
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            format: int32
+            example: null
+        - in: query
+          name: ingestionTime
+          schema:
+            type: integer
+            format: int64
+            example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceDownloadResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get trace detail
+      tags:
+        - Application Analyze
   /api/application-monitoring/v2/metrics:
     post:
       operationId: getApplicationDataMetricsV2
@@ -5958,11 +6002,9 @@ paths:
 
         The `Permission Set` object contains a set of permissions applied to the group.
 
-        In case `permissions` include the entry `RESTRICTED_ACCESS`, this group will have a scope limited by its areas.
+        In case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.
 
         The areas are included inside the `permissionSet`.
-
-        When `permissions` contains `RESTRICTED_ACCESS`, permissions with preffix `ACCESS_*`are applied.
 
         The scopeRoleId is a fixed value for each area type:
 
@@ -5991,12 +6033,16 @@ paths:
                 "permissionSet": {
                 "permissions": [
                     "CAN_VIEW_LOGS",
-                    "ACCESS_APPLICATIONS",
-                    "ACCESS_KUBERNETES",
                     "CAN_VIEW_TRACE_DETAILS",
-                    "ACCESS_MOBILE_APPS",
-                    "RESTRICTED_ACCESS",
-                    "CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS"
+                    "CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS",
+                    "ACCESS_APPLICATIONS",
+                    "LIMITED_APPLICATIONS_SCOPE",            
+                    "ACCESS_KUBERNETES",
+                    "LIMITED_KUBERNETES_SCOPE",
+                    "ACCESS_INFRASTRUCTURE_APPS",
+                    "LIMITED_INFRASTRUCTURE_SCOPE",
+                    "LIMITED_WEBSITES_SCOPE",
+                    
                 ],
                 "applicationIds": [
                     {
@@ -6011,14 +6057,8 @@ paths:
                     }
                 ],
                 "kubernetesNamespaceUIDs": [],
-                "websiteIds": [
-                ],
-                "mobileAppIds": [
-                    {
-                    "scopeId": "GYSddOsgTZGtLx7wI8FZcQ",
-                    "scopeRoleId": "-500"
-                    }
-                ],
+                "websiteIds": [],
+                "mobileAppIds": [],
                 "infraDfqFilter": {
                     "scopeId": "production",
                     "scopeRoleId": "-600"
@@ -6026,12 +6066,12 @@ paths:
             }
         ]
         ```
-        In this case `Scoped Group` has no access to websites due to having `RESTRICTED_ACCESS` but not `ACCESS_WEBSITES`.
+        In this case `Scoped Group` has no access to websites due to having `LIMITED_WEBSITES_SCOPE` but not `ACCESS_WEBSITES`.
 
-        Also due to having `RESTRICTED_ACCESS`, the only visible application is the one with this id: `1qvWgVfLTNqi9gGTcCaNUw`.
+        Also due to having `LIMITED_APPLICATIONS_SCOPE`, the only visible application is the one with this id: `1qvWgVfLTNqi9gGTcCaNUw`.
 
-        Same applies to `kubernetesClusterUUIDs`, `kubernetesNamespaceUIDs`, `mobileAppIds`and `infraDfqFilter`, with the only difference is that `infraDfqFilter`
-        uses a filter "production" instead of an id. 
+        Same applies to `kubernetesClusterUUIDs`, `kubernetesNamespaceUIDs` and `infraDfqFilter`, with the only difference is that `infraDfqFilter`
+        uses a filter "production" instead of an id.
     post:
       operationId: createGroup
       requestBody:
@@ -6057,16 +6097,20 @@ paths:
 
         The `Permission Set` object contains a set of permissions applied to the group.
 
-        In case `permissions` include the entry `RESTRICTED_ACCESS`, this group will have a scope limited by its areas.
-
-        When `permissions` contains `RESTRICTED_ACCESS`, permissions with preffix `ACCESS_*`are applied.
+        In case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.
 
         Possible access permissions values are:
 
-        - ACCESS_APPLICATIONS
-        - ACCESS_KUBERNETES
-        - ACCESS_MOBILE_APPS
-        - ACCESS_WEBSITES
+        - `LIMITED_APPLICATIONS_SCOPE`
+        - `LIMITED_WEBSITES_SCOPE`
+        - `LIMITED_KUBERNETES_SCOPE`
+        - `LIMITED_MOBILE_APPS_SCOPE`
+        - `LIMITED_INFRASTRUCTURE_SCOPE`
+        - `ACCESS_APPLICATIONS`
+        - `ACCESS_WEBSITES`
+        - `ACCESS_KUBERNETES`
+        - `ACCESS_MOBILE_APPS`
+        - `ACCESS_INFRASTRUCTURE`
 
         The `id` value for the group is ignored, a new id is generated.
 
@@ -6164,11 +6208,16 @@ paths:
         - `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`
         - `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`
         - `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`
-        - `RESTRICTED_ACCESS`
+        - `LIMITED_APPLICATIONS_SCOPE`
+        - `LIMITED_WEBSITES_SCOPE`
+        - `LIMITED_KUBERNETES_SCOPE`
+        - `LIMITED_MOBILE_APPS_SCOPE`
+        - `LIMITED_INFRASTRUCTURE_SCOPE`
         - `ACCESS_APPLICATIONS`
-        - `ACCESS_KUBERNETES`
         - `ACCESS_WEBSITES`
+        - `ACCESS_KUBERNETES`
         - `ACCESS_MOBILE_APPS`
+        - `ACCESS_INFRASTRUCTURE`
   '/api/settings/rbac/groups/{groupId}/users':
     put:
       operationId: addUsersToGroup
@@ -6305,11 +6354,16 @@ paths:
         - `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`
         - `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`
         - `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`
-        - `RESTRICTED_ACCESS`
+        - `LIMITED_APPLICATIONS_SCOPE`
+        - `LIMITED_WEBSITES_SCOPE`
+        - `LIMITED_KUBERNETES_SCOPE`
+        - `LIMITED_MOBILE_APPS_SCOPE`
+        - `LIMITED_INFRASTRUCTURE_SCOPE`
         - `ACCESS_APPLICATIONS`
-        - `ACCESS_KUBERNETES`
         - `ACCESS_WEBSITES`
+        - `ACCESS_KUBERNETES`
         - `ACCESS_MOBILE_APPS`
+        - `ACCESS_INFRASTRUCTURE`
   '/api/settings/rbac/groups/{id}/user/{userId}':
     delete:
       operationId: removeUserFromGroup
@@ -10065,6 +10119,20 @@ components:
           minimum: 0
       required:
         - items
+    CallRelation:
+      type: object
+      example: null
+      properties:
+        endpoint:
+          $ref: '#/components/schemas/EndpointSimple'
+        service:
+          $ref: '#/components/schemas/ServiceSimple'
+        technologies:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
     ChangeSummary:
       type: object
       example: null
@@ -10745,6 +10813,34 @@ components:
         totalHits:
           type: integer
           format: int32
+          example: null
+    EndpointSimple:
+      type: object
+      example: null
+      properties:
+        id:
+          type: string
+          example: null
+        label:
+          type: string
+          example: null
+        type:
+          type: string
+          enum:
+            - UNDEFINED
+            - RPC
+            - EVENT
+            - GRAPHQL
+            - BATCH
+            - SHELL
+            - HTTP
+            - SDK
+            - OPENTELEMETRY
+            - INTERNAL
+            - DATABASE
+            - MESSAGING
+            - PAGE
+            - PAGE_RESOURCE
           example: null
     EntityCountRule:
       type: object
@@ -11949,6 +12045,50 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
         - metrics
+    GetTraceDownloadResultItem:
+      type: object
+      example: null
+      properties:
+        callCount:
+          type: integer
+          format: int64
+          example: null
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        destination:
+          $ref: '#/components/schemas/CallRelation'
+        duration:
+          type: integer
+          format: int64
+          example: null
+        errorCount:
+          type: integer
+          format: int64
+          example: null
+        foreignParentId:
+          type: string
+          example: null
+        id:
+          type: string
+          example: null
+        minSelfTime:
+          type: integer
+          format: int64
+          example: null
+        name:
+          type: string
+          example: null
+        networkTime:
+          type: integer
+          format: int64
+          example: null
+        parentId:
+          type: string
+          example: null
+        timestamp:
+          type: integer
+          format: int64
+          example: null
     GetTraceGroups:
       type: object
       example: null
@@ -15180,6 +15320,16 @@ components:
           minItems: 1
       required:
         - applications
+    ServiceSimple:
+      type: object
+      example: null
+      properties:
+        id:
+          type: string
+          example: null
+        label:
+          type: string
+          example: null
     SessionSettings:
       type: object
       example: null
@@ -17056,6 +17206,8 @@ components:
                 - avg
                 - min
                 - max
+                - absolute_diff
+                - relative_diff
               example: null
             conditionOperator:
               type: string
@@ -17163,6 +17315,37 @@ components:
       required:
         - id
         - label
+    TraceDownloadResult:
+      type: object
+      example: null
+      properties:
+        adjustedTimeframe:
+          $ref: '#/components/schemas/AdjustedTimeframe'
+        canLoadMore:
+          type: boolean
+          example: null
+        items:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/GetTraceDownloadResultItem'
+        totalHits:
+          type: integer
+          format: int64
+          example: null
+          minimum: 0
+        totalRepresentedItemCount:
+          type: integer
+          format: int64
+          example: null
+          minimum: 0
+        totalRetainedItemCount:
+          type: integer
+          format: int64
+          example: null
+          minimum: 0
+      required:
+        - items
     TraceGroupsItem:
       type: object
       example: null
@@ -17458,6 +17641,7 @@ components:
           enum:
             - Alert
             - WebsiteSmartAlert
+            - MobileSmartAlert
             - ApplicationSmartAlert
             - GlobalApplicationSmartAlert
             - SyntheticSmartAlert
@@ -18928,6 +19112,12 @@ x-tagGroups:
       - Mobile App Catalog
       - Mobile App Analyze
       - Mobile App Configuration
+  - name: Synthetic Monitoring
+    tags:
+      - Synthetic Catalog
+      - Synthetic Settings
+      - Synthetic Test Playback Results
+      - Synthetic Alert Configuration
   - name: Event
     tags:
       - Events
@@ -18956,10 +19146,6 @@ x-tagGroups:
   - name: Open Beta Features
     tags:
       - Infrastructure Analyze
-      - Synthetic Catalog
-      - Synthetic Settings
-      - Synthetic Test Playback Results
-      - Synthetic Alert Configuration
   - name: Closed Beta Features
     tags:
       - Infrastructure Alert Configuration
