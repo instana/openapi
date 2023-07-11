@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.252.726
+  version: 1.253.720
   x-description: info
   x-logo:
     altText: instana logo
@@ -257,6 +257,8 @@ paths:
       x-description: getTraces
   /api/application-monitoring/analyze/traces/{id}:
     get:
+      deprecated: true
+      description: "Replaced by /api/application-monitoring/v2/analyze/traces/{id}"
       operationId: getTrace
       parameters:
       - in: path
@@ -1283,6 +1285,48 @@ paths:
       summary: Gets the service topology
       tags:
       - Application Topology
+  /api/application-monitoring/v2/analyze/traces/{id}:
+    get:
+      operationId: getTraceDownload
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: query
+        name: retrievalSize
+        schema:
+          type: integer
+          format: int32
+          example: null
+          maximum: 10000
+          minimum: 1
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          format: int32
+          example: null
+      - in: query
+        name: ingestionTime
+        schema:
+          type: integer
+          format: int64
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceDownloadResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get trace detail
+      tags:
+      - Application Analyze
   /api/application-monitoring/v2/metrics:
     post:
       operationId: getApplicationDataMetricsV2
@@ -9019,6 +9063,20 @@ components:
           minimum: 0
       required:
       - items
+    CallRelation:
+      type: object
+      example: null
+      properties:
+        endpoint:
+          $ref: '#/components/schemas/EndpointSimple'
+        service:
+          $ref: '#/components/schemas/ServiceSimple'
+        technologies:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
     ChangeSummary:
       type: object
       example: null
@@ -9699,6 +9757,34 @@ components:
         totalHits:
           type: integer
           format: int32
+          example: null
+    EndpointSimple:
+      type: object
+      example: null
+      properties:
+        id:
+          type: string
+          example: null
+        label:
+          type: string
+          example: null
+        type:
+          type: string
+          enum:
+          - UNDEFINED
+          - RPC
+          - EVENT
+          - GRAPHQL
+          - BATCH
+          - SHELL
+          - HTTP
+          - SDK
+          - OPENTELEMETRY
+          - INTERNAL
+          - DATABASE
+          - MESSAGING
+          - PAGE
+          - PAGE_RESOURCE
           example: null
     EntityCountRule:
       type: object
@@ -10905,6 +10991,50 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
       - metrics
+    GetTraceDownloadResultItem:
+      type: object
+      example: null
+      properties:
+        callCount:
+          type: integer
+          format: int64
+          example: null
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        destination:
+          $ref: '#/components/schemas/CallRelation'
+        duration:
+          type: integer
+          format: int64
+          example: null
+        errorCount:
+          type: integer
+          format: int64
+          example: null
+        foreignParentId:
+          type: string
+          example: null
+        id:
+          type: string
+          example: null
+        minSelfTime:
+          type: integer
+          format: int64
+          example: null
+        name:
+          type: string
+          example: null
+        networkTime:
+          type: integer
+          format: int64
+          example: null
+        parentId:
+          type: string
+          example: null
+        timestamp:
+          type: integer
+          format: int64
+          example: null
     GetTraceGroups:
       type: object
       example: null
@@ -14137,6 +14267,16 @@ components:
           minItems: 1
       required:
       - applications
+    ServiceSimple:
+      type: object
+      example: null
+      properties:
+        id:
+          type: string
+          example: null
+        label:
+          type: string
+          example: null
     SessionSettings:
       type: object
       example: null
@@ -16015,6 +16155,8 @@ components:
             - avg
             - min
             - max
+            - absolute_diff
+            - relative_diff
             example: null
           conditionOperator:
             type: string
@@ -16122,6 +16264,37 @@ components:
       required:
       - id
       - label
+    TraceDownloadResult:
+      type: object
+      example: null
+      properties:
+        adjustedTimeframe:
+          $ref: '#/components/schemas/AdjustedTimeframe'
+        canLoadMore:
+          type: boolean
+          example: null
+        items:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/GetTraceDownloadResultItem'
+        totalHits:
+          type: integer
+          format: int64
+          example: null
+          minimum: 0
+        totalRepresentedItemCount:
+          type: integer
+          format: int64
+          example: null
+          minimum: 0
+        totalRetainedItemCount:
+          type: integer
+          format: int64
+          example: null
+          minimum: 0
+      required:
+      - items
     TraceGroupsItem:
       type: object
       example: null
@@ -16417,6 +16590,7 @@ components:
           enum:
           - Alert
           - WebsiteSmartAlert
+          - MobileSmartAlert
           - ApplicationSmartAlert
           - GlobalApplicationSmartAlert
           - SyntheticSmartAlert
@@ -17884,6 +18058,12 @@ x-tagGroups:
   - Mobile App Catalog
   - Mobile App Analyze
   - Mobile App Configuration
+- name: Synthetic Monitoring
+  tags:
+  - Synthetic Catalog
+  - Synthetic Settings
+  - Synthetic Test Playback Results
+  - Synthetic Alert Configuration
 - name: Event
   tags:
   - Events
@@ -17912,10 +18092,6 @@ x-tagGroups:
 - name: Open Beta Features
   tags:
   - Infrastructure Analyze
-  - Synthetic Catalog
-  - Synthetic Settings
-  - Synthetic Test Playback Results
-  - Synthetic Alert Configuration
 - name: Closed Beta Features
   tags:
   - Infrastructure Alert Configuration
