@@ -63,7 +63,7 @@ The API endpoints of this group can be used to manage Synthetic Locations and Sy
               - **scriptFile** The name of the file to run
               - **bundle** All required js files bundled up into a single zip file with base64 encoded
           - **syntheticType** Its value is HTTPScript. It is required.
-          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=preview-api-script
+          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=monitoring-using-api-scripts
 - **createdAt** The test created time, following RFC3339 standard.
 - **createdBy** The user identifier who created the test resource.
 - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
