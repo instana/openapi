@@ -1,0 +1,1 @@
+This endpoint retrieves all available maintenance configurations.  

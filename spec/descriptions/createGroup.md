@@ -2,16 +2,20 @@ Creates a group on the tenant. Each group entry also needs a `Permission Set` pe
 
 The `Permission Set` object contains a set of permissions applied to the group.
 
-In case `permissions` include the entry `RESTRICTED_ACCESS`, this group will have a scope limited by its areas.
-
-When `permissions` contains `RESTRICTED_ACCESS`, permissions with preffix `ACCESS_*`are applied.
+In case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.
 
 Possible access permissions values are:
 
-- ACCESS_APPLICATIONS
-- ACCESS_KUBERNETES
-- ACCESS_MOBILE_APPS
-- ACCESS_WEBSITES
+- `LIMITED_APPLICATIONS_SCOPE`
+- `LIMITED_WEBSITES_SCOPE`
+- `LIMITED_KUBERNETES_SCOPE`
+- `LIMITED_MOBILE_APPS_SCOPE`
+- `LIMITED_INFRASTRUCTURE_SCOPE`
+- `ACCESS_APPLICATIONS`
+- `ACCESS_WEBSITES`
+- `ACCESS_KUBERNETES`
+- `ACCESS_MOBILE_APPS`
+- `ACCESS_INFRASTRUCTURE`
 
 The `id` value for the group is ignored, a new id is generated.
 
