@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.253.720
+  version: 1.254.622
   x-description: info
   x-logo:
     altText: instana logo
@@ -2180,6 +2180,7 @@ paths:
           - APPLICATION
           - WEBSITE
           - SYNTHETIC
+          - MOBILE_APP
           example: null
       responses:
         default:
@@ -3981,35 +3982,48 @@ paths:
     get:
       operationId: getSnapshots
       parameters:
-      - in: query
+      - description: query to use to filter snapshot retrieval
+        example: entity.zone:myZone*
+        in: query
         name: query
         schema:
           type: string
           example: null
-      - in: query
+      - description: end of timeframe expressed as the Unix epoch time in milliseconds
+        example: 1689018652000
+        in: query
         name: to
         schema:
           type: integer
           format: int64
           example: null
-      - in: query
+      - description: windowSize in milliseconds
+        example: 3600000
+        in: query
         name: windowSize
         schema:
           type: integer
           format: int64
           example: null
-      - in: query
+      - description: maximum number of snapshots to retrieve
+        example: 100
+        in: query
         name: size
         schema:
           type: integer
           format: int32
           example: null
-      - in: query
+      - description: entity type
+        example: host
+        in: query
         name: plugin
         schema:
           type: string
           example: null
-      - in: query
+      - description: "retrieve snapshots which were online during the timeframe, otherwise,\
+          \ return only snapshot which were online at the end of the timeframe"
+        example: false
+        in: query
         name: offline
         schema:
           type: boolean
@@ -4027,23 +4041,61 @@ paths:
       tags:
       - Infrastructure Resources
       x-description: getSnapshots
+    post:
+      description: This endpoint retrieves detail information for one or more snapshots.
+        timeFrame defaults to the last 10 minutes if not specified.
+      operationId: postSnapshots
+      requestBody:
+        content:
+          application/json:
+            examples:
+              This example retrieves the detail information for two snapshots.:
+                description: This example retrieves the detail information for two
+                  snapshots.
+                value:
+                  snapshotIds:
+                  - AB3DeFGHIJkLm9OpQrstUVwxY_z
+                  - ZY4XwVUTSRqPo8MlKjihGFedC_a
+                  timeFrame:
+                    to: 1689018652000
+                    windowSize: 3600000
+            schema:
+              $ref: '#/components/schemas/GetSnapshotsQuery'
+        x-payload: getSnapshotsQuery
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostSnapshotsResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get snapshot details for multiple snapshots
+      tags:
+      - Infrastructure Resources
   /api/infrastructure-monitoring/snapshots/{id}:
     get:
       operationId: getSnapshot
       parameters:
-      - in: path
+      - description: snapshot id
+        in: path
         name: id
         required: true
         schema:
           type: string
           example: null
-      - in: query
+      - description: end of timeframe expressed as the Unix epoch time in milliseconds
+        example: 1689018652000
+        in: query
         name: to
         schema:
           type: integer
           format: int64
           example: null
-      - in: query
+      - description: windowSize in milliseconds
+        example: 3600000
+        in: query
         name: windowSize
         schema:
           type: integer
@@ -7501,6 +7553,7 @@ components:
       discriminator:
         mapping:
           entity_count: '#/components/schemas/EntityCountRule'
+          entity_count_verification: '#/components/schemas/EntityCountVerificationRule'
           entity_verification: '#/components/schemas/EntityVerificationRule'
           host_availability: '#/components/schemas/HostAvailabilityRule'
           system: '#/components/schemas/SystemRule'
@@ -7962,6 +8015,14 @@ components:
           items:
             type: string
             example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        syntheticTestIds:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/ScopeBinding'
           maxItems: 1024
           minItems: 0
           uniqueItems: true
@@ -9134,6 +9195,9 @@ components:
           minLength: 0
       required:
       - id
+    ContainerNode:
+      type: object
+      example: null
     CursorPagination:
       type: object
       example: null
@@ -9810,6 +9874,51 @@ components:
       example: null
       required:
       - conditionOperator
+    EntityCountVerificationRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AbstractRule'
+      - type: object
+        example: null
+        properties:
+          conditionOperator:
+            type: string
+            enum:
+            - '>'
+            - '>='
+            - <
+            - <=
+            - =
+            - '!='
+            example: null
+          conditionValue:
+            type: number
+            format: double
+            example: null
+          matchingEntityLabel:
+            type: string
+            example: null
+            maxLength: 256
+            minLength: 0
+          matchingEntityType:
+            type: string
+            example: null
+            maxLength: 64
+            minLength: 0
+          matchingOperator:
+            type: string
+            enum:
+            - is
+            - contains
+            - startsWith
+            - endsWith
+            example: null
+      example: null
+      required:
+      - conditionOperator
+      - matchingEntityLabel
+      - matchingEntityType
+      - matchingOperator
     EntityHealthInfo:
       type: object
       example: null
@@ -10874,6 +10983,25 @@ components:
           $ref: '#/components/schemas/TimeFrame'
       required:
       - metrics
+    GetSnapshotsQuery:
+      type: object
+      example: null
+      properties:
+        snapshotIds:
+          type: array
+          description: List of one or more snapshot ids.
+          example: null
+          items:
+            type: string
+            description: List of one or more snapshot ids.
+            example: null
+          maxItems: 1000
+          minItems: 0
+          uniqueItems: true
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+      required:
+      - snapshotIds
     GetTestResult:
       type: object
       example: null
@@ -11617,11 +11745,7 @@ components:
               type: string
               example: null
           expectJson:
-            type: object
-            additionalProperties:
-              type: object
-              example: null
-            example: null
+            $ref: '#/components/schemas/ContainerNode'
           expectMatch:
             type: string
             example: null
@@ -12000,6 +12124,8 @@ components:
         time:
           type: integer
           format: int64
+          description: Epoch time in milliseconds if the snapshot is offline. Set
+            to 9223372036854775807 if the snapshot is online.
           example: null
     InfrastructureMetricResult:
       type: object
@@ -13458,9 +13584,6 @@ components:
         scriptFile:
           type: string
           example: null
-        valid:
-          type: boolean
-          example: null
     NewApplicationConfig:
       type: object
       example: null
@@ -13716,6 +13839,24 @@ components:
         plugin:
           type: string
           example: null
+    PostSnapshotsResult:
+      type: object
+      example: null
+      properties:
+        items:
+          type: array
+          description: Detail information for requested snapshots.
+          example: null
+          items:
+            $ref: '#/components/schemas/SnapshotItem'
+        notFoundSnapshotsIds:
+          type: array
+          description: Snapshot ids for snapshots that could not be retrieved.
+          example: null
+          items:
+            type: string
+            description: Snapshot ids for snapshots that could not be retrieved.
+            example: null
     Problem:
       type: object
       example: null
@@ -14441,6 +14582,7 @@ components:
       - metricName
     SnapshotItem:
       type: object
+      description: Detail information for requested snapshots.
       example: null
       properties:
         data:
