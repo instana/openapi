@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.254.622
+  version: 1.255.651
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -413,6 +413,8 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - traceId: c606ccf3578135c6
               schema:
                 type: array
                 example: null
@@ -436,12 +438,64 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              group:
+                groupbyTag: service.name
+                groupbyTagEntity: DESTINATION
+              metrics:
+                - aggregation: P75
+                  metric: latency
+                  granularity: 360
+              includeInternal: false
+              includeSynthetic: false
+              order:
+                by: calls_SUM
+                direction: DESC
+              pagination:
+                page: 1
+                pageSize: 1
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                  - type: TAG_FILTER
+                    name: call.type
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: DATABASE
+                  - type: TAG_FILTER
+                    name: service.name
+                    operator: EQUALS
+                    entity: DESTINATION
+                    value: ratings
+              timeFrame:
+                to: '1688366990000'
+                windowSize: '600000'
             schema:
               $ref: '#/components/schemas/GetCallGroups'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - name: ratings
+                    timestamp: 1688366520000
+                    cursor:
+                      '@class': .IngestionOffsetCursor
+                      ingestionTime: 1688980829000
+                      offset: 1
+                    metrics:
+                      latency.p75.360:
+                        - - 1688366520000
+                          - 1
+                canLoadMore: false
+                totalHits: 1
+                totalRepresentedItemCount: 1
+                totalRetainedItemCount: 1
+                adjustedTimeframe:
+                  windowSize: 360000
+                  to: 1688366880000
               schema:
                 $ref: '#/components/schemas/CallGroupsResult'
       security:
@@ -463,12 +517,41 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              group:
+                groupbyTag: trace.endpoint.name
+                groupbyTagEntity: NOT_APPLICABLE
+              metrics:
+                - aggregation: SUM
+                  metric: latency
+              order:
+                by: traces_SUM
+                direction: ASC
             schema:
               $ref: '#/components/schemas/GetTraceGroups'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - name: GET /api/cart-total
+                    timestamp: 1688542673148
+                    cursor:
+                      '@class': .IngestionOffsetCursor
+                      ingestionTime: 1688543264000
+                      offset: 1
+                    metrics:
+                      latency.sum:
+                        - - 1688543260000
+                          - 31
+                canLoadMore: true
+                totalHits: 2595
+                totalRepresentedItemCount: 2595
+                totalRetainedItemCount: 2595
+                adjustedTimeframe:
+                  windowSize: 600000
+                  to: 1687939110000
               schema:
                 $ref: '#/components/schemas/TraceGroupsResult'
       security:
@@ -483,12 +566,54 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                  - type: TAG_FILTER
+                    name: endpoint.name
+                    operator: EQUALS
+                    entity: DESTINATION
+                    value: alerting_integrations
+                  - type: TAG_FILTER
+                    name: service.name
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: catalog
             schema:
               $ref: '#/components/schemas/GetTraces'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - trace:
+                      id: c11d056d778b4202
+                      label: POST /shipping/anonymous-526093
+                      startTime: 1688447998665
+                      duration: 2
+                      erroneous: false
+                      service:
+                        id: 8bfb4e1aa590eab8f08f837b97acf5803a5737ed
+                        label: cart
+                        types: []
+                        technologies: []
+                        snapshotIds: []
+                        entityType: SERVICE
+                      endpoint: null
+                    cursor:
+                      '@class': .IngestionOffsetCursor
+                      ingestionTime: 1688448014000
+                      offset: 1
+                canLoadMore: true
+                totalHits: 12393
+                totalRepresentedItemCount: 12393
+                totalRetainedItemCount: 12393
+                adjustedTimeframe:
+                  windowSize: 600000
+                  to: 1687938300000
               schema:
                 $ref: '#/components/schemas/TraceResult'
           x-example: TraceResult
@@ -538,6 +663,103 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: c606ccf3578135c6
+                totalErrorCount: 0
+                rootSpan:
+                  id: 7757e58f78fff3c8
+                  parentId: ''
+                  foreignParentId: ''
+                  callId: 7757e58f78fff3c8
+                  name: node.http.server
+                  label: GET /products
+                  start: 1688365739882
+                  duration: 22
+                  calculatedSelfTime: 4
+                  errorCount: 0
+                  batchSize: 1
+                  batchSelfTime: 22
+                  kind: ENTRY
+                  isSynthetic: false
+                  data:
+                    http:
+                      rawUrl: /products
+                      path: /products
+                      method: GET
+                      host: 'localhost:8000'
+                      path_tpl: /products
+                      status: 200
+                  source:
+                    applications: []
+                    service:
+                      id: ROOT
+                      label: ''
+                      types: []
+                      technologies: []
+                      snapshotIds: []
+                      entityType: SERVICE
+                    endpoint:
+                      id: kVZuxJ7SE8F89iXn6dJ6rdEjQzY
+                      label: Robot-Shop
+                      type: HTTP
+                      serviceId: ''
+                      technologies: []
+                      syntheticType: NON_SYNTHETIC
+                      entityType: ENDPOINT
+                    physicalContext: {}
+                  destination:
+                    applications:
+                      - id: Jv83WpUmSKiiCWIpi-reSQ
+                        label: Robot-Shop
+                        boundaryScope: INBOUND
+                        entityType: APPLICATION
+                      - id: sYoqGlu8SVy2ILv-4lh5aw
+                        label: All Services
+                        boundaryScope: INBOUND
+                        entityType: APPLICATION
+                      - id: R0ZWCcK1ShiFXEW4JHjTZg
+                        label: node.js Services
+                        boundaryScope: INBOUND
+                        entityType: APPLICATION
+                    service:
+                      id: 8939fc2f4b7a964c5c7d40e881daa9d883478be7
+                      label: eum-sim
+                      types: []
+                      technologies: []
+                      snapshotIds: []
+                      entityType: SERVICE
+                    endpoint:
+                      id: dIgIisQFGd-eVZmYaAwhM5sesPA
+                      label: GET /products
+                      type: HTTP
+                      serviceId: ''
+                      technologies: []
+                      syntheticType: NON_SYNTHETIC
+                      entityType: ENDPOINT
+                    physicalContext:
+                      process:
+                        id: dzP4kVCxYu9o8pcesl2WRAc_lJc
+                        time: 1687520911000
+                        label: eum-sim v2.0.0
+                        plugin: nodeJsRuntimePlatform
+                        data: null
+                      container:
+                        id: 3w4-kfSCVJeSsYv5VFf9OCL0s4I
+                        time: 1687520634000
+                        label: eum-sim (eum/eum-sim-7549958c6d-pkx98)
+                        plugin: docker
+                        data: null
+                      host:
+                        id: dHBz3ZRZdpsKcXGd-cNuwej-j6Y
+                        time: 1688187888000
+                        label: Host-1
+                        plugin: host
+                        data:
+                          cpu.count: 4
+                          os.name: Linux
+                          memory.total: 15729750016
+                  stackTrace: []
+                  childSpans: []
               schema:
                 $ref: '#/components/schemas/FullTrace'
       security:
@@ -597,6 +819,15 @@ paths:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - boundaryScope: INBOUND
+                    entityType: APPLICATION
+                    id: e8krH1wNRV6daAo-NEmG8g
+                    label: Robot Shop
+                page: 1
+                pageSize: 1
+                totalHits: 1
               schema:
                 $ref: '#/components/schemas/ApplicationResult'
       security:
@@ -662,6 +893,20 @@ paths:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - entityType: SERVICE
+                    id: 79f1430f4a42a707a97621ca00617e40bd51c31d
+                    label: www.paypal.com
+                    snapshotIds:
+                      - CywiRxmGIwtQIKezVs-XMcTX2xg
+                    technologies:
+                      - kafkaCluster
+                    types:
+                      - MESSAGING
+                page: 1
+                pageSize: 1
+                totalHits: 1
               schema:
                 $ref: '#/components/schemas/ServiceResult'
       security:
@@ -741,6 +986,20 @@ paths:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - entityType: ENDPOINT
+                    id: IWeMKSzcvJHijAQoaA-luyHriDQ
+                    label: websites
+                    serviceId: a25c02069636022456e6139ebfe4f4bfec23ae31
+                    synthetic: false
+                    syntheticType: NON_SYNTHETIC
+                    technologies:
+                      - postgreSqlDatabase
+                    type: DATABASE
+                page: 1
+                pageSize: 1
+                totalHits: 1
               schema:
                 $ref: '#/components/schemas/EndpointResult'
       security:
@@ -786,6 +1045,27 @@ paths:
         default:
           content:
             application/json:
+              example:
+                tagTree:
+                  - label: Agent
+                    description: null
+                    icon: null
+                    children:
+                      - label: Zone
+                        icon: lib_views_tag
+                        tagName: agent.zone
+                        queryable: true
+                        type: TAG
+                    type: LEVEL
+                    queryable: false
+                tags:
+                  - name: marathon.label
+                    label: Label
+                    type: KEY_VALUE_PAIR
+                    description: marathon label
+                    canApplyToSource: true
+                    canApplyToDestination: true
+                    idTag: false
               schema:
                 $ref: '#/components/schemas/TagCatalog'
       security:
@@ -801,6 +1081,15 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - metricId: calls
+                  label: Call count
+                  formatter: NUMBER
+                  description: Number of received calls
+                  aggregations:
+                    - PER_SECOND
+                    - SUM
+                  defaultAggregation: null
               schema:
                 type: array
                 example: null
@@ -876,12 +1165,42 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              metrics:
+                - aggregation: MEAN
+                  metric: latency
+              order:
+                by: calls_SUM
+                direction: DESC
+              pagination:
+                page: 1
+                pageSize: 1
+              timeFrame:
+                to: 1646037122400
+                windowSize: 3600000
             schema:
               $ref: '#/components/schemas/GetApplications'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - application:
+                      id: Jv83WpUmSKiiCWIpi-reSQ
+                      label: demoApp
+                      boundaryScope: ALL
+                      entityType: APPLICATION
+                    metrics:
+                      latency.mean:
+                        - - 1669190580000
+                          - 4
+                page: 1
+                pageSize: 1
+                totalHits: 1616
+                adjustedTimeframe:
+                  windowSize: 3600000
+                  to: 1646037120000
               schema:
                 $ref: '#/components/schemas/ApplicationMetricResult'
       security:
@@ -902,12 +1221,51 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              applicationBoundaryScope: ALL
+              endpointId: murzTwzJlGyqc_CFtEKx8INVCfY
+              excludeSynthetic: true
+              metrics:
+                - aggregation: MEAN
+                  metric: latency
+              order:
+                by: calls_SUM
+                direction: ASC
+              pagination:
+                page: 1
+                pageSize: 1
+              timeFrame:
+                to: 1669190589000
+                windowSize: 3600000
             schema:
               $ref: '#/components/schemas/GetEndpoints'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - endpoint:
+                      id: murzTwzJlGyqc_CFtEKx8INVCfY
+                      label: robot-shop
+                      type: MESSAGING
+                      serviceId: 05b145cfb6fbc24d08a8e01155c0aa2bf8460c87
+                      technologies:
+                        - golangRuntimePlatform
+                        - kubernetesService
+                      syntheticType: NON_SYNTHETIC
+                      synthetic: false
+                      entityType: ENDPOINT
+                    metrics:
+                      latency.mean:
+                        - - 1669190580000
+                          - 2434.5625
+                page: 1
+                pageSize: 1
+                totalHits: 1
+                adjustedTimeframe:
+                  windowSize: 3600000
+                  to: 1669190580000
               schema:
                 $ref: '#/components/schemas/EndpointMetricResult'
       security:
@@ -933,12 +1291,48 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              applicationBoundaryScope: ALL
+              contextScope: NONE
+              metrics:
+                - aggregation: DISTINCT_COUNT
+                  metric: endpoints
+              pagination:
+                page: 1
+                pageSize: 1
+              serviceId: c467ca0fa21477fee3cde75a140b2963307388a7
+              technologies:
+                - springbootApplicationContainer
+              timeFrame:
+                to: 1669190589000
+                windowSize: 3600000
             schema:
               $ref: '#/components/schemas/GetServices'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - service:
+                      id: c467ca0fa21477fee3cde75a140b2963307388a7
+                      label: discount
+                      types:
+                        - HTTP
+                      technologies:
+                        - springbootApplicationContainer
+                      snapshotIds: []
+                      entityType: SERVICE
+                    metrics:
+                      endpoints.distinct_count:
+                        - - 1669190580000
+                          - 4
+                page: 1
+                pageSize: 1
+                totalHits: 1
+                adjustedTimeframe:
+                  windowSize: 3600000
+                  to: 1669190580000
               schema:
                 $ref: '#/components/schemas/ServiceMetricResult'
       security:
@@ -995,6 +1389,20 @@ paths:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - entityType: SERVICE
+                    id: 79f1430f4a42a707a97621ca00617e40bd51c31d
+                    label: Robot Shop
+                    snapshotIds:
+                      - CywiRxmGIwtQIKezVs-XMcTX2xg
+                    technologies:
+                      - kafkaCluster
+                    types:
+                      - MESSAGING
+                page: 1
+                pageSize: 1
+                totalHits: 1
               schema:
                 $ref: '#/components/schemas/ServiceResult'
       security:
@@ -1010,6 +1418,47 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: CxJ55sRbQwqBIfw5DzpRmQ
+                  label: Discount Canary Build 6987
+                  matchSpecification: null
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: AND
+                    elements:
+                      - type: TAG_FILTER
+                        name: kubernetes.label
+                        stringValue: stage=canary
+                        numberValue: null
+                        booleanValue: null
+                        key: stage
+                        value: canary
+                        operator: EQUALS
+                        entity: DESTINATION
+                      - type: TAG_FILTER
+                        name: kubernetes.label
+                        stringValue: build=6987
+                        numberValue: null
+                        booleanValue: null
+                        key: build
+                        value: '6987'
+                        operator: EQUALS
+                        entity: DESTINATION
+                      - type: TAG_FILTER
+                        name: kubernetes.label
+                        stringValue: app=discount
+                        numberValue: null
+                        booleanValue: null
+                        key: app
+                        value: discount
+                        operator: EQUALS
+                        entity: DESTINATION
+                  scope: INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+                  boundaryScope: INBOUND
+                  accessRules:
+                    - accessType: READ_WRITE
+                      relationType: GLOBAL
+                      relatedId: null
               schema:
                 type: array
                 example: null
@@ -1026,6 +1475,45 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              accessRules:
+                - accessType: READ_WRITE
+                  relationType: GLOBAL
+                  relatedId: null
+              boundaryScope: INBOUND
+              label: Discount Build 6987
+              scope: INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                  - type: TAG_FILTER
+                    name: kubernetes.label
+                    stringValue: stage=canary
+                    numberValue: null
+                    booleanValue: null
+                    key: stage
+                    value: canary
+                    operator: EQUALS
+                    entity: DESTINATION
+                  - type: TAG_FILTER
+                    name: kubernetes.label
+                    stringValue: build=6987
+                    numberValue: null
+                    booleanValue: null
+                    key: build
+                    value: '6987'
+                    operator: EQUALS
+                    entity: DESTINATION
+                  - type: TAG_FILTER
+                    name: kubernetes.label
+                    stringValue: app=discount
+                    numberValue: null
+                    booleanValue: null
+                    key: app
+                    value: discount
+                    operator: EQUALS
+                    entity: DESTINATION
             schema:
               $ref: '#/components/schemas/NewApplicationConfig'
         required: true
@@ -1033,6 +1521,47 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: oLyuFtIfQ3eKzAqM5vBGkQ
+                label: Discount Build 6987
+                matchSpecification: null
+                tagFilterExpression:
+                  type: EXPRESSION
+                  logicalOperator: AND
+                  elements:
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: stage=canary
+                      numberValue: null
+                      booleanValue: null
+                      key: stage
+                      value: canary
+                      operator: EQUALS
+                      entity: DESTINATION
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: build=6987
+                      numberValue: null
+                      booleanValue: null
+                      key: build
+                      value: '6987'
+                      operator: EQUALS
+                      entity: DESTINATION
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: app=discount
+                      numberValue: null
+                      booleanValue: null
+                      key: app
+                      value: discount
+                      operator: EQUALS
+                      entity: DESTINATION
+                scope: INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+                boundaryScope: INBOUND
+                accessRules:
+                  - accessType: READ_WRITE
+                    relationType: GLOBAL
+                    relatedId: null
               schema:
                 $ref: '#/components/schemas/ApplicationConfig'
       security:
@@ -1080,6 +1609,47 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: CxJ55sRbQwqBIfw5DzpRmQ
+                label: Discount Canary Build 6987
+                matchSpecification: null
+                tagFilterExpression:
+                  type: EXPRESSION
+                  logicalOperator: AND
+                  elements:
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: stage=canary
+                      numberValue: null
+                      booleanValue: null
+                      key: stage
+                      value: canary
+                      operator: EQUALS
+                      entity: DESTINATION
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: build=6987
+                      numberValue: null
+                      booleanValue: null
+                      key: build
+                      value: '6987'
+                      operator: EQUALS
+                      entity: DESTINATION
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: app=discount
+                      numberValue: null
+                      booleanValue: null
+                      key: app
+                      value: discount
+                      operator: EQUALS
+                      entity: DESTINATION
+                scope: INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+                boundaryScope: INBOUND
+                accessRules:
+                  - accessType: READ_WRITE
+                    relationType: GLOBAL
+                    relatedId: null
               schema:
                 $ref: '#/components/schemas/ApplicationConfig'
       security:
@@ -1100,6 +1670,45 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              accessRules:
+                - accessType: READ
+                  relationType: ROLE
+              boundaryScope: INBOUND
+              id: CxJ55sRbQwqBIfw5DzpRmQ
+              label: Discount Build 1
+              scope: INCLUDE_NO_DOWNSTREAM
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                  - type: TAG_FILTER
+                    name: kubernetes.label
+                    stringValue: stage=canary
+                    numberValue: null
+                    booleanValue: null
+                    key: stage
+                    value: canary
+                    operator: EQUALS
+                    entity: DESTINATION
+                  - type: TAG_FILTER
+                    name: kubernetes.label
+                    stringValue: build=6987
+                    numberValue: null
+                    booleanValue: null
+                    key: build
+                    value: '6987'
+                    operator: EQUALS
+                    entity: DESTINATION
+                  - type: TAG_FILTER
+                    name: kubernetes.label
+                    stringValue: app=discount
+                    numberValue: null
+                    booleanValue: null
+                    key: app
+                    value: discount
+                    operator: EQUALS
+                    entity: DESTINATION
             schema:
               $ref: '#/components/schemas/ApplicationConfig'
         required: true
@@ -1107,6 +1716,47 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: CxJ55sRbQwqBIfw5DzpRmQ
+                label: Discount Canary Build 6987
+                matchSpecification: null
+                tagFilterExpression:
+                  type: EXPRESSION
+                  logicalOperator: AND
+                  elements:
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: stage=canary
+                      numberValue: null
+                      booleanValue: null
+                      key: stage
+                      value: canary
+                      operator: EQUALS
+                      entity: DESTINATION
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: build=6987
+                      numberValue: null
+                      booleanValue: null
+                      key: build
+                      value: '6987'
+                      operator: EQUALS
+                      entity: DESTINATION
+                    - type: TAG_FILTER
+                      name: kubernetes.label
+                      stringValue: app=discount
+                      numberValue: null
+                      booleanValue: null
+                      key: app
+                      value: discount
+                      operator: EQUALS
+                      entity: DESTINATION
+                scope: INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+                boundaryScope: INBOUND
+                accessRules:
+                  - accessType: READ_WRITE
+                    relationType: GLOBAL
+                    relatedId: null
               schema:
                 $ref: '#/components/schemas/ApplicationConfig'
       security:
@@ -1127,6 +1777,20 @@ paths:
         default:
           content:
             application/json:
+              example:
+                serviceId: d0cedae516f2182ede16f57f67476dd4c7dab9cd
+                endpointNameByFirstPathSegmentRuleEnabled: true
+                endpointNameByCollectedPathTemplateRuleEnabled: true
+                rules:
+                  - enabled: true
+                    pathSegments:
+                      - name: api
+                        type: FIXED
+                      - name: version
+                        type: PARAMETER
+                      - type: MATCH_ALL
+                    testCases:
+                      - /api/v2/users
               schema:
                 type: array
                 example: null
@@ -1143,6 +1807,16 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              endpointNameByCollectedPathTemplateRuleEnabled: true
+              endpointNameByFirstPathSegmentRuleEnabled: true
+              rules:
+                - enabled: true
+                  pathSegments:
+                    - type: MATCH_ALL
+                  testCases:
+                    - /api/v2/users
+              serviceId: 20ba31821b079e7d845a08096124880db3eeeb40
             schema:
               $ref: '#/components/schemas/HttpEndpointConfig'
         required: true
@@ -1150,6 +1824,16 @@ paths:
         default:
           content:
             application/json:
+              example:
+                serviceId: 20ba31821b079e7d845a08096124880db3eeeb40
+                endpointNameByFirstPathSegmentRuleEnabled: true
+                endpointNameByCollectedPathTemplateRuleEnabled: true
+                rules:
+                  - enabled: true
+                    pathSegments:
+                      - type: MATCH_ALL
+                    testCases:
+                      - /api/v2/users
               schema:
                 $ref: '#/components/schemas/HttpEndpointConfig'
       security:
@@ -1192,6 +1876,20 @@ paths:
         default:
           content:
             application/json:
+              example:
+                endpointNameByCollectedPathTemplateRuleEnabled: true
+                endpointNameByFirstPathSegmentRuleEnabled: true
+                rules:
+                  - enabled: true
+                    pathSegments:
+                      - name: api
+                        type: FIXED
+                      - name: version
+                        type: PARAMETER
+                      - type: MATCH_ALL
+                    testCases:
+                      - /api/v2/users
+                serviceId: 20ba31821b079e7d845a08096124880db3eeeb47
               schema:
                 $ref: '#/components/schemas/HttpEndpointConfig'
       security:
@@ -1212,6 +1910,20 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              endpointNameByCollectedPathTemplateRuleEnabled: true
+              endpointNameByFirstPathSegmentRuleEnabled: true
+              rules:
+                - enabled: true
+                  pathSegments:
+                    - name: api
+                      type: FIXED
+                    - name: version
+                      type: PARAMETER
+                    - type: MATCH_ALL
+                  testCases:
+                    - /api/v2/users
+              serviceId: 20ba31821b079e7d845a08096124880db3eeeb40
             schema:
               $ref: '#/components/schemas/HttpEndpointConfig'
         required: true
@@ -1219,6 +1931,20 @@ paths:
         default:
           content:
             application/json:
+              example:
+                endpointNameByCollectedPathTemplateRuleEnabled: true
+                endpointNameByFirstPathSegmentRuleEnabled: true
+                rules:
+                  - enabled: true
+                    pathSegments:
+                      - name: api
+                        type: FIXED
+                      - name: version
+                        type: PARAMETER
+                      - type: MATCH_ALL
+                    testCases:
+                      - /api/v2/users
+                serviceId: 20ba31821b079e7d845a08096124880db3eeeb40
               schema:
                 $ref: '#/components/schemas/HttpEndpointConfig'
       security:
@@ -1234,6 +1960,22 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: wh49Z209S82aGvRl8ZZ0dQ
+                  tagFilterExpression:
+                    type: TAG_FILTER
+                    name: call.database.connection
+                    stringValue: 'redis:6379'
+                    numberValue: null
+                    booleanValue: null
+                    key: null
+                    value: 'redis:6379'
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                  unmonitoredServiceName: null
+                  existingServiceId: 2224a6ad91373ef2504dc6b5795d421bff8e4a4d
+                  description: null
+                  enabled: true
               schema:
                 type: array
                 example: null
@@ -1254,6 +1996,21 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              description: Map source service example
+              enabled: true
+              existingServiceId: c467ca0fa21477fee3cde75a140b2963307388a7
+              tagFilterExpression:
+                type: TAG_FILTER
+                name: service.name
+                stringValue: front
+                numberValue: null
+                booleanValue: null
+                key: null
+                value: front
+                operator: EQUALS
+                entity: SOURCE
+              unmonitoredServiceName: null
             schema:
               $ref: '#/components/schemas/NewManualServiceConfig'
         required: true
@@ -1261,6 +2018,22 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: FpG0_9tZT5OjzYM7m5VgUQ
+                tagFilterExpression:
+                  type: TAG_FILTER
+                  name: service.name
+                  stringValue: front
+                  numberValue: null
+                  booleanValue: null
+                  key: null
+                  value: front
+                  operator: EQUALS
+                  entity: SOURCE
+                unmonitoredServiceName: null
+                existingServiceId: c467ca0fa21477fee3cde75a140b2963307388a7
+                description: Map source service example
+                enabled: true
               schema:
                 $ref: '#/components/schemas/ManualServiceConfig'
       security:
@@ -1296,6 +2069,21 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              - description: Map source service
+                enabled: true
+                existingServiceId: c467ca0fa21477fee3cde75a140b2963307388a7
+                tagFilterExpression:
+                  type: TAG_FILTER
+                  name: service.name
+                  stringValue: front
+                  numberValue: null
+                  booleanValue: null
+                  key: null
+                  value: front
+                  operator: EQUALS
+                  entity: SOURCE
+                unmonitoredServiceName: null
             schema:
               type: array
               example: null
@@ -1306,6 +2094,22 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: undcnbu-S7OWi_4q4BnG4Q
+                  tagFilterExpression:
+                    type: TAG_FILTER
+                    name: service.name
+                    stringValue: front
+                    numberValue: null
+                    booleanValue: null
+                    key: null
+                    value: front
+                    operator: EQUALS
+                    entity: SOURCE
+                  unmonitoredServiceName: null
+                  existingServiceId: c467ca0fa21477fee3cde75a140b2963307388a7
+                  description: Map source service
+                  enabled: true
               schema:
                 type: array
                 example: null
@@ -1376,6 +2180,22 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              description: Map source service example
+              enabled: true
+              existingServiceId: c467ca0fa21477fee3cde75a140b2963307388a7
+              id: BDGeDcG4TRSzRkJ1mGOk-Q
+              tagFilterExpression:
+                type: TAG_FILTER
+                name: service.name
+                stringValue: front
+                numberValue: null
+                booleanValue: null
+                key: null
+                value: front
+                operator: EQUALS
+                entity: SOURCE
+              unmonitoredServiceName: null
             schema:
               $ref: '#/components/schemas/ManualServiceConfig'
         required: true
@@ -1383,6 +2203,22 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: BDGeDcG4TRSzRkJ1mGOk-Q
+                tagFilterExpression:
+                  type: TAG_FILTER
+                  name: service.name
+                  stringValue: front
+                  numberValue: null
+                  booleanValue: null
+                  key: null
+                  value: front
+                  operator: EQUALS
+                  entity: SOURCE
+                unmonitoredServiceName: null
+                existingServiceId: c467ca0fa21477fee3cde75a140b2963307388a7
+                description: Map source service example
+                enabled: true
               schema:
                 $ref: '#/components/schemas/ManualServiceConfig'
       security:
@@ -1420,6 +2256,15 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: MyhomcyCRz2DF3O2KNXpGg
+                  name: Rule
+                  comment: null
+                  label: '{docker.container.name}'
+                  enabled: false
+                  matchSpecification:
+                    - key: docker.container.name
+                      value: .*
               schema:
                 type: array
                 example: null
@@ -1436,6 +2281,16 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              comment: null
+              enabled: true
+              label: '{gce.zone}-{jvm.args.abc}'
+              matchSpecification:
+                - key: gce.zone
+                  value: .*
+                - key: jvm.args.abc
+                  value: .*
+              name: ABC is good
             schema:
               $ref: '#/components/schemas/ServiceConfig'
         required: true
@@ -1443,6 +2298,17 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: oMsVfR0fSCuTKF2TFdYRmQ
+                name: ABC is good
+                comment: null
+                label: '{gce.zone}-{jvm.args.abc}'
+                enabled: true
+                matchSpecification:
+                  - key: gce.zone
+                    value: .*
+                  - key: jvm.args.abc
+                    value: .*
               schema:
                 $ref: '#/components/schemas/ServiceConfig'
       security:
@@ -1456,6 +2322,15 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              - comment: null
+                enabled: true
+                id: 8C-jGYx8Rsue854tzkh8KQ
+                label: '{docker.container.name}'
+                matchSpecification:
+                  - key: docker.container.name
+                    value: .*
+                name: Rule
             schema:
               type: array
               example: null
@@ -1466,6 +2341,15 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: 9uma4MhnTTSyBzwu_FKBJA
+                  name: Rule
+                  comment: null
+                  label: '{docker.container.name}'
+                  enabled: true
+                  matchSpecification:
+                    - key: docker.container.name
+                      value: .*
               schema:
                 type: array
                 example: null
@@ -1483,6 +2367,9 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              - 9uma4MhnTTSyBzwu_FKBJA
+              - oMsVfR0fSCuTKF2TFdYRmQ
             schema:
               type: array
               example: null
@@ -1535,6 +2422,15 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: P_37IlGQT0qQy9fxLxvFqA
+                name: Rule
+                comment: null
+                label: '{docker.container.name}'
+                enabled: true
+                matchSpecification:
+                  - key: docker.container.name
+                    value: .*
               schema:
                 $ref: '#/components/schemas/ServiceConfig'
       security:
@@ -1555,6 +2451,17 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              comment: null
+              enabled: true
+              id: 9uma4MhnTTSyBzwu_FKBJA
+              label: '{gce.zone}-{jvm.args.abc}'
+              matchSpecification:
+                - key: gce.zone
+                  value: .*
+                - key: jvm.args.abc
+                  value: .*
+              name: DEF is good
             schema:
               $ref: '#/components/schemas/ServiceConfig'
         required: true
@@ -1562,6 +2469,17 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: 9uma4MhnTTSyBzwu_FKBJA
+                name: DEF is good
+                comment: null
+                label: '{gce.zone}-{jvm.args.abc}'
+                enabled: true
+                matchSpecification:
+                  - key: gce.zone
+                    value: .*
+                  - key: jvm.args.abc
+                    value: .*
               schema:
                 $ref: '#/components/schemas/ServiceConfig'
       security:
@@ -1607,6 +2525,23 @@ paths:
         default:
           content:
             application/json:
+              example:
+                connections:
+                  - from: 8bfb4e1aa590eab8f08f837b97acf5803a5737ed
+                    to: f17e7efb3b9b2d62bfec6b07905759fb81e99797
+                    calls: 2179
+                    latency: 1.6103717301514455
+                    errorRate: 0
+                services:
+                  - id: f17e7efb3b9b2d62bfec6b07905759fb81e99797
+                    label: robot-shop
+                    types:
+                      - MESSAGING
+                    technologies:
+                      - kubernetesService
+                      - rabbitMq
+                    snapshotIds: []
+                    entityType: SERVICE
               schema:
                 $ref: '#/components/schemas/ServiceMap'
       security:
@@ -1649,6 +2584,35 @@ paths:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - id: daa9141549aea210
+                    timestamp: 1688544599223
+                    parentId: null
+                    foreignParentId: null
+                    name: GET /api/shipping/cities/dk
+                    duration: 30
+                    minSelfTime: 1
+                    networkTime: null
+                    callCount: 1
+                    errorCount: 0
+                    destination:
+                      service:
+                        id: ce4b152bac7b99744d8314838e49b799afd6dd96
+                        label: nginx-web
+                      endpoint:
+                        id: wAS2omB44e0EK4xqL7f-e-wt4C4
+                        label: upstream shipping
+                        type: HTTP
+                      technologies: []
+                    cursor:
+                      '@class': .IngestionOffsetCursor
+                      ingestionTime: 1688547327000
+                      offset: 1
+                canLoadMore: false
+                totalHits: 3
+                totalRepresentedItemCount: 3
+                totalRetainedItemCount: 3
               schema:
                 $ref: '#/components/schemas/TraceDownloadResult'
       security:
@@ -1663,12 +2627,35 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              includeInternal: true
+              includeSynthetic: true
+              metrics:
+                - aggregation: MEAN
+                  metric: latency
+              tagFilterExpression:
+                type: TAG_FILTER
+                name: service.name
+                operator: EQUALS
+                entity: NOT_APPLICABLE
+                value: warehouse
+              timeFrame:
+                to: 1669190589000
+                windowSize: 3600000
             schema:
               $ref: '#/components/schemas/GetApplicationMetrics'
       responses:
         default:
           content:
             application/json:
+              example:
+                metrics:
+                  latency.mean:
+                    - - 1669190580000
+                      - 106.85055708882756
+                adjustedTimeframe:
+                  windowSize: 3600000
+                  to: 1669190580000
               schema:
                 $ref: '#/components/schemas/MetricAPIResult'
       security:
@@ -10714,6 +11701,14 @@ components:
         - id
         - kind
         - name
+    EmptyConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+      example: null
+      required:
+        - markSyntheticCall
+        - syntheticType
     Endpoint:
       type: object
       example: null
@@ -13633,6 +14628,9 @@ components:
         readOnly:
           type: boolean
           example: null
+        sensorImported:
+          type: boolean
+          example: null
     MetricAPIResult:
       type: object
       example: null
@@ -14443,6 +15441,14 @@ components:
           example: null
           maxLength: 256
           minLength: 0
+        useFeatures:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 15
+          minItems: 0
         userEmail:
           type: string
           example: null
@@ -16533,6 +17539,7 @@ components:
               - HTTPScript
               - WebpageAction
               - WebpageScript
+              - NotConfigured
             example: null
       required:
         - browserType
@@ -16665,6 +17672,7 @@ components:
           DNSAction: '#/components/schemas/DNSActionConfiguration'
           HTTPAction: '#/components/schemas/HttpActionConfiguration'
           HTTPScript: '#/components/schemas/HttpScriptConfiguration'
+          NotConfigured: '#/components/schemas/EmptyConfiguration'
           WebpageAction: '#/components/schemas/WebpageActionConfiguration'
           WebpageScript: '#/components/schemas/WebpageScriptConfiguration'
         propertyName: syntheticType
@@ -16694,6 +17702,7 @@ components:
             - HTTPScript
             - WebpageAction
             - WebpageScript
+            - NotConfigured
           example: null
         timeout:
           type: string
@@ -17708,6 +18717,9 @@ components:
         lastLoggedIn:
           type: integer
           format: int64
+          example: null
+        tfaEnabled:
+          type: boolean
           example: null
       required:
         - email
