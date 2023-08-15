@@ -8,10 +8,10 @@ The API endpoints of this group can be used to manage Synthetic Locations and Sy
 - **playbackCapability** The playback capabilities provided by this location resource.
   The playbackCapability object has the following properties: 
   - **syntheticType** Different types of synthetic tests that can be executed at this location. 
-    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and DNSAction. 
+    Possible values are HTTPAction, HTTPScript, BrowserScript (Beta), WebpageAction (Beta), WebpageScript (Beta), and DNSAction (Not supported yet). 
     The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.
-  - **browserType** Different types of supported Web browsers when creating synthetic tests for  WebpageAction and WebpageScript. 
-    Currently, only firefox is supported
+  - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.
+    Right now, only Chrome and Firefox are supported. 
 - **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. 
 - **popVersion** PoP's version
 - **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.
@@ -27,7 +27,7 @@ The API endpoints of this group can be used to manage Synthetic Locations and Sy
 - **applicationId** Unique identifier of the Application Perspective.
 - **configuration** An object which has two properties: syntheticType and the corresponding configuration object:
     - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript (Beta), WebpageAction (Beta),
-      WebpageScript (Beta), and DNSAction. The locations assigned to execute this Synthetic
+      WebpageScript (Beta), and DNSAction (Not supported yet). The locations assigned to execute this Synthetic
       test must support this syntheticType, i.e. the location's playbackCapabilities property.
     - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check "Hide Synthetic Calls" checkbox to hide/show them in UI.
     - **retries** An integer type from 0 to 2, 0 by default.
@@ -35,7 +35,11 @@ The API endpoints of this group can be used to manage Synthetic Locations and Sy
       to get a successful connection (not necessarily a successful result).
       Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.
     - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.
-    - **timeout** The timeout to be used by the PoP playback engines running the test. Values in integer followed by time unit (ms, s, m). If timeout is not provided the playback engine will use its own timeout value. The default timeout is **1m** in PoP playback engines for HTTPAction and HTTPScript tests if user does not specify it. If user defined timeout value exceeds the `maxTimeout` configured in PoP deployment or `testFrequency` in test configuration, the timeout value does not take effect and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
+    - **timeout** The timeout to be used by the PoP playback engines running the test. Values in integer followed by time unit (ms, s, m). 
+      If timeout is not provided the playback engine will use its own timeout value. The default timeout is **1m** in PoP playback engines for HTTPAction and HTTPScript tests,
+      and **5m** for BrowserScript, WebpageAction, and WebpageScript tests if user does not specify it. 
+      If user defined timeout value exceeds the `maxTimeout` configured in PoP deployment or `testFrequency` in test configuration, 
+      the timeout value does not take effect and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
     - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
       BrowserScriptConfiguration (Beta), WebpageActionConfiguration (Beta), WebpageScriptConfiguration (Beta), and DNSActionConfiguration. 
         - **HTTPActionConfiguration** has the following properties:
@@ -69,17 +73,17 @@ The API endpoints of this group can be used to manage Synthetic Locations and Sy
               - **scriptFile** The name of the file to run
               - **bundle** All required js files bundled up into a single zip file with base64 encoded
           - **scriptType** The type of the script, right now, only Basic type is supported. 
-          - **browser** The type of the browser: chrome or firefox.
+          - **browser** The type of the browser: chrome or firefox, chrome by default.
           - **recordVideo** A boolean type, false by default.
           - **syntheticType** Its value is BrowserScript. It is required.
         - **WebpageActionConfiguration** has the following properties:
           - **url** The URL of the Web page being tested. It is required.
-          - **browser** The type of the browser: chrome or firefox.
+          - **browser** The type of the browser: chrome or firefox, chrome by default.
           - **recordVideo** A boolean type, false by default.
           - **syntheticType** Its value is WebpageAction. It is required.
         - **WebpageScriptConfiguration** has the following properties:
           - **script** A Selenium IDE recording script. 
-          - **browser** The type of the browser: chrome or firefox.
+          - **browser** The type of the browser: chrome or firefox, chrome by default.
           - **recordVideo** A boolean type, false by default.
           - **syntheticType** Its value is WebpageScript. It is required.
 - **createdAt** The test created time, following RFC3339 standard.
