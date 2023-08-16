@@ -35,11 +35,12 @@ The API endpoints of this group can be used to manage Synthetic Locations and Sy
       to get a successful connection (not necessarily a successful result).
       Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.
     - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.
-    - **timeout** The timeout to be used by the PoP playback engines running the test. Values in integer followed by time unit (ms, s, m). 
-      If timeout is not provided the playback engine will use its own timeout value. The default timeout is **1m** in PoP playback engines for HTTPAction and HTTPScript tests,
-      and **5m** for BrowserScript, WebpageAction, and WebpageScript tests if user does not specify it. 
-      If user defined timeout value exceeds the `maxTimeout` configured in PoP deployment or `testFrequency` in test configuration, 
-      the timeout value does not take effect and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
+    - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). 
+      It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.
+        - If user defined timeout value exceeds the `maxTimeout` or `testFrequency` in test configuration, the timeout value does not take effect 
+          and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
+        - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. 
+          BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
     - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
       BrowserScriptConfiguration (Beta), WebpageActionConfiguration (Beta), and WebpageScriptConfiguration (Beta). 
         - **HTTPActionConfiguration** has the following properties:
