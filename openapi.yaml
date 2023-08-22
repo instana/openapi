@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.255.651
+  version: 1.256.508
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -286,10 +286,10 @@ tags:
       - **playbackCapability** The playback capabilities provided by this location resource.
         The playbackCapability object has the following properties: 
         - **syntheticType** Different types of synthetic tests that can be executed at this location. 
-          Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and DNSAction. 
+          Possible values are HTTPAction, HTTPScript, BrowserScript (Beta), WebpageAction (Beta), and WebpageScript (Beta). 
           The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.
-        - **browserType** Different types of supported Web browsers when creating synthetic tests for  WebpageAction and WebpageScript. 
-          Currently, only firefox is supported
+        - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.
+          Right now, only Chrome and Firefox are supported. 
       - **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. 
       - **popVersion** PoP's version
       - **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.
@@ -304,8 +304,8 @@ tags:
       - **active** Indicates if the Synthetic test is started or not. The default is true.
       - **applicationId** Unique identifier of the Application Perspective.
       - **configuration** An object which has two properties: syntheticType and the corresponding configuration object:
-          - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
-            WebpageScript, and DNSAction. The locations assigned to execute this Synthetic
+          - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript (Beta), WebpageAction (Beta),
+            and WebpageScript (Beta). The locations assigned to execute this Synthetic
             test must support this syntheticType, i.e. the location's playbackCapabilities property.
           - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check "Hide Synthetic Calls" checkbox to hide/show them in UI.
           - **retries** An integer type from 0 to 2, 0 by default.
@@ -313,10 +313,14 @@ tags:
             to get a successful connection (not necessarily a successful result).
             Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.
           - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.
-          - **timeout** The timeout to be used by the PoP playback engines running the test. Values in integer followed by time unit (ms, s, m). If timeout is not provided the playback engine will use its own timeout value. The default timeout is **1m** in PoP playback engines for HTTPAction and HTTPScript tests if user does not specify it. If user defined timeout value exceeds the `maxTimeout` configured in PoP deployment or `testFrequency` in test configuration, the timeout value does not take effect and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
+          - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). 
+            It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.
+              - If user defined timeout value exceeds the `maxTimeout` or `testFrequency` in test configuration, the timeout value does not take effect 
+                and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
+              - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. 
+                BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
           - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
-            BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and DNSActionConfiguration. Right now, only HTTPActionConfiguration
-            and HTTPScriptConfiguration are supported.
+            BrowserScriptConfiguration (Beta), WebpageActionConfiguration (Beta), and WebpageScriptConfiguration (Beta). 
               - **HTTPActionConfiguration** has the following properties:
                   - **url** The URL is being tested. It is required.
                   - **syntheticType** Its value is HTTPAction. It is required.
@@ -342,6 +346,25 @@ tags:
                     - **bundle** All required js files bundled up into a single zip file with base64 encoded
                 - **syntheticType** Its value is HTTPScript. It is required.
                 - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=monitoring-using-api-scripts
+              - **BrowserScriptConfiguration** has the following properties:
+                - **script** A Node.js based test script, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.
+                - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.
+                    - **scriptFile** The name of the file to run
+                    - **bundle** All required js files bundled up into a single zip file with base64 encoded
+                - **scriptType** The type of the script, right now, only Basic type is supported. 
+                - **browser** The type of the browser: chrome or firefox, chrome by default.
+                - **recordVideo** A boolean type, false by default.
+                - **syntheticType** Its value is BrowserScript. It is required.
+              - **WebpageActionConfiguration** has the following properties:
+                - **url** The URL of the Web page being tested. It is required.
+                - **browser** The type of the browser: chrome or firefox, chrome by default.
+                - **recordVideo** A boolean type, false by default.
+                - **syntheticType** Its value is WebpageAction. It is required.
+              - **WebpageScriptConfiguration** has the following properties:
+                - **script** A Selenium IDE recording script. It is required.
+                - **browser** The type of the browser: chrome or firefox, chrome by default.
+                - **recordVideo** A boolean type, false by default.
+                - **syntheticType** Its value is WebpageScript. It is required.
       - **createdAt** The test created time, following RFC3339 standard.
       - **createdBy** The user identifier who created the test resource.
       - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
@@ -349,10 +372,8 @@ tags:
       - **modifiedAt** The test last updated time, following RFC3339 standard.
       - **modifiedBy** The user identifier who updated the test resource.
       - **playbackMode** Defines how the Synthetic test should be executed across multiple
-        PoPs. Possible values are Simultaneous or Staggered. Simultaneous
-        Synthetic tests run at all locations simultaneously. Staggered
-        Synthetic tests run from a different location at each interval.
-        This property is optional, and its default value is Simultaneous.
+        PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,
+        Synthetic tests run at all locations simultaneously. 
       - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
         The default is every 15 minutes. The range is from 1 minute to 120 minutes.
   - name: Synthetic Test Playback Results
@@ -4674,6 +4695,254 @@ paths:
       summary: Get versions of Synthetic Alert Config
       tags:
         - Synthetic Alert Configuration
+  /api/events/settings/mobile-app-alert-configs:
+    get:
+      description: Configs are sorted descending by their created date.
+      operationId: findActiveMobileAppAlertConfigs
+      parameters:
+        - in: query
+          name: mobileAppId
+          schema:
+            type: string
+            example: null
+        - in: query
+          name: alertIds
+          schema:
+            type: array
+            example: null
+            items:
+              type: string
+              example: null
+            maxItems: 1000
+            minItems: 0
+            uniqueItems: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/WithMetadata'
+      summary: All Mobile App Alert Configs
+      tags:
+        - Event Settings
+    post:
+      operationId: createMobileAppAlertConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileAppAlertConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithMetadata'
+      summary: Create Mobile App Alert Config
+      tags:
+        - Event Settings
+  '/api/events/settings/mobile-app-alert-configs/{id}':
+    delete:
+      operationId: deleteMobileAppAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Delete Mobile App Alert Config
+      tags:
+        - Event Settings
+    get:
+      description: Find a Mobile App Alert Config by ID. This will deliver deleted configs too.
+      operationId: findMobileAppAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+        - in: query
+          name: validOn
+          schema:
+            type: integer
+            format: int64
+            example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithMetadata'
+      summary: Get Mobile App Alert Config
+      tags:
+        - Event Settings
+    post:
+      operationId: updateMobileAppAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileAppAlertConfig'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithMetadata'
+          description: Mobile App Smart Alert successfully updated
+        '204':
+          description: Mobile App Smart Alert did not change
+        '400':
+          description: Invalid Mobile App ID provided
+        '500':
+          description: Internal error
+      summary: Update Mobile App Alert Config
+      tags:
+        - Event Settings
+  '/api/events/settings/mobile-app-alert-configs/{id}/disable':
+    put:
+      operationId: disableMobileAppAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Disable Mobile App Alert Config
+      tags:
+        - Event Settings
+  '/api/events/settings/mobile-app-alert-configs/{id}/enable':
+    put:
+      operationId: enableMobileAppAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Enable Mobile App Alert Config
+      tags:
+        - Event Settings
+  '/api/events/settings/mobile-app-alert-configs/{id}/restore/{created}':
+    put:
+      operationId: restoreMobileAppAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+        - in: path
+          name: created
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Restore Mobile App Alert Config
+      tags:
+        - Event Settings
+  '/api/events/settings/mobile-app-alert-configs/{id}/update-baseline':
+    post:
+      description: Recalculate and update the baseline given the id of the config. The LastUpdated field of the config is changed to the current time.
+      operationId: updateMobileAppHistoricBaseline
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Recalculate a Static Seasonal Threshold
+      tags:
+        - Event Settings
+  '/api/events/settings/mobile-app-alert-configs/{id}/versions':
+    get:
+      description: Find all versions of a Mobile App Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.
+      operationId: findMobileAppAlertConfigVersions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ConfigVersion'
+      summary: Get versions of Mobile App Alert Config
+      tags:
+        - Event Settings
   /api/events/settings/website-alert-configs:
     get:
       description: Configs are sorted descending by their created date.
@@ -11330,6 +11599,20 @@ components:
         - annotations
         - id
         - title
+    CustomEventMobileAppAlertRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MobileAppAlertRule'
+        - type: object
+          example: null
+          properties:
+            customEventName:
+              type: string
+              example: null
+      example: null
+      required:
+        - customEventName
+        - metricName
     CustomEventSpecification:
       type: object
       example: null
@@ -14622,6 +14905,15 @@ components:
       type: object
       example: null
       properties:
+        ai:
+          type: array
+          example: null
+          items:
+            type: object
+            additionalProperties:
+              type: object
+              example: null
+            example: null
         builtIn:
           type: boolean
           example: null
@@ -15015,6 +15307,120 @@ components:
       required:
         - id
         - name
+    MobileAppAlertConfig:
+      type: object
+      example: null
+      properties:
+        alertChannelIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        completeTagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
+        description:
+          type: string
+          example: null
+          maxLength: 65536
+          minLength: 0
+        granularity:
+          type: integer
+          format: int32
+          default: 600000
+          enum:
+            - 300000
+            - 600000
+            - 900000
+            - 1200000
+            - 1800000
+          example: null
+        mobileAppId:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        name:
+          type: string
+          example: null
+          maxLength: 256
+          minLength: 0
+        rule:
+          $ref: '#/components/schemas/MobileAppAlertRule'
+        severity:
+          type: integer
+          format: int32
+          example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        timeThreshold:
+          $ref: '#/components/schemas/MobileAppTimeThreshold'
+        triggering:
+          type: boolean
+          example: null
+      required:
+        - alertChannelIds
+        - customPayloadFields
+        - description
+        - granularity
+        - mobileAppId
+        - name
+        - rule
+        - tagFilterExpression
+        - threshold
+        - timeThreshold
+    MobileAppAlertRule:
+      type: object
+      discriminator:
+        mapping:
+          customEvent: '#/components/schemas/CustomEventMobileAppAlertRule'
+          statusCode: '#/components/schemas/StatusCodeMobileAppAlertRule'
+          throughput: '#/components/schemas/ThroughputMobileAppAlertRule'
+        propertyName: alertType
+      example: null
+      properties:
+        aggregation:
+          type: string
+          enum:
+            - SUM
+            - MEAN
+            - MAX
+            - MIN
+            - P25
+            - P50
+            - P75
+            - P90
+            - P95
+            - P98
+            - P99
+            - P99_9
+            - P99_99
+            - DISTRIBUTION
+            - DISTINCT_COUNT
+            - SUM_POSITIVE
+            - PER_SECOND
+          example: null
+        alertType:
+          type: string
+          example: null
+        metricName:
+          type: string
+          example: null
+      required:
+        - alertType
+        - metricName
     MobileAppBeaconGroupsItem:
       type: object
       example: null
@@ -15620,6 +16026,25 @@ components:
       required:
         - aggregation
         - metric
+    MobileAppTimeThreshold:
+      type: object
+      discriminator:
+        mapping:
+          userImpactOfViolationsInSequence: '#/components/schemas/UserImpactMobileAppTimeThreshold'
+          violationsInPeriod: '#/components/schemas/ViolationsInPeriodMobileAppTimeThreshold'
+          violationsInSequence: '#/components/schemas/ViolationsInSequenceMobileAppTimeThreshold'
+        propertyName: type
+      example: null
+      properties:
+        timeWindow:
+          type: integer
+          format: int64
+          example: null
+        type:
+          type: string
+          example: null
+      required:
+        - type
     MonitoringState:
       type: object
       example: null
@@ -17071,6 +17496,41 @@ components:
       example: null
       required:
         - metricName
+    StatusCodeMobileAppAlertRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MobileAppAlertRule'
+        - type: object
+          example: null
+          properties:
+            operator:
+              type: string
+              enum:
+                - EQUALS
+                - CONTAINS
+                - LESS_THAN
+                - LESS_OR_EQUAL_THAN
+                - GREATER_THAN
+                - GREATER_OR_EQUAL_THAN
+                - NOT_EMPTY
+                - NOT_EQUAL
+                - NOT_CONTAIN
+                - IS_EMPTY
+                - NOT_BLANK
+                - IS_BLANK
+                - STARTS_WITH
+                - ENDS_WITH
+                - NOT_STARTS_WITH
+                - NOT_ENDS_WITH
+              example: null
+            value:
+              type: string
+              example: null
+      example: null
+      required:
+        - metricName
+        - operator
+        - value
     StatusCodeWebsiteAlertRule:
       type: object
       allOf:
@@ -17162,8 +17622,6 @@ components:
           items:
             type: string
             example: null
-          maxItems: 500
-          minItems: 0
           uniqueItems: true
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
@@ -17250,8 +17708,6 @@ components:
           items:
             type: string
             example: null
-          maxItems: 500
-          minItems: 0
           uniqueItems: true
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
@@ -17663,9 +18119,8 @@ components:
     SyntheticTypeConfiguration:
       type: object
       description: |-
-        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript, DNSAction, HTTPAction, HTTPScript, WebpageAction, WebpageScript.
-
-        Only HTTPAction and HTTPScript are enabled at this time.
+        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript (Beta),
+        HTTPAction, HTTPScript, WebpageAction (Beta), and WebpageScript (Beta).
       discriminator:
         mapping:
           BrowserScript: '#/components/schemas/BrowserScriptConfiguration'
@@ -18400,6 +18855,13 @@ components:
       example: null
       required:
         - metricName
+    ThroughputMobileAppAlertRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MobileAppAlertRule'
+      example: null
+      required:
+        - metricName
     ThroughputWebsiteAlertRule:
       type: object
       allOf:
@@ -18668,6 +19130,35 @@ components:
         - email
         - fullName
         - id
+    UserImpactMobileAppTimeThreshold:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MobileAppTimeThreshold'
+        - type: object
+          example: null
+          properties:
+            impactMeasurementMethod:
+              type: string
+              enum:
+                - AGGREGATED
+                - PER_WINDOW
+              example: null
+            userPercentage:
+              type: number
+              format: double
+              example: null
+              exclusiveMaximum: false
+              exclusiveMinimum: true
+              maximum: 1
+              minimum: 0
+            users:
+              type: integer
+              format: int32
+              example: null
+              minimum: 1
+      example: null
+      required:
+        - impactMeasurementMethod
     UserImpactWebsiteTimeThreshold:
       type: object
       allOf:
@@ -19008,6 +19499,20 @@ components:
               maximum: 12
               minimum: 1
       example: null
+    ViolationsInPeriodMobileAppTimeThreshold:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MobileAppTimeThreshold'
+        - type: object
+          example: null
+          properties:
+            violations:
+              type: integer
+              format: int32
+              example: null
+              maximum: 12
+              minimum: 1
+      example: null
     ViolationsInPeriodWebsiteTimeThreshold:
       type: object
       allOf:
@@ -19026,6 +19531,11 @@ components:
       type: object
       allOf:
         - $ref: '#/components/schemas/ApplicationTimeThreshold'
+      example: null
+    ViolationsInSequenceMobileAppTimeThreshold:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MobileAppTimeThreshold'
       example: null
     ViolationsInSequenceSyntheticTimeThreshold:
       type: object
@@ -20184,6 +20694,97 @@ components:
         - config
         - id
         - type
+    WithMetadata:
+      type: object
+      example: null
+      properties:
+        alertChannelIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        completeTagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
+        created:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
+        description:
+          type: string
+          example: null
+          maxLength: 65536
+          minLength: 0
+        enabled:
+          type: boolean
+          example: null
+        granularity:
+          type: integer
+          format: int32
+          default: 600000
+          enum:
+            - 300000
+            - 600000
+            - 900000
+            - 1200000
+            - 1800000
+          example: null
+        id:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        mobileAppId:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        name:
+          type: string
+          example: null
+          maxLength: 256
+          minLength: 0
+        readOnly:
+          type: boolean
+          example: null
+        rule:
+          $ref: '#/components/schemas/MobileAppAlertRule'
+        severity:
+          type: integer
+          format: int32
+          example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        timeThreshold:
+          $ref: '#/components/schemas/MobileAppTimeThreshold'
+        triggering:
+          type: boolean
+          example: null
+      required:
+        - alertChannelIds
+        - customPayloadFields
+        - description
+        - granularity
+        - id
+        - mobileAppId
+        - name
+        - rule
+        - tagFilterExpression
+        - threshold
+        - timeThreshold
     WithResolvedName:
       type: object
       allOf:
