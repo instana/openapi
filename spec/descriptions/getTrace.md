@@ -4,6 +4,8 @@ This endpoint retrieves the details for traces.
 
 **Optional Paramters:**
 
+**Deprecated Parameters:** *tagFilters:* The list of tag filters. It is replaced by **tagFilterExpression**.
+
 **Defaults:**
 
 **Limits:**
