@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.256.508
+  version: 1.257.587
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -2932,6 +2932,9 @@ paths:
         - **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.
         This option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.
         - **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.
+
+        ### Deprecated Parameters
+
         - **includeAgentMonitoringIssues:** Optional flag to indicate whether to include Agent Monitoring Issues. The default is `false`.
         - **includeKubernetesInfoEvents:** Optional flag to indicate whether to include Kubernetes Info Events. The default is `false`.
 
@@ -2983,6 +2986,124 @@ paths:
         ### Mandatory Parameters:
 
         - **eventIds:** The set of IDs of the events to fetch.
+  /api/events/agent-monitoring-events:
+    get:
+      operationId: agentMonitoringEvents
+      parameters:
+        - in: query
+          name: windowSize
+          schema:
+            type: integer
+            format: int64
+            example: null
+        - in: query
+          name: from
+          schema:
+            type: integer
+            format: int64
+            example: null
+        - in: query
+          name: to
+          schema:
+            type: integer
+            format: int64
+            example: null
+        - in: query
+          name: excludeTriggeredBefore
+          schema:
+            type: boolean
+            example: null
+        - in: query
+          name: filterEventUpdates
+          schema:
+            type: boolean
+            example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/EventResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get all agent monitoring events
+      tags:
+        - Events
+      description: |+
+        This endpoint retrieves all agent monitoring events for the requested timeframe.
+
+        ### Query Parameters:
+
+        - **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.
+        - **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.
+        - **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.
+        - **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.
+        This option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.
+        - **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.
+
+  /api/events/kubernetes-info-events:
+    get:
+      operationId: kubernetesInfoEvents
+      parameters:
+        - in: query
+          name: windowSize
+          schema:
+            type: integer
+            format: int64
+            example: null
+        - in: query
+          name: from
+          schema:
+            type: integer
+            format: int64
+            example: null
+        - in: query
+          name: to
+          schema:
+            type: integer
+            format: int64
+            example: null
+        - in: query
+          name: excludeTriggeredBefore
+          schema:
+            type: boolean
+            example: null
+        - in: query
+          name: filterEventUpdates
+          schema:
+            type: boolean
+            example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/EventResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get all kubernetes info events
+      tags:
+        - Events
+      description: |+
+        This endpoint retrieves all kubernetes info events for the requested timeframe.
+
+        ### Query Parameters:
+
+        - **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.
+        - **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.
+        - **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.
+        - **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.
+        This option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.
+        - **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.
+
   /api/events/settings/alertingChannels:
     get:
       operationId: getAlertingChannels
@@ -10431,7 +10552,13 @@ components:
         canConfigureUsers:
           type: boolean
           example: null
+        canCreateHeapDump:
+          type: boolean
+          example: null
         canCreatePublicCustomDashboards:
+          type: boolean
+          example: null
+        canCreateThreadDump:
           type: boolean
           example: null
         canDeleteLogs:
@@ -10741,6 +10868,11 @@ components:
         includeSynthetic:
           type: boolean
           example: null
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         name:
           type: string
           example: null
@@ -13082,7 +13214,7 @@ components:
             type: string
             description: Entity grouping tag. Use the Instana Analyze Infrastructure dashboard to determine the entity grouping tag name.
             example: null
-          maxItems: 1
+          maxItems: 5
           minItems: 0
         metrics:
           type: array
@@ -13754,6 +13886,11 @@ components:
         includeSynthetic:
           type: boolean
           example: null
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         name:
           type: string
           example: null
@@ -15883,6 +16020,11 @@ components:
           example: null
           maxLength: 128
           minLength: 0
+        userSessionId:
+          type: string
+          example: null
+          maxLength: 128
+          minLength: 0
         view:
           type: string
           example: null
@@ -17681,6 +17823,11 @@ components:
           example: null
           maxLength: 64
           minLength: 0
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         name:
           type: string
           example: null
@@ -19806,6 +19953,11 @@ components:
           example: null
           maxLength: 64
           minLength: 0
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         name:
           type: string
           example: null
@@ -20745,6 +20897,11 @@ components:
           example: null
           maxLength: 64
           minLength: 0
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         mobileAppId:
           type: string
           example: null
