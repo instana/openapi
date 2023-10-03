@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.258.800",
+    "version": "1.259.758",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -8615,6 +8615,51 @@
         "description": "This endpoint retrieves all available metric definitions of the requested plugin.\n\n### Path Parameters:\n\n**plugin** The plugin id from [available plugins](#operation/getInfrastructureCatalogPlugins)\n\n### Optional Parameters:\n\n**filter** You can restrict the returned metric definitions by passing a filter.\n\n* `custom` to retrieve custom metric definitions only.\n* `builtin` to retrieve built-in metric definitions only.\n"
       }
     },
+    "/api/infrastructure-monitoring/catalog/payloads/{pluginId}": {
+      "get": {
+        "description": "This endpoint retrieves the list of keys that can be used to retrieve payloads for a plugin. ",
+        "operationId": "getAvailablePayloadKeysByPluginId",
+        "parameters": [
+          {
+            "description": "plugin id",
+            "example": "db2Database",
+            "in": "path",
+            "name": "pluginId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/GetPayloadKeysResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get payload keys for plugin",
+        "tags": [
+          "Infrastructure Catalog"
+        ]
+      }
+    },
     "/api/infrastructure-monitoring/catalog/plugins": {
       "get": {
         "operationId": "getInfrastructureCatalogPlugins",
@@ -8822,6 +8867,75 @@
           }
         ],
         "summary": "Monitored host count",
+        "tags": [
+          "Infrastructure Resources"
+        ]
+      }
+    },
+    "/api/infrastructure-monitoring/payloads/{snapshotId}/{payloadKey}": {
+      "get": {
+        "description": "This endpoint retrieves the payload for a snapshot.",
+        "operationId": "getPluginPayload",
+        "parameters": [
+          {
+            "description": "Snapshot id.",
+            "in": "path",
+            "name": "snapshotId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "description": "Payload key. Use `/api/infrastructure-monitoring/catalog/payloads` to retrieve the list of possible keys.",
+            "example": "topqueries",
+            "in": "path",
+            "name": "payloadKey",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "description": "End of timeframe expressed as the Unix epoch time in milliseconds.",
+            "example": 1689018652000,
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "description": "Window size in milliseconds.",
+            "example": 3600000,
+            "in": "query",
+            "name": "windowSize",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get a payload for a snapshot",
         "tags": [
           "Infrastructure Resources"
         ]
@@ -9630,6 +9744,37 @@
           }
         ],
         "summary": "Metric catalog",
+        "tags": [
+          "Mobile App Catalog"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/catalog/tags": {
+      "get": {
+        "operationId": "getAllMobileAppCatalogTags",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get all existing mobile app tags",
         "tags": [
           "Mobile App Catalog"
         ]
@@ -15433,6 +15578,10 @@
             "type": "boolean",
             "example": null
           },
+          "canConfigureAutomationPolicies": {
+            "type": "boolean",
+            "example": null
+          },
           "canConfigureCustomAlerts": {
             "type": "boolean",
             "example": null
@@ -19285,6 +19434,22 @@
           "type"
         ]
       },
+      "GetPayloadKeysResult": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "payloadKeys": {
+            "type": "array",
+            "description": "Keys that can be used to retrieve plugin payloads.",
+            "example": null,
+            "items": {
+              "type": "string",
+              "description": "Keys that can be used to retrieve plugin payloads.",
+              "example": null
+            }
+          }
+        }
+      },
       "GetServices": {
         "type": "object",
         "example": null,
@@ -20657,6 +20822,15 @@
             "minItems": 0,
             "uniqueItems": true
           },
+          "customPayloadFields": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/CustomPayloadField"
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
           "description": {
             "type": "string",
             "example": null,
@@ -20712,6 +20886,7 @@
         },
         "required": [
           "alertChannelIds",
+          "customPayloadFields",
           "description",
           "granularity",
           "groupBy",
@@ -20742,6 +20917,15 @@
             "format": "int64",
             "example": null,
             "minimum": 1
+          },
+          "customPayloadFields": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/CustomPayloadField"
+            },
+            "maxItems": 20,
+            "minItems": 0
           },
           "description": {
             "type": "string",
@@ -20818,6 +21002,7 @@
         },
         "required": [
           "alertChannelIds",
+          "customPayloadFields",
           "description",
           "granularity",
           "groupBy",
@@ -20995,6 +21180,10 @@
           "metric": {
             "type": "string",
             "example": null
+          },
+          "regex": {
+            "type": "boolean",
+            "example": null
           }
         },
         "required": [
@@ -21061,35 +21250,43 @@
       },
       "InfrastructureGroup": {
         "type": "object",
+        "description": "group of infrastructure entities",
         "example": null,
         "properties": {
           "count": {
             "type": "integer",
             "format": "int64",
+            "description": "number of entities in this group",
             "example": null
           },
           "metrics": {
             "type": "object",
             "additionalProperties": {
               "type": "array",
+              "description": "map of metric keys to array of timestamp,value pairs",
               "example": null,
               "items": {
                 "type": "array",
+                "description": "map of metric keys to array of timestamp,value pairs",
                 "example": null,
                 "items": {
                   "type": "number",
+                  "description": "map of metric keys to array of timestamp,value pairs",
                   "example": null
                 }
               }
             },
+            "description": "map of metric keys to array of timestamp,value pairs",
             "example": null
           },
           "tags": {
             "type": "object",
             "additionalProperties": {
               "type": "object",
+              "description": "tag keys and values for this group",
               "example": null
             },
+            "description": "tag keys and values for this group",
             "example": null
           }
         }
@@ -25730,7 +25927,7 @@
             "type": "string",
             "example": null,
             "maxLength": 128,
-            "minLength": 1
+            "minLength": 0
           },
           "label": {
             "type": "string",
@@ -26538,6 +26735,11 @@
             "type": "string",
             "example": null
           },
+          "createdAt": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
           "frequency": {
             "type": "integer",
             "format": "int32",
@@ -26581,6 +26783,11 @@
             "items": {
               "$ref": "#/components/schemas/LocationStatus"
             }
+          },
+          "modifiedAt": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
           },
           "serviceId": {
             "type": "string",
