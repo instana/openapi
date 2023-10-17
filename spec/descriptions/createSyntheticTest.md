@@ -1,6 +1,6 @@
 This API endpoint creates a Synthetic Test.
 
-**Note:** The **DNSAction** type is not supported.
+**Note:** The **DNSAction** Synthetic type is not supported.
 
 ## Sample script and payload: 
 - A sample script to create an API Simple test
