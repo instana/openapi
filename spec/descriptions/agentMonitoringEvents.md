@@ -1,4 +1,4 @@
-This endpoint retrieves all available events for the requested timeframe.
+This endpoint retrieves all agent monitoring events for the requested timeframe.
 
 ### Query Parameters:
 
@@ -9,23 +9,3 @@ This endpoint retrieves all available events for the requested timeframe.
 This option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.
 - **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.
 
-### Deprecated Parameters
-
-- **includeAgentMonitoringIssues:** Optional flag to indicate whether to include Agent Monitoring Issues. The default is `false`.
-- **includeKubernetesInfoEvents:** Optional flag to indicate whether to include Kubernetes Info Events. The default is `false`.
-
-### Examples
-
-Fetch all events that have been opened within the last 30 minutes.
-
-```bash
-curl --request GET 'https://<Host>/api/events?windowSize=1800000&excludeTriggeredBefore=true' \
---header 'Authorization: apiToken <Token>'
-```
-
-Fetch all events that have been opened or closed within the last minute, using a fetch delay of 120 seconds.
-
-```bash
-TO_MILLIS=$((($(date +%s) - 120) * 1000)) curl --request GET "https://<Host>/api/events?windowSize=60000&to=$TO_MILLIS&filterEventUpdates=true" \
---header 'Authorization: apiToken <Token>'
-```

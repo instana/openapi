@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.255.651
+  version: 1.260.656
   x-description: info
   x-logo:
     altText: instana logo
@@ -109,6 +109,8 @@ tags:
   x-description: tagSyntheticResults
 - name: Automation Settings
   x-description: tagAutomationSettings
+- name: Authentication
+  x-description: tagAuthentication
 paths:
   /api/apdex/report/{apdexId}:
     get:
@@ -2603,6 +2605,102 @@ paths:
       tags:
       - Events
       x-description: getEventsByIds
+  /api/events/agent-monitoring-events:
+    get:
+      operationId: agentMonitoringEvents
+      parameters:
+      - in: query
+        name: windowSize
+        schema:
+          type: integer
+          format: int64
+          example: null
+      - in: query
+        name: from
+        schema:
+          type: integer
+          format: int64
+          example: null
+      - in: query
+        name: to
+        schema:
+          type: integer
+          format: int64
+          example: null
+      - in: query
+        name: excludeTriggeredBefore
+        schema:
+          type: boolean
+          example: null
+      - in: query
+        name: filterEventUpdates
+        schema:
+          type: boolean
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/EventResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get all agent monitoring events
+      tags:
+      - Events
+      x-description: agentMonitoringEvents
+  /api/events/kubernetes-info-events:
+    get:
+      operationId: kubernetesInfoEvents
+      parameters:
+      - in: query
+        name: windowSize
+        schema:
+          type: integer
+          format: int64
+          example: null
+      - in: query
+        name: from
+        schema:
+          type: integer
+          format: int64
+          example: null
+      - in: query
+        name: to
+        schema:
+          type: integer
+          format: int64
+          example: null
+      - in: query
+        name: excludeTriggeredBefore
+        schema:
+          type: boolean
+          example: null
+      - in: query
+        name: filterEventUpdates
+        schema:
+          type: boolean
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/EventResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get all kubernetes info events
+      tags:
+      - Events
+      x-description: kubernetesInfoEvents
   /api/events/settings/alertingChannels:
     get:
       operationId: getAlertingChannels
@@ -4097,6 +4195,509 @@ paths:
       summary: Get versions of Synthetic Alert Config
       tags:
       - Synthetic Alert Configuration
+  /api/events/settings/infra-alert-configs:
+    get:
+      description: Configs are sorted descending by their created date.
+      operationId: findActiveInfraAlertConfigs
+      parameters:
+      - in: query
+        name: alertIds
+        schema:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1000
+          minItems: 0
+          uniqueItems: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/InfraAlertConfigWithMetadata'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: All Infra Alert Configs
+      tags:
+      - Infrastructure Alert Configuration
+    post:
+      operationId: createInfraAlertConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InfraAlertConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfraAlertConfigWithMetadata'
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Create Infra Alert Config
+      tags:
+      - Infrastructure Alert Configuration
+  /api/events/settings/infra-alert-configs/{id}:
+    delete:
+      operationId: deleteInfraAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Delete Infra Alert Config
+      tags:
+      - Infrastructure Alert Configuration
+    get:
+      description: Find a Infra Alert Config by ID. This will deliver deleted configs
+        too.
+      operationId: findInfraAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: query
+        name: validOn
+        schema:
+          type: integer
+          format: int64
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfraAlertConfigWithMetadata'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get Infra Alert Config
+      tags:
+      - Infrastructure Alert Configuration
+    post:
+      operationId: updateInfraAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InfraAlertConfig'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfraAlertConfigWithMetadata'
+          description: Infra Smart Alert successfully updated
+        "204":
+          description: Infra Smart Alert did not change
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Update Infra Alert Config
+      tags:
+      - Infrastructure Alert Configuration
+  /api/events/settings/infra-alert-configs/{id}/disable:
+    put:
+      operationId: disableInfraAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Disable Infra Alert Config
+      tags:
+      - Infrastructure Alert Configuration
+  /api/events/settings/infra-alert-configs/{id}/enable:
+    put:
+      operationId: enableInfraAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Enable Infra Alert Config
+      tags:
+      - Infrastructure Alert Configuration
+  /api/events/settings/infra-alert-configs/{id}/restore/{created}:
+    put:
+      operationId: restoreInfraAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: path
+        name: created
+        required: true
+        schema:
+          type: integer
+          format: int64
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertConfigs
+      summary: Restore Infra Alert Config
+      tags:
+      - Infrastructure Alert Configuration
+  /api/events/settings/infra-alert-configs/{id}/versions:
+    get:
+      description: Find all versions of a Infra Alert Config by ID. This will deliver
+        deleted configs too. Configs are sorted descending by their created date.
+      operationId: findInfraAlertConfigVersions
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ConfigVersion'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get versions of Infra Alert Config
+      tags:
+      - Infrastructure Alert Configuration
+  /api/events/settings/mobile-app-alert-configs:
+    get:
+      description: Configs are sorted descending by their created date.
+      operationId: findActiveMobileAppAlertConfigs
+      parameters:
+      - in: query
+        name: mobileAppId
+        schema:
+          type: string
+          example: null
+      - in: query
+        name: alertIds
+        schema:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1000
+          minItems: 0
+          uniqueItems: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/WithMetadata'
+      summary: All Mobile App Alert Configs
+      tags:
+      - Event Settings
+    post:
+      operationId: createMobileAppAlertConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileAppAlertConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithMetadata'
+      summary: Create Mobile App Alert Config
+      tags:
+      - Event Settings
+      x-description: createMobileAppAlertConfig
+  /api/events/settings/mobile-app-alert-configs/{id}:
+    delete:
+      operationId: deleteMobileAppAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Delete Mobile App Alert Config
+      tags:
+      - Event Settings
+    get:
+      description: Find a Mobile App Alert Config by ID. This will deliver deleted
+        configs too.
+      operationId: findMobileAppAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: query
+        name: validOn
+        schema:
+          type: integer
+          format: int64
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithMetadata'
+      summary: Get Mobile App Alert Config
+      tags:
+      - Event Settings
+    post:
+      operationId: updateMobileAppAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileAppAlertConfig'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithMetadata'
+          description: Mobile App Smart Alert successfully updated
+        "204":
+          description: Mobile App Smart Alert did not change
+        "400":
+          description: Invalid Mobile App ID provided
+        "500":
+          description: Internal error
+      summary: Update Mobile App Alert Config
+      tags:
+      - Event Settings
+      x-description: updateMobileAppAlertConfig
+  /api/events/settings/mobile-app-alert-configs/{id}/disable:
+    put:
+      operationId: disableMobileAppAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Disable Mobile App Alert Config
+      tags:
+      - Event Settings
+  /api/events/settings/mobile-app-alert-configs/{id}/enable:
+    put:
+      operationId: enableMobileAppAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Enable Mobile App Alert Config
+      tags:
+      - Event Settings
+  /api/events/settings/mobile-app-alert-configs/{id}/restore/{created}:
+    put:
+      operationId: restoreMobileAppAlertConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: path
+        name: created
+        required: true
+        schema:
+          type: integer
+          format: int64
+          example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Restore Mobile App Alert Config
+      tags:
+      - Event Settings
+  /api/events/settings/mobile-app-alert-configs/{id}/update-baseline:
+    post:
+      description: Recalculate and update the baseline given the id of the config.
+        The LastUpdated field of the config is changed to the current time.
+      operationId: updateMobileAppHistoricBaseline
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      summary: Recalculate a Static Seasonal Threshold
+      tags:
+      - Event Settings
+  /api/events/settings/mobile-app-alert-configs/{id}/versions:
+    get:
+      description: Find all versions of a Mobile App Alert Config by ID. This will
+        deliver deleted configs too. Configs are sorted descending by their created
+        date.
+      operationId: findMobileAppAlertConfigVersions
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ConfigVersion'
+      summary: Get versions of Mobile App Alert Config
+      tags:
+      - Event Settings
   /api/events/settings/website-alert-configs:
     get:
       description: Configs are sorted descending by their created date.
@@ -4839,6 +5440,36 @@ paths:
       tags:
       - Infrastructure Catalog
       x-description: getInfrastructureCatalogMetrics
+  /api/infrastructure-monitoring/catalog/payloads/{pluginId}:
+    get:
+      description: 'This endpoint retrieves the list of keys that can be used to retrieve
+        payloads for a plugin. '
+      operationId: getAvailablePayloadKeysByPluginId
+      parameters:
+      - description: plugin id
+        example: db2Database
+        in: path
+        name: pluginId
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/GetPayloadKeysResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get payload keys for plugin
+      tags:
+      - Infrastructure Catalog
+      x-description: getAvailablePayloadKeysByPluginId
   /api/infrastructure-monitoring/catalog/plugins:
     get:
       operationId: getInfrastructureCatalogPlugins
@@ -4965,6 +5596,54 @@ paths:
       summary: Monitored host count
       tags:
       - Infrastructure Resources
+  /api/infrastructure-monitoring/payloads/{snapshotId}/{payloadKey}:
+    get:
+      description: This endpoint retrieves the payload for a snapshot.
+      operationId: getPluginPayload
+      parameters:
+      - description: Snapshot id.
+        in: path
+        name: snapshotId
+        required: true
+        schema:
+          type: string
+          example: null
+      - description: Payload key. Use `/api/infrastructure-monitoring/catalog/payloads`
+          to retrieve the list of possible keys.
+        example: topqueries
+        in: path
+        name: payloadKey
+        required: true
+        schema:
+          type: string
+          example: null
+      - description: End of timeframe expressed as the Unix epoch time in milliseconds.
+        example: 1689018652000
+        in: query
+        name: to
+        schema:
+          type: integer
+          format: int64
+          example: null
+      - description: Window size in milliseconds.
+        example: 3600000
+        in: query
+        name: windowSize
+        schema:
+          type: integer
+          format: int64
+          example: null
+      responses:
+        default:
+          content:
+            application/json: {}
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get a payload for a snapshot
+      tags:
+      - Infrastructure Resources
+      x-description: getPluginPayload
   /api/infrastructure-monitoring/snapshots:
     get:
       operationId: getSnapshots
@@ -5474,6 +6153,25 @@ paths:
       tags:
       - Mobile App Catalog
       x-description: getMobileAppMetricCatalog
+  /api/mobile-app-monitoring/catalog/tags:
+    get:
+      operationId: getAllMobileAppCatalogTags
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/Tag'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get all existing mobile app tags
+      tags:
+      - Mobile App Catalog
+      x-description: getAllMobileAppCatalogTags
   /api/mobile-app-monitoring/config:
     get:
       operationId: getMobileAppConfig
@@ -6205,6 +6903,62 @@ paths:
       summary: Audit log
       tags:
       - Audit Log
+  /api/settings/authentication/googleSSO:
+    delete:
+      operationId: deleteGoogleSSOConfig
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - ConfigureAuthenticationMethods
+      summary: Delete Google SSO configuration
+      tags:
+      - Authentication
+  /api/settings/authentication/ldap:
+    delete:
+      operationId: deleteLdapConfig
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - ConfigureAuthenticationMethods
+      summary: Delete LDAP configuration
+      tags:
+      - Authentication
+  /api/settings/authentication/oidc:
+    delete:
+      operationId: deleteOidcConfig
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - ConfigureAuthenticationMethods
+      summary: Delete OIDC configuration
+      tags:
+      - Authentication
+  /api/settings/authentication/saml:
+    delete:
+      operationId: deleteSamlConfig
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - ConfigureAuthenticationMethods
+      summary: Delete SAML configuration
+      tags:
+      - Authentication
   /api/settings/invitations:
     delete:
       operationId: revokePendingInvitation
@@ -8511,6 +9265,7 @@ components:
           OPS_GENIE: '#/components/schemas/OpsgenieIntegration'
           PAGER_DUTY: '#/components/schemas/PagerdutyIntegration'
           PROMETHEUS_WEBHOOK: '#/components/schemas/PrometheusWebhookIntegration'
+          SALESFORCE: '#/components/schemas/SalesforceIntegration'
           SERVICE_NOW_WEBHOOK: '#/components/schemas/ServiceNowIntegration'
           SLACK: '#/components/schemas/SlackIntegration'
           SPLUNK: '#/components/schemas/SplunkIntegration'
@@ -8941,7 +9696,7 @@ components:
           type: string
           example: null
         permissionSet:
-          $ref: '#/components/schemas/ApiPermissionSetWithRoles'
+          $ref: '#/components/schemas/ApiPermissionSet'
       required:
       - members
       - name
@@ -8958,7 +9713,7 @@ components:
           example: null
       required:
       - userId
-    ApiPermissionSetWithRoles:
+    ApiPermissionSet:
       type: object
       example: null
       properties:
@@ -9005,6 +9760,8 @@ components:
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        restrictedApplicationFilter:
+          $ref: '#/components/schemas/ApiRestrictedApplicationFilter'
         syntheticTestIds:
           type: array
           example: null
@@ -9023,11 +9780,25 @@ components:
           uniqueItems: true
       required:
       - applicationIds
+      - infraDfqFilter
       - kubernetesClusterUUIDs
       - kubernetesNamespaceUIDs
       - mobileAppIds
       - permissions
       - websiteIds
+    ApiRestrictedApplicationFilter:
+      type: object
+      example: null
+      properties:
+        scope:
+          type: string
+          enum:
+          - INCLUDE_NO_DOWNSTREAM
+          - INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+          - INCLUDE_ALL_DOWNSTREAM
+          example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
     ApiToken:
       type: object
       example: null
@@ -9051,6 +9822,9 @@ components:
           type: boolean
           example: null
         canConfigureAutomationActions:
+          type: boolean
+          example: null
+        canConfigureAutomationPolicies:
           type: boolean
           example: null
         canConfigureCustomAlerts:
@@ -9104,7 +9878,13 @@ components:
         canConfigureUsers:
           type: boolean
           example: null
+        canCreateHeapDump:
+          type: boolean
+          example: null
         canCreatePublicCustomDashboards:
+          type: boolean
+          example: null
+        canCreateThreadDump:
           type: boolean
           example: null
         canDeleteLogs:
@@ -9414,6 +10194,11 @@ components:
         includeSynthetic:
           type: boolean
           example: null
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         name:
           type: string
           example: null
@@ -10272,6 +11057,20 @@ components:
       - annotations
       - id
       - title
+    CustomEventMobileAppAlertRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/MobileAppAlertRule'
+      - type: object
+        example: null
+        properties:
+          customEventName:
+            type: string
+            example: null
+      example: null
+      required:
+      - customEventName
+      - metricName
     CustomEventSpecification:
       type: object
       example: null
@@ -11369,6 +12168,16 @@ components:
       required:
       - id
       - rootSpan
+    GenericInfraAlertRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/InfraAlertRule'
+      example: null
+      required:
+      - aggregation
+      - crossSeriesAggregation
+      - entityType
+      - metricName
     GeoLocationConfiguration:
       type: object
       example: null
@@ -11743,7 +12552,7 @@ components:
             description: Entity grouping tag. Use the Instana Analyze Infrastructure
               dashboard to determine the entity grouping tag name.
             example: null
-          maxItems: 1
+          maxItems: 5
           minItems: 0
         metrics:
           type: array
@@ -11922,6 +12731,18 @@ components:
       required:
       - metrics
       - type
+    GetPayloadKeysResult:
+      type: object
+      example: null
+      properties:
+        payloadKeys:
+          type: array
+          description: Keys that can be used to retrieve plugin payloads.
+          example: null
+          items:
+            type: string
+            description: Keys that can be used to retrieve plugin payloads.
+            example: null
     GetServices:
       type: object
       example: null
@@ -12193,6 +13014,8 @@ components:
       properties:
         pagination:
           $ref: '#/components/schemas/CursorPagination'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -12415,6 +13238,11 @@ components:
         includeSynthetic:
           type: boolean
           example: null
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         name:
           type: string
           example: null
@@ -12932,6 +13760,244 @@ components:
       - description
       - id
       - name
+    InfraAlertConfig:
+      type: object
+      example: null
+      properties:
+        alertChannelIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
+        description:
+          type: string
+          example: null
+          maxLength: 65536
+          minLength: 0
+        granularity:
+          type: integer
+          format: int32
+          default: 600000
+          enum:
+          - 300000
+          - 600000
+          - 900000
+          - 1200000
+          - 1800000
+          example: null
+        groupBy:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 5
+          minItems: 0
+        name:
+          type: string
+          example: null
+          maxLength: 256
+          minLength: 0
+        predictiveTrigger:
+          type: integer
+          format: int64
+          example: null
+          writeOnly: true
+        rule:
+          $ref: '#/components/schemas/InfraAlertRule'
+        severity:
+          type: integer
+          format: int32
+          example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        timeThreshold:
+          $ref: '#/components/schemas/InfraTimeThreshold'
+      required:
+      - alertChannelIds
+      - customPayloadFields
+      - description
+      - granularity
+      - groupBy
+      - name
+      - rule
+      - tagFilterExpression
+      - threshold
+      - timeThreshold
+    InfraAlertConfigWithMetadata:
+      type: object
+      example: null
+      properties:
+        alertChannelIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        created:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
+        description:
+          type: string
+          example: null
+          maxLength: 65536
+          minLength: 0
+        enabled:
+          type: boolean
+          example: null
+        granularity:
+          type: integer
+          format: int32
+          default: 600000
+          enum:
+          - 300000
+          - 600000
+          - 900000
+          - 1200000
+          - 1800000
+          example: null
+        groupBy:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 5
+          minItems: 0
+        id:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
+        name:
+          type: string
+          example: null
+          maxLength: 256
+          minLength: 0
+        predictiveTrigger:
+          type: integer
+          format: int64
+          example: null
+          writeOnly: true
+        readOnly:
+          type: boolean
+          example: null
+        rule:
+          $ref: '#/components/schemas/InfraAlertRule'
+        severity:
+          type: integer
+          format: int32
+          example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        timeThreshold:
+          $ref: '#/components/schemas/InfraTimeThreshold'
+      required:
+      - alertChannelIds
+      - customPayloadFields
+      - description
+      - granularity
+      - groupBy
+      - id
+      - name
+      - rule
+      - tagFilterExpression
+      - threshold
+      - timeThreshold
+    InfraAlertRule:
+      type: object
+      discriminator:
+        mapping:
+          genericRule: '#/components/schemas/GenericInfraAlertRule'
+        propertyName: alertType
+      example: null
+      properties:
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - P99_9
+          - P99_99
+          - DISTRIBUTION
+          - DISTINCT_COUNT
+          - SUM_POSITIVE
+          - PER_SECOND
+          example: null
+        alertType:
+          type: string
+          example: null
+        crossSeriesAggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - P99_9
+          - P99_99
+          - DISTRIBUTION
+          - DISTINCT_COUNT
+          - SUM_POSITIVE
+          - PER_SECOND
+          example: null
+        entityType:
+          type: string
+          example: null
+        metricName:
+          type: string
+          example: null
+      required:
+      - alertType
+      - metricName
     InfraEventResult:
       type: object
       allOf:
@@ -13001,7 +14067,7 @@ components:
           example: null
         granularity:
           type: integer
-          format: int32
+          format: int64
           description: |2
                * If granularity is not specified an aggregated value for the selected timeframe is returned.
                * If granularity is specified data points are returned with the specified granularity
@@ -13012,9 +14078,29 @@ components:
         metric:
           type: string
           example: null
+        regex:
+          type: boolean
+          example: null
       required:
       - aggregation
       - metric
+    InfraTimeThreshold:
+      type: object
+      discriminator:
+        mapping:
+          violationsInSequence: '#/components/schemas/ViolationsInSequenceInfraTimeThreshold'
+        propertyName: type
+      example: null
+      properties:
+        timeWindow:
+          type: integer
+          format: int64
+          example: null
+        type:
+          type: string
+          example: null
+      required:
+      - type
     InfrastructureEntitiesResult:
       type: object
       example: null
@@ -13041,29 +14127,37 @@ components:
       - items
     InfrastructureGroup:
       type: object
+      description: group of infrastructure entities
       example: null
       properties:
         count:
           type: integer
           format: int64
+          description: number of entities in this group
           example: null
         metrics:
           type: object
           additionalProperties:
             type: array
+            description: "map of metric keys to array of timestamp,value pairs"
             example: null
             items:
               type: array
+              description: "map of metric keys to array of timestamp,value pairs"
               example: null
               items:
                 type: number
+                description: "map of metric keys to array of timestamp,value pairs"
                 example: null
+          description: "map of metric keys to array of timestamp,value pairs"
           example: null
         tags:
           type: object
           additionalProperties:
             type: object
+            description: tag keys and values for this group
             example: null
+          description: tag keys and values for this group
           example: null
     InfrastructureGroupsResult:
       type: object
@@ -13408,6 +14502,11 @@ components:
           minLength: 0
         scheduling:
           $ref: '#/components/schemas/MaintenanceConfigScheduling'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        tagFilterExpressionEnabled:
+          type: boolean
+          example: null
       required:
       - id
       - name
@@ -13452,6 +14551,11 @@ components:
           - ACTIVE
           - PAUSED
           - EXPIRED
+          example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        tagFilterExpressionEnabled:
+          type: boolean
           example: null
       required:
       - id
@@ -13567,6 +14671,15 @@ components:
       type: object
       example: null
       properties:
+        ai:
+          type: array
+          example: null
+          items:
+            type: object
+            additionalProperties:
+              type: object
+              example: null
+            example: null
         builtIn:
           type: boolean
           example: null
@@ -13960,6 +15073,120 @@ components:
       required:
       - id
       - name
+    MobileAppAlertConfig:
+      type: object
+      example: null
+      properties:
+        alertChannelIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        completeTagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
+        description:
+          type: string
+          example: null
+          maxLength: 65536
+          minLength: 0
+        granularity:
+          type: integer
+          format: int32
+          default: 600000
+          enum:
+          - 300000
+          - 600000
+          - 900000
+          - 1200000
+          - 1800000
+          example: null
+        mobileAppId:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        name:
+          type: string
+          example: null
+          maxLength: 256
+          minLength: 0
+        rule:
+          $ref: '#/components/schemas/MobileAppAlertRule'
+        severity:
+          type: integer
+          format: int32
+          example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        timeThreshold:
+          $ref: '#/components/schemas/MobileAppTimeThreshold'
+        triggering:
+          type: boolean
+          example: null
+      required:
+      - alertChannelIds
+      - customPayloadFields
+      - description
+      - granularity
+      - mobileAppId
+      - name
+      - rule
+      - tagFilterExpression
+      - threshold
+      - timeThreshold
+    MobileAppAlertRule:
+      type: object
+      discriminator:
+        mapping:
+          customEvent: '#/components/schemas/CustomEventMobileAppAlertRule'
+          statusCode: '#/components/schemas/StatusCodeMobileAppAlertRule'
+          throughput: '#/components/schemas/ThroughputMobileAppAlertRule'
+        propertyName: alertType
+      example: null
+      properties:
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - P99_9
+          - P99_99
+          - DISTRIBUTION
+          - DISTINCT_COUNT
+          - SUM_POSITIVE
+          - PER_SECOND
+          example: null
+        alertType:
+          type: string
+          example: null
+        metricName:
+          type: string
+          example: null
+      required:
+      - alertType
+      - metricName
     MobileAppBeaconGroupsItem:
       type: object
       example: null
@@ -14422,6 +15649,11 @@ components:
           example: null
           maxLength: 128
           minLength: 0
+        userSessionId:
+          type: string
+          example: null
+          maxLength: 128
+          minLength: 0
         view:
           type: string
           example: null
@@ -14565,6 +15797,25 @@ components:
       required:
       - aggregation
       - metric
+    MobileAppTimeThreshold:
+      type: object
+      discriminator:
+        mapping:
+          userImpactOfViolationsInSequence: '#/components/schemas/UserImpactMobileAppTimeThreshold'
+          violationsInPeriod: '#/components/schemas/ViolationsInPeriodMobileAppTimeThreshold'
+          violationsInSequence: '#/components/schemas/ViolationsInSequenceMobileAppTimeThreshold'
+        propertyName: type
+      example: null
+      properties:
+        timeWindow:
+          type: integer
+          format: int64
+          example: null
+        type:
+          type: string
+          example: null
+      required:
+      - type
     MonitoringState:
       type: object
       example: null
@@ -15041,6 +16292,33 @@ components:
       required:
       - inputKind
       - inputName
+    SalesforceIntegration:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AbstractIntegration'
+      - type: object
+        example: null
+        properties:
+          bearerToken:
+            type: string
+            example: null
+          clientId:
+            type: string
+            example: null
+          clientSecret:
+            type: string
+            example: null
+          salesforceUrl:
+            type: string
+            example: null
+      example: null
+      required:
+      - clientId
+      - clientSecret
+      - id
+      - kind
+      - name
+      - salesforceUrl
     ScopeBinding:
       type: object
       example: null
@@ -16017,6 +17295,41 @@ components:
       example: null
       required:
       - metricName
+    StatusCodeMobileAppAlertRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/MobileAppAlertRule'
+      - type: object
+        example: null
+        properties:
+          operator:
+            type: string
+            enum:
+            - EQUALS
+            - CONTAINS
+            - LESS_THAN
+            - LESS_OR_EQUAL_THAN
+            - GREATER_THAN
+            - GREATER_OR_EQUAL_THAN
+            - NOT_EMPTY
+            - NOT_EQUAL
+            - NOT_CONTAIN
+            - IS_EMPTY
+            - NOT_BLANK
+            - IS_BLANK
+            - STARTS_WITH
+            - ENDS_WITH
+            - NOT_STARTS_WITH
+            - NOT_ENDS_WITH
+            example: null
+          value:
+            type: string
+            example: null
+      example: null
+      required:
+      - metricName
+      - operator
+      - value
     StatusCodeWebsiteAlertRule:
       type: object
       allOf:
@@ -16108,8 +17421,6 @@ components:
           items:
             type: string
             example: null
-          maxItems: 500
-          minItems: 0
           uniqueItems: true
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
@@ -16169,6 +17480,11 @@ components:
           example: null
           maxLength: 64
           minLength: 0
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         name:
           type: string
           example: null
@@ -16196,8 +17512,6 @@ components:
           items:
             type: string
             example: null
-          maxItems: 500
-          minItems: 0
           uniqueItems: true
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
@@ -16379,7 +17693,7 @@ components:
           type: string
           example: null
           maxLength: 128
-          minLength: 1
+          minLength: 0
         label:
           type: string
           example: null
@@ -16609,9 +17923,8 @@ components:
     SyntheticTypeConfiguration:
       type: object
       description: |-
-        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript, DNSAction, HTTPAction, HTTPScript, WebpageAction, WebpageScript.
-
-        Only HTTPAction and HTTPScript are enabled at this time.
+        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript (Beta),
+        HTTPAction, HTTPScript, WebpageAction (Beta), and WebpageScript (Beta).
       discriminator:
         mapping:
           BrowserScript: '#/components/schemas/BrowserScriptConfiguration'
@@ -16993,6 +18306,10 @@ components:
         applicationLabel:
           type: string
           example: null
+        createdAt:
+          type: integer
+          format: int64
+          example: null
         frequency:
           type: integer
           format: int32
@@ -17026,6 +18343,10 @@ components:
           example: null
           items:
             $ref: '#/components/schemas/LocationStatus'
+        modifiedAt:
+          type: integer
+          format: int64
+          example: null
         serviceId:
           type: string
           example: null
@@ -17348,6 +18669,13 @@ components:
       example: null
       required:
       - metricName
+    ThroughputMobileAppAlertRule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/MobileAppAlertRule'
+      example: null
+      required:
+      - metricName
     ThroughputWebsiteAlertRule:
       type: object
       allOf:
@@ -17616,6 +18944,35 @@ components:
       - email
       - fullName
       - id
+    UserImpactMobileAppTimeThreshold:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/MobileAppTimeThreshold'
+      - type: object
+        example: null
+        properties:
+          impactMeasurementMethod:
+            type: string
+            enum:
+            - AGGREGATED
+            - PER_WINDOW
+            example: null
+          userPercentage:
+            type: number
+            format: double
+            example: null
+            exclusiveMaximum: false
+            exclusiveMinimum: true
+            maximum: 1.0
+            minimum: 0.0
+          users:
+            type: integer
+            format: int32
+            example: null
+            minimum: 1
+      example: null
+      required:
+      - impactMeasurementMethod
     UserImpactWebsiteTimeThreshold:
       type: object
       allOf:
@@ -17867,6 +19224,11 @@ components:
           - PAUSED
           - EXPIRED
           example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        tagFilterExpressionEnabled:
+          type: boolean
+          example: null
       required:
       - id
       - name
@@ -17956,6 +19318,20 @@ components:
             maximum: 12
             minimum: 1
       example: null
+    ViolationsInPeriodMobileAppTimeThreshold:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/MobileAppTimeThreshold'
+      - type: object
+        example: null
+        properties:
+          violations:
+            type: integer
+            format: int32
+            example: null
+            maximum: 12
+            minimum: 1
+      example: null
     ViolationsInPeriodWebsiteTimeThreshold:
       type: object
       allOf:
@@ -17974,6 +19350,16 @@ components:
       type: object
       allOf:
       - $ref: '#/components/schemas/ApplicationTimeThreshold'
+      example: null
+    ViolationsInSequenceInfraTimeThreshold:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/InfraTimeThreshold'
+      example: null
+    ViolationsInSequenceMobileAppTimeThreshold:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/MobileAppTimeThreshold'
       example: null
     ViolationsInSequenceSyntheticTimeThreshold:
       type: object
@@ -18244,6 +19630,11 @@ components:
           example: null
           maxLength: 64
           minLength: 0
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
         name:
           type: string
           example: null
@@ -19132,6 +20523,102 @@ components:
       - config
       - id
       - type
+    WithMetadata:
+      type: object
+      example: null
+      properties:
+        alertChannelIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        completeTagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpression'
+        created:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
+        description:
+          type: string
+          example: null
+          maxLength: 65536
+          minLength: 0
+        enabled:
+          type: boolean
+          example: null
+        granularity:
+          type: integer
+          format: int32
+          default: 600000
+          enum:
+          - 300000
+          - 600000
+          - 900000
+          - 1200000
+          - 1800000
+          example: null
+        id:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
+        mobileAppId:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        name:
+          type: string
+          example: null
+          maxLength: 256
+          minLength: 0
+        readOnly:
+          type: boolean
+          example: null
+        rule:
+          $ref: '#/components/schemas/MobileAppAlertRule'
+        severity:
+          type: integer
+          format: int32
+          example: null
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        threshold:
+          $ref: '#/components/schemas/Threshold'
+        timeThreshold:
+          $ref: '#/components/schemas/MobileAppTimeThreshold'
+        triggering:
+          type: boolean
+          example: null
+      required:
+      - alertChannelIds
+      - customPayloadFields
+      - description
+      - granularity
+      - id
+      - mobileAppId
+      - name
+      - rule
+      - tagFilterExpression
+      - threshold
+      - timeThreshold
     WithResolvedName:
       type: object
       allOf:
@@ -19236,6 +20723,7 @@ x-tagGroups:
   - Synthetic Calls
   - Session Settings
   - Automation Settings
+  - Authentication
 - name: Pipeline Feedback
   tags:
   - Releases
@@ -19243,6 +20731,8 @@ x-tagGroups:
   tags:
   - SLI Settings
   - SLI Report
+  - Apdex Settings
+  - Apdex Report
 - name: Open Beta Features
   tags:
   - Infrastructure Analyze
