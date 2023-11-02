@@ -21,6 +21,28 @@ This is a description for the fields in the request body:
 - **tagFilterExpression**: tag filter expression used to filter alert notifications that will be muted  
 - **tagFilterExpressionEnabled**: indicates whether tagFilterExpression is used to filter alert notifications
 
+### **Scope**
+There are four supported scopes; application perspective, dynamic focus query, tag filter expression, all entities. Below is the configuration corresponding to each scope:
+
+**Application Perspective**  
+dfq: a valid dynamic focus query  
+tfeEnabled: (optional)  
+tfe: (optional)  
+
+**Dynamic Focus Query**  
+dfq: a valid dynamic focus query  
+tfeEnabled: (optional)  
+tfe: (optional)  
+
+**Tag Filter Expression**  
+dfq: ""  
+tfeEnabled: true  
+tfe: a valid tag filter expression  
+
+**All Entities**  
+dfq: ""  
+tfeEnabled: false  
+tfe: (optional)  
 
 ### **RRULE Support**
 You can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.
