@@ -17,6 +17,10 @@ This is a description for the fields in the request body:
     - **unit**: the unit of time
 - **type**: `ONE_TIME` or `RECURRENT`
 - **rrule**:  for `RECURRENT` mainteance configurations, the RRULE standard from the [iCalendar Spec](https://datatracker.ietf.org/doc/html/rfc5545)
+- **paused**: indicates whether maintenance configuration is paused or not
+- **tagFilterExpression**: tag filter expression used to filter alert notifications that will be muted  
+- **tagFilterExpressionEnabled**: indicates whether tagFilterExpression is used to filter alert notifications
+
 
 ### **RRULE Support**
 You can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.
