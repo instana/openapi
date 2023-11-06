@@ -19,8 +19,8 @@ This is a description for the fields in the request body:
 - **rrule**:  for `RECURRENT` mainteance configurations, the RRULE standard from the [iCalendar Spec](https://datatracker.ietf.org/doc/html/rfc5545)
 - **paused**: indicates whether maintenance configuration is paused or not  
 
-**tagFilterExpressionEnabled (OPTIONAL)**: indicates whether tagFilterExpression is used to filter alert notifications  
-**tagFilterExpression (OPTIONAL)**: tag filter expression used to filter alert notifications that will be muted (this field needs to be provided if **tagFilterExpressionEnabled** is set to true) 
+**tagFilterExpressionEnabled (OPTIONAL) (Closed Beta)**: indicates whether tagFilterExpression is used to filter alert notifications  
+**tagFilterExpression (OPTIONAL) (Closed Beta)**: tag filter expression used to filter alert notifications that will be muted (this field needs to be provided if **tagFilterExpressionEnabled** is set to true) 
 
 ### **Scope**
 There are four supported scopes; application perspective, dynamic focus query, synthetics tests, all entities. Below is the configuration corresponding to each scope:
