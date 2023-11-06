@@ -23,7 +23,7 @@ This is a description for the fields in the request body:
 **tagFilterExpression (OPTIONAL) (Closed Beta)**: tag filter expression used to filter alert notifications that will be muted (this field needs to be provided if **tagFilterExpressionEnabled** is set to true) 
 
 ### **Scope**
-There are four supported scopes; application perspective, dynamic focus query, synthetics tests, all entities. Below is the configuration corresponding to each scope:
+There are four supported scopes; application perspective, dynamic focus query, synthetic tests, all entities. Below is the configuration corresponding to each scope:
 
 **1. Application Perspective**  
 &nbsp;&nbsp; dfq: a valid dynamic focus query  
