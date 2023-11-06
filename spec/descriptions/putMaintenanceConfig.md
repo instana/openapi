@@ -35,7 +35,7 @@ dfq: a valid dynamic focus query
 tfeEnabled: (optional)  
 tfe: (optional)  
 
-**Tag Filter Expression**  
+**Synthetic Tests**  
 dfq: ""  
 tfeEnabled: true  
 tfe: a valid tag filter expression  
