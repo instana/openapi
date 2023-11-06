@@ -23,7 +23,7 @@ This is a description for the fields in the request body:
 **tagFilterExpression (OPTIONAL)**: tag filter expression used to filter alert notifications that will be muted (this field needs to be provided if **tagFilterExpressionEnabled** is set to true) 
 
 ### **Scope**
-There are four supported scopes; application perspective, dynamic focus query, tag filter expression, all entities. Below is the configuration corresponding to each scope:
+There are four supported scopes; application perspective, dynamic focus query, synthetics tests, all entities. Below is the configuration corresponding to each scope:
 
 **1. Application Perspective**  
 &nbsp;&nbsp; dfq: a valid dynamic focus query  
@@ -43,7 +43,7 @@ There are four supported scopes; application perspective, dynamic focus query, t
 **4. All Entities**  
 &nbsp;&nbsp; dfq: ""  
 &nbsp;&nbsp; tfeEnabled: false  
-&nbsp;&nbsp; tfe: (optional)  
+&nbsp;&nbsp; tfe: null
 
 ### **RRULE Support**
 You can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.
