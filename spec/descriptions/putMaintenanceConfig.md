@@ -25,25 +25,25 @@ This is a description for the fields in the request body:
 ### **Scope**
 There are four supported scopes; application perspective, dynamic focus query, tag filter expression, all entities. Below is the configuration corresponding to each scope:
 
-**Application Perspective**  
-dfq: a valid dynamic focus query  
-tfeEnabled: (optional)  
-tfe: (optional)  
+**1. Application Perspective**  
+&nbsp;&nbsp; dfq: a valid dynamic focus query  
+&nbsp;&nbsp; tfeEnabled: (optional)  
+&nbsp;&nbsp; tfe: (optional)  
 
-**Dynamic Focus Query**  
-dfq: a valid dynamic focus query  
-tfeEnabled: (optional)  
-tfe: (optional)  
+**2. Dynamic Focus Query**  
+&nbsp;&nbsp; dfq: a valid dynamic focus query  
+&nbsp;&nbsp; tfeEnabled: (optional)  
+&nbsp;&nbsp; tfe: (optional)  
 
-**Synthetic Tests**  
-dfq: ""  
-tfeEnabled: true  
-tfe: a valid tag filter expression  
+**3. Synthetic Tests**  
+&nbsp;&nbsp; dfq: ""  
+&nbsp;&nbsp; tfeEnabled: true  
+&nbsp;&nbsp; tfe: a valid tag filter expression  
 
-**All Entities**  
-dfq: ""  
-tfeEnabled: false  
-tfe: (optional)  
+**4. All Entities**  
+&nbsp;&nbsp; dfq: ""  
+&nbsp;&nbsp; tfeEnabled: false  
+&nbsp;&nbsp; tfe: (optional)  
 
 ### **RRULE Support**
 You can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.
@@ -60,3 +60,10 @@ The following RRULE tokens are supported: `FREQ`, `UNTIL`, `COUNT`, `INTERVAL`, 
     - MONTHLY is 12
     - YEARLY is 1
 3. If an `UNTIL` date is specified, the value needs to be in UTC.
+
+### **Tag Filter Expression Support**
+We support the following tag filters:
+- synthetic.syntheticType
+- synthetic.testName
+- synthetic.locationLabelAggregated
+- synthetic.tags
