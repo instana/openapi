@@ -111,7 +111,6 @@ Tests using credentials are validated during test creation and update whether yo
 
 1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  
   API requests to create or update a test referencing credentials without the correct permission will fail with return code `Forbidden`.
-  
 
 2. The credentials or secrets used in the test must exist.  
   API requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`.
