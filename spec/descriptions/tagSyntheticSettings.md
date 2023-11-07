@@ -1,4 +1,4 @@
-The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. 
+The API endpoints of this group can be used to manage Synthetic Locations, Synthetic Tests and Synthetics Credentials. 
 
 ## Synthetic Location Properties:
 - **id** Unique identifier of the location resource.
@@ -98,3 +98,20 @@ The API endpoints of this group can be used to manage Synthetic Locations and Sy
   Synthetic tests run at all locations simultaneously. 
 - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
   The default is every 15 minutes. The range is from 1 minute to 120 minutes.
+
+## Synthetic Credentials:
+
+Synthetics credentials can be used to store passwords and/or secrets used by the Synthetic Tests.
+
+All Script Tests can use credentials on their body and API Simple Tests can use them on header parameters.
+
+It is required that the credentials used in the test be created before the test is created or modified to use them.
+
+Tests using credentials are validated during test creation and update whether you use the API or UI to create the test, as foillowing:
+
+1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  
+  API requests to create or update a test referencing credentials without the correct permission will fail with return code `Forbidden`.
+  
+
+2. The credentials or secrets used in the test must exist.  
+  API requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`.

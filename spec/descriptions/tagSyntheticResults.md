@@ -166,6 +166,15 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
 }]
 ```
 
+To filter tests by their active state (`true`/`false`) use the custom property label `synthetic.testActive`.
+```
+"tagFilters": [{ 
+  "name":"synthetic.testActive", 
+  "operator":"EQUALS",
+  "booleanValue": false 
+}]
+```
+
 ### Sample payload to get a list of Synthetic test results with tagFilters
 ```json
 {
@@ -205,6 +214,10 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
       "name": "synthetic.locationId", 
       "operator": "EQUALS", 
       "stringValue": "abcdefgXSJmQsehOWg1S"
+    }, {
+      "name": "synthetic.testActive",
+      "operator": "EQUALS",
+      "booleanValue": true
     }]
   },
   "timeFrame": {
