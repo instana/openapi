@@ -107,7 +107,7 @@ All Script Tests can use credentials in their body and API Simple Tests can use 
 
 It is required that the credentials used in the test be created before the test is created or modified.
 
-Tests using credentials are validated during test creation and update whether you use the API or UI, as following:
+Tests using credentials are validated during test creation and update whether you use the API or UI, as follows:
 
 1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  
   Requests to create or update a test referencing credentials without the correct permission will fail with return code `Forbidden`.
