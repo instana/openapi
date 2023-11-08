@@ -297,12 +297,22 @@ To narrow down the result set you have three options to search for a test.
 
 * *synthetic.applicationId:* filter by applicationId
 
+
+Tests can also be filtered by their active state (`true`/`false`) using the custom property label `synthetic.testActive`.
+```
+"tagFilters": [{ 
+  "name":"synthetic.testActive", 
+  "operator":"EQUALS",
+  "booleanValue": false 
+}]
+```
+
 ### Defaults
 
 **syntheticType | locationId | applicationId**
 * no filters are applied in the default call
 
-### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results
+### Sample payload to get a list of active Synthetic tests with SuccessRate and Average Response Time results
 ```
 {
     "metrics": [
@@ -311,6 +321,19 @@ To narrow down the result set you have three options to search for a test.
         "granularity": 60,    
         "metric": "synthetic.metricsResponseTime"
      }],
+     "tagFilterExpression": { 
+        "type":"EXPRESSION",
+        "logicalOperator":"AND",
+        "elements":[{
+          "name": "synthetic.locationId", 
+          "operator": "EQUALS", 
+          "stringValue": "abcdefgXSJmQsehOWg1S"
+        }, {
+          "name": "synthetic.testActive",
+          "operator": "EQUALS",
+          "booleanValue": true
+        }]
+     },
      "timeFrame": {
        "to": 0,
        "windowSize": 3600000  
