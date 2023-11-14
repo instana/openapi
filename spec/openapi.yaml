@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.261.603
+  version: 1.262.719
   x-description: info
   x-logo:
     altText: instana logo
@@ -6407,6 +6407,84 @@ paths:
       summary: Update IP masking configuration for mobile app
       tags:
       - Mobile App Configuration
+  /api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/clear:
+    put:
+      operationId: clearMobileAppSourceMapUploadConfiguration
+      parameters:
+      - in: path
+        name: mobileAppId
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: path
+        name: sourceMapConfigId
+        required: true
+        schema:
+          type: string
+          example: null
+      responses:
+        "204":
+          description: Source map files in the source map upload configuration successfully
+            cleared
+      security:
+      - ApiKeyAuth:
+        - ConfigureMobileAppMonitoring
+      - ApiKeyAuth:
+        - ConfigureEumApplications
+      summary: Clear source map files for source map upload configuration
+      tags:
+      - Mobile App Configuration
+  /api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/form:
+    put:
+      operationId: uploadMobileAppSourceMapFile
+      parameters:
+      - in: path
+        name: mobileAppId
+        required: true
+        schema:
+          type: string
+          example: null
+      - in: path
+        name: sourceMapConfigId
+        required: true
+        schema:
+          type: string
+          example: null
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              example: null
+              properties:
+                fileFormat:
+                  type: string
+                  example: null
+                fileId:
+                  type: string
+                  example: null
+                fileType:
+                  type: string
+                  example: null
+                sourceMap:
+                  type: string
+                  format: binary
+                  example: null
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceMapUploadConfig'
+      security:
+      - ApiKeyAuth:
+        - ConfigureMobileAppMonitoring
+      - ApiKeyAuth:
+        - ConfigureEumApplications
+      summary: Upload source map file for mobile app
+      tags:
+      - Mobile App Configuration
   /api/mobile-app-monitoring/metrics:
     post:
       deprecated: true
@@ -7151,7 +7229,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ApiGroup'
+              $ref: '#/components/schemas/ApiCreateGroup'
         required: true
       responses:
         default:
@@ -7809,6 +7887,47 @@ paths:
                   end: 1680710419000
                 invalid: false
                 applicationNames: []
+              - id: "1698949644924"
+                name: sampleMaintenanceConfig
+                query: ""
+                scheduling:
+                  start: 1698949644924
+                  duration:
+                    amount: 2
+                    unit: HOURS
+                  rrule: FREQ=WEEKLY;INTERVAL=2;BYDAY=SA;COUNT=10
+                  timezoneId: America/New_York
+                  type: RECURRENT
+                paused: false
+                validVersion: 1
+                tagFilterExpression:
+                  type: EXPRESSION
+                  logicalOperator: OR
+                  elements:
+                  - type: TAG_FILTER
+                    name: synthetic.locationLabelAggregated
+                    stringValue: us-east
+                    numberValue: null
+                    booleanValue: null
+                    key: null
+                    value: us-east
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                  - type: TAG_FILTER
+                    name: synthetic.syntheticType
+                    stringValue: HTTPScript
+                    numberValue: null
+                    booleanValue: null
+                    key: null
+                    value: HTTPScript
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                tagFilterExpressionEnabled: true
+                lastUpdated: 1698949645163
+                state: SCHEDULED
+                occurrence:
+                  start: 1699122444000
+                  end: 1699129644000
               schema:
                 type: array
                 example: null
@@ -7908,20 +8027,43 @@ paths:
               example:
                 id: maintenanceConfigId
                 name: maintenanceConfig
-                query: entity.application.id:"anApplicationId"
+                query: ""
                 scheduling:
-                  start: 1684249020728
+                  start: 1698938631036
                   duration:
                     amount: 2
                     unit: HOURS
                   type: ONE_TIME
                 paused: false
                 validVersion: 1
-                lastUpdated: 1684249021306
+                tagFilterExpression:
+                  type: EXPRESSION
+                  logicalOperator: OR
+                  elements:
+                  - type: TAG_FILTER
+                    name: synthetic.locationLabelAggregated
+                    stringValue: us-east
+                    numberValue: null
+                    booleanValue: null
+                    key: null
+                    value: us-east
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                  - type: TAG_FILTER
+                    name: synthetic.syntheticType
+                    stringValue: HTTPScript
+                    numberValue: null
+                    booleanValue: null
+                    key: null
+                    value: HTTPScript
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                tagFilterExpressionEnabled: true
+                lastUpdated: 1698938631408
                 state: ACTIVE
                 occurrence:
-                  start: 1684249020728
-                  end: 1684256220728
+                  start: 1698938631036
+                  end: 1698945831036
           description: "Maintenance config has been created or updated, and successfully\
             \ scheduled immediately if needed"
         "202":
@@ -9682,6 +9824,25 @@ components:
           type: integer
           format: int64
           example: null
+    ApiCreateGroup:
+      type: object
+      example: null
+      properties:
+        members:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/ApiMember'
+          uniqueItems: true
+        name:
+          type: string
+          example: null
+        permissionSet:
+          $ref: '#/components/schemas/ApiPermissionSet'
+      required:
+      - members
+      - name
+      - permissionSet
     ApiGroup:
       type: object
       example: null
@@ -9703,6 +9864,7 @@ components:
         permissionSet:
           $ref: '#/components/schemas/ApiPermissionSet'
       required:
+      - id
       - members
       - name
       - permissionSet
@@ -9795,6 +9957,9 @@ components:
       type: object
       example: null
       properties:
+        label:
+          type: string
+          example: null
         scope:
           type: string
           enum:
@@ -10069,6 +10234,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -10182,6 +10348,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -10371,14 +10538,17 @@ components:
             type: string
             example: null
           probableRootCause:
-            type: object
-            additionalProperties:
-              type: array
-              example: null
-              items:
-                type: string
-                example: null
+            type: array
             example: null
+            items:
+              type: object
+              additionalProperties:
+                type: array
+                example: null
+                items:
+                  type: string
+                  example: null
+              example: null
             writeOnly: true
           probableRootCauseMetadata:
             type: object
@@ -10736,7 +10906,7 @@ components:
             - Jest
             example: null
           scripts:
-            $ref: '#/components/schemas/MultipleScripts'
+            $ref: '#/components/schemas/MultipleScriptsConfiguration'
       example: null
       required:
       - markSyntheticCall
@@ -11557,14 +11727,17 @@ components:
             type: string
             example: null
           probableRootCause:
-            type: object
-            additionalProperties:
-              type: array
-              example: null
-              items:
-                type: string
-                example: null
+            type: array
             example: null
+            items:
+              type: object
+              additionalProperties:
+                type: array
+                example: null
+                items:
+                  type: string
+                  example: null
+              example: null
             writeOnly: true
           probableRootCauseMetadata:
             type: object
@@ -11888,14 +12061,17 @@ components:
         problem:
           $ref: '#/components/schemas/Problem'
         rcaevents:
-          type: object
-          additionalProperties:
-            type: array
-            example: null
-            items:
-              type: string
-              example: null
+          type: array
           example: null
+          items:
+            type: object
+            additionalProperties:
+              type: array
+              example: null
+              items:
+                type: string
+                example: null
+            example: null
         start:
           type: integer
           format: int64
@@ -12008,14 +12184,17 @@ components:
               example: null
             example: null
         probableCause:
-          type: object
-          additionalProperties:
-            type: array
-            example: null
-            items:
-              type: string
-              example: null
+          type: array
           example: null
+          items:
+            type: object
+            additionalProperties:
+              type: array
+              example: null
+              items:
+                type: string
+                example: null
+            example: null
         probableCauseMetadata:
           type: object
           additionalProperties:
@@ -12920,7 +13099,7 @@ components:
           maxLength: 64
           minLength: 0
         tagFilterExpression:
-          $ref: '#/components/schemas/TagFilterExpression'
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -12945,7 +13124,7 @@ components:
         pagination:
           $ref: '#/components/schemas/Pagination'
         tagFilterExpression:
-          $ref: '#/components/schemas/TagFilterExpression'
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -12973,7 +13152,7 @@ components:
             type: string
             example: null
         tagFilterExpression:
-          $ref: '#/components/schemas/TagFilterExpression'
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -12997,7 +13176,7 @@ components:
         pagination:
           $ref: '#/components/schemas/Pagination'
         tagFilterExpression:
-          $ref: '#/components/schemas/TagFilterExpression'
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -13293,6 +13472,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -13400,6 +13580,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -13774,7 +13955,7 @@ components:
             - Jest
             example: null
           scripts:
-            $ref: '#/components/schemas/MultipleScripts'
+            $ref: '#/components/schemas/MultipleScriptsConfiguration'
       example: null
       required:
       - markSyntheticCall
@@ -13862,6 +14043,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -13947,6 +14129,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -14087,14 +14270,17 @@ components:
                 example: null
               example: null
           probableRootCause:
-            type: object
-            additionalProperties:
-              type: array
-              example: null
-              items:
-                type: string
-                example: null
+            type: array
             example: null
+            items:
+              type: object
+              additionalProperties:
+                type: array
+                example: null
+                items:
+                  type: string
+                  example: null
+              example: null
             writeOnly: true
           probableRootCauseMetadata:
             type: object
@@ -14388,6 +14574,7 @@ components:
           - SUCCESS
           - INTERNAL_ERROR
           - FAILURE_USER_ALREADY_EXISTS
+          - FAILURE_TENANT_IDP_CONFIGURED
           example: null
         userEmail:
           type: string
@@ -14405,6 +14592,36 @@ components:
           example: null
       required:
       - ipMasking
+    JsStackTraceLine:
+      type: object
+      example: null
+      properties:
+        column:
+          type: integer
+          format: int32
+          example: null
+          minimum: -1
+        file:
+          type: string
+          example: null
+        line:
+          type: integer
+          format: int32
+          example: null
+          minimum: -1
+        name:
+          type: string
+          example: null
+        translationExplanation:
+          type: string
+          example: null
+        translationStatus:
+          type: integer
+          format: int32
+          example: null
+          minimum: -1
+      required:
+      - file
     KubernetesPhysicalContext:
       type: object
       example: null
@@ -15198,6 +15415,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -15418,14 +15636,17 @@ components:
             type: string
             example: null
           probableRootCause:
-            type: object
-            additionalProperties:
-              type: array
-              example: null
-              items:
-                type: string
-                example: null
+            type: array
             example: null
+            items:
+              type: object
+              additionalProperties:
+                type: array
+                example: null
+                items:
+                  type: string
+                  example: null
+              example: null
             writeOnly: true
           probableRootCauseMetadata:
             type: object
@@ -15944,7 +16165,7 @@ components:
           type: integer
           format: int32
           example: null
-    MultipleScripts:
+    MultipleScriptsConfiguration:
       type: object
       example: null
       properties:
@@ -16574,14 +16795,17 @@ components:
             type: string
             example: null
           probableRootCause:
-            type: object
-            additionalProperties:
-              type: array
-              example: null
-              items:
-                type: string
-                example: null
+            type: array
             example: null
+            items:
+              type: object
+              additionalProperties:
+                type: array
+                example: null
+                items:
+                  type: string
+                  example: null
+              example: null
             writeOnly: true
           probableRootCauseMetadata:
             type: object
@@ -17130,6 +17354,8 @@ components:
           enum:
           - JS_MAP
           - JS
+          - ANDROID
+          - IOS
           example: null
         url:
           type: string
@@ -17344,36 +17570,6 @@ components:
         method:
           type: string
           example: null
-    StackTraceLine:
-      type: object
-      example: null
-      properties:
-        column:
-          type: integer
-          format: int32
-          example: null
-          minimum: -1
-        file:
-          type: string
-          example: null
-        line:
-          type: integer
-          format: int32
-          example: null
-          minimum: -1
-        name:
-          type: string
-          example: null
-        translationExplanation:
-          type: string
-          example: null
-        translationStatus:
-          type: integer
-          format: int32
-          example: null
-          minimum: -1
-      required:
-      - file
     StaticStringField:
       type: object
       allOf:
@@ -18116,14 +18312,17 @@ components:
               type: string
               example: null
           probableRootCause:
-            type: object
-            additionalProperties:
-              type: array
-              example: null
-              items:
-                type: string
-                example: null
+            type: array
             example: null
+            items:
+              type: object
+              additionalProperties:
+                type: array
+                example: null
+                items:
+                  type: string
+                  example: null
+              example: null
             writeOnly: true
           probableRootCauseMetadata:
             type: object
@@ -19258,6 +19457,7 @@ components:
           - ApplicationSmartAlert
           - GlobalApplicationSmartAlert
           - SyntheticSmartAlert
+          - InfraSmartAlert
           example: null
       required:
       - id
@@ -19685,6 +19885,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -19772,6 +19973,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
@@ -20063,14 +20265,17 @@ components:
         example: null
         properties:
           probableRootCause:
-            type: object
-            additionalProperties:
-              type: array
-              example: null
-              items:
-                type: string
-                example: null
+            type: array
             example: null
+            items:
+              type: object
+              additionalProperties:
+                type: array
+                example: null
+                items:
+                  type: string
+                  example: null
+              example: null
             writeOnly: true
           probableRootCauseMetadata:
             type: object
@@ -20358,7 +20563,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/StackTraceLine'
+            $ref: '#/components/schemas/JsStackTraceLine'
           maxItems: 64
           minItems: 0
         phase:
@@ -20736,6 +20941,7 @@ components:
           format: int32
           default: 600000
           enum:
+          - 60000
           - 300000
           - 600000
           - 900000
