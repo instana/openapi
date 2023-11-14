@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.261.603
+  version: 1.262.719
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -275,8 +275,8 @@ tags:
   - name: Usage
   - name: Synthetic Catalog
   - name: Synthetic Settings
-    description: |
-      The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. 
+    description: |-
+      The API endpoints of this group can be used to manage Synthetic Locations, Synthetic Tests and Synthetic Credentials. 
 
       ## Synthetic Location Properties:
       - **id** Unique identifier of the location resource.
@@ -376,8 +376,24 @@ tags:
         Synthetic tests run at all locations simultaneously. 
       - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
         The default is every 15 minutes. The range is from 1 minute to 120 minutes.
+
+      ## Synthetic Credentials:
+
+      Synthetic credentials can be used to store passwords and/or secrets used by the Synthetic Tests.
+
+      All Script Tests can use credentials in their body and API Simple Tests can use them on header parameters.
+
+      It is required that the credentials used in the test be created before the test is created or modified.
+
+      Tests using credentials are validated during test creation and update whether you use the API or UI, as follows:
+
+      1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  
+        Requests to create or update a test referencing credentials without the correct permission will fail with return code `Forbidden`.
+
+      2. The credentials or secrets used in the test must exist.  
+        Requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`.
   - name: Synthetic Test Playback Results
-    description: "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes), \n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second), \n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values). \n   \n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), \n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results.\nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for responseTime and responseSize must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseSize\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: synthetic.id (a string representing the test result ID), \nsynthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\nsynthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\nsynthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values).\n\nThe following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\nsynthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\nThe metric synthetic.tags adds the latest list of custom properties to the response.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only synthetic.metricsResponseTime (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have three options to search for a test.\n\n**syntheticType | locationId | applicationId**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**syntheticType | locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
+    description: "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes), \n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second), \n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values). \n   \n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), \n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results.\nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for responseTime and responseSize must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseSize\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: synthetic.id (a string representing the test result ID), \nsynthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\nsynthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\nsynthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values).\n\nThe following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\nsynthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\nThe metric synthetic.tags adds the latest list of custom properties to the response.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only synthetic.metricsResponseTime (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have three options to search for a test.\n\n**syntheticType | locationId | applicationId**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n\nTests can also be filtered by their active state (`true`/`false`) using the custom property label `synthetic.testActive`.\n```\n\"tagFilters\": [{ \n  \"name\":\"synthetic.testActive\", \n  \"operator\":\"EQUALS\",\n  \"booleanValue\": false \n}]\n```\n\n### Defaults\n\n**syntheticType | locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a list of active Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"tagFilterExpression\": { \n        \"type\":\"EXPRESSION\",\n        \"logicalOperator\":\"AND\",\n        \"elements\":[{\n          \"name\": \"synthetic.locationId\", \n          \"operator\": \"EQUALS\", \n          \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n        }, {\n          \"name\": \"synthetic.testActive\",\n          \"operator\": \"EQUALS\",\n          \"booleanValue\": true\n        }]\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
   - name: Automation Settings
   - name: Authentication
 paths:
@@ -7069,6 +7085,83 @@ paths:
       summary: Update IP masking configuration for mobile app
       tags:
         - Mobile App Configuration
+  '/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/clear':
+    put:
+      operationId: clearMobileAppSourceMapUploadConfiguration
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+            example: null
+        - in: path
+          name: sourceMapConfigId
+          required: true
+          schema:
+            type: string
+            example: null
+      responses:
+        '204':
+          description: Source map files in the source map upload configuration successfully cleared
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+      summary: Clear source map files for source map upload configuration
+      tags:
+        - Mobile App Configuration
+  '/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/form':
+    put:
+      operationId: uploadMobileAppSourceMapFile
+      parameters:
+        - in: path
+          name: mobileAppId
+          required: true
+          schema:
+            type: string
+            example: null
+        - in: path
+          name: sourceMapConfigId
+          required: true
+          schema:
+            type: string
+            example: null
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              example: null
+              properties:
+                fileFormat:
+                  type: string
+                  example: null
+                fileId:
+                  type: string
+                  example: null
+                fileType:
+                  type: string
+                  example: null
+                sourceMap:
+                  type: string
+                  format: binary
+                  example: null
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceMapUploadConfig'
+      security:
+        - ApiKeyAuth:
+            - ConfigureMobileAppMonitoring
+        - ApiKeyAuth:
+            - ConfigureEumApplications
+      summary: Upload source map file for mobile app
+      tags:
+        - Mobile App Configuration
   /api/mobile-app-monitoring/metrics:
     post:
       deprecated: true
@@ -7900,7 +7993,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ApiGroup'
+              $ref: '#/components/schemas/ApiCreateGroup'
         required: true
       responses:
         default:
@@ -8720,6 +8813,47 @@ paths:
                     end: 1680710419000
                   invalid: false
                   applicationNames: []
+                - id: '1698949644924'
+                  name: sampleMaintenanceConfig
+                  query: ''
+                  scheduling:
+                    start: 1698949644924
+                    duration:
+                      amount: 2
+                      unit: HOURS
+                    rrule: FREQ=WEEKLY;INTERVAL=2;BYDAY=SA;COUNT=10
+                    timezoneId: America/New_York
+                    type: RECURRENT
+                  paused: false
+                  validVersion: 1
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: OR
+                    elements:
+                      - type: TAG_FILTER
+                        name: synthetic.locationLabelAggregated
+                        stringValue: us-east
+                        numberValue: null
+                        booleanValue: null
+                        key: null
+                        value: us-east
+                        operator: EQUALS
+                        entity: NOT_APPLICABLE
+                      - type: TAG_FILTER
+                        name: synthetic.syntheticType
+                        stringValue: HTTPScript
+                        numberValue: null
+                        booleanValue: null
+                        key: null
+                        value: HTTPScript
+                        operator: EQUALS
+                        entity: NOT_APPLICABLE
+                  tagFilterExpressionEnabled: true
+                  lastUpdated: 1698949645163
+                  state: SCHEDULED
+                  occurrence:
+                    start: 1699122444000
+                    end: 1699129644000
               schema:
                 type: array
                 example: null
@@ -8825,7 +8959,7 @@ paths:
                 value:
                   id: maintenanceConfigID
                   name: sampleMaintenanceConfig
-                  query: 'entity.application.id:"appID" OR entity.application.id:"anotherAppID" '
+                  query: ''
                   scheduling:
                     start: 1683827571245
                     duration:
@@ -8834,6 +8968,29 @@ paths:
                     type: RECURRENT
                     rrule: FREQ=WEEKLY;INTERVAL=2;BYDAY=SA;COUNT=10
                     timezoneId: America/New_York
+                  tagFilterExpressionEnabled: true
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: OR
+                    elements:
+                      - type: TAG_FILTER
+                        name: synthetic.locationLabelAggregated
+                        stringValue: us-east
+                        numberValue: null
+                        booleanValue: null
+                        key: null
+                        value: us-east
+                        operator: EQUALS
+                        entity: NOT_APPLICABLE
+                      - type: TAG_FILTER
+                        name: synthetic.syntheticType
+                        stringValue: HTTPScript
+                        numberValue: null
+                        booleanValue: null
+                        key: null
+                        value: HTTPScript
+                        operator: EQUALS
+                        entity: NOT_APPLICABLE
         required: true
       responses:
         '200':
@@ -8842,20 +8999,43 @@ paths:
               example:
                 id: maintenanceConfigId
                 name: maintenanceConfig
-                query: 'entity.application.id:"anApplicationId"'
+                query: ''
                 scheduling:
-                  start: 1684249020728
+                  start: 1698938631036
                   duration:
                     amount: 2
                     unit: HOURS
                   type: ONE_TIME
                 paused: false
                 validVersion: 1
-                lastUpdated: 1684249021306
+                tagFilterExpression:
+                  type: EXPRESSION
+                  logicalOperator: OR
+                  elements:
+                    - type: TAG_FILTER
+                      name: synthetic.locationLabelAggregated
+                      stringValue: us-east
+                      numberValue: null
+                      booleanValue: null
+                      key: null
+                      value: us-east
+                      operator: EQUALS
+                      entity: NOT_APPLICABLE
+                    - type: TAG_FILTER
+                      name: synthetic.syntheticType
+                      stringValue: HTTPScript
+                      numberValue: null
+                      booleanValue: null
+                      key: null
+                      value: HTTPScript
+                      operator: EQUALS
+                      entity: NOT_APPLICABLE
+                tagFilterExpressionEnabled: true
+                lastUpdated: 1698938631408
                 state: ACTIVE
                 occurrence:
-                  start: 1684249020728
-                  end: 1684256220728
+                  start: 1698938631036
+                  end: 1698945831036
           description: 'Maintenance config has been created or updated, and successfully scheduled immediately if needed'
         '202':
           description: 'Maintenance config has been created or updated, but could not to be scheduled immediately. It will therefore be scheduled during the next auto-refresh with a delay of up to 4 minutes.'
@@ -8894,6 +9074,33 @@ paths:
             - **unit**: the unit of time
         - **type**: `ONE_TIME` or `RECURRENT`
         - **rrule**:  for `RECURRENT` mainteance configurations, the RRULE standard from the [iCalendar Spec](https://datatracker.ietf.org/doc/html/rfc5545)
+        - **paused**: indicates whether maintenance configuration is paused or not  
+
+        **tagFilterExpressionEnabled (OPTIONAL) (Closed Beta)**: indicates whether tagFilterExpression is used to filter alert notifications  
+        **tagFilterExpression (OPTIONAL) (Closed Beta)**: tag filter expression used to filter alert notifications that will be muted (this field needs to be provided if **tagFilterExpressionEnabled** is set to true) 
+
+        ### **Scope**
+        There are four supported scopes; application perspective, dynamic focus query, synthetic tests, all entities. Below is the configuration corresponding to each scope:
+
+        **1. Application Perspective**  
+        &nbsp;&nbsp; dfq: a valid dynamic focus query  
+        &nbsp;&nbsp; tfeEnabled: (optional)  
+        &nbsp;&nbsp; tfe: (optional)  
+
+        **2. Dynamic Focus Query**  
+        &nbsp;&nbsp; dfq: a valid dynamic focus query  
+        &nbsp;&nbsp; tfeEnabled: (optional)  
+        &nbsp;&nbsp; tfe: (optional)  
+
+        **3. Synthetic Tests**  
+        &nbsp;&nbsp; dfq: ""  
+        &nbsp;&nbsp; tfeEnabled: true  
+        &nbsp;&nbsp; tfe: a valid tag filter expression  
+
+        **4. All Entities**  
+        &nbsp;&nbsp; dfq: ""  
+        &nbsp;&nbsp; tfeEnabled: false  
+        &nbsp;&nbsp; tfe: null
 
         ### **RRULE Support**
         You can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.
@@ -8910,6 +9117,13 @@ paths:
             - MONTHLY is 12
             - YEARLY is 1
         3. If an `UNTIL` date is specified, the value needs to be in UTC.
+
+        ### **Tag Filter Expression Support**
+        We support the following tag filters:
+        - synthetic.syntheticType
+        - synthetic.testName
+        - synthetic.locationLabelAggregated
+        - synthetic.tags
   '/api/settings/v2/maintenance/{id}/pause':
     put:
       operationId: pauseRecurrentMaintenanceConfiguration
@@ -10772,6 +10986,25 @@ components:
           type: integer
           format: int64
           example: null
+    ApiCreateGroup:
+      type: object
+      example: null
+      properties:
+        members:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/ApiMember'
+          uniqueItems: true
+        name:
+          type: string
+          example: null
+        permissionSet:
+          $ref: '#/components/schemas/ApiPermissionSet'
+      required:
+        - members
+        - name
+        - permissionSet
     ApiGroup:
       type: object
       example: null
@@ -10793,6 +11026,7 @@ components:
         permissionSet:
           $ref: '#/components/schemas/ApiPermissionSet'
       required:
+        - id
         - members
         - name
         - permissionSet
@@ -10885,6 +11119,9 @@ components:
       type: object
       example: null
       properties:
+        label:
+          type: string
+          example: null
         scope:
           type: string
           enum:
@@ -11159,6 +11396,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -11272,6 +11510,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -11461,14 +11700,17 @@ components:
               type: string
               example: null
             probableRootCause:
-              type: object
-              additionalProperties:
-                type: array
-                example: null
-                items:
-                  type: string
-                  example: null
+              type: array
               example: null
+              items:
+                type: object
+                additionalProperties:
+                  type: array
+                  example: null
+                  items:
+                    type: string
+                    example: null
+                example: null
               writeOnly: true
             probableRootCauseMetadata:
               type: object
@@ -11826,7 +12068,7 @@ components:
                 - Jest
               example: null
             scripts:
-              $ref: '#/components/schemas/MultipleScripts'
+              $ref: '#/components/schemas/MultipleScriptsConfiguration'
       example: null
       required:
         - markSyntheticCall
@@ -12647,14 +12889,17 @@ components:
               type: string
               example: null
             probableRootCause:
-              type: object
-              additionalProperties:
-                type: array
-                example: null
-                items:
-                  type: string
-                  example: null
+              type: array
               example: null
+              items:
+                type: object
+                additionalProperties:
+                  type: array
+                  example: null
+                  items:
+                    type: string
+                    example: null
+                example: null
               writeOnly: true
             probableRootCauseMetadata:
               type: object
@@ -12978,14 +13223,17 @@ components:
         problem:
           $ref: '#/components/schemas/Problem'
         rcaevents:
-          type: object
-          additionalProperties:
-            type: array
-            example: null
-            items:
-              type: string
-              example: null
+          type: array
           example: null
+          items:
+            type: object
+            additionalProperties:
+              type: array
+              example: null
+              items:
+                type: string
+                example: null
+            example: null
         start:
           type: integer
           format: int64
@@ -13098,14 +13346,17 @@ components:
               example: null
             example: null
         probableCause:
-          type: object
-          additionalProperties:
-            type: array
-            example: null
-            items:
-              type: string
-              example: null
+          type: array
           example: null
+          items:
+            type: object
+            additionalProperties:
+              type: array
+              example: null
+              items:
+                type: string
+                example: null
+            example: null
         probableCauseMetadata:
           type: object
           additionalProperties:
@@ -14008,7 +14259,7 @@ components:
           maxLength: 64
           minLength: 0
         tagFilterExpression:
-          $ref: '#/components/schemas/TagFilterExpression'
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -14033,7 +14284,7 @@ components:
         pagination:
           $ref: '#/components/schemas/Pagination'
         tagFilterExpression:
-          $ref: '#/components/schemas/TagFilterExpression'
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -14061,7 +14312,7 @@ components:
             type: string
             example: null
         tagFilterExpression:
-          $ref: '#/components/schemas/TagFilterExpression'
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -14085,7 +14336,7 @@ components:
         pagination:
           $ref: '#/components/schemas/Pagination'
         tagFilterExpression:
-          $ref: '#/components/schemas/TagFilterExpression'
+          $ref: '#/components/schemas/TagFilterExpressionElement'
         tagFilters:
           type: array
           example: null
@@ -14381,6 +14632,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -14488,6 +14740,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -14862,7 +15115,7 @@ components:
                 - Jest
               example: null
             scripts:
-              $ref: '#/components/schemas/MultipleScripts'
+              $ref: '#/components/schemas/MultipleScriptsConfiguration'
       example: null
       required:
         - markSyntheticCall
@@ -14950,6 +15203,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -15035,6 +15289,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -15175,14 +15430,17 @@ components:
                   example: null
                 example: null
             probableRootCause:
-              type: object
-              additionalProperties:
-                type: array
-                example: null
-                items:
-                  type: string
-                  example: null
+              type: array
               example: null
+              items:
+                type: object
+                additionalProperties:
+                  type: array
+                  example: null
+                  items:
+                    type: string
+                    example: null
+                example: null
               writeOnly: true
             probableRootCauseMetadata:
               type: object
@@ -15475,6 +15733,7 @@ components:
             - SUCCESS
             - INTERNAL_ERROR
             - FAILURE_USER_ALREADY_EXISTS
+            - FAILURE_TENANT_IDP_CONFIGURED
           example: null
         userEmail:
           type: string
@@ -15492,6 +15751,36 @@ components:
           example: null
       required:
         - ipMasking
+    JsStackTraceLine:
+      type: object
+      example: null
+      properties:
+        column:
+          type: integer
+          format: int32
+          example: null
+          minimum: -1
+        file:
+          type: string
+          example: null
+        line:
+          type: integer
+          format: int32
+          example: null
+          minimum: -1
+        name:
+          type: string
+          example: null
+        translationExplanation:
+          type: string
+          example: null
+        translationStatus:
+          type: integer
+          format: int32
+          example: null
+          minimum: -1
+      required:
+        - file
     KubernetesPhysicalContext:
       type: object
       example: null
@@ -16285,6 +16574,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -16505,14 +16795,17 @@ components:
               type: string
               example: null
             probableRootCause:
-              type: object
-              additionalProperties:
-                type: array
-                example: null
-                items:
-                  type: string
-                  example: null
+              type: array
               example: null
+              items:
+                type: object
+                additionalProperties:
+                  type: array
+                  example: null
+                  items:
+                    type: string
+                    example: null
+                example: null
               writeOnly: true
             probableRootCauseMetadata:
               type: object
@@ -17031,7 +17324,7 @@ components:
           type: integer
           format: int32
           example: null
-    MultipleScripts:
+    MultipleScriptsConfiguration:
       type: object
       example: null
       properties:
@@ -17660,14 +17953,17 @@ components:
               type: string
               example: null
             probableRootCause:
-              type: object
-              additionalProperties:
-                type: array
-                example: null
-                items:
-                  type: string
-                  example: null
+              type: array
               example: null
+              items:
+                type: object
+                additionalProperties:
+                  type: array
+                  example: null
+                  items:
+                    type: string
+                    example: null
+                example: null
               writeOnly: true
             probableRootCauseMetadata:
               type: object
@@ -18216,6 +18512,8 @@ components:
           enum:
             - JS_MAP
             - JS
+            - ANDROID
+            - IOS
           example: null
         url:
           type: string
@@ -18430,36 +18728,6 @@ components:
         method:
           type: string
           example: null
-    StackTraceLine:
-      type: object
-      example: null
-      properties:
-        column:
-          type: integer
-          format: int32
-          example: null
-          minimum: -1
-        file:
-          type: string
-          example: null
-        line:
-          type: integer
-          format: int32
-          example: null
-          minimum: -1
-        name:
-          type: string
-          example: null
-        translationExplanation:
-          type: string
-          example: null
-        translationStatus:
-          type: integer
-          format: int32
-          example: null
-          minimum: -1
-      required:
-        - file
     StaticStringField:
       type: object
       allOf:
@@ -19202,14 +19470,17 @@ components:
                 type: string
                 example: null
             probableRootCause:
-              type: object
-              additionalProperties:
-                type: array
-                example: null
-                items:
-                  type: string
-                  example: null
+              type: array
               example: null
+              items:
+                type: object
+                additionalProperties:
+                  type: array
+                  example: null
+                  items:
+                    type: string
+                    example: null
+                example: null
               writeOnly: true
             probableRootCauseMetadata:
               type: object
@@ -20342,6 +20613,7 @@ components:
             - ApplicationSmartAlert
             - GlobalApplicationSmartAlert
             - SyntheticSmartAlert
+            - InfraSmartAlert
           example: null
       required:
         - id
@@ -20769,6 +21041,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -20856,6 +21129,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
@@ -21147,14 +21421,17 @@ components:
           example: null
           properties:
             probableRootCause:
-              type: object
-              additionalProperties:
-                type: array
-                example: null
-                items:
-                  type: string
-                  example: null
+              type: array
               example: null
+              items:
+                type: object
+                additionalProperties:
+                  type: array
+                  example: null
+                  items:
+                    type: string
+                    example: null
+                example: null
               writeOnly: true
             probableRootCauseMetadata:
               type: object
@@ -21442,7 +21719,7 @@ components:
           type: array
           example: null
           items:
-            $ref: '#/components/schemas/StackTraceLine'
+            $ref: '#/components/schemas/JsStackTraceLine'
           maxItems: 64
           minItems: 0
         phase:
@@ -21820,6 +22097,7 @@ components:
           format: int32
           default: 600000
           enum:
+            - 60000
             - 300000
             - 600000
             - 900000
