@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.262.719",
+    "version": "1.263.856",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -10173,133 +10173,6 @@
         ]
       }
     },
-    "/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/clear": {
-      "put": {
-        "operationId": "clearMobileAppSourceMapUploadConfiguration",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "mobileAppId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": null
-            }
-          },
-          {
-            "in": "path",
-            "name": "sourceMapConfigId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": null
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Source map files in the source map upload configuration successfully cleared"
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureMobileAppMonitoring"
-            ]
-          },
-          {
-            "ApiKeyAuth": [
-              "ConfigureEumApplications"
-            ]
-          }
-        ],
-        "summary": "Clear source map files for source map upload configuration",
-        "tags": [
-          "Mobile App Configuration"
-        ]
-      }
-    },
-    "/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/form": {
-      "put": {
-        "operationId": "uploadMobileAppSourceMapFile",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "mobileAppId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": null
-            }
-          },
-          {
-            "in": "path",
-            "name": "sourceMapConfigId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": null
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "example": null,
-                "properties": {
-                  "fileFormat": {
-                    "type": "string",
-                    "example": null
-                  },
-                  "fileId": {
-                    "type": "string",
-                    "example": null
-                  },
-                  "fileType": {
-                    "type": "string",
-                    "example": null
-                  },
-                  "sourceMap": {
-                    "type": "string",
-                    "format": "binary",
-                    "example": null
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SourceMapUploadConfig"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureMobileAppMonitoring"
-            ]
-          },
-          {
-            "ApiKeyAuth": [
-              "ConfigureEumApplications"
-            ]
-          }
-        ],
-        "summary": "Upload source map file for mobile app",
-        "tags": [
-          "Mobile App Configuration"
-        ]
-      }
-    },
     "/api/mobile-app-monitoring/metrics": {
       "post": {
         "deprecated": true,
@@ -11260,7 +11133,7 @@
       "get": {
         "operationId": "getInvitations",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
@@ -11291,6 +11164,12 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": [
+                {
+                  "email": "username@example.com",
+                  "groupId": "-1"
+                }
+              ],
               "schema": {
                 "type": "array",
                 "example": null,
@@ -11303,15 +11182,38 @@
           "required": true
         },
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "invitationResults": [
+                    {
+                      "userEmail": "username@example.com",
+                      "invitationStatus": "SUCCESS"
+                    }
+                  ]
+                },
                 "schema": {
                   "type": "array",
                   "example": null,
                   "items": {
                     "$ref": "#/components/schemas/InvitationResponse"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "Please set at least one email"
+                  ]
+                },
+                "schema": {
+                  "type": "string",
+                  "example": null
                 }
               }
             }
@@ -11941,6 +11843,65 @@
         "description": "Creates a mapping between a group from the IdP (LDAP, OIDC, SAML) and an Instana group.\n\nIf the IdP is configured and mappings are enabled, the `key` `value` pairs a user sent by the idp will be evaluated every time this user logs in.\n\nIf they match the mapping, the user will be assigned to the group corresponding to the `groupId`.\n\nInside the payload, the `id` for the mapping is ignored, and instead, Instana generates a new id."
       }
     },
+    "/api/settings/rbac/mappings/identityProvider/restrictEmptyIdpGroups": {
+      "get": {
+        "operationId": "getIdentityProviderPatch",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityProviderPatch"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Check user restrictions for empty Idp group mapping",
+        "tags": [
+          "Groups"
+        ]
+      },
+      "put": {
+        "operationId": "updateIdentityProvider",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdentityProviderPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Allow/Restrict users with empty Idp group mapping",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
     "/api/settings/rbac/mappings/{id}": {
       "delete": {
         "operationId": "deleteGroupMapping",
@@ -12383,6 +12344,16 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "userId",
+                    "email": "username@example.com",
+                    "fullName": "username",
+                    "lastLoggedIn": 1636434847190,
+                    "groupCount": 1,
+                    "tfaEnabled": false
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -12414,6 +12385,25 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "users": [
+                    {
+                      "id": "userId1",
+                      "email": "username@example.com",
+                      "fullName": "fullName",
+                      "lastLoggedIn": 1699313025975,
+                      "groupCount": null,
+                      "tfaEnabled": null
+                    }
+                  ],
+                  "invitations": [
+                    {
+                      "id": "userId2",
+                      "email": "username2@example.com",
+                      "groupId": "-3"
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/UsersResult"
                 }
@@ -12451,6 +12441,9 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "fullName": "updatedFullName"
+              },
               "schema": {
                 "$ref": "#/components/schemas/EditUser"
               }
@@ -12529,6 +12522,29 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "userId",
+                  "preferredName": "preferredName",
+                  "fullName": "fullName",
+                  "email": "username@example.com",
+                  "encryptedPassword": "",
+                  "lastLoggedIn": 1699442707385,
+                  "timestampAcceptedTos": 1696404223545,
+                  "timestampAcceptedPrivacyAgreement": 1696404223545,
+                  "acceptedTosVersion": 6,
+                  "acceptedPrivacyAgreementVersion": 9,
+                  "tenantsWhereMainContact": [],
+                  "tenants": [],
+                  "createDate": 1696404196256,
+                  "emailConfirmed": true,
+                  "tenantIds": [
+                    "55557f97186b9c0007857730"
+                  ],
+                  "passwordResetAttempt": 0,
+                  "groupCount": null,
+                  "tfaEnabled": null,
+                  "role": null
+                },
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -21000,7 +21016,7 @@
               "url": {
                 "type": "string",
                 "example": null,
-                "maxLength": 512,
+                "maxLength": 2047,
                 "minLength": 0
               },
               "validationString": {
@@ -21207,6 +21223,16 @@
           "id",
           "name"
         ]
+      },
+      "IdentityProviderPatch": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "restrictEmptyIdpGroups": {
+            "type": "boolean",
+            "example": null
+          }
+        }
       },
       "InfraAlertConfig": {
         "type": "object",
@@ -22881,6 +22907,7 @@
               "SELF_MONITORING",
               "SOLR",
               "SPARK",
+              "TUXEDO",
               "VSHPERE"
             ],
             "example": null
@@ -25524,11 +25551,43 @@
           "version"
         ]
       },
+      "SourceMapFileBlob": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "blobIndex": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "sizeOnDisk": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          }
+        }
+      },
       "SourceMapFileMeta": {
         "type": "object",
         "example": null,
         "properties": {
+          "blobs": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/SourceMapFileBlob"
+            }
+          },
           "format": {
+            "type": "string",
+            "example": null
+          },
+          "meta": {
             "type": "string",
             "example": null
           },
@@ -25547,8 +25606,8 @@
             "enum": [
               "JS_MAP",
               "JS",
-              "ANDROID",
-              "IOS"
+              "R8PG_MAP",
+              "DWARF"
             ],
             "example": null
           },
@@ -28852,7 +28911,7 @@
               "url": {
                 "type": "string",
                 "example": null,
-                "maxLength": 512,
+                "maxLength": 2047,
                 "minLength": 0
               }
             }
