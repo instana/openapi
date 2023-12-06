@@ -1,1 +1,1 @@
-Set the RestrictEmptyIdpGroups value as true/false. See [Check user restrictions for empty Idp group mapping]((#operation/getIdentityProviderPatch)) for more details.
+Set the RestrictEmptyIdpGroups value as true/false. See [Check user restrictions for empty Idp group mapping](#operation/getIdentityProviderPatch) for more details.
