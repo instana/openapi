@@ -1,0 +1,1 @@
+This API endpoint retrieves a single user by their id. The id is provided as a path parameter.
