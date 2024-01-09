@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.263.856",
+    "version": "1.264.965",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -5098,7 +5098,8 @@
                 "APPLICATION",
                 "WEBSITE",
                 "SYNTHETIC",
-                "MOBILE_APP"
+                "MOBILE_APP",
+                "INFRA"
               ],
               "example": null
             }
@@ -8190,6 +8191,55 @@
           }
         ],
         "summary": "Agent download logs",
+        "tags": [
+          "Host Agent"
+        ]
+      }
+    },
+    "/api/host-agent/{hostId}/support-info": {
+      "get": {
+        "operationId": "getAgentSupportInformation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hostId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "supportInfoId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/octet-stream": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canConfigureAgents"
+            ]
+          }
+        ],
+        "summary": "Agent download support information",
         "tags": [
           "Host Agent"
         ]
@@ -11400,9 +11450,44 @@
       "get": {
         "operationId": "getGroups",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "examples": {
+                  "Example group response": {
+                    "description": "Example group response",
+                    "value": [
+                      {
+                        "id": 1,
+                        "name": "group1",
+                        "members": [
+                          {
+                            "userId": "userId1",
+                            "email": "username1@instana.com"
+                          },
+                          {
+                            "userId": "userId2",
+                            "email": "username2@instana.com"
+                          }
+                        ]
+                      },
+                      {
+                        "id": 2,
+                        "name": "group2",
+                        "members": [
+                          {
+                            "userId": "userId1",
+                            "email": "username1@instana.com"
+                          },
+                          {
+                            "userId": "userId3",
+                            "email": "username3@instana.com"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -11411,7 +11496,11 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
           }
         },
         "security": [
@@ -13373,8 +13462,7 @@
             "in": "query",
             "name": "from",
             "schema": {
-              "type": "integer",
-              "format": "int64",
+              "type": "string",
               "example": null
             }
           },
@@ -13382,8 +13470,7 @@
             "in": "query",
             "name": "to",
             "schema": {
-              "type": "integer",
-              "format": "int64",
+              "type": "string",
               "example": null
             }
           }
@@ -21529,6 +21616,10 @@
           "metricName": {
             "type": "string",
             "example": null
+          },
+          "regex": {
+            "type": "boolean",
+            "example": null
           }
         },
         "required": [
@@ -23627,6 +23718,12 @@
             "maxLength": 128,
             "minLength": 0
           },
+          "parsedStackTrace": {
+            "type": "string",
+            "example": null,
+            "maxLength": 16384,
+            "minLength": 0
+          },
           "platform": {
             "type": "string",
             "example": null,
@@ -23654,6 +23751,21 @@
             "example": null,
             "maxLength": 16384,
             "minLength": 0
+          },
+          "stackTraceLine": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/StackTraceLine"
+            },
+            "maxItems": 128,
+            "minItems": 0
+          },
+          "stackTraceParsingStatus": {
+            "type": "integer",
+            "format": "int32",
+            "example": null,
+            "minimum": -1
           },
           "subdivision": {
             "type": "string",
@@ -25904,6 +26016,45 @@
           }
         }
       },
+      "StackTraceLine": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "column": {
+            "type": "integer",
+            "format": "int32",
+            "example": null,
+            "minimum": -1
+          },
+          "file": {
+            "type": "string",
+            "example": null
+          },
+          "line": {
+            "type": "integer",
+            "format": "int32",
+            "example": null,
+            "minimum": -1
+          },
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "translationExplanation": {
+            "type": "string",
+            "example": null
+          },
+          "translationStatus": {
+            "type": "integer",
+            "format": "int32",
+            "example": null,
+            "minimum": -1
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
       "StaticStringField": {
         "type": "object",
         "allOf": [
@@ -26109,16 +26260,6 @@
             "maxLength": 65536,
             "minLength": 0
           },
-          "dynamicCustomPayloadFields": {
-            "type": "object",
-            "example": null,
-            "properties": {
-              "parallel": {
-                "type": "boolean",
-                "example": null
-              }
-            }
-          },
           "name": {
             "type": "string",
             "example": null,
@@ -26132,16 +26273,6 @@
             "type": "integer",
             "format": "int32",
             "example": null
-          },
-          "staticCustomPayloadFields": {
-            "type": "object",
-            "example": null,
-            "properties": {
-              "parallel": {
-                "type": "boolean",
-                "example": null
-              }
-            }
           },
           "syntheticTestIds": {
             "type": "array",
@@ -26206,16 +26337,6 @@
             "maxLength": 65536,
             "minLength": 0
           },
-          "dynamicCustomPayloadFields": {
-            "type": "object",
-            "example": null,
-            "properties": {
-              "parallel": {
-                "type": "boolean",
-                "example": null
-              }
-            }
-          },
           "enabled": {
             "type": "boolean",
             "example": null
@@ -26249,16 +26370,6 @@
             "type": "integer",
             "format": "int32",
             "example": null
-          },
-          "staticCustomPayloadFields": {
-            "type": "object",
-            "example": null,
-            "properties": {
-              "parallel": {
-                "type": "boolean",
-                "example": null
-              }
-            }
           },
           "syntheticTestIds": {
             "type": "array",
