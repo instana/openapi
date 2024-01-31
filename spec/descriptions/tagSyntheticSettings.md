@@ -33,7 +33,8 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
     - **retries** An integer type from 0 to 2, 0 by default.
       It indicates how many attempts (max 2) will be allowed
       to get a successful connection (not necessarily a successful result).
-      Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.
+      For API Simple, failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.
+      API Script and Browser Script test will retry if script failed for any reason.
     - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.
     - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). 
       It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.
