@@ -31,7 +31,7 @@ Please use our [metrics catalog call](#operation/getInfrastructureCatalogMetrics
 **rollup:** Depending on the selected timeFrame its possible to selected the rollup.
 
 The available rollup is depending on two factors:
-1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)
+1. [Retention times](https://www.ibm.com/docs/en/instana-observability/current?topic=policies#data-retention-policy)
 
 	For example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min
 1. Size of the selected windowSize
