@@ -9,7 +9,7 @@ The available plugins are depending on the system you are monitoring. Therefore 
 
 To make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:
 1. Search metrics with a query
-  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.
+  You are using the [Dynamic Focus](https://www.ibm.com/docs/en/instana-observability/current?topic=instana-filtering-dynamic-focus) query to filter the result.
   To get usable search parameters you can either query the search [catalog endpoint](#operation/getInfrastructureCatalogSearchFields) or use the UI
 
 1. Search for metrics for snapshotIds
