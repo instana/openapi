@@ -9,7 +9,7 @@ The available plugins are depending on the system you are monitoring. Therefore 
 
 To make the it easy to get started this endpoint has two modes that can be used for metrics retrieval:
 1. Search metrics with a query
-  You are using the [Dynamic Focus](https://docs.instana.io/core_concepts/dynamic_focus/) query to filter the result.
+  You are using the [Dynamic Focus](https://www.ibm.com/docs/en/instana-observability/current?topic=instana-filtering-dynamic-focus) query to filter the result.
   To get usable search parameters you can either query the search [catalog endpoint](#operation/getInfrastructureCatalogSearchFields) or use the UI
 
 1. Search for metrics for snapshotIds
@@ -31,7 +31,7 @@ Please use our [metrics catalog call](#operation/getInfrastructureCatalogMetrics
 **rollup:** Depending on the selected timeFrame its possible to selected the rollup.
 
 The available rollup is depending on two factors:
-1. [Retention times](https://docs.instana.io/core_concepts/data_collection/#data-retention)
+1. [Retention times](https://www.ibm.com/docs/en/instana-observability/current?topic=policies#data-retention-policy)
 
 	For example if you select a to timestamp that is 3 Weeks in the past the most accurate rollup you can query for would be 1min
 1. Size of the selected windowSize
