@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.266.819
+  version: 1.267.840
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -400,22 +400,29 @@ tags:
 paths:
   '/api/apdex/report/{apdexId}':
     get:
+      description: Generate Apdex Report for a specified Apdex ID.
       operationId: getApdexReport
       parameters:
-        - in: path
+        - description: apdexId
+          example: nCtEoR6NSPqG61QkIkwwCw
+          in: path
           name: apdexId
           required: true
           schema:
             type: string
             example: null
-        - in: query
+        - description: Unix Timestamp milliseconds (13-digit)
+          example: 1706713140000
+          in: query
           name: from
           required: true
           schema:
             type: integer
             format: int64
             example: null
-        - in: query
+        - description: Unix Timestamp milliseconds (13-digit)
+          example: 1706813100000
+          in: query
           name: to
           required: true
           schema:
@@ -423,14 +430,24 @@ paths:
             format: int64
             example: null
       responses:
-        default:
+        '200':
           content:
             application/json:
+              example:
+                apdexId: nCtEoR6NSPqG61QkIkwwCw
+                from: 1706713140000
+                to: 1706813100000
+                apdexScore:
+                  - - 1706713140000
+                    - 0.5
+                  - - 1706779500000
+                    - 0.5
               schema:
                 type: array
                 example: null
                 items:
                   $ref: '#/components/schemas/ApdexReport'
+          description: OK
       security:
         - ApiKeyAuth: []
       summary: Generate Apdex report
@@ -6775,12 +6792,58 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              metrics:
+                - metric: beaconCount
+                  aggregation: SUM
+                  granularity: 60
+              group:
+                groupbyTag: mobileBeacon.view.name
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                  - type: TAG_FILTER
+                    name: mobileBeacon.mobileApp.name
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: robot-warehouse
+                  - type: TAG_FILTER
+                    name: mobileBeacon.platform
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: iOS
+              timeFrame:
+                to: null
+                windowSize: 3600000
+              type: SESSION_START
             schema:
               $ref: '#/components/schemas/GetMobileAppBeaconGroups'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - name: Products
+                    earliestTimestamp: 1707023340857
+                    cursor:
+                      '@class': .IngestionOffsetCursor
+                      ingestionTime: 1707026879283
+                      offset: 1
+                    metrics:
+                      beaconCount.sum.60:
+                        - - 1707023340000
+                          - 47
+                        - - 1707023400000
+                          - 43
+                canLoadMore: false
+                totalHits: 1
+                totalRepresentedItemCount: 1
+                totalRetainedItemCount: 1
+                adjustedTimeframe:
+                  windowSize: 3540000
+                  to: 1707026880000
               schema:
                 $ref: '#/components/schemas/MobileAppBeaconGroupsResult'
       security:
@@ -6795,12 +6858,97 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              tagFilters:
+                - entity: NOT_APPLICABLE
+                  name: mobileBeacon.mobileApp.name
+                  operator: EQUALS
+                  value: robot-warehouse
+              timeFrame:
+                to: null
+                windowSize: 60000
+              type: SESSION_START
             schema:
               $ref: '#/components/schemas/GetMobileAppBeacons'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - beacon:
+                      agentVersion: demoLoadGenerator
+                      mobileAppId: Example mobile app
+                      mobileAppLabel: robot-warehouse
+                      timestamp: 1707025556799
+                      clockSkew: 450
+                      ingestionTime: 1707025557248
+                      duration: 0
+                      batchSize: 1
+                      sessionId: d47e3f35-5bf4-481c-ab67-4647bc434fda
+                      beaconId: c43d78282ee5b5cf
+                      parentBeaconId: ''
+                      backendTraceId: ''
+                      type: sessionStart
+                      view: Products
+                      customEventName: ''
+                      meta:
+                        feature.testGroup: beta
+                      userIp: 94.134.0.0
+                      userId: Example User Id
+                      userSessionId: ''
+                      userName: Example User Name
+                      userEmail: example@example.com
+                      userLanguages:
+                        - de-DE
+                      useFeatures: []
+                      bundleIdentifier: com.example.shop
+                      appBuild: aba9031kl
+                      appVersion: 1.41.4
+                      platform: Android
+                      osName: Android
+                      osVersion: '10'
+                      deviceManufacturer: Google
+                      deviceModel: Google Pixel 4XL
+                      deviceHardware: Google Pixel 4XL
+                      viewportWidth: 320
+                      viewportHeight: 680
+                      carrier: Deutsche Telekom
+                      connectionType: wifi
+                      effectiveConnectionType: 3g
+                      latitude: 50.9865
+                      longitude: 6.9304
+                      accuracyRadius: 20
+                      city: Cologne
+                      subdivision: North Rhine-Westphalia
+                      subdivisionCode: NW
+                      country: Germany
+                      countryCode: DE
+                      continent: Europe
+                      continentCode: EU
+                      httpCallUrl: ''
+                      httpCallOrigin: ''
+                      httpCallPath: ''
+                      httpCallMethod: ''
+                      httpCallHeaders: {}
+                      errorCount: 0
+                      errorMessage: ''
+                      errorId: ''
+                      errorType: ''
+                      stackTrace: ''
+                      stackTraceLine: []
+                      parsedStackTrace: ''
+                    cursor:
+                      '@class': .IngestionOffsetCursor
+                      ingestionTime: 1707025557248
+                      offset: 1
+                canLoadMore: false
+                totalHits: 70
+                totalRepresentedItemCount: 70
+                totalRetainedItemCount: 70
+                adjustedTimeframe:
+                  windowSize: 60000
+                  to: 1707025560000
               schema:
                 $ref: '#/components/schemas/MobileAppBeaconResult'
       security:
@@ -6842,6 +6990,13 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - name: mobileBeacon.carrier
+                  type: STRING
+                  category: MOBILE
+                  canApplyToSource: false
+                  canApplyToDestination: false
+                  sourceValueAvailableFrom: 0
               schema:
                 $ref: '#/components/schemas/TagCatalog'
       security:
@@ -6857,6 +7012,22 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - metricId: beaconCount
+                  label: Beacon count
+                  formatter: NUMBER
+                  description: How many beacons matching a filter were recorded.
+                  aggregations:
+                    - SUM
+                  defaultAggregation: null
+                  beaconTypes:
+                    - sessionStart
+                    - viewChange
+                    - custom
+                    - httpRequest
+                    - crash
+                  pathToValueInBeacon: null
+                  tagName: null
               schema:
                 type: array
                 example: null
@@ -6875,6 +7046,13 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - name: mobileBeacon.view.name
+                  type: STRING
+                  category: MOBILE
+                  canApplyToSource: false
+                  canApplyToDestination: false
+                  sourceValueAvailableFrom: 0
               schema:
                 type: array
                 example: null
@@ -6893,6 +7071,9 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: example_id
+                  name: example_mobile_app
               schema:
                 type: array
                 example: null
@@ -6916,6 +7097,9 @@ paths:
         '200':
           content:
             application/json:
+              example:
+                - id: example_id
+                  name: example_mobile_app
               schema:
                 $ref: '#/components/schemas/MobileApp'
           description: Mobile App successfully configured
@@ -6964,6 +7148,9 @@ paths:
         '200':
           content:
             application/json:
+              example:
+                - id: example_id
+                  name: example_mobile_app
               schema:
                 $ref: '#/components/schemas/MobileApp'
           description: Mobile app successfully renamed
@@ -7164,6 +7351,68 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - agentVersion: demoLoadGenerator
+                  mobileAppId: example mobile app id
+                  mobileAppLabel: robot-warehouse
+                  timestamp: 1707025019211
+                  clockSkew: 460
+                  ingestionTime: 1707025019670
+                  duration: 0
+                  batchSize: 1
+                  sessionId: 18989f85-1fe6-4270-86da-f17487b18c26
+                  beaconId: 659302486df75422
+                  parentBeaconId: ''
+                  backendTraceId: ''
+                  type: sessionStart
+                  view: Products
+                  customEventName: ''
+                  meta:
+                    feature.testGroup: sigma
+                  userIp: 149.200.0.0
+                  userId: Example user id
+                  userSessionId: ''
+                  userName: Example user name
+                  userEmail: example@example.com
+                  userLanguages:
+                    - ar-JO
+                  useFeatures: []
+                  bundleIdentifier: com.example.shop
+                  appBuild: aba9031kl
+                  appVersion: 1.42.3
+                  platform: iOS
+                  osName: iOS
+                  osVersion: 16.7.1
+                  deviceManufacturer: Apple
+                  deviceModel: iPhone 13
+                  deviceHardware: 'iPhone14,5'
+                  viewportWidth: 320
+                  viewportHeight: 680
+                  carrier: Orange
+                  connectionType: wifi
+                  effectiveConnectionType: 3g
+                  latitude: 31.9555
+                  longitude: 35.9435
+                  accuracyRadius: 20
+                  city: Amman
+                  subdivision: Amman Governorate
+                  subdivisionCode: AM
+                  country: Jordan
+                  countryCode: JO
+                  continent: Asia
+                  continentCode: AS
+                  httpCallUrl: ''
+                  httpCallOrigin: ''
+                  httpCallPath: ''
+                  httpCallMethod: ''
+                  httpCallHeaders: {}
+                  errorCount: 0
+                  errorMessage: ''
+                  errorId: ''
+                  errorType: ''
+                  stackTrace: ''
+                  stackTraceLine: []
+                  parsedStackTrace: ''
               schema:
                 type: array
                 example: null
@@ -7181,12 +7430,45 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              metrics:
+                - metric: beaconCount
+                  aggregation: SUM
+                  granularity: 60
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                  - type: TAG_FILTER
+                    name: mobileBeacon.mobileApp.name
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: robot-warehouse
+                  - type: TAG_FILTER
+                    name: mobileBeacon.view.name
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: Products
+              timeFrame:
+                to: null
+                windowSize: 3600000
+              type: SESSION_START
             schema:
               $ref: '#/components/schemas/GetMobileAppMetricsV2'
       responses:
         default:
           content:
             application/json:
+              example:
+                metrics:
+                  beaconCount.sum.60:
+                    - - 1707026940000
+                      - 75
+                    - - 1707027000000
+                      - 75
+                adjustedTimeframe:
+                  windowSize: 3540000
+                  to: 1707030480000
               schema:
                 $ref: '#/components/schemas/MetricAPIResult'
       security:
@@ -7380,16 +7662,45 @@ paths:
         - Audit Log
   /api/settings/apdex:
     get:
+      description: API to Get All Apdex Configurations.
       operationId: getAllApdexConfigurations
       responses:
-        default:
+        '200':
           content:
             application/json:
+              example:
+                - id: _PvpxqTfSyi27O_LCxMd0A
+                  createdAt: 1653917798682
+                  apdexName: '{string}'
+                  apdexEntity:
+                    apdexType: website
+                    entityId: '{object}'
+                    threshold: 70
+                    tagFilterExpression:
+                      type: EXPRESSION
+                      logicalOperator: AND
+                      elements: []
+                    beaconType: httpRequest
+                - id: K6thQVyzQqWc38yspc0QWw
+                  createdAt: 1693828514423
+                  apdexName: '{string}'
+                  apdexEntity:
+                    apdexType: application
+                    entityId: '{object}'
+                    threshold: 12
+                    tagFilterExpression:
+                      type: EXPRESSION
+                      logicalOperator: AND
+                      elements: []
+                    boundaryScope: ALL
+                    includeInternal: false
+                    includeSynthetic: false
               schema:
                 type: array
                 example: null
                 items:
                   $ref: '#/components/schemas/ApdexConfiguration'
+          description: OK
       security:
         - ApiKeyAuth: []
       summary: Get All Apdex Configurations
@@ -7416,9 +7727,12 @@ paths:
         - Apdex Settings
   '/api/settings/apdex/{entityType}/{entityId}':
     get:
+      description: API to Get All Apdex Configurations for specified entity type and entity id.
       operationId: getApdexConfigurationsForEntityTypeAndId
       parameters:
-        - in: path
+        - description: entityType
+          example: APPLICATION
+          in: path
           name: entityType
           required: true
           schema:
@@ -7427,21 +7741,49 @@ paths:
               - APPLICATION
               - WEBSITE
             example: null
-        - in: path
+        - description: entityId
+          example: XIZGGVT1TX2O-0OFeT2Yig
+          in: path
           name: entityId
           required: true
           schema:
             type: string
             example: null
       responses:
-        default:
+        '200':
           content:
             application/json:
+              example:
+                - id: u2MBXtasQoy3reni5-QZgg
+                  createdAt: 1657743333352
+                  apdexName: '{string}'
+                  apdexEntity:
+                    apdexType: website
+                    entityId: XIZGGVT1TX2O-0OFeT2Yig
+                    threshold: 400
+                    tagFilterExpression:
+                      type: EXPRESSION
+                      logicalOperator: AND
+                      elements: []
+                    beaconType: httpRequest
+                - id: ShIqRJgpTT69HZHbfQKRGg
+                  createdAt: 1693482558276
+                  apdexName: '{string}'
+                  apdexEntity:
+                    apdexType: website
+                    entityId: XIZGGVT1TX2O-0OFeT2Yig
+                    threshold: 90
+                    tagFilterExpression:
+                      type: EXPRESSION
+                      logicalOperator: AND
+                      elements: []
+                    beaconType: httpRequest
               schema:
                 type: array
                 example: null
                 items:
                   $ref: '#/components/schemas/ApdexConfiguration'
+          description: OK
       security:
         - ApiKeyAuth: []
       summary: Get all Apdex configurations for entity type and entity id
@@ -7468,20 +7810,37 @@ paths:
       tags:
         - Apdex Settings
     get:
+      description: API to Get Apdex Configuration for specified ID.
       operationId: getApdexConfiguration
       parameters:
-        - in: path
+        - description: id
+          example: NCAoNKqySWSK1U5GkmyZgQ
+          in: path
           name: id
           required: true
           schema:
             type: string
             example: null
       responses:
-        default:
+        '200':
           content:
             application/json:
+              example:
+                id: NCAoNKqySWSK1U5GkmyZgQ
+                createdAt: 1666112381045
+                apdexName: '{string}'
+                apdexEntity:
+                  apdexType: website
+                  entityId: XIZGGVT1TX2O-0OFeT2Yig
+                  threshold: 100
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: AND
+                    elements: []
+                  beaconType: httpRequest
               schema:
                 $ref: '#/components/schemas/ApdexConfiguration'
+          description: OK
       security:
         - ApiKeyAuth: []
       summary: Get Apdex Configuration
@@ -10690,6 +11049,152 @@ paths:
         default:
           content:
             application/json:
+              example:
+                tagTree:
+                  - label: Commonly Used
+                    description: null
+                    icon: null
+                    children:
+                      - label: Location Label
+                        tagName: synthetic.locationLabel
+                        type: TAG
+                      - label: Synthetic Type Label
+                        tagName: synthetic.typeLabel
+                        type: TAG
+                      - label: Tags
+                        tagName: synthetic.tags
+                        type: TAG
+                    type: LEVEL
+                    queryable: false
+                  - label: Application
+                    description: null
+                    icon: null
+                    children:
+                      - label: Application Id
+                        tagName: synthetic.applicationId
+                        type: TAG
+                    type: LEVEL
+                    queryable: false
+                  - label: Synthetic Test
+                    description: null
+                    icon: null
+                    children:
+                      - label: Errors
+                        tagName: synthetic.errors
+                        type: TAG
+                      - label: Synthetic Type
+                        tagName: synthetic.syntheticType
+                        type: TAG
+                      - label: Synthetic Type Label
+                        tagName: synthetic.typeLabel
+                        type: TAG
+                      - label: Tags
+                        tagName: synthetic.tags
+                        type: TAG
+                      - label: Test Active
+                        tagName: synthetic.testActive
+                        type: TAG
+                      - label: Test Id
+                        tagName: synthetic.testId
+                        type: TAG
+                      - label: Test Name
+                        tagName: synthetic.testName
+                        type: TAG
+                    type: LEVEL
+                    queryable: false
+                  - label: Location
+                    description: null
+                    icon: null
+                    children:
+                      - label: Location Id
+                        tagName: synthetic.locationId
+                        type: TAG
+                      - label: Location Label
+                        tagName: synthetic.locationLabel
+                        type: TAG
+                      - label: Location Type
+                        tagName: synthetic.locationType
+                        type: TAG
+                    type: LEVEL
+                    queryable: false
+                tags:
+                  - name: synthetic.locationId
+                    label: Location Id
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.locationLabel
+                    label: Location Label
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.syntheticType
+                    label: Synthetic Type
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.typeLabel
+                    label: Synthetic Type Label
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.applicationId
+                    label: Application Id
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.tags
+                    label: Tags
+                    type: KEY_VALUE_PAIR
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.testId
+                    label: Test Id
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.testName
+                    label: Test Name
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.errors
+                    label: Errors
+                    type: STRING_LIST
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.testActive
+                    label: Test Active
+                    type: BOOLEAN
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
+                  - name: synthetic.locationType
+                    label: Location Type
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
               schema:
                 $ref: '#/components/schemas/TagCatalog'
       security:
@@ -10704,12 +11209,48 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              pagination:
+                page: 1
+                pageSize: 3
+              metrics:
+                - metric: synthetic.metricsResponseTime
+                  aggregation: SUM
+              order:
+                by: synthetic.startTime
+                direction: DESC
+              timeFrame:
+                to: 0
+                windowSize: 144000000
             schema:
               $ref: '#/components/schemas/GetTestResult'
       responses:
         default:
           content:
             application/json:
+              example:
+                testResult:
+                  - testId: 6GwdCuiMjGdMrtz8THjo
+                    testName: rumattach-BasicNavTest
+                    locationId:
+                      - f7cEoG61DJfVyWcDnWsc
+                    metrics:
+                      - synthetic.metricsResponseTime: 1276
+                  - testId: OCnmrLSlNgzntI68094j
+                    testName: test-javascript-bundled
+                    locationId:
+                      - wHICfVoIpiHbwawo5xQ6
+                    metrics:
+                      - synthetic.metricsResponseTime: 14
+                  - testId: 9i6gpys6whaYtN5k9VeD
+                    testName: My_Test_ReadFile
+                    locationId:
+                      - DemoPoP1_saas_instana_test
+                    metrics:
+                      - synthetic.metricsResponseTime: 7
+                page: 1
+                pageSize: 3
+                totalHits: 2212
               schema:
                 $ref: '#/components/schemas/TestResult'
       security:
@@ -10724,12 +11265,110 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              pagination:
+                page: 1
+                pageSize: 3
+              syntheticMetrics:
+                - synthetic.metricsResponseTime
+                - status
+                - synthetic.errors
+              order:
+                by: start_time
+                direction: DESC
+              timeFrame:
+                to: 0
+                windowSize: 144000000
+              TagFilterExpression:
+                type: EXPRESSION
+                elements:
+                  - type: EXPRESSION
+                    elements:
+                      - name: synthetic.errors
+                        stringValue: Exception
+                        operator: CONTAINS
+                    logicalOperator: OR
+                logicalOperator: OR
             schema:
               $ref: '#/components/schemas/GetTestResultList'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - testResultCommonProperties:
+                      testId: 9i6gpys6whaYtN5k9VeD
+                      testName: My_Test_ReadFile
+                      locationId: DemoPoP1_saas_instana_test
+                      clientId: saas_instana_test
+                      id: 8f3bedbb-e278-4584-81b8-6efe07286a55
+                      errors:
+                        - |-
+                          {timeStamp=1706131087368, errorType=Exception, errorMessage=access to path /etc/pop/redispass/redis-password is denied, stackTrace=Error: access to path /etc/pop/redispass/redis-password is denied
+                              at /opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1750914
+                              at Array.forEach (<anonymous>)
+                              at s (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1750876)
+                              at Object.openSync (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1751693)
+                              at VM Wrapper.apply (vm/bridge.js:468:15)
+                              at /tmp/9i6gpys6whaYtN5k9VeD/script.js:7:13
+                              at /tmp/9i6gpys6whaYtN5k9VeD/script.js:21:3
+                              at VM Wrapper.apply (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1806330)
+                              at k.run (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1771939)
+                              at Object.e.exports.execute (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1739863)
+                              at process.<anonymous> (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:2197562)
+                              at Object.onceWrapper (node:events:628:26)
+                              at process.emit (node:events:513:28)
+                              at emit (node:internal/child_process:946:14)
+                              at processTicksAndRejections (node:internal/process/task_queues:84:21)}
+                      locationDisplayLabel: DemoPoP1(vm)
+                    metrics:
+                      response_time:
+                        - - 1706131087358
+                          - 9
+                      status:
+                        - - 1706131087358
+                          - 0
+                  - testResultCommonProperties:
+                      testId: QRN50tqvJPnwKIjn2qKx
+                      testName: Demo_IBM_simple_ping
+                      locationId: DemoPoP1_saas_instana_test
+                      clientId: saas_instana_test
+                      id: 7f503812-c428-4ea8-995d-dbdf97c145b7
+                      errors:
+                        - '{timeStamp=1706131070262, errorType=Exception, errorMessage=Ping: http://httpbin.org/status/200%2C400 -> Expected a success status (status < 400) but got 400, stackTrace=}'
+                      locationDisplayLabel: DemoPoP1(vm)
+                    metrics:
+                      response_time:
+                        - - 1706131070111
+                          - 149
+                      status:
+                        - - 1706131070111
+                          - 0
+                  - testResultCommonProperties:
+                      testId: mfwdxHpvwXM1PGUBAFeP
+                      testName: test-disable-api-simple-jul17
+                      locationId: f7cEoG61DJfVyWcDnWsc
+                      clientId: saas_instana_test
+                      id: a1a4ed1c-7c87-45d5-bf45-3f3c462445d7
+                      errors:
+                        - |-
+                          {timeStamp=1706131069537, errorType=Exception, errorMessage=Unable to parse response body as JSON: Unexpected token < in JSON at position 0, stackTrace=Error: Unable to parse response body as JSON: Unexpected token < in JSON at position 0
+                              at /opt/ibm/microservice/javascript-playback/bin/index.js:2:1057667
+                              at k.<anonymous> (/opt/ibm/microservice/javascript-playback/bin/index.js:2:1058257)
+                              at runMicrotasks (<anonymous>)
+                              at processTicksAndRejections (node:internal/process/task_queues:96:5)}
+                      locationDisplayLabel: Test-Pop-101
+                    metrics:
+                      response_time:
+                        - - 1706131069036
+                          - 490
+                      status:
+                        - - 1706131069036
+                          - 0
+                page: 1
+                pageSize: 3
+                totalHits: 14305
               schema:
                 $ref: '#/components/schemas/TestResultListResult'
       security:
@@ -10744,12 +11383,63 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              timeFrame:
+                to: null
+                windowSize: 300000
+              pagination:
+                page: 1
+                pageSize: 3
             schema:
               $ref: '#/components/schemas/GetTestResultBase'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - id: wFulJMRXA3bZgAlhCuZV
+                    label: test101-pop
+                    displayLabel: west-12(Idaho)
+                    type: Private
+                    status: Online
+                    linkedTests: 0
+                    lastRunOn: 0
+                    namespace: my-kedatest
+                    clusterName: test101-pop
+                    description: PoP in region test101 for my-kedatest
+                    popSnapshotId: null
+                    popVersion: 1.1.2
+                  - id: 0po5d5MxSZx91moqCbri
+                    label: apminstana-pop
+                    displayLabel: apminstana-pop
+                    type: Private
+                    status: Online
+                    linkedTests: 12
+                    lastRunOn: 0
+                    namespace: redwood
+                    clusterName: apminstana-pop
+                    description: This is a Synthetic Point of Presence
+                    popSnapshotId: ZFOBIU_Stg9FWs4DMRVY7VTSmBs
+                    entityHealthInfo:
+                      maxSeverity: 0
+                      openIssues: []
+                    popVersion: 1.1.1
+                  - id: c7sXV7jZcuiD2ewGAjYI
+                    label: Aggie
+                    displayLabel: Aggie popLoc
+                    type: Private
+                    status: Offline
+                    linkedTests: 9
+                    lastRunOn: 0
+                    namespace: poploc
+                    clusterName: instana-pop-deployment
+                    description: My City Kubecost
+                    popSnapshotId: null
+                    popVersion: 1.0.15
+                page: 1
+                pageSize: 3
+                totalHits: 47
               schema:
                 $ref: '#/components/schemas/TestResultListResult'
       security:
@@ -10764,12 +11454,154 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              metrics:
+                - aggregation: MEAN
+                  metric: success_rate
+                  granularity: 600
+              TagFilterExpression:
+                type: EXPRESSION
+                elements:
+                  - name: synthetic.testActive
+                    booleanValue: true
+                    operator: EQUALS
+                logicalOperator: AND
+              timeFrame:
+                to: 0
+                windowSize: 1800000
+              pagination:
+                page: 1
+                pageSize: 3
             schema:
               $ref: '#/components/schemas/GetTestSummaryResult'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - testResultCommonProperties:
+                      testId: 0FzZz41QwOxPjOUE0VhU
+                      testName: 260-browserwebpage
+                      clientId: saas_instana_test
+                      testCommonProperties:
+                        id: 0FzZz41QwOxPjOUE0VhU
+                        label: 260-browserwebpage
+                        type: Webpage Simple
+                        frequency: 3
+                        active: true
+                        locationIds:
+                          - KHphVmZqqRf9Kp2xSoud
+                          - cs1RvxTXJcavxnbQ6fBE
+                        locationLabels:
+                          - microk8s_PoP
+                          - mini_PoP2_BrowserTest
+                        locationDisplayLabels:
+                          - MicroK8s PoP
+                          - mini_PoP2_BrowserTest
+                        locationStatusList:
+                          - locationId: KHphVmZqqRf9Kp2xSoud
+                            totalTestRuns: 10
+                            successRuns: 10
+                            locationDisplayLabel: MicroK8s PoP
+                            successRate: 1
+                          - locationId: cs1RvxTXJcavxnbQ6fBE
+                            totalTestRuns: 0
+                            successRuns: 0
+                            locationDisplayLabel: mini_PoP2_BrowserTest
+                            successRate: 0
+                        createdAt: 1697175933150
+                        modifiedAt: 1700456221719
+                    metrics:
+                      total_test_runs:
+                        - - 1706132249095
+                          - 10
+                      successful_test_runs:
+                        - - 1706132249095
+                          - 10
+                      response_time:
+                        - - 1706132249095
+                          - 372.9
+                      success_rate:
+                        - - 1706132249095
+                          - 1
+                  - testResultCommonProperties:
+                      testId: 0OKldV7M44UfDxmNt1Ef
+                      testName: Syne2eHttpActionTest
+                      clientId: saas_instana_test
+                      testCommonProperties:
+                        id: 0OKldV7M44UfDxmNt1Ef
+                        label: Syne2eHttpActionTest
+                        type: API Simple
+                        frequency: 5
+                        active: true
+                        locationIds:
+                          - 18WyhtDb5jpVOsjlNdeV
+                        locationLabels:
+                          - Syne2e
+                        locationDisplayLabels:
+                          - E2ETest PoP
+                        locationStatusList:
+                          - locationId: 18WyhtDb5jpVOsjlNdeV
+                            totalTestRuns: 6
+                            successRuns: 6
+                            locationDisplayLabel: E2ETest PoP
+                            successRate: 1
+                        createdAt: 1703867554340
+                        modifiedAt: 1703867554340
+                    metrics:
+                      total_test_runs:
+                        - - 1706132249095
+                          - 6
+                      successful_test_runs:
+                        - - 1706132249095
+                          - 6
+                      response_time:
+                        - - 1706132249095
+                          - 157.5
+                      success_rate:
+                        - - 1706132249095
+                          - 1
+                  - testResultCommonProperties:
+                      testId: 0qB3qb9659JBJ86bflnf
+                      testName: Syne2eHttpActionTest
+                      clientId: saas_instana_test
+                      testCommonProperties:
+                        id: 0qB3qb9659JBJ86bflnf
+                        label: Syne2eHttpActionTest
+                        type: API Simple
+                        frequency: 5
+                        active: true
+                        locationIds:
+                          - 18WyhtDb5jpVOsjlNdeV
+                        locationLabels:
+                          - Syne2e
+                        locationDisplayLabels:
+                          - E2ETest PoP
+                        locationStatusList:
+                          - locationId: 18WyhtDb5jpVOsjlNdeV
+                            totalTestRuns: 6
+                            successRuns: 6
+                            locationDisplayLabel: E2ETest PoP
+                            successRate: 1
+                        createdAt: 1702269153825
+                        modifiedAt: 1702269153825
+                    metrics:
+                      total_test_runs:
+                        - - 1706132249095
+                          - 6
+                      successful_test_runs:
+                        - - 1706132249095
+                          - 6
+                      response_time:
+                        - - 1706132249095
+                          - 178.66666666666666
+                      success_rate:
+                        - - 1706132249095
+                          - 1
+                page: 1
+                pageSize: 3
+                totalHits: 567
               schema:
                 $ref: '#/components/schemas/TestResultListResult'
       security:
@@ -10804,6 +11636,12 @@ paths:
         default:
           content:
             application/json:
+              example:
+                testId: AMl0Y7tsvpp8XXrXt1XO
+                testResultId: 5623c161-31d6-49b8-b314-91d4fb598f55
+                metadata:
+                  logs.tgz:
+                    - console.log
               schema:
                 $ref: '#/components/schemas/TestResultMetadata'
       security:
@@ -10852,6 +11690,24 @@ paths:
         default:
           content:
             application/json:
+              example:
+                testId: AMl0Y7tsvpp8XXrXt1XO
+                testResultId: 5623c161-31d6-49b8-b314-91d4fb598f55
+                logs: |
+                  2024-01-18T19:55:02.162Z [SyntheticPoP] synthetic playback starts
+                  2024-01-18T19:55:02.169Z [SyntheticPoP] http request undefined https://www.ibm.com/
+                  2024-01-18T19:55:02.319Z [SyntheticPoP] http response 303 for https://www.ibm.com/
+                  2024-01-18T19:55:02.430Z [SyntheticPoP] http response 200 for https://www.ibm.com/us-en
+                  2024-01-18T19:55:02.478Z http request 1/2: 200
+                  2024-01-18T19:56:01.103Z [SyntheticPoP] synthetic playback ends
+                logFiles:
+                  console.log: |
+                    2024-01-18T19:55:02.162Z [SyntheticPoP] synthetic playback starts
+                    2024-01-18T19:55:02.169Z [SyntheticPoP] http request undefined https://www.ibm.com/
+                    2024-01-18T19:55:02.319Z [SyntheticPoP] http response 303 for https://www.ibm.com/
+                    2024-01-18T19:55:02.430Z [SyntheticPoP] http response 200 for https://www.ibm.com/us-en
+                    2024-01-18T19:55:02.478Z http request 1/2: 200
+                    2024-01-18T19:56:01.103Z [SyntheticPoP] synthetic playback ends
               schema:
                 $ref: '#/components/schemas/TestResultDetailData'
       security:
@@ -10905,6 +11761,21 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - kittyhawk_test2
+                - user1_password
+                - user1_name
+                - MyBearer
+                - MY_CREDS333
+                - Test_Creds
+                - credName5
+                - credName4
+                - credName3
+                - credName2
+                - credName1
+                - MY_CREDS1
+                - MY_PASS
+                - USER_NAME_TEST
               schema:
                 type: array
                 example: null
@@ -10924,6 +11795,9 @@ paths:
         default:
           content:
             application/json:
+              example:
+                credentialName: user1_password
+                credentialValue: '123456'
               schema:
                 $ref: '#/components/schemas/SyntheticCredentials'
       security:
@@ -11007,6 +11881,63 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: 55bzhnXQ9uqwld4Ha3bD
+                  label: Austin
+                  displayLabel: AUTO
+                  popVersion: 1.1.2
+                  description: My Location 101
+                  locationType: Private
+                  playbackCapabilities:
+                    syntheticType:
+                      - HTTPAction
+                      - HTTPScript
+                      - BrowserScript
+                      - WebpageScript
+                    browserType:
+                      - firefox
+                      - chrome
+                  geoPoint:
+                    cityName: austin
+                    countryName: india
+                    latitude: 0
+                    longitude: 0
+                  totalTests: 1
+                  configuration:
+                    namespace: syn-pop-tls
+                  customProperties: {}
+                  createdAt: 1698742890784
+                  modifiedAt: 1702372728619
+                  observedAt: 1704266105229
+                  status: Offline
+                - id: OjJPXWHmsE9deLzanNAW
+                  label: Dallas
+                  displayLabel: AUTOscaling
+                  popVersion: 1.1.1
+                  description: My Location 101
+                  locationType: Private
+                  playbackCapabilities:
+                    syntheticType:
+                      - HTTPAction
+                      - HTTPScript
+                      - BrowserScript
+                      - WebpageScript
+                    browserType:
+                      - firefox
+                      - chrome
+                  geoPoint:
+                    cityName: dallas
+                    countryName: india
+                    latitude: 0
+                    longitude: 0
+                  totalTests: 0
+                  configuration:
+                    namespace: andy
+                  customProperties: {}
+                  createdAt: 1698988890723
+                  modifiedAt: 1700116951600
+                  observedAt: 1705556766316
+                  status: Offline
               schema:
                 type: array
                 example: null
@@ -11052,6 +11983,35 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: OjJPXWHmsE9deLzanNAW
+                label: Austin
+                displayLabel: AUTOscaling
+                popVersion: 1.1.1
+                description: Test Location 101
+                locationType: Private
+                playbackCapabilities:
+                  syntheticType:
+                    - HTTPAction
+                    - HTTPScript
+                    - BrowserScript
+                    - WebpageScript
+                  browserType:
+                    - firefox
+                    - chrome
+                geoPoint:
+                  cityName: austin
+                  countryName: india
+                  latitude: 0
+                  longitude: 0
+                totalTests: 0
+                configuration:
+                  namespace: andy
+                customProperties: {}
+                createdAt: 1698988890723
+                modifiedAt: 1700116951600
+                observedAt: 1705556766316
+                status: Offline
               schema:
                 $ref: '#/components/schemas/SyntheticLocation'
       security:
@@ -11078,6 +12038,102 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: ic25Vt1T5dgKzi0K7812
+                  tenantId: saas_instana_test
+                  label: 260-api-feature
+                  active: true
+                  testFrequency: 10
+                  playbackMode: Simultaneous
+                  applicationId: UOGJ3jBOSMOgN2EBCoOghw
+                  applicationLabel: test_cb
+                  locations:
+                    - KHphVmZqqRf9Kp2xSoud
+                    - cs1RvxTXJcavxnbQ6fBE
+                  locationLabels:
+                    - microk8s_PoP
+                    - mini_PoP2_BrowserTest
+                  locationDisplayLabels:
+                    - MicroK8s PoP
+                    - mini_PoP2_BrowserTest
+                  configuration:
+                    syntheticType: HTTPScript
+                    markSyntheticCall: true
+                    retries: 1
+                    retryInterval: 1
+                    timeout: ''
+                    script: |-
+                      const assert = require('assert');
+
+                      $got('https://www.ibm.com').then(response=>{
+                          console.log('request 1/2:', response.statusCode);
+                          assert.equal(response.statusCode, 200, 'it should be 200')
+                          
+                          setTimeout(()=>{
+                              $got('https://www.bing.com').then(response=>{
+                                  console.log('request 2/2:', response.statusCode);
+                                  assert.equal(response.statusCode, 200, 'it should be 200')
+                              })
+
+                          }, 70000);
+                      });
+                    scriptType: Basic
+                  customProperties: {}
+                  createdAt: 1697175907759
+                  modifiedAt: 1705915155144
+                - id: EFNRoPd39SgZBkULeQIf
+                  tenantId: saas_instana_test
+                  label: APITest_getApplication
+                  active: true
+                  testFrequency: 15
+                  playbackMode: Simultaneous
+                  applicationId: UOGJ3jBOSMOgN2EBCoOghw
+                  applicationLabel: test_cb
+                  locations:
+                    - 18WyhtDb5jpVOsjlNdeV
+                  locationLabels:
+                    - Syne2e
+                  locationDisplayLabels:
+                    - E2ETest PoP
+                  configuration:
+                    syntheticType: HTTPScript
+                    markSyntheticCall: true
+                    retries: 2
+                    retryInterval: 1
+                    timeout: 10m
+                    script: |-
+                      const got = require('got');
+                      const assert = require('assert');
+
+                      // Define the API request configuration
+                      const apiConfig = {
+                        method: 'GET',
+                        url: 'https://test-instana.pink.instana.rocks/api/application-monitoring/settings/application/btg-B701Rx6o9QNXUS4TVw',
+                        headers: {
+                          'Authorization': $secure.apiToken
+                        }
+                      };
+
+                      // Function to perform the API test
+                      const performAPITest = async () => {
+                        const response = await got(apiConfig);
+                        console.info("Get one application API - GET, response code: " + response.statusCode);
+                        assert.ok(response.statusCode == 200, "GET status is " + response.statusCode + ", it should be 200");
+
+                        const jsonBody = JSON.parse(response.body);
+                        assert.ok(jsonBody.id != "", "Application ID is not in the payload");
+                        assert.ok(jsonBody.label != "", "Application label is not in the payload");
+                        assert.ok(jsonBody.tagFilterExpression != null, "tagFilterExpression is not in the payload");
+                      };
+
+                      // Initial test
+                      performAPITest();
+                    scriptType: Basic
+                  customProperties:
+                    test: '123'
+                  createdAt: 1696625954210
+                  modifiedAt: 1701216106812
+                  modifiedBy: Internal
               schema:
                 type: array
                 example: null
@@ -11094,6 +12150,27 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              label: Test_SimplePing
+              description: this is to test a simple ping API
+              serviceId: serviceId001
+              applicationId: applicationId001
+              active: true
+              testFrequency: 1
+              playbackMode: Simultaneous
+              locations:
+                - saas_instana_test
+              configuration:
+                syntheticType: HTTPAction
+                url: 'https://httpbin.org/post'
+                operation: POST
+                headers:
+                  Content-Type: text/plain
+                body: Hello World!
+                validationString: Hello World!
+              customProperties:
+                Team: DevTeam
+                Purpose: Demo
             schema:
               $ref: '#/components/schemas/SyntheticTest'
         required: true
@@ -11101,6 +12178,28 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: ic25Vt1T5dgKzi0K7812
+                label: Test_SimplePing
+                description: this is to test a simple ping API
+                serviceId: serviceId001
+                applicationId: applicationId001
+                active: true
+                testFrequency: 1
+                playbackMode: Simultaneous
+                locations:
+                  - saas_instana_test
+                configuration:
+                  syntheticType: HTTPAction
+                  url: 'https://httpbin.org/post'
+                  operation: POST
+                  headers:
+                    Content-Type: text/plain
+                  body: Hello World!
+                  validationString: Hello World!
+                customProperties:
+                  Team: DevTeam
+                  Purpose: Demo
               schema:
                 $ref: '#/components/schemas/SyntheticTest'
       security:
@@ -11183,6 +12282,60 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: EFNRoPd39SgZBkULeQIf
+                tenantId: saas_instana_test
+                label: APITest_getApplication
+                active: true
+                testFrequency: 15
+                playbackMode: Simultaneous
+                applicationId: UOGJ3jBOSMOgN2EBCoOghw
+                applicationLabel: test_cb
+                locations:
+                  - 18WyhtDb5jpVOsjlNdeV
+                locationLabels:
+                  - Syne2e
+                locationDisplayLabels:
+                  - E2ETest PoP
+                configuration:
+                  syntheticType: HTTPScript
+                  markSyntheticCall: true
+                  retries: 2
+                  retryInterval: 1
+                  timeout: 10m
+                  script: |-
+                    const got = require('got');
+                    const assert = require('assert');
+
+                    // Define the API request configuration
+                    const apiConfig = {
+                      method: 'GET',
+                      url: 'https://test-instana.pink.instana.rocks/api/application-monitoring/settings/application/btg-B701Rx6o9QNXUS4TVw',
+                      headers: {
+                        'Authorization': $secure.apiToken
+                      }
+                    };
+
+                    // Function to perform the API test
+                    const performAPITest = async () => {
+                      const response = await got(apiConfig);
+                      console.info("Get one application API - GET, response code: " + response.statusCode);
+                      assert.ok(response.statusCode == 200, "GET status is " + response.statusCode + ", it should be 200");
+
+                      const jsonBody = JSON.parse(response.body);
+                      assert.ok(jsonBody.id != "", "Application ID is not in the payload");
+                      assert.ok(jsonBody.label != "", "Application label is not in the payload");
+                      assert.ok(jsonBody.tagFilterExpression != null, "tagFilterExpression is not in the payload");
+                    };
+
+                    // Initial test
+                    performAPITest();
+                  scriptType: Basic
+                customProperties:
+                  test: '123'
+                createdAt: 1696625954210
+                modifiedAt: 1701216106812
+                modifiedBy: Internal
               schema:
                 $ref: '#/components/schemas/SyntheticTest'
       security:
@@ -11203,6 +12356,11 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              active: true
+              configuration:
+                scripts: null
+                script: //script goes here
             schema:
               $ref: '#/components/schemas/SyntheticTest'
         required: true
@@ -11251,6 +12409,28 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              id: ic25Vt1T5dgKzi0K7812
+              label: Test_SimplePing
+              description: this is to test a simple ping API
+              serviceId: serviceId001
+              applicationId: applicationId001
+              active: true
+              testFrequency: 1
+              playbackMode: Simultaneous
+              locations:
+                - saas_instana_test
+              configuration:
+                syntheticType: HTTPAction
+                url: 'https://httpbin.org/post'
+                operation: POST
+                headers:
+                  Content-Type: text/plain
+                body: Hello World!
+                validationString: Hello World!
+              customProperties:
+                Team: DevTeam
+                Purpose: Demo
             schema:
               $ref: '#/components/schemas/SyntheticTest'
         required: true
@@ -11276,12 +12456,58 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              metrics:
+                - metric: beaconCount
+                  aggregation: SUM
+                  granularity: 60
+              group:
+                groupByTag: beacon.page.name
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                  - type: TAG_FILTER
+                    name: beacon.website.name
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: robot-shop
+                  - type: TAG_FILTER
+                    name: beacon.location.path
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: /checkout
+              timeFrame:
+                to: null
+                windowSize: 3600000
+              type: PAGELOAD
             schema:
               $ref: '#/components/schemas/GetWebsiteBeaconGroups'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - name: Check Out
+                    earliestTimestamp: 1707019058453
+                    cursor:
+                      '@class': .IngestionOffsetCursor
+                      ingestionTime: 1707022593250
+                      offset: 1
+                    metrics:
+                      beaconCount.sum.60:
+                        - - 1707019020000
+                          - 1
+                        - - 1707019080000
+                          - 3
+                canLoadMore: false
+                totalHits: 1
+                totalRepresentedItemCount: 1
+                totalRetainedItemCount: 1
+                adjustedTimeframe:
+                  windowSize: 3600000
+                  to: 1707022620000
               schema:
                 $ref: '#/components/schemas/WebsiteBeaconGroupsResult'
       security:
@@ -11296,12 +12522,130 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              tagFilters:
+                - type: TAG_FILTER
+                  name: beacon.website.name
+                  operator: EQUALS
+                  entity: NOT_APPLICABLE
+                  value: robot-shop
+                - type: TAG_FILTER
+                  name: beacon.location.path
+                  operator: EQUALS
+                  entity: NOT_APPLICABLE
+                  value: /checkout
+              timeFrame:
+                to: null
+                windowSize: 3600000
+              type: PAGELOAD
             schema:
               $ref: '#/components/schemas/GetWebsiteBeacons'
       responses:
         default:
           content:
             application/json:
+              example:
+                items:
+                  - beacon:
+                      websiteId: Example website ID
+                      websiteLabel: robot-shop
+                      page: Products
+                      phase: pageLoad
+                      timestamp: 1707023459363
+                      clockSkew: 356
+                      duration: 240
+                      batchSize: 1
+                      accurateTimingsAvailable: true
+                      deprecations: []
+                      pageLoadId: 0cea1830450a460
+                      sessionId: 899e5d28e5c6402
+                      beaconId: 00cea1830450a460
+                      backendTraceId: ef968a97dd967268
+                      type: pageLoad
+                      customEventName: ''
+                      meta:
+                        stage: production
+                        status: silver
+                      locationUrl: 'http://robotshop.instana.com/products'
+                      locationOrigin: 'http://robotshop.instana.com'
+                      locationPath: /products
+                      errorCount: 0
+                      errorMessage: ''
+                      errorId: ''
+                      errorType: ''
+                      parsedStackTrace: []
+                      componentStack: ''
+                      userIp: 195.140.0.0
+                      userId: Example User Id
+                      userName: Example User Name
+                      userEmail: example@example.com
+                      userLanguages:
+                        - en-GB
+                      deviceType: ''
+                      connectionType: 4g
+                      browserName: Chrome
+                      browserVersion: '73'
+                      osName: Windows
+                      osVersion: '10'
+                      windowHidden: false
+                      windowWidth: 1149
+                      windowHeight: 1008
+                      latitude: 51.5088
+                      longitude: -0.093
+                      accuracyRadius: 20
+                      city: London
+                      subdivision: England
+                      subdivisionCode: ENG
+                      country: United Kingdom
+                      countryCode: GB
+                      continent: Europe
+                      continentCode: EU
+                      httpCallUrl: ''
+                      httpCallOrigin: ''
+                      httpCallPath: ''
+                      httpCallMethod: ''
+                      httpCallStatus: -1
+                      httpCallCorrelationAttempted: false
+                      httpCallAsynchronous: false
+                      initiator: html
+                      resourceType: document
+                      cacheInteraction: ''
+                      encodedBodySize: -1
+                      decodedBodySize: -1
+                      transferSize: -1
+                      unloadTime: 0
+                      redirectTime: 0
+                      appCacheTime: 0
+                      dnsTime: 0
+                      tcpTime: 0
+                      sslTime: 0
+                      requestTime: 42
+                      responseTime: 1
+                      processingTime: -1
+                      onLoadTime: 1
+                      backendTime: 51
+                      frontendTime: -1
+                      domTime: -1
+                      childrenTime: 5
+                      firstPaintTime: 331
+                      firstContentfulPaintTime: 331
+                      largestContentfulPaintTime: 331
+                      firstInputDelayTime: -1
+                      cumulativeLayoutShift: -1
+                      cspBlockedUri: ''
+                      cspEffectiveDirective: ''
+                      cspOriginalPolicy: ''
+                      cspDisposition: ''
+                      cspSample: ''
+                      cspSourceFile: ''
+                      cspLineNumber: -1
+                      cspColumnNumber: -1
+                      snippetVersion: '2'
+                      httpCallHeaders: {}
+                    cursor:
+                      '@class': .IngestionOffsetCursor
+                      ingestionTime: 1707023459959
+                      offset: 1
               schema:
                 $ref: '#/components/schemas/WebsiteBeaconResult'
       security:
@@ -11343,6 +12687,24 @@ paths:
         default:
           content:
             application/json:
+              example:
+                tagTree:
+                  - label: Commonly Used
+                    description: null
+                    icon: null
+                    children:
+                      - label: Website Label
+                        description: Name of the website as configured within the Instana user interface.
+                        tagName: beacon.website.name
+                        type: TAG
+                tags:
+                  - name: beacon.type
+                    label: Beacon Type
+                    type: STRING
+                    description: null
+                    canApplyToSource: false
+                    canApplyToDestination: false
+                    idTag: false
               schema:
                 $ref: '#/components/schemas/TagCatalog'
       security:
@@ -11358,6 +12720,32 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - metricId: beaconDuration
+                  label: Beacon duration
+                  formatter: LATENCY
+                  description: The recorded duration for a beacon.
+                  aggregations:
+                    - MIN
+                    - P25
+                    - P90
+                    - P50
+                    - P98
+                    - MAX
+                    - MEAN
+                    - P75
+                    - P99
+                    - P95
+                    - SUM
+                  defaultAggregation: null
+                  beaconTypes:
+                    - pageLoad
+                    - custom
+                    - resourceLoad
+                    - httpRequest
+                  pathToValueInBeacon:
+                    - duration
+                  tagName: beacon.duration
               schema:
                 type: array
                 example: null
@@ -11378,6 +12766,13 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - name: beacon.sessionId
+                  type: STRING
+                  category: WEBSITE
+                  canApplyToSource: false
+                  canApplyToDestination: false
+                  sourceValueAvailableFrom: 0
               schema:
                 type: array
                 example: null
@@ -11397,6 +12792,10 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - id: example_id
+                  name: example_website
+                  appName: example_website
               schema:
                 type: array
                 example: null
@@ -11417,6 +12816,10 @@ paths:
         '200':
           content:
             application/json:
+              example:
+                id: example_id
+                name: example_website
+                appName: example_website
               schema:
                 $ref: '#/components/schemas/Website'
           description: Website successfully configured
@@ -11460,6 +12863,10 @@ paths:
         default:
           content:
             application/json:
+              example:
+                id: example_id
+                name: example_website
+                appName: example_website
               schema:
                 $ref: '#/components/schemas/Website'
       summary: Get configured website
@@ -11483,6 +12890,10 @@ paths:
         '200':
           content:
             application/json:
+              example:
+                id: example_id
+                name: example_website
+                appName: example_website
               schema:
                 $ref: '#/components/schemas/Website'
           description: Website successfully renamed
@@ -11753,6 +13164,104 @@ paths:
         default:
           content:
             application/json:
+              example:
+                - websiteId: example website id
+                  websiteLabel: robot-shop
+                  page: Home
+                  phase: pageLoad
+                  timestamp: 1707012285674
+                  clockSkew: 447
+                  duration: 120
+                  batchSize: 1
+                  accurateTimingsAvailable: true
+                  deprecations: []
+                  pageLoadId: 974bca2eb13047c
+                  sessionId: e995a184bb4b4e0
+                  beaconId: 0974bca2eb13047c
+                  backendTraceId: c92e3ec967ef173f
+                  type: pageLoad
+                  customEventName: ''
+                  meta:
+                    stage: production
+                    status: bronze
+                  locationUrl: 'http://robotshop.instana.com/'
+                  locationOrigin: 'http://robotshop.instana.com'
+                  locationPath: /
+                  errorCount: 0
+                  errorMessage: ''
+                  errorId: ''
+                  errorType: ''
+                  parsedStackTrace: []
+                  componentStack: ''
+                  userIp: 87.191.0.0
+                  userId: example user id
+                  userName: example user name
+                  userEmail: example@example.com
+                  userLanguages:
+                    - de-DE
+                  deviceType: ''
+                  connectionType: 4g
+                  browserName: Firefox
+                  browserVersion: '63'
+                  osName: Ubuntu
+                  osVersion: '18'
+                  windowHidden: false
+                  windowWidth: 1149
+                  windowHeight: 1008
+                  latitude: 50.8021
+                  longitude: 8.7857
+                  accuracyRadius: 200
+                  city: Weidenhausen
+                  subdivision: Hesse
+                  subdivisionCode: HE
+                  country: Germany
+                  countryCode: DE
+                  continent: Europe
+                  continentCode: EU
+                  httpCallUrl: ''
+                  httpCallOrigin: ''
+                  httpCallPath: ''
+                  httpCallMethod: ''
+                  httpCallStatus: 400
+                  httpCallCorrelationAttempted: false
+                  httpCallAsynchronous: false
+                  initiator: html
+                  resourceType: document
+                  cacheInteraction: ''
+                  encodedBodySize: -1
+                  decodedBodySize: -1
+                  transferSize: -1
+                  unloadTime: 0
+                  redirectTime: 0
+                  appCacheTime: 0
+                  dnsTime: 0
+                  tcpTime: 0
+                  sslTime: 0
+                  requestTime: 42
+                  responseTime: 1
+                  processingTime: -1
+                  onLoadTime: 1
+                  backendTime: 51
+                  frontendTime: -1
+                  domTime: -1
+                  childrenTime: 5
+                  firstPaintTime: 331
+                  firstContentfulPaintTime: 331
+                  largestContentfulPaintTime: 331
+                  firstInputDelayTime: -1
+                  cumulativeLayoutShift: -1
+                  cspBlockedUri: ''
+                  cspEffectiveDirective: ''
+                  cspOriginalPolicy: ''
+                  cspDisposition: ''
+                  cspSample: ''
+                  cspSourceFile: ''
+                  cspLineNumber: -1
+                  cspColumnNumber: -1
+                  snippetVersion: '2'
+                  httpCallHeaders: {}
+                  parentBeaconId: ''
+                  interactionNextPaint: -1
               schema:
                 type: array
                 example: null
@@ -11770,12 +13279,42 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              metrics:
+                - metric: beaconCount
+                  aggregation: SUM
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                  - type: TAG_FILTER
+                    name: beacon.website.name
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: robot-shop
+                  - type: TAG_FILTER
+                    name: beacon.location.path
+                    operator: EQUALS
+                    entity: NOT_APPLICABLE
+                    value: /
+              timeFrame:
+                to: null
+                windowSize: 3600000
+              type: PAGELOAD
             schema:
               $ref: '#/components/schemas/GetWebsiteMetricsV2'
       responses:
         default:
           content:
             application/json:
+              example:
+                metrics:
+                  beaconCount.sum:
+                    - - 1706856180000
+                      - 100
+                adjustedTimeFrame:
+                  windowSize: 3540000
+                  to: 1706856180000
               schema:
                 $ref: '#/components/schemas/MetricAPIResult'
       security:
@@ -12384,16 +13923,10 @@ components:
         canConfigureAutomationPolicies:
           type: boolean
           example: null
-        canConfigureCustomAlerts:
-          type: boolean
-          example: null
         canConfigureEumApplications:
           type: boolean
           example: null
         canConfigureEventsAndAlerts:
-          type: boolean
-          example: null
-        canConfigureGlobalAlertConfigs:
           type: boolean
           example: null
         canConfigureGlobalAlertPayload:
@@ -12403,6 +13936,9 @@ components:
           type: boolean
           example: null
         canConfigureGlobalInfraSmartAlerts:
+          type: boolean
+          example: null
+        canConfigureGlobalLogSmartAlerts:
           type: boolean
           example: null
         canConfigureGlobalSyntheticSmartAlerts:
@@ -17815,7 +19351,10 @@ components:
           type: string
           example: null
       required:
+        - id
         - infraTagCategory
+        - label
+        - ownerType
     MetricPattern:
       type: object
       example: null
@@ -18227,6 +19766,10 @@ components:
           example: null
           maxLength: 256
           minLength: 0
+        customMetric:
+          type: number
+          format: double
+          example: null
         decodedBodySize:
           type: integer
           format: int64
@@ -18361,6 +19904,9 @@ components:
           example: null
           maxLength: 128
           minLength: 0
+        parentBeaconId:
+          type: string
+          example: null
         parsedStackTrace:
           type: string
           example: null
@@ -23159,6 +24705,10 @@ components:
         customEventName:
           type: string
           example: null
+        customMetric:
+          type: number
+          format: double
+          example: null
         decodedBodySize:
           type: integer
           format: int64
@@ -23269,6 +24819,10 @@ components:
         initiator:
           type: string
           example: null
+        interactionNextPaint:
+          type: integer
+          format: int64
+          example: null
         largestContentfulPaintTime:
           type: integer
           format: int64
@@ -23312,6 +24866,9 @@ components:
           type: string
           example: null
         pageLoadId:
+          type: string
+          example: null
+        parentBeaconId:
           type: string
           example: null
         parsedStackTrace:
