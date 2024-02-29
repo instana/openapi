@@ -4,7 +4,7 @@ This API endpoint creates a Synthetic Test.
 
 ## Optional Parameters:
 
-- **id** Users are allowed to specify their own id for the test. A test id can contain letters, numbers, underscores, colons and hyphens. Max length is 128.
+- **id** Users are allowed to specify their own id for the test. A test id can contain letters, numbers, underscores, colons and hyphens. Maximum length is 128.
 
 ## Sample script and payload: 
 - A sample script to create an API Simple test
