@@ -1,10 +1,13 @@
 The API endpoints of this group can be used to manage Synthetic Locations, Synthetic Tests and Synthetic Credentials. 
 
+## Important note
+Only users who are authenticated with two-factor authentication can work with the write operations for Synthetic Tests. This authentication provides an extra layer of security to make sure that only the verified users can create, modify or delete tests that can run through the Synthetic PoPs.
+
 ## Synthetic Location Properties:
 - **id** Unique identifier of the location resource.
 - **label** Friendly name of the location.
 - **description** The description of the location.
-- **locationType** Indicates if the location is public or private.
+- **locationType** Indicates if the location is managed or private.
 - **playbackCapability** The playback capabilities provided by this location resource.
   The playbackCapability object has the following properties: 
   - **syntheticType** Different types of synthetic tests that can be executed at this location. 
