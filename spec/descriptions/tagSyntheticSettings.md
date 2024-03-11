@@ -4,7 +4,7 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
 - **id** Unique identifier of the location resource.
 - **label** Friendly name of the location.
 - **description** The description of the location.
-- **locationType** Indicates if the location is public or private.
+- **locationType** Indicates if the location is managed or private.
 - **playbackCapability** The playback capabilities provided by this location resource.
   The playbackCapability object has the following properties: 
   - **syntheticType** Different types of synthetic tests that can be executed at this location. 
