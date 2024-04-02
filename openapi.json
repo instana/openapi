@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.269.960",
+    "version": "1.270.766",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -178,7 +178,13 @@
       "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes), \n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second), \n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values). \n   \n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), \n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results.\nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for responseTime and responseSize must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseSize\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: synthetic.id (a string representing the test result ID), \nsynthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\nsynthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\nsynthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values).\n\nThe following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\nsynthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\nThe metric synthetic.tags adds the latest list of custom properties to the response.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only synthetic.metricsResponseTime (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have three options to search for a test.\n\n**syntheticType | locationId | applicationId**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n\nTests can also be filtered by their active state (`true`/`false`) using the custom property label `synthetic.testActive`.\n```\n\"tagFilters\": [{ \n  \"name\":\"synthetic.testActive\", \n  \"operator\":\"EQUALS\",\n  \"booleanValue\": false \n}]\n```\n\n### Defaults\n\n**syntheticType | locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a list of active Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"tagFilterExpression\": { \n        \"type\":\"EXPRESSION\",\n        \"logicalOperator\":\"AND\",\n        \"elements\":[{\n          \"name\": \"synthetic.locationId\", \n          \"operator\": \"EQUALS\", \n          \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n        }, {\n          \"name\": \"synthetic.testActive\",\n          \"operator\": \"EQUALS\",\n          \"booleanValue\": true\n        }]\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
     },
     {
-      "name": "Automation Settings"
+      "name": "Action Catalog"
+    },
+    {
+      "name": "Action History"
+    },
+    {
+      "name": "Policies"
     },
     {
       "name": "Authentication"
@@ -352,8 +358,7 @@
                   "direction": "DESC"
                 },
                 "pagination": {
-                  "page": 1,
-                  "pageSize": 1
+                  "retrievalSize": 20
                 },
                 "tagFilterExpression": {
                   "type": "EXPRESSION",
@@ -470,6 +475,9 @@
                 "order": {
                   "by": "traces_SUM",
                   "direction": "ASC"
+                },
+                "pagination": {
+                  "retrievalSize": 20
                 }
               },
               "schema": {
@@ -538,6 +546,11 @@
           "content": {
             "application/json": {
               "example": {
+                "includeInternal": false,
+                "includeSynthetic": false,
+                "pagination": {
+                  "retrievalSize": 20
+                },
                 "tagFilterExpression": {
                   "type": "EXPRESSION",
                   "logicalOperator": "AND",
@@ -4000,6 +4013,1353 @@
         ]
       }
     },
+    "/api/automation/actioninstances": {
+      "get": {
+        "operationId": "getActionInstances",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "windowSize",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "targetSnapshotId",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "eventId",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "eventSpecificationId",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "types",
+            "schema": {
+              "type": "array",
+              "example": null,
+              "items": {
+                "type": "string",
+                "example": null
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "actionStatuses",
+            "schema": {
+              "type": "array",
+              "example": null,
+              "items": {
+                "type": "string",
+                "example": null
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "orderBy",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "orderDirection",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "actionInstanceId": "fqiH0HOgR1-4Ygoy5EDycw",
+                      "actionId": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                      "actionName": "Hello World",
+                      "type": "SCRIPT",
+                      "status": "SUCCESS",
+                      "createdDate": 1710162882369,
+                      "startDate": 1710162882653,
+                      "endDate": 1710162882826,
+                      "eventId": "M3wuBxuaSDyecZJ7ICioiw",
+                      "eventSpecificationId": "en0FW6XRWu7aRsD4055dbMLAuSU",
+                      "problemText": "Test event",
+                      "hostSnapshotId": "2nIOVtEW-iPbsEIi89-yDqJHi2g",
+                      "targetSnapshotId": "jfSmhACY-Oa3a8zfjJxvOxJeDSk",
+                      "metadata": []
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 50,
+                  "totalHits": 1
+                },
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/ActionInstance"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canViewAutomationActionInstances"
+            ]
+          }
+        ],
+        "summary": "Get all automation action instances",
+        "tags": [
+          "Action History"
+        ]
+      },
+      "post": {
+        "operationId": "addActionInstance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "hostId": "aHostId",
+                "actionId": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                "policyId": "2nIOVtEW-iPbsEIi89-yDqJabc",
+                "inputParameters": [
+                  {
+                    "name": "name",
+                    "type": "type",
+                    "value": "value"
+                  }
+                ],
+                "eventId": "M3wuBxuaSDyecZJ7ICioiw",
+                "async": "true",
+                "timeout": "600"
+              },
+              "schema": {
+                "type": "string",
+                "example": null
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "actionInstanceId": "fqiH0HOgR1-4Ygoy5EDycw",
+                  "actionId": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                  "actionName": "Hello World",
+                  "type": "SCRIPT",
+                  "status": "SUBMITTED",
+                  "createdDate": 1710162882369,
+                  "eventId": "M3wuBxuaSDyecZJ7ICioiw",
+                  "eventSpecificationId": "en0FW6XRWu7aRsD4055dbMLAuSU",
+                  "problemText": "Test event",
+                  "hostSnapshotId": "2nIOVtEW-iPbsEIi89-yDqJHi2g",
+                  "targetSnapshotId": "jfSmhACY-Oa3a8zfjJxvOxJeDSk",
+                  "inputParameters": [],
+                  "outputParameters": [],
+                  "metadata": [],
+                  "externalSourceType": "",
+                  "actorId": "5ee5195fbea6150001758c40",
+                  "actorName": "Stan",
+                  "actorType": "USER",
+                  "eventEntityType": "",
+                  "actionDescription": "Simple script action for testing",
+                  "policyId": "2nIOVtEW-iPbsEIi89-yDqJabc"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ActionInstance"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canRunAutomationActions"
+            ]
+          }
+        ],
+        "summary": "Run an automation action",
+        "tags": [
+          "Action History"
+        ]
+      }
+    },
+    "/api/automation/actioninstances/{actionInstanceId}": {
+      "get": {
+        "operationId": "getActionInstance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "actionInstanceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "windowSize",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "actionInstanceId": "fqiH0HOgR1-4Ygoy5EDycw",
+                  "actionId": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                  "actionName": "Hello World",
+                  "type": "SCRIPT",
+                  "status": "SUCCESS",
+                  "returnCode": 0,
+                  "errorMessage": "",
+                  "createdDate": 1710162882369,
+                  "startDate": 1710162882653,
+                  "endDate": 1710162882826,
+                  "eventId": "M3wuBxuaSDyecZJ7ICioiw",
+                  "eventSpecificationId": "en0FW6XRWu7aRsD4055dbMLAuSU",
+                  "problemText": "Test event",
+                  "hostSnapshotId": "2nIOVtEW-iPbsEIi89-yDqJHi2g",
+                  "inputParameters": [],
+                  "outputParameters": [],
+                  "metadata": [],
+                  "targetSnapshotId": "jfSmhACY-Oa3a8zfjJxvOxJeDSk",
+                  "externalSourceType": "",
+                  "actorId": "5ee5195fbea6150001758c40",
+                  "actorName": "Stan",
+                  "actorType": "USER",
+                  "eventEntityType": "",
+                  "actionDescription": "Simple script action for testing",
+                  "policyId": "2nIOVtEW-iPbsEIi89-yDqJabc"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ActionInstance"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canViewAutomationActionInstances"
+            ]
+          }
+        ],
+        "summary": "Get action instance details",
+        "tags": [
+          "Action History"
+        ]
+      }
+    },
+    "/api/automation/actioninstances/{actionInstanceId}/feedback": {
+      "put": {
+        "operationId": "setActionInstanceFeedback",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "actionInstanceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "windowSize",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "feedback": 5,
+                "comment": "The action remediated the issue"
+              },
+              "schema": {
+                "type": "string",
+                "example": null
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "actionInstanceId": "fqiH0HOgR1-4Ygoy5EDycw",
+                  "actionId": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                  "actionName": "Hello World",
+                  "type": "SCRIPT",
+                  "status": "SUCCESS",
+                  "returnCode": 0,
+                  "errorMessage": "",
+                  "createdDate": 1710162882369,
+                  "startDate": 1710162882653,
+                  "endDate": 1710162882826,
+                  "eventId": "M3wuBxuaSDyecZJ7ICioiw",
+                  "eventSpecificationId": "en0FW6XRWu7aRsD4055dbMLAuSU",
+                  "problemText": "Test event",
+                  "hostSnapshotId": "2nIOVtEW-iPbsEIi89-yDqJHi2g",
+                  "inputParameters": [],
+                  "outputParameters": [],
+                  "metadata": [
+                    {
+                      "name": "feedback",
+                      "value": "5"
+                    },
+                    {
+                      "name": "comment",
+                      "value": "The action remediated the issue."
+                    }
+                  ],
+                  "targetSnapshotId": "jfSmhACY-Oa3a8zfjJxvOxJeDSk",
+                  "externalSourceType": "",
+                  "actorId": "5ee5195fbea6150001758c40",
+                  "actorName": "Stan",
+                  "actorType": "USER",
+                  "eventEntityType": "",
+                  "actionDescription": "Simple script action for testing",
+                  "policyId": "2nIOVtEW-iPbsEIi89-yDqJabc"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ActionInstance"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canRunAutomationActions"
+            ]
+          }
+        ],
+        "summary": "Set action instance feedback",
+        "tags": [
+          "Action History"
+        ]
+      }
+    },
+    "/api/automation/actions": {
+      "get": {
+        "operationId": "getActions",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                    "name": "Hello World",
+                    "description": "Simple script action for testing",
+                    "type": "SCRIPT",
+                    "fields": [
+                      {
+                        "name": "subtype",
+                        "description": "script subtype",
+                        "encoding": "base64",
+                        "value": "YmFzaA==",
+                        "secured": false
+                      },
+                      {
+                        "name": "script_ssh",
+                        "description": "script content",
+                        "encoding": "base64",
+                        "value": "ZWNobyBoZWxsbyB3b3JsZA==",
+                        "secured": false
+                      },
+                      {
+                        "name": "timeout",
+                        "description": "timeout of the action execution in seconds",
+                        "encoding": "ascii",
+                        "value": "",
+                        "secured": false
+                      }
+                    ],
+                    "inputParameters": [],
+                    "tags": [
+                      "Test"
+                    ],
+                    "createdAt": 1694442511.129923,
+                    "modifiedAt": 1703191040.321448
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/Action"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get all automation actions",
+        "tags": [
+          "Action Catalog"
+        ]
+      }
+    },
+    "/api/automation/actions/{id}": {
+      "get": {
+        "operationId": "getActionByID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                  "name": "Hello World",
+                  "description": "Simple script action for testing",
+                  "type": "SCRIPT",
+                  "fields": [
+                    {
+                      "name": "subtype",
+                      "description": "script subtype",
+                      "encoding": "base64",
+                      "value": "YmFzaA==",
+                      "secured": false
+                    },
+                    {
+                      "name": "script_ssh",
+                      "description": "script content",
+                      "encoding": "base64",
+                      "value": "ZWNobyBoZWxsbyB3b3JsZA==",
+                      "secured": false
+                    },
+                    {
+                      "name": "timeout",
+                      "description": "timeout of the action execution in seconds",
+                      "encoding": "ascii",
+                      "value": "",
+                      "secured": false
+                    }
+                  ],
+                  "inputParameters": [],
+                  "tags": [
+                    "Test"
+                  ],
+                  "createdAt": 1694442511.129923,
+                  "modifiedAt": 1703191040.321448
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Action"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get an automation action by ID",
+        "tags": [
+          "Action Catalog"
+        ]
+      }
+    },
+    "/api/automation/ai/action/match": {
+      "post": {
+        "operationId": "getActionMatches",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "targetSnapshotId",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "CPU spends significant time waiting for input/output",
+                "description": "Checks whether the system spends significant time waiting for input/output."
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ActionSearchSpace"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "score": 0.12087341955930318,
+                    "action": {
+                      "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                      "name": "Hello World",
+                      "description": "Simple script action for testing",
+                      "type": "SCRIPT",
+                      "fields": [
+                        {
+                          "name": "subtype",
+                          "description": "script subtype",
+                          "encoding": "base64",
+                          "value": "YmFzaA==",
+                          "secured": false
+                        },
+                        {
+                          "name": "script_ssh",
+                          "description": "script content",
+                          "encoding": "base64",
+                          "value": "ZWNobyBoZWxsbyB3b3JsZA==",
+                          "secured": false
+                        },
+                        {
+                          "name": "timeout",
+                          "description": "timeout of the action execution in seconds",
+                          "encoding": "ascii",
+                          "value": "",
+                          "secured": false
+                        }
+                      ],
+                      "inputParameters": [],
+                      "tags": [
+                        "sample"
+                      ],
+                      "createdAt": 1694442511.129923,
+                      "modifiedAt": 1703191040.321448
+                    },
+                    "color": "low",
+                    "confidence": "low",
+                    "aiEngine": "NLP"
+                  }
+                ],
+                "schema": {
+                  "$ref": "#/components/schemas/ActionMatch"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get actions from event matching data",
+        "tags": [
+          "Action Catalog"
+        ]
+      }
+    },
+    "/api/automation/parameters/dynamic": {
+      "put": {
+        "operationId": "resolve",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "eventId": "7UPTIakhR3uVaMnSQuG3TA",
+                "timestamp": 1710168530000,
+                "parameters": [
+                  {
+                    "name": "Application name",
+                    "tagName": "application.name"
+                  }
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GetDynamicParameterValues"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "eventId": "7UPTIakhR3uVaMnSQuG3TA",
+                  "timestamp": 1710168530000,
+                  "parameters": [
+                    {
+                      "name": "Application name",
+                      "tagName": "application.name",
+                      "resolvedValue": "[\"Demo Application\"]"
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GetDynamicParameterValues"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canRunAutomationActions"
+            ]
+          }
+        ],
+        "summary": "Resolve dynamic parameter values",
+        "tags": [
+          "Action Catalog"
+        ]
+      }
+    },
+    "/api/automation/parameters/dynamic/catalog": {
+      "get": {
+        "operationId": "getDynamicParametersTagCatalog",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "tagTree": [
+                    {
+                      "label": "Application",
+                      "description": null,
+                      "icon": null,
+                      "children": [
+                        {
+                          "label": "Name",
+                          "icon": "lib_application",
+                          "tagName": "application.name",
+                          "queryable": true,
+                          "type": "TAG"
+                        }
+                      ],
+                      "type": "LEVEL",
+                      "queryable": false
+                    }
+                  ],
+                  "tags": [
+                    {
+                      "name": "application.name",
+                      "label": "Name",
+                      "type": "STRING_SET",
+                      "description": null,
+                      "canApplyToSource": true,
+                      "canApplyToDestination": true,
+                      "idTag": false
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TagCatalog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get tag catalog for dynamic parameters",
+        "tags": [
+          "Action Catalog"
+        ]
+      }
+    },
+    "/api/automation/policies": {
+      "get": {
+        "operationId": "getPolicies",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": "a14700b0-401b-47eb-a751-deda0035fde3",
+                    "name": "Policy for test",
+                    "description": "Policy for test",
+                    "trigger": {
+                      "type": "customEvent",
+                      "id": "C3Ha8PffQHfJ0Hk6",
+                      "name": "Test Event"
+                    },
+                    "typeConfigurations": [
+                      {
+                        "name": "manual",
+                        "runnable": {
+                          "type": "action",
+                          "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                          "runConfiguration": {
+                            "actions": [
+                              {
+                                "action": {
+                                  "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                                  "name": "Hello World",
+                                  "description": "Simple script action for testing",
+                                  "type": "SCRIPT",
+                                  "fields": [
+                                    {
+                                      "name": "subtype",
+                                      "description": "script subtype",
+                                      "encoding": "base64",
+                                      "value": "YmFzaA==",
+                                      "secured": false
+                                    },
+                                    {
+                                      "name": "script_ssh",
+                                      "description": "script content",
+                                      "encoding": "base64",
+                                      "value": "ZWNobyBoZWxsbyB3b3JsZA==",
+                                      "secured": false
+                                    },
+                                    {
+                                      "name": "timeout",
+                                      "description": "timeout of the action execution in seconds",
+                                      "encoding": "ascii",
+                                      "value": "",
+                                      "secured": false
+                                    }
+                                  ],
+                                  "inputParameters": [],
+                                  "tags": [
+                                    "Test",
+                                    "idempotent"
+                                  ],
+                                  "createdAt": 1694442511.129923,
+                                  "modifiedAt": 1703191040.321448
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/Policy"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get all automation policies",
+        "tags": [
+          "Policies"
+        ]
+      },
+      "post": {
+        "operationId": "addPolicy",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "builtin-action-custom-event",
+                "trigger": {
+                  "name": "test event",
+                  "type": "customEvent",
+                  "id": "2X5r-Un18MIE59rE"
+                },
+                "typeConfigurations": [
+                  {
+                    "name": "manual",
+                    "runnable": {
+                      "type": "action",
+                      "id": "c5ba4453-0bc2-3c3e-bdbe-b3ce68239145",
+                      "runConfiguration": {
+                        "actions": [
+                          {
+                            "action": {
+                              "id": "c5ba4453-0bc2-3c3e-bdbe-b3ce68239145"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/Policy"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "a14700b0-401b-47eb-a751-deda0035fde3",
+                  "name": "Policy for test",
+                  "description": "Policy for test",
+                  "trigger": {
+                    "type": "customEvent",
+                    "id": "C3Ha8PffQHfJ0Hk6",
+                    "name": "Test Event"
+                  },
+                  "typeConfigurations": [
+                    {
+                      "name": "manual",
+                      "runnable": {
+                        "type": "action",
+                        "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                        "runConfiguration": {
+                          "actions": [
+                            {
+                              "action": {
+                                "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                                "name": "Hello World",
+                                "description": "Simple script action for testing",
+                                "type": "SCRIPT",
+                                "fields": [
+                                  {
+                                    "name": "subtype",
+                                    "description": "script subtype",
+                                    "encoding": "base64",
+                                    "value": "YmFzaA==",
+                                    "secured": false
+                                  },
+                                  {
+                                    "name": "script_ssh",
+                                    "description": "script content",
+                                    "encoding": "base64",
+                                    "value": "ZWNobyBoZWxsbyB3b3JsZA==",
+                                    "secured": false
+                                  },
+                                  {
+                                    "name": "timeout",
+                                    "description": "timeout of the action execution in seconds",
+                                    "encoding": "ascii",
+                                    "value": "",
+                                    "secured": false
+                                  }
+                                ],
+                                "inputParameters": [],
+                                "tags": [
+                                  "Test"
+                                ],
+                                "createdAt": 1694442511.129923,
+                                "modifiedAt": 1703191040.321448
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Policy"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canConfigureAutomationPolicies"
+            ]
+          }
+        ],
+        "summary": "Create an automation policy",
+        "tags": [
+          "Policies"
+        ]
+      }
+    },
+    "/api/automation/policies/bulk": {
+      "post": {
+        "operationId": "addPolicies",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "$ref": "#/components/schemas/Policy"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/Policy"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canConfigureAutomationPolicies"
+            ]
+          }
+        ],
+        "summary": "Create automation policies",
+        "tags": [
+          "Policies"
+        ]
+      }
+    },
+    "/api/automation/policies/{id}": {
+      "delete": {
+        "operationId": "deletePolicy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canConfigureAutomationPolicies"
+            ]
+          }
+        ],
+        "summary": "Deletes an automation policy",
+        "tags": [
+          "Policies"
+        ]
+      },
+      "get": {
+        "operationId": "getPolicyByID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "a14700b0-401b-47eb-a751-deda0035fde3",
+                  "name": "Policy for test",
+                  "description": "Policy for test",
+                  "trigger": {
+                    "type": "customEvent",
+                    "id": "C3Ha8PffQHfJ0Hk6",
+                    "name": "Test Event"
+                  },
+                  "typeConfigurations": [
+                    {
+                      "name": "manual",
+                      "runnable": {
+                        "type": "action",
+                        "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                        "runConfiguration": {
+                          "actions": [
+                            {
+                              "action": {
+                                "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                                "name": "Hello World",
+                                "description": "Simple script action for testing",
+                                "type": "SCRIPT",
+                                "fields": [
+                                  {
+                                    "name": "subtype",
+                                    "description": "script subtype",
+                                    "encoding": "base64",
+                                    "value": "YmFzaA==",
+                                    "secured": false
+                                  },
+                                  {
+                                    "name": "script_ssh",
+                                    "description": "script content",
+                                    "encoding": "base64",
+                                    "value": "ZWNobyBoZWxsbyB3b3JsZA==",
+                                    "secured": false
+                                  },
+                                  {
+                                    "name": "timeout",
+                                    "description": "timeout of the action execution in seconds",
+                                    "encoding": "ascii",
+                                    "value": "",
+                                    "secured": false
+                                  }
+                                ],
+                                "inputParameters": [],
+                                "tags": [
+                                  "Test"
+                                ],
+                                "createdAt": 1694442511.129923,
+                                "modifiedAt": 1703191040.321448
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Policy"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get an automation policy by ID",
+        "tags": [
+          "Policies"
+        ]
+      },
+      "put": {
+        "operationId": "updatePolicy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "builtin-action-custom-event",
+                "trigger": {
+                  "name": "test event",
+                  "type": "customEvent",
+                  "id": "2X5r-Un18MIE59rE"
+                },
+                "typeConfigurations": [
+                  {
+                    "name": "manual",
+                    "runnable": {
+                      "type": "action",
+                      "id": "c5ba4453-0bc2-3c3e-bdbe-b3ce68239145",
+                      "runConfiguration": {
+                        "actions": [
+                          {
+                            "action": {
+                              "id": "c5ba4453-0bc2-3c3e-bdbe-b3ce68239145"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/Policy"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "a14700b0-401b-47eb-a751-deda0035fde3",
+                  "name": "Policy for test",
+                  "description": "Policy for test",
+                  "trigger": {
+                    "type": "customEvent",
+                    "id": "C3Ha8PffQHfJ0Hk6",
+                    "name": "Test Event"
+                  },
+                  "typeConfigurations": [
+                    {
+                      "name": "manual",
+                      "runnable": {
+                        "type": "action",
+                        "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                        "runConfiguration": {
+                          "actions": [
+                            {
+                              "action": {
+                                "id": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
+                                "name": "Hello World",
+                                "description": "Simple script action for testing",
+                                "type": "SCRIPT",
+                                "fields": [
+                                  {
+                                    "name": "subtype",
+                                    "description": "script subtype",
+                                    "encoding": "base64",
+                                    "value": "YmFzaA==",
+                                    "secured": false
+                                  },
+                                  {
+                                    "name": "script_ssh",
+                                    "description": "script content",
+                                    "encoding": "base64",
+                                    "value": "ZWNobyBoZWxsbyB3b3JsZA==",
+                                    "secured": false
+                                  },
+                                  {
+                                    "name": "timeout",
+                                    "description": "timeout of the action execution in seconds",
+                                    "encoding": "ascii",
+                                    "value": "",
+                                    "secured": false
+                                  }
+                                ],
+                                "inputParameters": [],
+                                "tags": [
+                                  "Test"
+                                ],
+                                "createdAt": 1694442511.129923,
+                                "modifiedAt": 1703191040.321448
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Policy"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canConfigureAutomationPolicies"
+            ]
+          }
+        ],
+        "summary": "Updates an automation policy",
+        "tags": [
+          "Policies"
+        ]
+      }
+    },
     "/api/custom-dashboard": {
       "get": {
         "operationId": "getCustomDashboards",
@@ -6117,11 +7477,44 @@
     },
     "/api/events/settings/event-specifications/custom": {
       "get": {
+        "description": " This API helps in getting all the custom event specifications.",
         "operationId": "getCustomEventSpecifications",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "Yojfl6Yn9SXaFhJG",
+                    "name": "DP_Domain_MemoryUsage",
+                    "entityType": "ibmDataPowerDomain",
+                    "query": null,
+                    "triggering": true,
+                    "description": "Average Memory Usage for the DP Domain >= 0%",
+                    "expirationTime": 60000,
+                    "enabled": true,
+                    "rules": [
+                      {
+                        "ruleType": "threshold",
+                        "metricName": "currentMemUsage",
+                        "metricPattern": null,
+                        "rollup": 0,
+                        "window": 600000,
+                        "aggregation": "avg",
+                        "conditionOperator": ">=",
+                        "conditionValue": 0,
+                        "severity": 5
+                      }
+                    ],
+                    "ruleLogicalOperator": "AND",
+                    "lastUpdated": 1670404707763,
+                    "validVersion": 1,
+                    "actions": null,
+                    "migrated": false,
+                    "applicationAlertConfigId": null,
+                    "deleted": false
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -6130,7 +7523,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -6184,11 +7578,18 @@
     },
     "/api/events/settings/event-specifications/custom/systemRules": {
       "get": {
+        "description": "This API helps to get all the system rules for custom event specifications.",
         "operationId": "getSystemRules",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "entity.offline",
+                    "name": "Offline event detection (System Rule)"
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -6197,7 +7598,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -6249,9 +7651,12 @@
         "description": "This endpoint deletes a Custom Event Specification.\n\nBy default, the ID of a deleted configuration cannot be reused anymore to enable links in previous Issues or Incidents to stay valid.\nHowever, check out the docs for [updating a configuration](#operation/putCustomEventSpecification) how this default behavior can be changed using the `allowRestore` query parameter.\n\n\n## Mandatory Parameters:\n\n- **eventSpecificationId (Path Parameter):** A unique identifier for the custom event specification to delete.\n\n\n# Example:\n\n```\ncurl --request DELETE 'https://<Host>/api/events/settings/event-specifications/custom/<EventSpecificationId>' \\\n--header 'Authorization: apiToken <Token>' \\\n--header 'Content-Type: application/json'\n```\n"
       },
       "get": {
+        "description": "This API helps to get the Custom Event specification for the given ID.",
         "operationId": "getCustomEventSpecification",
         "parameters": [
           {
+            "description": "eventSpecificationId",
+            "example": "Yojfl6Yn9SXaFhJG",
             "in": "path",
             "name": "eventSpecificationId",
             "required": true,
@@ -6262,14 +7667,47 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "Yojfl6Yn9SXaFhJG",
+                  "name": "DP_Domain_MemoryUsage",
+                  "entityType": "ibmDataPowerDomain",
+                  "query": null,
+                  "triggering": true,
+                  "description": "Average Memory Usage for the DP Domain >= 0%",
+                  "expirationTime": 60000,
+                  "enabled": true,
+                  "rules": [
+                    {
+                      "ruleType": "threshold",
+                      "severity": 5,
+                      "metricName": "currentMemUsage",
+                      "rollup": 0,
+                      "window": 600000,
+                      "metricPattern": null,
+                      "aggregation": "avg",
+                      "conditionOperator": ">=",
+                      "conditionValue": 0,
+                      "metricLabel": "Current Memory Usage",
+                      "metricFormat": "PERCENTAGE"
+                    }
+                  ],
+                  "ruleLogicalOperator": "AND",
+                  "lastUpdated": 1670404707763,
+                  "validVersion": 1,
+                  "actions": null,
+                  "migrated": false,
+                  "applicationAlertConfigId": null,
+                  "deleted": false
+                },
                 "schema": {
                   "$ref": "#/components/schemas/CustomEventSpecificationWithLastUpdated"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -6440,11 +7878,26 @@
     },
     "/api/events/settings/event-specifications/infos": {
       "get": {
+        "description": "This API helps to get the summary of all build-in and custom event specifications",
         "operationId": "getEventSpecificationInfos",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "yBGNFSh-pcKzZVBFnxoBu_36Yw4",
+                    "name": "Frequent TCP errors",
+                    "description": "Checks whether the host has an unusual high number of TCP errors.",
+                    "entityType": "host",
+                    "type": "BUILT_IN",
+                    "severity": 5,
+                    "triggering": false,
+                    "invalid": false,
+                    "enabled": true,
+                    "migrated": false
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -6453,7 +7906,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -7087,9 +8541,64 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "name": "Tests in EU are failing",
+                    "description": "Tests in EU failed for 1 consecutive time",
+                    "syntheticTestIds": [
+                      "ic25Vt1T5dgKzi0K7812",
+                      "2gBxQz3oKtXgFXzRoQ6O"
+                    ],
+                    "severity": 5,
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": [
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "synthetic.serviceId",
+                          "stringValue": "12",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "12",
+                          "operator": "EQUALS",
+                          "entity": "NOT_APPLICABLE"
+                        },
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "synthetic.locationLabel",
+                          "stringValue": "US-west1",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "123",
+                          "operator": "EQUALS",
+                          "entity": "NOT_APPLICABLE"
+                        }
+                      ]
+                    },
+                    "rule": {
+                      "alertType": "failure",
+                      "metricName": "status",
+                      "aggregation": "SUM"
+                    },
+                    "alertChannelIds": [],
+                    "timeThreshold": {
+                      "type": "violationsInSequence",
+                      "violationsCount": 1
+                    },
+                    "customPayloadFields": [],
+                    "id": "2K1YQIeaSQKIcIkHPH7D3g",
+                    "created": 1707486254161,
+                    "initialCreated": 1706531043586,
+                    "readOnly": false,
+                    "enabled": true
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -7098,7 +8607,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -7208,14 +8718,53 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "name": "2 consecutive failures of ${synthetic.testName} at locations${synthetic.locationLabel}",
+                  "description": "Alert created without test but with AppId - Synthetic test failed for 2 consecutive times",
+                  "syntheticTestIds": [
+                    "ic25Vt1T5dgKzi0K7812",
+                    "2gBxQz3oKtXgFXzRoQ6O"
+                  ],
+                  "severity": 5,
+                  "tagFilterExpression": {
+                    "type": "TAG_FILTER",
+                    "name": "synthetic.applicationId",
+                    "stringValue": "2BPCBLz_RBG8J6mjyuxm6w",
+                    "numberValue": null,
+                    "booleanValue": null,
+                    "key": null,
+                    "value": "2BPCBLz_RBG8J6mjyuxm6w",
+                    "operator": "EQUALS",
+                    "entity": "NOT_APPLICABLE"
+                  },
+                  "rule": {
+                    "alertType": "failure",
+                    "metricName": "status",
+                    "aggregation": "SUM"
+                  },
+                  "alertChannelIds": [
+                    "0o1ISHPfR8-N4iUK"
+                  ],
+                  "timeThreshold": {
+                    "type": "violationsInSequence",
+                    "violationsCount": 2
+                  },
+                  "customPayloadFields": [],
+                  "id": "qgEwvI0vRfe3Al_D7T7LSA",
+                  "created": 1707149760053,
+                  "initialCreated": 1707145201046,
+                  "readOnly": false,
+                  "enabled": true
+                },
                 "schema": {
                   "$ref": "#/components/schemas/SyntheticAlertConfigWithMetadata"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -7446,9 +8995,39 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "qgEwvI0vRfe3Al_D7T7LSA",
+                    "created": 1707149760053,
+                    "enabled": true,
+                    "deleted": false,
+                    "changeSummary": {
+                      "changeType": "UPDATE",
+                      "author": {
+                        "id": "6244073003b38f0001209ec5",
+                        "type": "USER",
+                        "fullName": "John Doe"
+                      }
+                    }
+                  },
+                  {
+                    "id": "qgEwvI0vRfe3Al_D7T7LSA",
+                    "created": 1707145201046,
+                    "enabled": true,
+                    "deleted": false,
+                    "changeSummary": {
+                      "changeType": "CREATE",
+                      "author": {
+                        "id": "6244073003b38f0001209ec5",
+                        "type": "USER",
+                        "fullName": "John Doe"
+                      }
+                    }
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -7457,7 +9036,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -7885,6 +9465,8 @@
         "operationId": "findActiveMobileAppAlertConfigs",
         "parameters": [
           {
+            "description": "mobileAppId",
+            "example": "tk2OLeusR3aQJD5h-rBh2A",
             "in": "query",
             "name": "mobileAppId",
             "schema": {
@@ -7893,6 +9475,8 @@
             }
           },
           {
+            "description": "alertIds",
+            "example": "[...]",
             "in": "query",
             "name": "alertIds",
             "schema": {
@@ -7909,9 +9493,76 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "name": "HTTP Status Code(s): 5XX",
+                    "description": "Occurrences of HTTP Status Code 5XX (Server Error) is above the expectation.",
+                    "mobileAppId": "tk2OLeusR3aQJD5h-rBh2A",
+                    "severity": 5,
+                    "triggering": false,
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": []
+                    },
+                    "rule": {
+                      "alertType": "statusCode",
+                      "metricName": "httpxxx",
+                      "operator": "STARTS_WITH",
+                      "value": "5",
+                      "aggregation": "SUM"
+                    },
+                    "threshold": {
+                      "type": "staticThreshold",
+                      "operator": ">=",
+                      "value": 5,
+                      "lastUpdated": 0
+                    },
+                    "alertChannelIds": [],
+                    "granularity": 600000,
+                    "timeThreshold": {
+                      "type": "violationsInSequence",
+                      "timeWindow": 600000
+                    },
+                    "customPayloadFields": [],
+                    "id": "qOW5jlR5TQafXKWDIceRkA",
+                    "created": 1707224011842,
+                    "initialCreated": 1707224011842,
+                    "readOnly": false,
+                    "enabled": true,
+                    "completeTagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": [
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "mobileBeacon.mobileApp.id",
+                          "stringValue": "tk2OLeusR3aQJD5h-rBh2A",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "tk2OLeusR3aQJD5h-rBh2A",
+                          "operator": "EQUALS",
+                          "entity": "NOT_APPLICABLE"
+                        },
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "mobileBeacon.http.status",
+                          "stringValue": "5",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "5",
+                          "operator": "STARTS_WITH",
+                          "entity": "NOT_APPLICABLE"
+                        }
+                      ]
+                    }
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -7920,7 +9571,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "summary": "All Mobile App Alert Configs",
@@ -7989,6 +9641,8 @@
         "operationId": "findMobileAppAlertConfig",
         "parameters": [
           {
+            "description": "id",
+            "example": "qOW5jlR5TQafXKWDIceRkA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -7998,6 +9652,8 @@
             }
           },
           {
+            "description": "validOn",
+            "example": 0,
             "in": "query",
             "name": "validOn",
             "schema": {
@@ -8008,14 +9664,80 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "name": "HTTP Status Code(s): 5XX",
+                  "description": "Occurrences of HTTP Status Code 5XX (Server Error) is above the expectation.",
+                  "mobileAppId": "tk2OLeusR3aQJD5h-rBh2A",
+                  "severity": 5,
+                  "triggering": false,
+                  "tagFilterExpression": {
+                    "type": "EXPRESSION",
+                    "logicalOperator": "AND",
+                    "elements": []
+                  },
+                  "rule": {
+                    "alertType": "statusCode",
+                    "metricName": "httpxxx",
+                    "operator": "STARTS_WITH",
+                    "value": "5",
+                    "aggregation": "SUM"
+                  },
+                  "threshold": {
+                    "type": "staticThreshold",
+                    "operator": ">=",
+                    "value": 5,
+                    "lastUpdated": 0
+                  },
+                  "alertChannelIds": [],
+                  "granularity": 600000,
+                  "timeThreshold": {
+                    "type": "violationsInSequence",
+                    "timeWindow": 600000
+                  },
+                  "customPayloadFields": [],
+                  "id": "qOW5jlR5TQafXKWDIceRkA",
+                  "created": 1707224011842,
+                  "initialCreated": 1707224011842,
+                  "readOnly": false,
+                  "enabled": true,
+                  "completeTagFilterExpression": {
+                    "type": "EXPRESSION",
+                    "logicalOperator": "AND",
+                    "elements": [
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "mobileBeacon.mobileApp.id",
+                        "stringValue": "tk2OLeusR3aQJD5h-rBh2A",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": null,
+                        "value": "tk2OLeusR3aQJD5h-rBh2A",
+                        "operator": "EQUALS",
+                        "entity": "NOT_APPLICABLE"
+                      },
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "mobileBeacon.http.status",
+                        "stringValue": "5",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": null,
+                        "value": "5",
+                        "operator": "STARTS_WITH",
+                        "entity": "NOT_APPLICABLE"
+                      }
+                    ]
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/WithMetadata"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "summary": "Get Mobile App Alert Config",
@@ -8235,6 +9957,8 @@
         "operationId": "findMobileAppAlertConfigVersions",
         "parameters": [
           {
+            "description": "id",
+            "example": "PYb22UbjRM6zukE4umW8wA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -8245,9 +9969,25 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "PYb22UbjRM6zukE4umW8wA",
+                    "created": 1706686318650,
+                    "enabled": true,
+                    "deleted": false,
+                    "changeSummary": {
+                      "changeType": "CREATE",
+                      "author": {
+                        "id": "5ee8a3e8cd70020001ecb007",
+                        "type": "USER",
+                        "fullName": "Stan"
+                      }
+                    }
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -8256,7 +9996,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "summary": "Get versions of Mobile App Alert Config",
@@ -8271,6 +10012,8 @@
         "operationId": "findActiveWebsiteAlertConfigs",
         "parameters": [
           {
+            "description": "websiteId",
+            "example": "XIZGGVT1TX2O-0OFeT2Yig",
             "in": "query",
             "name": "websiteId",
             "schema": {
@@ -8279,6 +10022,8 @@
             }
           },
           {
+            "description": "alertIds",
+            "example": "[...]",
             "in": "query",
             "name": "alertIds",
             "schema": {
@@ -8295,9 +10040,83 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "name": "onLoad Time (90th) is too high",
+                    "description": "The onLoad Time (90th) is above the expectation.",
+                    "websiteId": "XIZGGVT1TX2O-0OFeT2Yig",
+                    "severity": 5,
+                    "triggering": false,
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": []
+                    },
+                    "rule": {
+                      "alertType": "slowness",
+                      "metricName": "onLoadTime",
+                      "aggregation": "P90"
+                    },
+                    "threshold": {
+                      "type": "historicBaseline",
+                      "operator": ">=",
+                      "seasonality": "DAILY",
+                      "baseline": [
+                        [
+                          0,
+                          239.164,
+                          6.1026
+                        ],
+                        [
+                          600000,
+                          240.0013,
+                          7.4109
+                        ],
+                        [
+                          85200000,
+                          241.3653,
+                          3
+                        ],
+                        [
+                          85800000,
+                          239.4759,
+                          3.9012
+                        ]
+                      ],
+                      "deviationFactor": 3,
+                      "lastUpdated": 0
+                    },
+                    "alertChannelIds": [],
+                    "granularity": 600000,
+                    "timeThreshold": {
+                      "type": "violationsInSequence",
+                      "timeWindow": 600000
+                    },
+                    "customPayloadFields": [
+                      {
+                        "type": "staticString",
+                        "key": "1",
+                        "value": "2"
+                      },
+                      {
+                        "type": "dynamic",
+                        "key": "2",
+                        "value": {
+                          "tagName": "beacon.website.name",
+                          "key": null
+                        }
+                      }
+                    ],
+                    "id": "G-h5p0znTHan2m2U3c-Z1Q",
+                    "created": 1707726529124,
+                    "initialCreated": 1707726529124,
+                    "readOnly": false,
+                    "enabled": true
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -8306,7 +10125,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -8397,6 +10217,8 @@
         "operationId": "findWebsiteAlertConfig",
         "parameters": [
           {
+            "description": "id",
+            "example": "q0nGVS8lTFaFHyieSN_mGw",
             "in": "path",
             "name": "id",
             "required": true,
@@ -8406,6 +10228,8 @@
             }
           },
           {
+            "description": "validOn",
+            "example": 0,
             "in": "query",
             "name": "validOn",
             "schema": {
@@ -8416,14 +10240,68 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "name": "onLoad Time (90th) is too high",
+                  "description": "The onLoad Time (90th) is above the expectation.",
+                  "websiteId": "XIZGGVT1TX2O-0OFeT2Yig",
+                  "severity": 5,
+                  "triggering": false,
+                  "tagFilterExpression": {
+                    "type": "EXPRESSION",
+                    "logicalOperator": "AND",
+                    "elements": []
+                  },
+                  "rule": {
+                    "alertType": "slowness",
+                    "metricName": "onLoadTime",
+                    "aggregation": "P90"
+                  },
+                  "threshold": {
+                    "type": "historicBaseline",
+                    "operator": ">=",
+                    "seasonality": "DAILY",
+                    "baseline": [
+                      [
+                        0,
+                        238.8,
+                        5.6339
+                      ],
+                      [
+                        85200000,
+                        240.9973,
+                        4.8431
+                      ],
+                      [
+                        85800000,
+                        241.2067,
+                        5.3018
+                      ]
+                    ],
+                    "deviationFactor": 3,
+                    "lastUpdated": 0
+                  },
+                  "alertChannelIds": [],
+                  "granularity": 600000,
+                  "timeThreshold": {
+                    "type": "violationsInSequence",
+                    "timeWindow": 600000
+                  },
+                  "customPayloadFields": [],
+                  "id": "q0nGVS8lTFaFHyieSN_mGw",
+                  "created": 1706709825308,
+                  "initialCreated": 1706709825308,
+                  "readOnly": false,
+                  "enabled": true
+                },
                 "schema": {
                   "$ref": "#/components/schemas/WebsiteAlertConfigWithMetadata"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -8686,6 +10564,8 @@
         "operationId": "findWebsiteAlertConfigVersions",
         "parameters": [
           {
+            "description": "eventId",
+            "example": "q0nGVS8lTFaFHyieSN_mGw",
             "in": "path",
             "name": "id",
             "required": true,
@@ -8696,9 +10576,25 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "q0nGVS8lTFaFHyieSN_mGw",
+                    "created": 1706709825308,
+                    "enabled": true,
+                    "deleted": false,
+                    "changeSummary": {
+                      "changeType": "CREATE",
+                      "author": {
+                        "id": "5ee8a3e8cd70020001ecb007",
+                        "type": "USER",
+                        "fullName": "Stan"
+                      }
+                    }
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -8707,7 +10603,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -10425,6 +12322,13 @@
                           "kubernetesPersistentVolume",
                           "kubernetesPersistentVolumeClaim"
                         ]
+                      },
+                      {
+                        "terminus": "host",
+                        "related": [
+                          "vsphereVM",
+                          "vsphereHost"
+                        ]
                       }
                     ]
                   }
@@ -11890,9 +13794,17 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "Tiu16hLCTniHDtHb_uDV1w",
+                    "name": "demo-app/main-**",
+                    "start": 1709091782000,
+                    "lastUpdated": 1709091782533
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -11901,7 +13813,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -11991,6 +13904,8 @@
         "operationId": "getRelease",
         "parameters": [
           {
+            "description": "Release ID",
+            "example": "XK1e1TF3T9SHKugndn_soQ",
             "in": "path",
             "name": "releaseId",
             "required": true,
@@ -12001,14 +13916,21 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "XK1e1TF3T9SHKugndn_soQ",
+                  "name": "demo-app/main-**",
+                  "start": 1706674621000,
+                  "lastUpdated": 1706674621604
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ReleaseWithMetadata"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -13149,7 +15071,7 @@
         "tags": [
           "Groups"
         ],
-        "description": "Creates a group on the tenant. Each group entry also needs a `Permission Set` per unit.\n\nThe `Permission Set` object contains a set of permissions applied to the group.\n\nIn case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.\n\nPossible access permissions values are:\n\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_WEBSITES`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_INFRASTRUCTURE`\n\nThe `id` value for the group is ignored, a new id is generated.\n\nThe `scopeRoleId` is ignored, the id corresponding to the area is used.\n\nThe `scopeId` is the id for the corresponding resource."
+        "description": "Creates a group on the tenant. Each group entry also needs a `Permission Set` per unit.\n\nThe `Permission Set` object contains a set of permissions applied to the group.\n\nIn case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.\n\nPossible access permissions values are:\n\n- `ACCESS_APPLICATIONS`\n- `ACCESS_INFRASTRUCTURE`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_WEBSITES`\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n\nThe `id` value for the group is ignored, a new id is generated.\n\nThe `scopeRoleId` is ignored, the id corresponding to the area is used.\n\nThe `scopeId` is the id for the corresponding resource."
       }
     },
     "/api/settings/rbac/groups/user/{email}": {
@@ -13246,7 +15168,7 @@
         "tags": [
           "Groups"
         ],
-        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_USERS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_WEBSITES`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_INFRASTRUCTURE`\n"
+        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `ACCESS_APPLICATIONS`\n- `ACCESS_INFRASTRUCTURE`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_WEBSITES`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_USERS`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n"
       }
     },
     "/api/settings/rbac/groups/{groupId}/users": {
@@ -13419,7 +15341,7 @@
         "tags": [
           "Groups"
         ],
-        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_USERS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_WEBSITES`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_INFRASTRUCTURE`\n"
+        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `ACCESS_APPLICATIONS`\n- `ACCESS_INFRASTRUCTURE`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_WEBSITES`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_USERS`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n"
       }
     },
     "/api/settings/rbac/groups/{id}/user/{userId}": {
@@ -19886,6 +21808,297 @@
           "type"
         ]
       },
+      "ActionConfiguration": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/Action"
+          },
+          "agentId": {
+            "type": "string",
+            "example": null
+          },
+          "inputParameterValues": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/ParameterValue"
+            }
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "ActionInstance": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "actionDescription": {
+            "type": "string",
+            "example": null
+          },
+          "actionId": {
+            "type": "string",
+            "example": null
+          },
+          "actionInstanceId": {
+            "type": "string",
+            "example": null
+          },
+          "actionName": {
+            "type": "string",
+            "example": null
+          },
+          "actorId": {
+            "type": "string",
+            "example": null
+          },
+          "actorName": {
+            "type": "string",
+            "example": null
+          },
+          "actorType": {
+            "type": "string",
+            "enum": [
+              "ACTOR_UNKNOWN",
+              "USER",
+              "APITOKEN",
+              "POLICY"
+            ],
+            "example": null
+          },
+          "createdDate": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "endDate": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "errorMessage": {
+            "type": "string",
+            "example": null
+          },
+          "eventEntityType": {
+            "type": "string",
+            "example": null
+          },
+          "eventId": {
+            "type": "string",
+            "example": null
+          },
+          "eventSpecificationId": {
+            "type": "string",
+            "example": null
+          },
+          "externalSourceType": {
+            "type": "string",
+            "example": null
+          },
+          "hostSnapshotId": {
+            "type": "string",
+            "example": null
+          },
+          "inputParameters": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/ActionInstanceParameter"
+            }
+          },
+          "metadata": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/ActionInstanceMetadataEntry"
+            }
+          },
+          "outputParameters": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/ActionInstanceParameter"
+            }
+          },
+          "policyId": {
+            "type": "string",
+            "example": null
+          },
+          "problemText": {
+            "type": "string",
+            "example": null
+          },
+          "returnCode": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "startDate": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "STATUS_UNKNOWN",
+              "SUBMITTED",
+              "IN_PROGRESS",
+              "SUCCESS",
+              "FAILED",
+              "READY",
+              "TIMEOUT"
+            ],
+            "example": null
+          },
+          "targetSnapshotId": {
+            "type": "string",
+            "example": null
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SCRIPT",
+              "HTTP",
+              "ANSIBLE",
+              "EXTERNAL",
+              "GITHUB",
+              "GITLAB",
+              "JIRA"
+            ],
+            "example": null
+          }
+        },
+        "required": [
+          "actionId",
+          "actionName",
+          "type"
+        ]
+      },
+      "ActionInstanceMetadataEntry": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "value": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ActionInstanceParameter": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": null
+          },
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "type": {
+            "type": "string",
+            "example": null
+          },
+          "value": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "displayName",
+          "name"
+        ]
+      },
+      "ActionMatch": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/Action"
+          },
+          "aiEngine": {
+            "type": "string",
+            "example": null
+          },
+          "color": {
+            "type": "string",
+            "example": null
+          },
+          "confidence": {
+            "type": "string",
+            "example": null
+          },
+          "score": {
+            "type": "number",
+            "format": "double",
+            "example": null
+          }
+        },
+        "required": [
+          "action",
+          "aiEngine",
+          "color",
+          "confidence",
+          "score"
+        ]
+      },
+      "ActionSearchSpace": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/Action"
+          },
+          "description": {
+            "type": "string",
+            "example": null
+          },
+          "eventId": {
+            "type": "string",
+            "example": null
+          },
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "searchOrder": {
+            "type": "string",
+            "example": null
+          },
+          "searchTarget": {
+            "type": "string",
+            "example": null
+          },
+          "tags": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            }
+          },
+          "type": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "AdaptiveBaseline": {
         "type": "object",
         "allOf": [
@@ -20276,6 +22489,16 @@
             "minItems": 0,
             "uniqueItems": true
           },
+          "businessPerspectiveIds": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/ScopeBinding"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
           "infraDfqFilter": {
             "$ref": "#/components/schemas/ScopeBinding"
           },
@@ -20346,6 +22569,7 @@
         },
         "required": [
           "applicationIds",
+          "businessPerspectiveIds",
           "infraDfqFilter",
           "kubernetesClusterUUIDs",
           "kubernetesNamespaceUIDs",
@@ -21189,6 +23413,9 @@
             "items": {
               "type": "string",
               "enum": [
+                "host",
+                "vsphereHost",
+                "vsphereVM",
                 "kubernetesService",
                 "kubernetesPod",
                 "kubernetesPersistentVolume",
@@ -21201,6 +23428,9 @@
             "type": "string",
             "description": "Plugin ID of terminus",
             "enum": [
+              "host",
+              "vsphereHost",
+              "vsphereVM",
               "kubernetesService",
               "kubernetesPod",
               "kubernetesPersistentVolume",
@@ -22079,6 +24309,16 @@
           }
         }
       },
+      "Condition": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "query": {
+            "type": "string",
+            "example": null
+          }
+        }
+      },
       "ConfigVersion": {
         "type": "object",
         "example": null,
@@ -22728,6 +24968,28 @@
         "required": [
           "tagName"
         ]
+      },
+      "DynamicParameter": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": null
+          },
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "resolvedValue": {
+            "type": "string",
+            "example": null
+          },
+          "tagName": {
+            "type": "string",
+            "example": null
+          }
+        }
       },
       "EditUser": {
         "type": "object",
@@ -24273,6 +26535,33 @@
           "plugin"
         ]
       },
+      "GetDynamicParameterValues": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "example": null
+          },
+          "parameters": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/DynamicParameter"
+            }
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          }
+        },
+        "required": [
+          "eventId",
+          "parameters",
+          "timestamp"
+        ]
+      },
       "GetEndpoints": {
         "type": "object",
         "example": null,
@@ -25017,6 +27306,14 @@
         "type": "object",
         "example": null,
         "properties": {
+          "includeInternal": {
+            "type": "boolean",
+            "example": null
+          },
+          "includeSynthetic": {
+            "type": "boolean",
+            "example": null
+          },
           "pagination": {
             "$ref": "#/components/schemas/CursorPagination"
           },
@@ -28410,6 +30707,14 @@
             "example": null,
             "minimum": 1
           },
+          "internalMeta": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "example": null
+            },
+            "example": null
+          },
           "latitude": {
             "type": "number",
             "format": "double",
@@ -29163,6 +31468,24 @@
           "valueType"
         ]
       },
+      "ParameterValue": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "value": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ]
+      },
       "PathParameterHttpPathSegmentMatchingRule": {
         "type": "object",
         "allOf": [
@@ -29223,6 +31546,80 @@
             "example": null
           }
         }
+      },
+      "Policy": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "description": {
+            "type": "string",
+            "example": null,
+            "maxLength": 512,
+            "minLength": 0
+          },
+          "id": {
+            "type": "string",
+            "example": null,
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "example": null,
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "tags": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            }
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/Trigger"
+          },
+          "typeConfigurations": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/TypeConfiguration"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "trigger",
+          "typeConfigurations"
+        ]
+      },
+      "PolicyRunnable": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": null
+          },
+          "runConfiguration": {
+            "$ref": "#/components/schemas/RunConfiguration"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "action",
+              "workflow"
+            ],
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "runConfiguration",
+          "type"
+        ]
       },
       "PostSnapshotsResult": {
         "type": "object",
@@ -29509,6 +31906,22 @@
         "required": [
           "inputKind",
           "inputName"
+        ]
+      },
+      "RunConfiguration": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "actions": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/ActionConfiguration"
+            }
+          }
+        },
+        "required": [
+          "actions"
         ]
       },
       "SalesforceIntegration": {
@@ -32430,6 +34843,11 @@
             "type": "boolean",
             "example": null
           },
+          "scoreBoost": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
           "type": {
             "type": "string",
             "example": null
@@ -32499,6 +34917,11 @@
               },
               "queryable": {
                 "type": "boolean",
+                "example": null
+              },
+              "scoreBoost": {
+                "type": "integer",
+                "format": "int32",
                 "example": null
               },
               "tagName": {
@@ -33461,6 +35884,63 @@
         },
         "required": [
           "items"
+        ]
+      },
+      "Trigger": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": null
+          },
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "customEvent",
+              "builtinEvent",
+              "applicationSmartAlert",
+              "globalApplicationSmartAlert",
+              "websiteSmartAlert",
+              "infraSmartAlert",
+              "mobileAppSmartAlert",
+              "syntheticsSmartAlert",
+              "logSmartAlert"
+            ],
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ]
+      },
+      "TypeConfiguration": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "condition": {
+            "$ref": "#/components/schemas/Condition"
+          },
+          "name": {
+            "type": "string",
+            "enum": [
+              "automatic",
+              "manual"
+            ],
+            "example": null
+          },
+          "runnable": {
+            "$ref": "#/components/schemas/PolicyRunnable"
+          }
+        },
+        "required": [
+          "name",
+          "runnable"
         ]
       },
       "UnsupportedHttpPathSegmentMatchingRule": {
@@ -35175,6 +37655,14 @@
             "format": "int64",
             "example": null
           },
+          "internalMeta": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "example": null
+            },
+            "example": null
+          },
           "largestContentfulPaintTime": {
             "type": "integer",
             "format": "int64",
@@ -35977,6 +38465,14 @@
       "name": "Pipeline Feedback",
       "tags": [
         "Releases"
+      ]
+    },
+    {
+      "name": "Automation",
+      "tags": [
+        "Action Catalog",
+        "Action History",
+        "Policies"
       ]
     },
     {
