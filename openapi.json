@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.270.766",
+    "version": "1.271.754",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -461,25 +461,7 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "example": {
-                "group": {
-                  "groupbyTag": "trace.endpoint.name",
-                  "groupbyTagEntity": "NOT_APPLICABLE"
-                },
-                "metrics": [
-                  {
-                    "aggregation": "SUM",
-                    "metric": "latency"
-                  }
-                ],
-                "order": {
-                  "by": "traces_SUM",
-                  "direction": "ASC"
-                },
-                "pagination": {
-                  "retrievalSize": 20
-                }
-              },
+              "example": "{\n     \"group\": {\n         \"groupbyTag\": \"trace.endpoint.name\",\n         \"groupbyTagEntity\": \"NOT_APPLICABLE\"\n     },\n     \"metrics\": [\n         {\n             \"aggregation\": \"SUM\",\n             \"metric\": \"latency\"\n         }\n     ],\n     \"order\": {\n         \"by\": \"traces_SUM\",\n         \"direction\": \"ASC\"\n     },\n     \"pagination\": {\n          \"retrievalSize\": 20\n     }\n     \"tagFilterExpression\": {\n          \"type\": \"EXPRESSION\",\n          \"logicalOperator\": \"AND\",\n          \"elements\": [\n              {\n                  \"type\": \"TAG_FILTER\",\n                  \"name\": \"call.type\",\n                  \"operator\": \"EQUALS\",\n                  \"entity\": \"NOT_APPLICABLE\",\n                  \"value\": \"DATABASE\"\n              },\n              {\n                  \"type\": \"TAG_FILTER\",\n                  \"name\": \"service.name\",\n                  \"operator\": \"EQUALS\",\n                  \"entity\": \"DESTINATION\",\n                  \"value\": \"ratings\"\n              }\n          ]\n      },\n }\n",
               "schema": {
                 "$ref": "#/components/schemas/GetTraceGroups"
               }
@@ -5360,11 +5342,86 @@
         ]
       }
     },
+    "/api/business-monitoring/activities": {
+      "post": {
+        "operationId": "getActivities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetActivities"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPaginatedBusinessActivityItem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get Business Activities",
+        "tags": [
+          "Business Monitoring"
+        ]
+      }
+    },
+    "/api/business-monitoring/activities/csv": {
+      "post": {
+        "operationId": "getActivitiesCsv",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetActivities"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessActivity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Download Business Activities",
+        "tags": [
+          "Business Monitoring"
+        ]
+      }
+    },
     "/api/custom-dashboard": {
       "get": {
+        "description": "Get all accessible custom dashboards details.",
         "operationId": "getCustomDashboards",
         "parameters": [
           {
+            "description": "query",
+            "example": "BeeInstana",
             "in": "query",
             "name": "query",
             "schema": {
@@ -5373,6 +5430,8 @@
             }
           },
           {
+            "description": "pageSize",
+            "example": 2,
             "in": "query",
             "name": "pageSize",
             "schema": {
@@ -5382,6 +5441,8 @@
             }
           },
           {
+            "description": "page",
+            "example": 1,
             "in": "query",
             "name": "page",
             "schema": {
@@ -5392,9 +5453,25 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "gBtvG96xRpScauwsclG-KA",
+                    "title": "BeeInstana - aggregator",
+                    "annotations": [
+                      "SHARED"
+                    ]
+                  },
+                  {
+                    "id": "UtaUyPjGSTOAmPFICSbwqw",
+                    "title": "BeeInstana - alerting",
+                    "annotations": [
+                      "SHARED"
+                    ]
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -5403,7 +5480,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -5458,11 +5536,26 @@
     },
     "/api/custom-dashboard/shareable-api-tokens": {
       "get": {
+        "description": "Get all API tokens that have access to shareable custom dashboards.",
         "operationId": "getShareableApiTokens",
         "responses": {
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "foJfJVpyS5eAQAhfxSRctw",
+                    "name": "New API Token"
+                  },
+                  {
+                    "id": "O_OKWG48S2WemaL_e3j_vQ",
+                    "name": "New API Token"
+                  },
+                  {
+                    "id": "ATBzggrzTE-aRpUMBLmG9g",
+                    "name": "New API Token"
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -5494,11 +5587,24 @@
     },
     "/api/custom-dashboard/shareable-users": {
       "get": {
+        "description": "Get all users (without invitations) that have access to shareable custom dashboards.",
         "operationId": "getShareableUsers",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "63721be55108940001ead6fa",
+                    "email": "JohnMcClane@instana.com",
+                    "fullName": "John McClane"
+                  },
+                  {
+                    "id": "6360a5ad034a430001c500d0",
+                    "email": "HansGruber@instana.com",
+                    "fullName": "Hans Gruber"
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -5507,7 +5613,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -5560,9 +5667,12 @@
         ]
       },
       "get": {
+        "description": "Get all Custom Dashboard Info for specified customDashboardId.",
         "operationId": "getCustomDashboard",
         "parameters": [
           {
+            "description": "customDashboardId",
+            "example": "alHaYV5aSkKku_wcg53teQ",
             "in": "path",
             "name": "customDashboardId",
             "required": true,
@@ -5573,14 +5683,63 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "alHaYV5aSkKku_wcg53teQ",
+                  "title": "{string}",
+                  "accessRules": [
+                    {
+                      "accessType": "READ_WRITE",
+                      "relationType": "USER",
+                      "relatedId": "5ee8a3e8cd70020001ecb007"
+                    },
+                    {
+                      "accessType": "READ",
+                      "relationType": "GLOBAL",
+                      "relatedId": null
+                    }
+                  ],
+                  "widgets": [
+                    {
+                      "id": "dIxxq0LCdqZomve2",
+                      "title": "SUM of bytes received for a particular container",
+                      "width": 2,
+                      "height": 4,
+                      "x": 0,
+                      "y": 0,
+                      "type": "bigNumber",
+                      "config": {
+                        "formatter": "bytes.detailed",
+                        "comparisonDecreaseColor": "greenish",
+                        "metricConfiguration": {
+                          "metric": "network.rx.bytes",
+                          "timeShift": 0,
+                          "tagFilterExpression": {
+                            "name": "docker.containerId",
+                            "type": "TAG_FILTER",
+                            "value": "faaa7f1732d16faa7fc27a0cb49fdf5c07716f3d3be1315e20f24d099657bbe0",
+                            "entity": "NOT_APPLICABLE",
+                            "operator": "EQUALS"
+                          },
+                          "aggregation": "SUM",
+                          "source": "INFRASTRUCTURE_METRICS",
+                          "crossSeriesAggregation": "SUM",
+                          "type": "docker"
+                        },
+                        "comparisonIncreaseColor": "redish"
+                      }
+                    }
+                  ],
+                  "writable": true
+                },
                 "schema": {
                   "$ref": "#/components/schemas/CustomDashboard"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -9459,6 +9618,66 @@
         ]
       }
     },
+    "/api/events/settings/manual-close/{eventId}": {
+      "post": {
+        "description": "Manually close an event (issue or incident). A close notification will be sent out and the event state will be updated accordingly.",
+        "operationId": "manuallyCloseEvent",
+        "parameters": [
+          {
+            "example": "exampleEventId",
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualCloseInfo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The event id refers to an event that is not open."
+          },
+          "404": {
+            "description": "The event id refers to an event that is not open."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Manually close an event.",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
     "/api/events/settings/mobile-app-alert-configs": {
       "get": {
         "description": "Configs are sorted descending by their created date.",
@@ -10726,14 +10945,16 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": "  {\n    \"items\": [\n        {\n            \"snapshotId\": \"iRsnjcH9cls2rlx3wm8ENPapljk\",\n            \"plugin\": \"instanaAgent\",\n            \"from\": 1706712590000,\n            \"to\": null,\n            \"tags\": [],\n            \"label\": \"Instana Agent @ ip-10-255-207-205\",\n            \"host\": \"EC2-i-0a8be85269f7e2b92\"\n        },\n    ]\n}\n",
                 "schema": {
                   "$ref": "#/components/schemas/SnapshotResult"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -11067,14 +11288,16 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": "  {\n    \"snapshotId\": \"snapshot id\",\n    \"plugin\": \"instanaAgent\",\n    \"from\": 1706791431000,\n    \"tags\": [],\n    \"label\": \"Instana Agent @ ip-10-255-207-205\",\n    \"entityId\": {\n        \"host\": \"EC2-i-0a8be85269f7e2b92\",\n        \"pluginId\": \"plugin id\",\n        \"steadyId\": \"self\"\n    },\n    \"data\": {\n        \"memory.nativeTotal\": 134217728,\n        \"capabilities\": [\n            \"gitops\",\n            \"logdownload\",\n            \"agentprofiler\",\n            \"agentSupportInfo\",\n            {\n                \"java-trace-commands\": [\n                    \"get-agent-statistics\",\n                    \"get-loader-statistics\",\n                    \"get-tracer-statistics\",\n                    \"get-instrumentation-install-messages\",\n                    \"get-instrumentation-install-errors\",\n                    \"get-instrumentation-runtime-errors\",\n                    \"get-instrumented-classes\",\n                    \"get-raw-matchers\",\n                    \"get-weak-concurrent-maps\",\n                    \"log-reset\",\n                    \"log-trace-context\",\n                    \"log-rejected\",\n                    \"start-debug-tracer\",\n                    \"stop-debug-tracer\"\n                ]\n            },\n            \"log4j-safe-lib\"\n        ],\n        \"origin\": \"public_docker\",\n        \"startedAt\": 1705917107361,\n        \"memory.total\": 181805056,\n        \"pid\": \"29001\",\n        \"mode\": 2,\n        \"hostname\": \"ip-10-255-207-205\",\n        \"java\": {\n            \"vmversion\": \"25.392-b08\",\n            \"version\": \"1.8.0_392\",\n            \"vmname\": \"vm name\",\n            \"vmvendor\": \"vendor name\"\n        },\n        \"git\": {\n            \"present\": true,\n            \"initialized\": false\n        },\n        \"hasCpuLoad\": true,\n        \"updateMode\": \"Auto\",\n        \"log.counts.byMessage\": {\n            \"?:?\": \"WARN ? \"Can no longer query container metrics for k8s.io: 8ac777f1ca6231299050ee5482ecac6c1747b2545b3b1d890f69d0a849b3adb4 ... requesting sensor shutdown\"\"\n        },\n        \"loglevel\": \"INFO\",\n        \"agentVersion\": \"Latest\",\n        \"metrics\": true,\n        \"boot\": \"1.2.30\",\n        \"pids\": [\n            \"14096\",\n            \"19502\",\n            \"2001\",\n            \"29812\",\n            \"981\",\n            \"28411\",\n            \"29522\",\n            \"1267\",\n            \"2475\",\n            \"27182\"\n        ],\n        \"user\": \"root\",\n        \"logAsRate\": true\n    }\n}\n",
                 "schema": {
                   "$ref": "#/components/schemas/SnapshotItem"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -12135,7 +12358,7 @@
     },
     "/api/infrastructure-monitoring/software/versions": {
       "get": {
-        "description": "Retrieve information about the software you are running. This includes runtime and package manager information.\n\nThe `name`, `version`, `origin` and `type` parameters are optional filters that can be used to reduce the result data set.",
+        "description": "Retrieve information about the software you are running. This includes runtime and package manager information.\n\nThe `name`, `version`, `origin`, `type` and `vendor` parameters are optional filters that can be used to reduce the result data set.\nThe `snapshotId` in `usedBy` is either of host or container, if available",
         "operationId": "softwareVersions",
         "parameters": [
           {
@@ -12178,6 +12401,14 @@
               "type": "string",
               "example": null
             }
+          },
+          {
+            "in": "query",
+            "name": "vendor",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
           }
         ],
         "responses": {
@@ -12186,35 +12417,36 @@
               "application/json": {
                 "example": [
                   {
-                    "name": "forwarded",
-                    "version": "0.1.2",
+                    "name": "errno",
+                    "version": "0.1.8",
                     "origin": "RUNTIME_MONITORING",
                     "type": "NODEJS_DEPENDENCY",
+                    "vendor": "",
+                    "metadata": null,
                     "usedBy": [
                       {
-                        "host": "gke-demo-us-cluster-pool-1f2519fe-kun4.c.peppy-vertex-158106.internal",
+                        "host": "instana-centos1.fyre.ibm.com",
                         "container": null,
-                        "process": "cart v1.0.0"
-                      },
+                        "process": "instana-payload-simulator v1.0.0",
+                        "snapshotId": "nQHb946M0I_rzRNuTFLVVSUorr8"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "jvm",
+                    "version": "17.0.1",
+                    "origin": "RUNTIME_MONITORING",
+                    "type": "RUNTIME",
+                    "vendor": "Eclipse Adoptium",
+                    "metadata": {
+                      "jvm.name": "OpenJDK 64-Bit Server VM"
+                    },
+                    "usedBy": [
                       {
-                        "host": "gke-k8s-demo-cluster-default-pool-0967252e-pmxc.c.peppy-vertex-158106.internal",
-                        "container": null,
-                        "process": "eum-sim v2.0.0"
-                      },
-                      {
-                        "host": "gke-k8s-demo-cluster-default-pool-0967252e-yuy5.c.peppy-vertex-158106.internal",
-                        "container": null,
-                        "process": "user v1.0.0"
-                      },
-                      {
-                        "host": "gke-demo-us-cluster-pool-1f2519fe-knmh.c.peppy-vertex-158106.internal",
-                        "container": null,
-                        "process": "user v1.0.0"
-                      },
-                      {
-                        "host": "gke-k8s-demo-cluster-default-pool-0967252e-pmxc.c.peppy-vertex-158106.internal",
-                        "container": null,
-                        "process": "cart v1.0.0"
+                        "host": "lima-rancher-desktop",
+                        "container": "elasticsearch/elasticsearch:7.16.2",
+                        "process": "docker-cluster: 0c930ef6c5af",
+                        "snapshotId": "cn06irROoHrvrDEa4fWw9vD6yhc"
                       }
                     ]
                   }
@@ -12369,14 +12601,19 @@
       "get": {
         "operationId": "getHealthState",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "health": "GREEN",
+                  "messages": []
+                },
                 "schema": {
                   "$ref": "#/components/schemas/HealthState"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -12660,14 +12897,20 @@
       "get": {
         "operationId": "getVersion",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "branch": "develop",
+                  "commit": "862420fa8696bd5106224f340a1f93d3c7d86409",
+                  "imageTag": "3.267.99-0"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/InstanaVersionInfo"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -13272,6 +13515,8 @@
         "operationId": "getMobileAppGeoLocationConfiguration",
         "parameters": [
           {
+            "description": "Mobile App ID",
+            "example": "iiLxP1zaTuCS7fyk9m4W0W",
             "in": "path",
             "name": "mobileAppId",
             "required": true,
@@ -13285,11 +13530,16 @@
           "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "geoDetailRemoval": "NO_REMOVAL",
+                  "geoMappingRules": []
+                },
                 "schema": {
                   "$ref": "#/components/schemas/GeoLocationConfiguration"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -13355,6 +13605,8 @@
         "operationId": "getMobileAppGeoMappingRules",
         "parameters": [
           {
+            "description": "Mobile App ID",
+            "example": "iiLxP1zaTuCS7fyk9m4W0W",
             "in": "path",
             "name": "mobileAppId",
             "required": true,
@@ -13368,7 +13620,8 @@
           "200": {
             "content": {
               "text/csv": {}
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -13431,6 +13684,8 @@
         "operationId": "getMobileAppIpMaskingConfiguration",
         "parameters": [
           {
+            "description": "Mobile App ID",
+            "example": "iiLxP1zaTuCS7fyk9m4W0W",
             "in": "path",
             "name": "mobileAppId",
             "required": true,
@@ -13444,11 +13699,15 @@
           "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "ipMasking": "DEFAULT"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/IpMaskingConfiguration"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -15089,9 +15348,59 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "132tb7EHSdu80UjwoeCcHg",
+                    "name": "group name",
+                    "members": [
+                      {
+                        "userId": "userid",
+                        "email": "user@ibm.com"
+                      }
+                    ],
+                    "permissionSet": {
+                      "permissions": [
+                        "CAN_VIEW_LOGS",
+                        "LIMITED_APPLICATIONS_SCOPE",
+                        "ACCESS_APPLICATIONS",
+                        "CAN_VIEW_TRACE_DETAILS"
+                      ],
+                      "applicationIds": [
+                        {
+                          "scopeId": "TGHyNAFwRfSRY6ua_2WRDA",
+                          "scopeRoleId": "-102"
+                        }
+                      ],
+                      "kubernetesClusterUUIDs": [],
+                      "kubernetesNamespaceUIDs": [],
+                      "websiteIds": [],
+                      "mobileAppIds": [],
+                      "syntheticTestIds": [],
+                      "restrictedApplicationFilter": {
+                        "label": "group name",
+                        "tagFilterExpression": {
+                          "type": "TAG_FILTER",
+                          "name": "service.name",
+                          "stringValue": "acceptor",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "acceptor",
+                          "operator": "EQUALS",
+                          "entity": "DESTINATION"
+                        },
+                        "scope": "INCLUDE_NO_DOWNSTREAM"
+                      },
+                      "infraDfqFilter": {
+                        "scopeId": "",
+                        "scopeRoleId": "-1"
+                      }
+                    }
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -15100,7 +15409,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -15273,14 +15583,99 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "group id",
+                  "name": "group name",
+                  "members": [
+                    {
+                      "userId": "userid",
+                      "email": "user@ibm.com"
+                    }
+                  ],
+                  "permissionSet": {
+                    "permissions": [
+                      "ACCESS_INFRASTRUCTURE",
+                      "LIMITED_WEBSITES_SCOPE",
+                      "CAN_VIEW_SYNTHETIC_TESTS",
+                      "CAN_VIEW_SYNTHETIC_LOCATIONS",
+                      "CAN_VIEW_TRACE_DETAILS",
+                      "CAN_CONFIGURE_AGENT_RUN_MODE",
+                      "CAN_CONFIGURE_AUTOMATION_ACTIONS",
+                      "CAN_CONFIGURE_USERS",
+                      "ACCESS_SYNTHETICS",
+                      "CAN_VIEW_LOGS",
+                      "LIMITED_KUBERNETES_SCOPE",
+                      "CAN_CONFIGURE_TEAMS",
+                      "CAN_VIEW_SYNTHETIC_TEST_RESULTS",
+                      "LIMITED_SYNTHETICS_SCOPE",
+                      "LIMITED_INFRASTRUCTURE_SCOPE"
+                    ],
+                    "applicationIds": [
+                      {
+                        "scopeId": "scopeid1",
+                        "scopeRoleId": "-102"
+                      },
+                      {
+                        "scopeId": "scopeid2",
+                        "scopeRoleId": "-102"
+                      },
+                      {
+                        "scopeId": "scopeid3",
+                        "scopeRoleId": "-102"
+                      },
+                      {
+                        "scopeId": "scopeid4",
+                        "scopeRoleId": "-102"
+                      },
+                      {
+                        "scopeId": "scopeid5",
+                        "scopeRoleId": "-102"
+                      },
+                      {
+                        "scopeId": "scopeid6",
+                        "scopeRoleId": "-102"
+                      }
+                    ],
+                    "kubernetesClusterUUIDs": [],
+                    "kubernetesNamespaceUIDs": [],
+                    "websiteIds": [],
+                    "mobileAppIds": [],
+                    "syntheticTestIds": [
+                      {
+                        "scopeId": "yDvL34VnWuGdW8pE7lEc",
+                        "scopeRoleId": "-1"
+                      }
+                    ],
+                    "restrictedApplicationFilter": {
+                      "label": "group name",
+                      "tagFilterExpression": {
+                        "type": "TAG_FILTER",
+                        "name": "service.name",
+                        "stringValue": "acceptor",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": null,
+                        "value": "acceptor",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      },
+                      "scope": "INCLUDE_NO_DOWNSTREAM"
+                    },
+                    "infraDfqFilter": {
+                      "scopeId": "",
+                      "scopeRoleId": "-1"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ApiGroup"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -15392,9 +15787,17 @@
       "get": {
         "operationId": "getGroupMappings",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "rEjG5TTzRyuZPSKNJvhrow",
+                    "key": "roles",
+                    "value": "analyst",
+                    "groupId": "-3"
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -15403,7 +15806,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -15460,14 +15864,18 @@
       "get": {
         "operationId": "getIdentityProviderPatch",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "restrictEmptyIdpGroups": false
+                },
                 "schema": {
                   "$ref": "#/components/schemas/IdentityProviderPatch"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -17326,9 +17734,29 @@
       "get": {
         "operationId": "getAllSliConfigsV2",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "T0yCMBR4G",
+                    "sliName": "Siva SLI test",
+                    "initialEvaluationTimestamp": 1637758860000,
+                    "metricConfiguration": {
+                      "metricName": "latency",
+                      "metricAggregation": "P90",
+                      "threshold": 100
+                    },
+                    "sliEntity": {
+                      "sliType": "application",
+                      "applicationId": "1qvXgVfLTNqi8gGTcCaNUw",
+                      "serviceId": "6097d596c3d9024034b3d03b2b5c43acea65e5a4",
+                      "endpointId": "oETFj2WyPusvXgRW_181J3fH_t8",
+                      "boundaryScope": "INBOUND"
+                    },
+                    "lastUpdated": 1637758839104
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -17337,7 +17765,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -17417,9 +17846,29 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "HXcNRWhDSWiZs3HiUAKr7g",
+                    "sliName": "turbo time 1",
+                    "initialEvaluationTimestamp": 1648133520000,
+                    "metricConfiguration": {
+                      "metricName": "latency",
+                      "metricAggregation": "P90",
+                      "threshold": 300
+                    },
+                    "sliEntity": {
+                      "sliType": "application",
+                      "applicationId": "1qvXgVfLTNqi8gGTcCaNUw",
+                      "serviceId": null,
+                      "endpointId": null,
+                      "boundaryScope": "INBOUND"
+                    },
+                    "lastUpdated": 1648133508938
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -17428,7 +17877,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -17492,14 +17942,35 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "HXcNRWhDSWiZs3HiUAKr7g",
+                    "sliName": "turbo time 1",
+                    "initialEvaluationTimestamp": 1648133520000,
+                    "metricConfiguration": {
+                      "metricName": "latency",
+                      "metricAggregation": "P90",
+                      "threshold": 300
+                    },
+                    "sliEntity": {
+                      "sliType": "application",
+                      "applicationId": "1qvXgVfLTNqi8gGTcCaNUw",
+                      "serviceId": null,
+                      "endpointId": null,
+                      "boundaryScope": "INBOUND"
+                    },
+                    "lastUpdated": 1648133508938
+                  }
+                ],
                 "schema": {
                   "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -20533,6 +21004,8 @@
         "operationId": "getWebsiteTagCatalog",
         "parameters": [
           {
+            "description": "beaconType",
+            "example": "pageLoad",
             "in": "query",
             "name": "beaconType",
             "required": true,
@@ -20542,6 +21015,8 @@
             }
           },
           {
+            "description": "useCase",
+            "example": "GROUPING",
             "in": "query",
             "name": "useCase",
             "required": true,
@@ -20564,10 +21039,7 @@
           }
         ],
         "responses": {
-          "400": {
-            "description": "When the combination of beaconType and useCase is unsupported/unknown."
-          },
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "example": {
@@ -20602,7 +21074,11 @@
                   "$ref": "#/components/schemas/TagCatalog"
                 }
               }
-            }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "When the combination of beaconType and useCase is unsupported/unknown."
           }
         },
         "security": [
@@ -20622,7 +21098,7 @@
       "get": {
         "operationId": "getWebsiteCatalogMetrics",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "example": [
@@ -20665,7 +21141,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -20686,7 +21163,7 @@
       "get": {
         "operationId": "getWebsiteCatalogTags",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "example": [
@@ -20707,7 +21184,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -20726,9 +21204,10 @@
     },
     "/api/website-monitoring/config": {
       "get": {
+        "description": "API request to get all configured websites details.",
         "operationId": "getWebsites",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "example": [
@@ -20746,7 +21225,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "summary": "Get configured websites",
@@ -20831,9 +21311,12 @@
         ]
       },
       "get": {
+        "description": "API request to get configured website details for specified websiteId",
         "operationId": "getWebsite",
         "parameters": [
           {
+            "description": "websiteId",
+            "example": "1ELrNt-eQ9SlK4D_EgLMiA",
             "in": "path",
             "name": "websiteId",
             "required": true,
@@ -20844,7 +21327,7 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "example": {
@@ -20856,7 +21339,8 @@
                   "$ref": "#/components/schemas/Website"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "summary": "Get configured website",
@@ -20920,9 +21404,12 @@
     },
     "/api/website-monitoring/config/{websiteId}/geo-location": {
       "get": {
+        "description": "API request to get geo-location configuration of a website specified by its websiteId",
         "operationId": "getWebsiteGeoLocationConfiguration",
         "parameters": [
           {
+            "description": "websiteId",
+            "example": "1ELrNt-eQ9SlK4D_EgLMiA",
             "in": "path",
             "name": "websiteId",
             "required": true,
@@ -20936,11 +21423,16 @@
           "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "geoDetailRemoval": "NO_REMOVAL",
+                  "geoMappingRules": []
+                },
                 "schema": {
                   "$ref": "#/components/schemas/GeoLocationConfiguration"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -21079,9 +21571,12 @@
     },
     "/api/website-monitoring/config/{websiteId}/ip-masking": {
       "get": {
+        "description": "API request to get IP masking configuration of a website specified by its websiteId",
         "operationId": "getWebsiteIpMaskingConfiguration",
         "parameters": [
           {
+            "description": "websiteId",
+            "example": "1ELrNt-eQ9SlK4D_EgLMiA",
             "in": "path",
             "name": "websiteId",
             "required": true,
@@ -21095,11 +21590,15 @@
           "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "ipMasking": "DEFAULT"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/IpMaskingConfiguration"
                 }
               }
-            }
+            },
+            "description": "OK"
           }
         },
         "security": [
@@ -21315,6 +21814,8 @@
         "operationId": "getPageLoad",
         "parameters": [
           {
+            "description": "id",
+            "example": "1ELrNt-eQ9SlK4D_EgLMiA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -21325,6 +21826,8 @@
             "style": "matrix"
           },
           {
+            "description": "timestamp",
+            "example": 1707012285674,
             "in": "path",
             "name": "timestamp",
             "required": true,
@@ -21337,13 +21840,7 @@
           }
         ],
         "responses": {
-          "400": {
-            "description": "Missing page id"
-          },
-          "404": {
-            "description": "Website not found"
-          },
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "example": [
@@ -21457,7 +21954,14 @@
                   }
                 }
               }
-            }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "Missing page id"
+          },
+          "404": {
+            "description": "Website not found"
           }
         },
         "security": [
@@ -21917,6 +22421,10 @@
               "$ref": "#/components/schemas/ActionInstanceMetadataEntry"
             }
           },
+          "output": {
+            "type": "string",
+            "example": null
+          },
           "outputParameters": {
             "type": "array",
             "example": null,
@@ -22169,6 +22677,15 @@
             "minLength": 0
           }
         }
+      },
+      "AgentMonitoringIssue": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Event"
+          }
+        ],
+        "example": null
       },
       "AlertingConfiguration": {
         "type": "object",
@@ -24163,6 +24680,62 @@
           "shortPluginId"
         ]
       },
+      "BusinessActivity": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "activityId": {
+            "type": "string",
+            "description": "Unique identifier for the activity generated by the source BPM tool",
+            "example": "ApproveInvoiceTask",
+            "nullable": true
+          },
+          "activityName": {
+            "type": "string",
+            "description": "Name of the activity ",
+            "example": "Approve Invoice",
+            "nullable": true
+          },
+          "activityStart": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix timestamp representing the activity's start time",
+            "example": 1680559706000,
+            "nullable": true
+          },
+          "activityType": {
+            "type": "string",
+            "description": "Type of the activity ",
+            "example": "userTask"
+          },
+          "callId": {
+            "type": "string",
+            "example": null,
+            "writeOnly": true
+          },
+          "processDefinitionId": {
+            "type": "string",
+            "description": "The identifier of the process the activity is an instance of.",
+            "example": "invoice:2:aa2bbbcc-bb04-11ee-9d4e-0242ac110002",
+            "nullable": true
+          },
+          "processDefinitionName": {
+            "type": "string",
+            "description": "The name of the process that the activity is an instance of",
+            "example": "Invoice Approval",
+            "nullable": true
+          },
+          "rootProcessInstanceId": {
+            "type": "string",
+            "description": "The id of the root process for the activity",
+            "example": "486cbb3b-e633-11ee-8707-0242ac110002",
+            "nullable": true
+          }
+        },
+        "required": [
+          "activityType"
+        ]
+      },
       "CallGroupsItem": {
         "type": "object",
         "example": null,
@@ -24355,6 +24928,37 @@
         "type": "object",
         "example": null
       },
+      "CursorPaginatedBusinessActivityItem": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "businessActivity": {
+            "$ref": "#/components/schemas/BusinessActivity"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "example": null,
+              "items": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "number",
+                  "example": null
+                }
+              }
+            },
+            "example": null
+          }
+        },
+        "required": [
+          "cursor"
+        ]
+      },
       "CursorPagination": {
         "type": "object",
         "example": null,
@@ -24482,6 +25086,10 @@
             "maxLength": 64,
             "minLength": 0
           },
+          "ownerId": {
+            "type": "string",
+            "example": null
+          },
           "title": {
             "type": "string",
             "example": null
@@ -24490,6 +25098,7 @@
         "required": [
           "annotations",
           "id",
+          "ownerId",
           "title"
         ]
       },
@@ -26246,6 +26855,32 @@
           "name"
         ]
       },
+      "GetActivities": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "timeframe": {
+            "$ref": "#/components/schemas/TimeFrame"
+          }
+        },
+        "required": [
+          "order",
+          "pagination",
+          "timeFrame"
+        ]
+      },
       "GetApplicationMetrics": {
         "type": "object",
         "example": null,
@@ -27269,6 +27904,14 @@
           "group": {
             "$ref": "#/components/schemas/Group"
           },
+          "includeInternal": {
+            "type": "boolean",
+            "example": null
+          },
+          "includeSynthetic": {
+            "type": "boolean",
+            "example": null
+          },
           "metrics": {
             "type": "array",
             "example": null,
@@ -27283,6 +27926,9 @@
           },
           "pagination": {
             "$ref": "#/components/schemas/CursorPagination"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
           "tagFilters": {
             "type": "array",
@@ -28318,6 +28964,46 @@
           }
         }
       },
+      "Incident": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Event"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "distances": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/IssueDistance"
+                },
+                "example": null
+              },
+              "issues": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "string",
+                  "example": null
+                },
+                "uniqueItems": true
+              },
+              "triggeringIssue": {
+                "type": "string",
+                "example": null,
+                "writeOnly": true
+              },
+              "triggeringIssueId": {
+                "type": "string",
+                "example": null
+              }
+            }
+          }
+        ],
+        "example": null
+      },
       "InfraAlertConfig": {
         "type": "object",
         "example": null,
@@ -29066,6 +29752,79 @@
           "ipMasking"
         ]
       },
+      "Issue": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Event"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "eventmode": {
+                "type": "string",
+                "enum": [
+                  "infra",
+                  "logical_10",
+                  "application_20",
+                  "service_20",
+                  "endpoint_20",
+                  "website",
+                  "sli",
+                  "synthetic",
+                  "mobile_app"
+                ],
+                "example": null,
+                "writeOnly": true
+              },
+              "incidents": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "string",
+                  "example": null
+                },
+                "uniqueItems": true
+              },
+              "triggering": {
+                "type": "boolean",
+                "example": null
+              }
+            }
+          }
+        ],
+        "example": null
+      },
+      "IssueDistance": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "issueId": {
+            "type": "string",
+            "example": null
+          },
+          "logicalDistanceToTriggering": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "physicalDistanceToTriggering": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "temporalDistanceToTriggering": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "visible": {
+            "type": "boolean",
+            "example": null
+          }
+        }
+      },
       "JsStackTraceLine": {
         "type": "object",
         "example": null,
@@ -29534,6 +30293,31 @@
         },
         "required": [
           "id"
+        ]
+      },
+      "ManualCloseInfo": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "closeTimestamp": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "reasonForClosing": {
+            "type": "string",
+            "example": null
+          },
+          "username": {
+            "type": "string",
+            "example": null,
+            "maxLength": 256,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "reasonForClosing",
+          "username"
         ]
       },
       "ManualServiceConfig": {
@@ -30028,12 +30812,14 @@
               "MONGO_DB",
               "OTHERS",
               "REDIS",
+              "SAP",
               "SELF_MONITORING",
               "SOLR",
               "SPARK",
               "TIBCOBW",
               "TUXEDO",
-              "VSHPERE"
+              "VSHPERE",
+              "WEBSPHERE"
             ],
             "example": null
           },
@@ -33054,6 +33840,10 @@
           "process": {
             "type": "string",
             "example": null
+          },
+          "snapshotId": {
+            "type": "string",
+            "example": null
           }
         }
       },
@@ -33061,6 +33851,14 @@
         "type": "object",
         "example": null,
         "properties": {
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "example": null
+            },
+            "example": null
+          },
           "name": {
             "type": "string",
             "example": null
@@ -33081,6 +33879,10 @@
             },
             "uniqueItems": true
           },
+          "vendor": {
+            "type": "string",
+            "example": null
+          },
           "version": {
             "type": "string",
             "example": null
@@ -33091,6 +33893,7 @@
           "origin",
           "type",
           "usedBy",
+          "vendor",
           "version"
         ]
       },
@@ -37384,6 +38187,10 @@
           },
           "accurateTimingsAvailable": {
             "type": "boolean",
+            "example": null
+          },
+          "agentVersion": {
+            "type": "string",
             "example": null
           },
           "appCacheTime": {
