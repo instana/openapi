@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.271.754
+  version: 1.272.733
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -653,25 +653,29 @@ paths:
       requestBody:
         content:
           application/json:
-            example:
-              includeInternal: false
-              includeSynthetic: false
-              pagination:
-                retrievalSize: 20
-              tagFilterExpression:
-                type: EXPRESSION
-                logicalOperator: AND
-                elements:
-                  - type: TAG_FILTER
-                    name: endpoint.name
-                    operator: EQUALS
-                    entity: DESTINATION
-                    value: alerting_integrations
-                  - type: TAG_FILTER
-                    name: service.name
-                    operator: EQUALS
-                    entity: NOT_APPLICABLE
-                    value: catalog
+            examples:
+              analyze/traces:
+                description: |
+                  Currently Order by is not supported
+                value:
+                  includeInternal: false
+                  includeSynthetic: false
+                  pagination:
+                    retrievalSize: 20
+                  tagFilterExpression:
+                    type: EXPRESSION
+                    logicalOperator: AND
+                    elements:
+                      - type: TAG_FILTER
+                        name: endpoint.name
+                        operator: EQUALS
+                        entity: DESTINATION
+                        value: alerting_integrations
+                      - type: TAG_FILTER
+                        name: service.name
+                        operator: EQUALS
+                        entity: NOT_APPLICABLE
+                        value: catalog
             schema:
               $ref: '#/components/schemas/GetTraces'
       responses:
@@ -1258,19 +1262,24 @@ paths:
       requestBody:
         content:
           application/json:
-            example:
-              metrics:
-                - aggregation: MEAN
-                  metric: latency
-              order:
-                by: calls_SUM
-                direction: DESC
-              pagination:
-                page: 1
-                pageSize: 1
-              timeFrame:
-                to: 1646037122400
-                windowSize: 3600000
+            examples:
+              metrics/applications:
+                description: |
+                  Attribute in "order by" should
+                  be provided in "metrics" as well
+                value:
+                  metrics:
+                    - aggregation: MEAN
+                      metric: latency
+                  order:
+                    by: latency
+                    direction: DESC
+                  pagination:
+                    page: 1
+                    pageSize: 1
+                  timeFrame:
+                    to: 1646037122400
+                    windowSize: 3600000
             schema:
               $ref: '#/components/schemas/GetApplications'
       responses:
@@ -1314,22 +1323,26 @@ paths:
       requestBody:
         content:
           application/json:
-            example:
-              applicationBoundaryScope: ALL
-              endpointId: murzTwzJlGyqc_CFtEKx8INVCfY
-              excludeSynthetic: true
-              metrics:
-                - aggregation: MEAN
-                  metric: latency
-              order:
-                by: calls_SUM
-                direction: ASC
-              pagination:
-                page: 1
-                pageSize: 1
-              timeFrame:
-                to: 1669190589000
-                windowSize: 3600000
+            examples:
+              metrics/endpoints:
+                description: |
+                  Order by is supported for following attributes: endpointLabel
+                value:
+                  applicationBoundaryScope: ALL
+                  endpointId: murzTwzJlGyqc_CFtEKx8INVCfY
+                  excludeSynthetic: true
+                  metrics:
+                    - aggregation: MEAN
+                      metric: latency
+                  order:
+                    by: endpointLabel
+                    direction: ASC
+                  pagination:
+                    page: 1
+                    pageSize: 1
+                  timeFrame:
+                    to: 1669190589000
+                    windowSize: 3600000
             schema:
               $ref: '#/components/schemas/GetEndpoints'
       responses:
@@ -1384,21 +1397,28 @@ paths:
       requestBody:
         content:
           application/json:
-            example:
-              applicationBoundaryScope: ALL
-              contextScope: NONE
-              metrics:
-                - aggregation: DISTINCT_COUNT
-                  metric: endpoints
-              pagination:
-                page: 1
-                pageSize: 1
-              serviceId: c467ca0fa21477fee3cde75a140b2963307388a7
-              technologies:
-                - springbootApplicationContainer
-              timeFrame:
-                to: 1669190589000
-                windowSize: 3600000
+            examples:
+              metrics/services:
+                description: |
+                  Order by is supported for following attributes: types, technologies, serviceLabel
+                value:
+                  applicationBoundaryScope: ALL
+                  contextScope: NONE
+                  metrics:
+                    - aggregation: DISTINCT_COUNT
+                      metric: endpoints
+                  order:
+                    by: serviceLabel
+                    direction: DESC
+                  pagination:
+                    page: 1
+                    pageSize: 1
+                  serviceId: c467ca0fa21477fee3cde75a140b2963307388a7
+                  technologies:
+                    - springbootApplicationContainer
+                  timeFrame:
+                    to: 1669190589000
+                    windowSize: 3600000
             schema:
               $ref: '#/components/schemas/GetServices'
       responses:
@@ -3230,6 +3250,7 @@ paths:
                 eventEntityType: ''
                 actionDescription: Simple script action for testing
                 policyId: 2nIOVtEW-iPbsEIi89-yDqJabc
+                output: Hello world!
               schema:
                 $ref: '#/components/schemas/ActionInstance'
       security:
@@ -3306,6 +3327,7 @@ paths:
                 eventEntityType: ''
                 actionDescription: Simple script action for testing
                 policyId: 2nIOVtEW-iPbsEIi89-yDqJabc
+                output: Hello world!
               schema:
                 $ref: '#/components/schemas/ActionInstance'
       security:
@@ -6240,6 +6262,315 @@ paths:
       summary: Get versions of Global Application Alert Config
       tags:
         - Global Application Alert Configuration
+  /api/events/settings/global-alert-configs/service-levels:
+    get:
+      description: Configs are sorted descending by their created date.
+      operationId: findActiveServiceLevelsAlertConfigs
+      parameters:
+        - in: query
+          name: sloId
+          schema:
+            type: string
+            example: null
+        - in: query
+          name: alertIds
+          schema:
+            type: array
+            example: null
+            items:
+              type: string
+              example: null
+            maxItems: 1000
+            minItems: 0
+            uniqueItems: true
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                - name: Service level status below 70%
+                  rule: SLO_STATUS
+                  severity: 10
+                  threshold:
+                    type: staticThreshold
+                    value: 0.7
+                    operator: <=
+                    lastUpdated: 0
+                  triggering: false
+                  description: Calls are slower or equal to 33 ms based on latency (90th).
+                  sloIds:
+                    - qweqwqeqw
+                    - qqq
+                  timeThreshold:
+                    timeWindow: 600000
+                  alertChannelIds: []
+                  customPayloadFields: []
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: OK
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: All Service levels Alert Configs
+      tags:
+        - Service Levels Alert Configuration
+    post:
+      operationId: createServiceLevelsAlertConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceLevelsAlertConfig'
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+      security:
+        - ApiKeyAuth:
+            - CanConfigureServiceLevelsAlerts
+      summary: Create Service levels Alert Config
+      tags:
+        - Service Levels Alert Configuration
+  '/api/events/settings/global-alert-configs/service-levels/{id}':
+    delete:
+      operationId: deleteServiceLevelsAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - CanConfigureServiceLevelsAlerts
+      summary: Delete Service levels Alert Config
+      tags:
+        - Service Levels Alert Configuration
+    get:
+      description: Find a Service levels Alert Config by ID. This will deliver deleted configs too.
+      operationId: findServiceLevelsAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+        - in: query
+          name: validOn
+          schema:
+            type: integer
+            format: int64
+            example: null
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                name: Service level status below 70%
+                rule: SLO_STATUS
+                severity: 10
+                threshold:
+                  type: staticThreshold
+                  value: 0.7
+                  operator: <=
+                  lastUpdated: 0
+                triggering: false
+                description: Calls are slower or equal to 33 ms based on latency (90th).
+                sloIds:
+                  - qweqwqeqw
+                  - qqq
+                timeThreshold:
+                  timeWindow: 600000
+                alertChannelIds: []
+                customPayloadFields: []
+              schema:
+                $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: OK
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get Service levels Alert Config
+      tags:
+        - Service Levels Alert Configuration
+    post:
+      operationId: updateServiceLevelsAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceLevelsAlertConfig'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Synthetic Smart Alert successfully updated
+        '204':
+          description: Synthetic Smart Alert did not change
+      security:
+        - ApiKeyAuth:
+            - CanConfigureServiceLevelsAlerts
+      summary: Update Service levels Alert Config
+      tags:
+        - Service Levels Alert Configuration
+  '/api/events/settings/global-alert-configs/service-levels/{id}/disable':
+    put:
+      operationId: disableServiceLevelsAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - CanConfigureServiceLevelsAlerts
+      summary: Disable Service levels Alert Config
+      tags:
+        - Service Levels Alert Configuration
+  '/api/events/settings/global-alert-configs/service-levels/{id}/enable':
+    put:
+      operationId: enableServiceLevelsAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - CanConfigureServiceLevelsAlerts
+      summary: Enable Service levels Alert Config
+      tags:
+        - Service Levels Alert Configuration
+  '/api/events/settings/global-alert-configs/service-levels/{id}/restore/{created}':
+    put:
+      operationId: restoreServiceLevelsAlertConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+        - in: path
+          name: created
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              example: null
+              nullable: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - CanConfigureServiceLevelsAlerts
+      summary: Restore Service levels Alert Config
+      tags:
+        - Service Levels Alert Configuration
+  '/api/events/settings/global-alert-configs/service-levels/{id}/versions':
+    get:
+      description: Find all versions of a Service levels Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.
+      operationId: findServiceLevelsAlertConfigVersions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                name: Service level status below 70%
+                rule: SLO_STATUS
+                severity: 10
+                threshold:
+                  type: staticThreshold
+                  value: 0.7
+                  operator: <=
+                  lastUpdated: 0
+                triggering: false
+                description: Calls are slower or equal to 33 ms based on latency (90th).
+                sloIds:
+                  - qweqwqeqw
+                  - qqq
+                timeThreshold:
+                  timeWindow: 600000
+                alertChannelIds: []
+                customPayloadFields: []
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/ConfigVersion'
+          description: OK
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get versions of Service levels Alert Config
+      tags:
+        - Service Levels Alert Configuration
   /api/events/settings/global-alert-configs/synthetics:
     get:
       description: Configs are sorted descending by their created date.
@@ -6898,6 +7229,8 @@ paths:
       responses:
         '200':
           description: The event id refers to an event that is not open.
+        '400':
+          description: The manual close information is required.
         '404':
           description: The event id refers to an event that is not open.
         default:
@@ -11337,6 +11670,56 @@ paths:
       tags:
         - Groups
       description: 'See [creating group mapping](#operation/createGroupMapping)'
+  /api/settings/rca/incident/feedback:
+    get:
+      operationId: getRCAIncidentFeedbackById
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: 'Get feedback of an RCA Incident''s probable root cause entity whether good or bad. '
+      tags:
+        - Events
+  '/api/settings/rca/incident/feedback/{id}':
+    post:
+      operationId: postRCAIncidentFeedbackById
+      parameters:
+        - example: exampleRcaIncidentId
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: null
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              example: null
+              items:
+                type: string
+                example: null
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                example: null
+                items:
+                  $ref: '#/components/schemas/RCAFeedback'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: 'Post feedback of an RCA Incident''s probable root cause entity whether good or bad. '
+      tags:
+        - Events
   /api/settings/session:
     delete:
       operationId: deleteSessionSettings
@@ -18106,6 +18489,13 @@ components:
     ContainerNode:
       type: object
       example: null
+    CrashMobileAppAlertRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MobileAppAlertRule'
+      example: null
+      required:
+        - metricName
     CursorPaginatedBusinessActivityItem:
       type: object
       example: null
@@ -19025,6 +19415,22 @@ components:
         - matchingEntityLabel
         - matchingEntityType
         - matchingOperator
+    ErrorBudgetAlertRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ServiceLevelsAlertRule'
+        - type: object
+          example: null
+          properties:
+            metric:
+              type: string
+              enum:
+                - BURN_RATE
+                - BURNED_PERCENTAGE
+              example: null
+      example: null
+      required:
+        - metric
     ErrorsApplicationAlertRule:
       type: object
       allOf:
@@ -21727,6 +22133,7 @@ components:
             - INTERNAL_ERROR
             - FAILURE_USER_ALREADY_EXISTS
             - FAILURE_USER_ALREADY_INVITED
+            - FAILURE_ONLY_DEFAULT_GROUP_INVITATION_ALLOWED
             - FAILURE_TENANT_IDP_CONFIGURED
           example: null
         userEmail:
@@ -22715,6 +23122,7 @@ components:
       type: object
       discriminator:
         mapping:
+          crash: '#/components/schemas/CrashMobileAppAlertRule'
           customEvent: '#/components/schemas/CustomEventMobileAppAlertRule'
           statusCode: '#/components/schemas/StatusCodeMobileAppAlertRule'
           throughput: '#/components/schemas/ThroughputMobileAppAlertRule'
@@ -23875,6 +24283,27 @@ components:
         - kind
         - name
         - webhookUrl
+    RCAFeedback:
+      type: object
+      example: null
+      properties:
+        eventId:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        feedback:
+          type: boolean
+          example: null
+        snapshotId:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+      required:
+        - eventId
+        - feedback
+        - snapshotId
     RecurrentMaintenanceWindow:
       type: object
       allOf:
@@ -24028,6 +24457,34 @@ components:
             $ref: '#/components/schemas/ActionConfiguration'
       required:
         - actions
+    SSLCertificateConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SyntheticTypeConfiguration'
+        - type: object
+          example: null
+          properties:
+            daysRemainingCheck:
+              type: integer
+              format: int32
+              example: null
+              maximum: 365
+              minimum: 1
+            hostname:
+              type: string
+              example: null
+              maxLength: 2047
+              minLength: 0
+            port:
+              type: integer
+              format: int32
+              example: null
+      example: null
+      required:
+        - daysRemainingCheck
+        - hostname
+        - markSyntheticCall
+        - syntheticType
     SalesforceIntegration:
       type: object
       allOf:
@@ -24289,6 +24746,19 @@ components:
             - eventBased
             - timeBased
           example: null
+    ServiceLevelObjectiveAlertRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ServiceLevelsAlertRule'
+        - type: object
+          example: null
+          properties:
+            metric:
+              type: string
+              enum:
+                - STATUS
+              example: null
+      example: null
     ServiceLevelObjectiveConfiguration:
       type: object
       example: null
@@ -24332,6 +24802,172 @@ components:
         - tags
         - target
         - timeWindow
+    ServiceLevelsAlertConfig:
+      type: object
+      example: null
+      properties:
+        alertChannelIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
+        description:
+          type: string
+          example: null
+          maxLength: 65536
+          minLength: 0
+        name:
+          type: string
+          example: null
+          maxLength: 256
+          minLength: 0
+        rule:
+          $ref: '#/components/schemas/ServiceLevelsAlertRule'
+        severity:
+          type: integer
+          format: int32
+          example: null
+        sloIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        threshold:
+          $ref: '#/components/schemas/StaticThreshold'
+        timeThreshold:
+          $ref: '#/components/schemas/ServiceLevelsTimeThreshold'
+        triggering:
+          type: boolean
+          example: null
+      required:
+        - alertChannelIds
+        - customPayloadFields
+        - description
+        - name
+        - rule
+        - sloIds
+        - threshold
+        - timeThreshold
+    ServiceLevelsAlertRule:
+      type: object
+      discriminator:
+        mapping:
+          ERROR_BUDGET: '#/components/schemas/ErrorBudgetAlertRule'
+          SERVICE_LEVELS_OBJECTIVE: '#/components/schemas/ServiceLevelObjectiveAlertRule'
+        propertyName: alertType
+      example: null
+      properties:
+        alertType:
+          type: string
+          example: null
+      required:
+        - alertType
+    ServiceLevelsTimeThreshold:
+      type: object
+      example: null
+      properties:
+        timeWindow:
+          type: integer
+          format: int64
+          example: null
+    ServiceLevelseAlertConfigWithMetadata:
+      type: object
+      example: null
+      properties:
+        alertChannelIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        created:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
+        customPayloadFields:
+          type: array
+          example: null
+          items:
+            $ref: '#/components/schemas/CustomPayloadField'
+          maxItems: 20
+          minItems: 0
+        description:
+          type: string
+          example: null
+          maxLength: 65536
+          minLength: 0
+        enabled:
+          type: boolean
+          example: null
+        id:
+          type: string
+          example: null
+          maxLength: 64
+          minLength: 0
+        initialCreated:
+          type: integer
+          format: int64
+          example: null
+          minimum: 1
+        name:
+          type: string
+          example: null
+          maxLength: 256
+          minLength: 0
+        readOnly:
+          type: boolean
+          example: null
+        rule:
+          $ref: '#/components/schemas/ServiceLevelsAlertRule'
+        severity:
+          type: integer
+          format: int32
+          example: null
+        sloIds:
+          type: array
+          example: null
+          items:
+            type: string
+            example: null
+          maxItems: 1024
+          minItems: 0
+          uniqueItems: true
+        threshold:
+          $ref: '#/components/schemas/StaticThreshold'
+        timeThreshold:
+          $ref: '#/components/schemas/ServiceLevelsTimeThreshold'
+        triggering:
+          type: boolean
+          example: null
+      required:
+        - alertChannelIds
+        - customPayloadFields
+        - description
+        - id
+        - name
+        - rule
+        - sloIds
+        - threshold
+        - timeThreshold
     ServiceMap:
       type: object
       example: null
@@ -25785,14 +26421,6 @@ components:
           example: null
           items:
             type: string
-            enum:
-              - BrowserScript
-              - DNSAction
-              - HTTPAction
-              - HTTPScript
-              - WebpageAction
-              - WebpageScript
-              - NotConfigured
             example: null
       required:
         - browserType
@@ -25916,8 +26544,8 @@ components:
     SyntheticTypeConfiguration:
       type: object
       description: |-
-        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript (Beta),
-        HTTPAction, HTTPScript, WebpageAction (Beta), and WebpageScript (Beta).
+        Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript,
+        HTTPAction, HTTPScript, SSLCertificate (Beta), WebpageAction, and WebpageScript.
       discriminator:
         mapping:
           BrowserScript: '#/components/schemas/BrowserScriptConfiguration'
@@ -25925,6 +26553,7 @@ components:
           HTTPAction: '#/components/schemas/HttpActionConfiguration'
           HTTPScript: '#/components/schemas/HttpScriptConfiguration'
           NotConfigured: '#/components/schemas/EmptyConfiguration'
+          SSLCertificate: '#/components/schemas/SSLCertificateConfiguration'
           WebpageAction: '#/components/schemas/WebpageActionConfiguration'
           WebpageScript: '#/components/schemas/WebpageScriptConfiguration'
         propertyName: syntheticType
@@ -25952,6 +26581,7 @@ components:
             - DNSAction
             - HTTPAction
             - HTTPScript
+            - SSLCertificate
             - WebpageAction
             - WebpageScript
             - NotConfigured
