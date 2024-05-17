@@ -43,7 +43,7 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
         - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. 
           BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
     - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
-      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and SSLCertificateConfiguration (Beta). 
+      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and SSLCertificateConfiguration. 
         - **HTTPActionConfiguration** has the following properties:
             - **url** The URL is being tested. It is required.
             - **syntheticType** Its value is HTTPAction. It is required.
