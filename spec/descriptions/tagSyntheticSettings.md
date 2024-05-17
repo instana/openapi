@@ -91,7 +91,7 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
       - **SSLCertificateConfiguration** has the following properties:
           - **hostname** The hostname of the SSL enabled website.
           - **port** The SSL port, set to 443 by default.
-          - **daysRemainingCheck** The number of days to use on the validation check. The test will fail when the certificate validity has less this number of days remaining until expiration.
+          - **daysRemainingCheck** The number of days to use on the validation check. The test will fail when the certificate validity has less than this number of days remaining until expiration.
 - **createdAt** The test created time, following RFC3339 standard.
 - **createdBy** The user identifier who created the test resource.
 - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
