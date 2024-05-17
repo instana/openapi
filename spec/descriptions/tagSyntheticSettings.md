@@ -43,7 +43,7 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
         - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. 
           BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
     - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
-      BrowserScriptConfiguration (Beta), WebpageActionConfiguration (Beta), and WebpageScriptConfiguration (Beta). 
+      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and SSLCertificateConfiguration (Beta). 
         - **HTTPActionConfiguration** has the following properties:
             - **url** The URL is being tested. It is required.
             - **syntheticType** Its value is HTTPAction. It is required.
@@ -88,6 +88,10 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
           - **browser** The type of the browser: chrome or firefox, chrome by default.
           - **recordVideo** A boolean type, false by default.
           - **syntheticType** Its value is WebpageScript. It is required.
+      - **SSLCertificateConfiguration** has the following properties:
+          - **hostname** The hostname of the SSL enabled website.
+          - **port** The SSL port, set to 443 by default.
+          - **daysRemainingCheck** The number of days to use on the validation check. The test will fail when the certificate validity has less this number of days remaining until expiration.
 - **createdAt** The test created time, following RFC3339 standard.
 - **createdBy** The user identifier who created the test resource.
 - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
