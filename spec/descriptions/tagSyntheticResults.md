@@ -24,6 +24,8 @@ The endpoint returns the aggregated Synthetic test result data
    The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), 
    synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).
 
+   The metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate tests.
+
    The metric synthetic.tags adds the latest list of custom properties to the response.
 
 2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags.
@@ -130,6 +132,8 @@ synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.me
 The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),
 synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).
 
+The metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate tests.
+
 The metric synthetic.tags adds the latest list of custom properties to the response.
 
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
@@ -210,6 +214,22 @@ Either tagFilters or tagFilterExpression can specify a custom property by its ke
   "timeFrame": {
     "to": 0,
     "windowSize": 1800000
+  }
+}
+```
+
+### Sample payload to get the custom metrics of a Synthetic SSLCertificate test
+```json
+{
+  "syntheticMetrics":["synthetic.customMetrics"],
+  "tagFilters":[{
+    "stringValue":"dk6yzb9fxCDlB6axIhUu",
+    "name":"synthetic.testId",
+    "operator":"EQUALS"
+  }],
+  "timeFrame": {
+    "to": 0,
+    "windowSize": 172800000
   }
 }
 ```

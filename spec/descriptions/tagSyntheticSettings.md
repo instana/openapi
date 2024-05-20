@@ -8,7 +8,7 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
 - **playbackCapability** The playback capabilities provided by this location resource.
   The playbackCapability object has the following properties: 
   - **syntheticType** Different types of synthetic tests that can be executed at this location. 
-    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and SSLCetificate. 
+    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and SSLCertificate. 
     The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.
   - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.
     Right now, only Chrome and Firefox are supported. 
@@ -102,7 +102,8 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
   PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,
   Synthetic tests run at all locations simultaneously. 
 - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
-  The default is every 15 minutes. The range is from 1 minute to 120 minutes.
+  The default is every 15 minutes. The range is from 1 minute to 120 minutes. 
+  For SSLCertificate tests, the default is every 24 hours and the range is from 60 minute to 1440 minutes.
 
 ## Synthetic Credentials:
 
