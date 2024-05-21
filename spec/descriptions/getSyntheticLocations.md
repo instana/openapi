@@ -9,9 +9,9 @@ This endpoint retrieves Synthetic Locations.
 ### Supported filter attributes and operators:
 
 | | = | != | \> | < | \>= | <= | Example |
-|-|---|----|---|---|---|-|---------|
+|-|---|----|---|---|---|-|--------------------------------------------------------|
 | label | &check; | &check; | - | - | - | - | /api/synthetics/settings/locations?filter={label=MyPoP} |
-| displayLabel | &check; | &check; | - | - | - | - | /api/synthetics/settings/locations?filter=displayLlabel=My PoP} |
+| displayLabel | &check; | &check; | - | - | - | - | /api/synthetics/settings/locations?filter={displayLabel=My PoP} |
 | popVersion | &check; | &check; | - | - | - | - | /api/synthetics/settings/tests?filter={popVersion=1.1.9} |
 | description | &check; | &check; | - | - | - | - | /api/synthetics/settings/tests?filter={description=My Test PoP} |
 | locationType | &check; | &check; | - | - | - | - | /api/synthetics/settings/locations?filter={locationType=Private} |
