@@ -8,7 +8,7 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
 - **playbackCapability** The playback capabilities provided by this location resource.
   The playbackCapability object has the following properties: 
   - **syntheticType** Different types of synthetic tests that can be executed at this location. 
-    Possible values are HTTPAction, HTTPScript, BrowserScript (Beta), WebpageAction (Beta), and WebpageScript (Beta). 
+    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and SSLCertificate. 
     The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.
   - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.
     Right now, only Chrome and Firefox are supported. 
@@ -26,8 +26,8 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
 - **active** Indicates if the Synthetic test is started or not. The default is true.
 - **applicationId** Unique identifier of the Application Perspective.
 - **configuration** An object which has two properties: syntheticType and the corresponding configuration object:
-    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript (Beta), WebpageAction (Beta),
-      and WebpageScript (Beta). The locations assigned to execute this Synthetic
+    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,
+      WebpageScript, and SSLCertificate. The locations assigned to execute this Synthetic
       test must support this syntheticType, i.e. the location's playbackCapabilities property.
     - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check "Hide Synthetic Calls" checkbox to hide/show them in UI.
     - **retries** An integer type from 0 to 2, 0 by default.
@@ -43,7 +43,7 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
         - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. 
           BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.
     - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,
-      BrowserScriptConfiguration (Beta), WebpageActionConfiguration (Beta), and WebpageScriptConfiguration (Beta). 
+      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and SSLCertificateConfiguration. 
         - **HTTPActionConfiguration** has the following properties:
             - **url** The URL is being tested. It is required.
             - **syntheticType** Its value is HTTPAction. It is required.
@@ -88,6 +88,10 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
           - **browser** The type of the browser: chrome or firefox, chrome by default.
           - **recordVideo** A boolean type, false by default.
           - **syntheticType** Its value is WebpageScript. It is required.
+      - **SSLCertificateConfiguration** has the following properties:
+          - **hostname** The hostname of the SSL enabled website.
+          - **port** The SSL port, set to 443 by default.
+          - **daysRemainingCheck** The number of days to use on the validation check. The test will fail when the certificate validity has less than this number of days remaining until expiration.
 - **createdAt** The test created time, following RFC3339 standard.
 - **createdBy** The user identifier who created the test resource.
 - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
@@ -98,7 +102,8 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
   PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,
   Synthetic tests run at all locations simultaneously. 
 - **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.
-  The default is every 15 minutes. The range is from 1 minute to 120 minutes.
+  The default is every 15 minutes. The range is from 1 minute to 120 minutes. 
+  For SSLCertificate tests, the default is every 24 hours and the range is from 60 minute to 1440 minutes.
 
 ## Synthetic Credentials:
 
