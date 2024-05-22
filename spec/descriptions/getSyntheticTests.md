@@ -3,7 +3,6 @@ This endpoint retrieves Synthetic Tests.
 ## Optional Parameters:
 
 - **locationId** Filters the Synthetic Tests to retrieve only the ones that are associated to the specified PoP location ID.
-- **applicationId** Filters the Synthetic Tests to retrieve only the ones that are associated to the specified Application Perspective Unique Id. 
 - **filter** Filters the Synthetic Tests to retrieve only the ones that match the specified filter condition. 
   Users are allowed to specify more than one filter parameter, and they will be combined in a single expression using logical operator 'AND'.
   The filter parameter is formatted as '**_{\<attribute>\<operator>\<value}_**'. For example, '_{label=MyTest}_'
