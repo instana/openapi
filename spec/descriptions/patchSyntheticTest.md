@@ -2,6 +2,7 @@ This API endpoint updates selected attributes of a Synthetic Test.
 
 - All attributes listed as in the schema, including the required ones, are optional for this call.
 - Synthetic Test configuration properties set to null will be removed from the configuration.
+- Patching an array attribute will replace the entire array with the full set of values provided.
 - For major updates to the Synthetic Test or to remove main attributes, see "Update a Synthetic test"
 
 ## Sample script and payload: 
