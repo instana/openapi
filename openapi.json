@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.275.949",
+    "version": "1.276.1145",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -171,7 +171,7 @@
     },
     {
       "name": "Synthetic Settings",
-      "description": "The API endpoints of this group can be used to manage Synthetic Locations, Synthetic Tests and Synthetic Credentials. \n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is managed or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and SSLCertificate. \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.\n    Right now, only Chrome and Firefox are supported. \n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,\n      WebpageScript, and SSLCertificate. The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      For API Simple, failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n      API Script and Browser Script test will retry if script failed for any reason.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). \n      It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.\n        - If user defined timeout value exceeds the `maxTimeout` or `testFrequency` in test configuration, the timeout value does not take effect \n          and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n        - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. \n          BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and SSLCertificateConfiguration. \n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=monitoring-using-api-scripts\n        - **BrowserScriptConfiguration** has the following properties:\n          - **script** A Node.js based test script, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **scriptType** The type of the script, right now, only Basic type is supported. \n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is BrowserScript. It is required.\n        - **WebpageActionConfiguration** has the following properties:\n          - **url** The URL of the Web page being tested. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageAction. It is required.\n        - **WebpageScriptConfiguration** has the following properties:\n          - **script** A Selenium IDE recording script. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageScript. It is required.\n      - **SSLCertificateConfiguration** has the following properties:\n          - **hostname** The hostname of the SSL enabled website.\n          - **port** The SSL port, set to 443 by default.\n          - **daysRemainingCheck** The number of days to use on the validation check. The test will fail when the certificate validity has less than this number of days remaining until expiration.\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,\n  Synthetic tests run at all locations simultaneously. \n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes. \n  For SSLCertificate tests, the default is every 24 hours and the range is from 60 minute to 1440 minutes.\n\n## Synthetic Credentials:\n\nSynthetic credentials can be used to store passwords and/or secrets used by the Synthetic Tests.\n\nAll Script Tests can use credentials in their body and API Simple Tests can use them on header parameters.\n\nIt is required that the credentials used in the test be created before the test is created or modified.\n\nTests using credentials are validated during test creation and update whether you use the API or UI, as follows:\n\n1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  \n  Requests to create or update a test referencing credentials without the correct permission will fail with return code `Forbidden`.\n\n2. The credentials or secrets used in the test must exist.  \n  Requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`."
+      "description": "The API endpoints of this group can be used to manage Synthetic Locations, Synthetic Tests and Synthetic Credentials. \n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is managed or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and SSLCertificate. \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.\n    Right now, only Chrome and Firefox are supported. \n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,\n      WebpageScript, and SSLCertificate. The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      For API Simple, failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n      API Script and Browser Script test will retry if script failed for any reason.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). \n      It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.\n        - If user defined timeout value exceeds the `maxTimeout` or `testFrequency` in test configuration, the timeout value does not take effect \n          and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n        - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. \n          BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and SSLCertificateConfiguration. \n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=monitoring-using-api-scripts\n        - **BrowserScriptConfiguration** has the following properties:\n          - **script** A Node.js based test script, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **scriptType** The type of the script, right now, only Basic type is supported. \n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is BrowserScript. It is required.\n        - **WebpageActionConfiguration** has the following properties:\n          - **url** The URL of the Web page being tested. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageAction. It is required.\n        - **WebpageScriptConfiguration** has the following properties:\n          - **script** A Selenium IDE recording script. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageScript. It is required.\n      - **SSLCertificateConfiguration** has the following properties:\n          - **hostname** The hostname of the SSL enabled website.\n          - **port** The SSL port, set to 443 by default.\n          - **daysRemainingCheck** The number of days to use on the validation check. The test will fail when the certificate validity has less than this number of days remaining until expiration.\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **applications** (Technology Preview) It is an array of the unique identifiers of the Application Perspectives associated to this test.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,\n  Synthetic tests run at all locations simultaneously. \n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes. \n  For SSLCertificate tests, the default is every 24 hours and the range is from 60 minute to 1440 minutes.\n\n## Synthetic Credentials:\n\nSynthetic credentials can be used to store passwords and/or secrets used by the Synthetic Tests.\n\nAll Script Tests can use credentials in their body and API Simple Tests can use them on header parameters.\n\nIt is required that the credentials used in the test be created before the test is created or modified.\n\n(Technology Preview) Credentials can be associated to multiple Application Perspective.\n\nTests using credentials are validated during test creation and update whether you use the API or UI, as follows:\n\n1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  \n  Requests to create or update a test referencing credentials without the correct permission will fail with return code `Forbidden`.\n\n2. The credentials or secrets used in the test must exist.  \n  Requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`.\n\n3. (Technology Preview) Credentials associated to Application Perspectives can only be used by tests that are associated to at least one common Application Perspective.\n   Requests to create or update a test referencing credentials without matching Application Perspectives will fail with return code `Bad Request`."
     },
     {
       "name": "Synthetic Test Playback Results",
@@ -5326,7 +5326,7 @@
               "application/json": {
                 "example": [
                   {
-                    "id": "0",
+                    "id": "gBwNFIbjS6Ozwt0a12regg",
                     "label": "biz-perspective5",
                     "description": "This is an example business perspective",
                     "tagFilterExpression": {
@@ -5451,7 +5451,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": 0,
+                  "id": "gBwNFIbjS6Ozwt0a12regg",
                   "label": "biz-perspective1",
                   "description": "This is an example business perspective",
                   "tagFilterExpression": {
@@ -5565,7 +5565,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0",
+                  "id": "gBwNFIbjS6Ozwt0a12regg",
                   "label": "biz-perspective5",
                   "description": "This is an example business perspective",
                   "tagFilterExpression": {
@@ -5644,9 +5644,8 @@
           "content": {
             "application/json": {
               "example": {
-                "id": "0",
+                "id": "gBwNFIbjS6Ozwt0a12regg",
                 "label": "biz-perspective1",
-                "description": "This is an example business perspective",
                 "tagFilterExpression": {
                   "type": "EXPRESSION",
                   "logicalOperator": "AND",
@@ -5700,8 +5699,9 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0",
+                  "id": "gBwNFIbjS6Ozwt0a12regg",
                   "label": "biz-perspective1",
+                  "description": "This is an example business perspective",
                   "tagFilterExpression": {
                     "type": "EXPRESSION",
                     "logicalOperator": "AND",
@@ -5773,17 +5773,6 @@
             "schema": {
               "type": "integer",
               "format": "int64"
-            }
-          },
-          {
-            "in": "query",
-            "name": "dataSource",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CALLS",
-                "TRACES"
-              ]
             }
           },
           {
@@ -7088,11 +7077,25 @@
           "required": true
         },
         "responses": {
-          "default": {
+          "200": {
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AbstractIntegration"
+                }
+              }
             },
-            "description": "default response"
+            "description": "Persisted an alert channel setting"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "failed persisting an alert channel setting"
           }
         },
         "security": [
@@ -7102,7 +7105,7 @@
             ]
           }
         ],
-        "summary": "Update alerting channel",
+        "summary": "Update alert channel",
         "tags": [
           "Event Settings"
         ]
@@ -9220,6 +9223,8 @@
         "operationId": "findActiveServiceLevelsAlertConfigs",
         "parameters": [
           {
+            "description": "Service Levels Objective(SLO) Configuration ID",
+            "example": "SLOEANnWh9tQOa2h88kGxK6wQ",
             "in": "query",
             "name": "sloId",
             "schema": {
@@ -9227,6 +9232,8 @@
             }
           },
           {
+            "description": "List of Service Levels Alert Configuration IDs",
+            "example": "ln3IGogYS-S7CPqcOQYTNA",
             "in": "query",
             "name": "alertIds",
             "schema": {
@@ -9244,30 +9251,42 @@
           "200": {
             "content": {
               "application/json": {
-                "example": [
-                  {
-                    "name": "Service level status below 70%",
-                    "rule": "SLO_STATUS",
-                    "severity": 10,
-                    "threshold": {
-                      "type": "staticThreshold",
-                      "value": 0.7,
-                      "operator": "<=",
-                      "lastUpdated": 0
-                    },
-                    "triggering": false,
-                    "description": "Calls are slower or equal to 33 ms based on latency (90th).",
-                    "sloIds": [
-                      "qweqwqeqw",
-                      "qqq"
-                    ],
-                    "timeThreshold": {
-                      "timeWindow": 600000
-                    },
-                    "alertChannelIds": [],
-                    "customPayloadFields": []
-                  }
-                ],
+                "example": {
+                  "name": "Error Budget Remaining is low",
+                  "description": "Error Budget Remaining is less than or equal to 5%.",
+                  "severity": 5,
+                  "triggering": true,
+                  "rule": {
+                    "alertType": "ERROR_BUDGET",
+                    "metric": "BURNED_PERCENTAGE"
+                  },
+                  "threshold": {
+                    "type": "staticThreshold",
+                    "operator": ">=",
+                    "value": 0.05,
+                    "lastUpdated": 1716454787342
+                  },
+                  "sloIds": [
+                    "SLOEANnWh9tQOa2h88kGxK6wQ"
+                  ],
+                  "alertChannelIds": [],
+                  "timeThreshold": {
+                    "expiry": null,
+                    "timeWindow": 600000
+                  },
+                  "customPayloadFields": [
+                    {
+                      "type": "staticString",
+                      "key": "foo",
+                      "value": "bar"
+                    }
+                  ],
+                  "id": "ln3IGogYS-S7CPqcOQYTNA",
+                  "created": 1717668384754,
+                  "initialCreated": 1717668384754,
+                  "readOnly": false,
+                  "enabled": true
+                },
                 "schema": {
                   "type": "array",
                   "items": {
@@ -9296,22 +9315,109 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "alertChannelIds": [],
+                "customPayloadFields": [
+                  {
+                    "key": "foo",
+                    "id": "avvh9tbxpfRE65t",
+                    "type": "staticString",
+                    "value": "bar"
+                  }
+                ],
+                "description": "Error Budget Remaining is less than or equal to 5%.",
+                "name": "Error Budget Remaining is low",
+                "rule": {
+                  "alertType": "ERROR_BUDGET",
+                  "metric": "BURNED_PERCENTAGE"
+                },
+                "severity": 5,
+                "sloIds": [
+                  "SLOEANnWh9tQOa2h88kGxK6wQ"
+                ],
+                "threshold": {
+                  "type": "staticThreshold",
+                  "value": 0.05,
+                  "operator": ">=",
+                  "lastUpdated": 1716454787342
+                },
+                "timeThreshold": {
+                  "timeWindow": 600000
+                },
+                "triggering": true
+              },
               "schema": {
                 "$ref": "#/components/schemas/ServiceLevelsAlertConfig"
               }
             }
           },
+          "description": "Create Request Body",
           "required": true
         },
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "name": "Error Budget Remaining is low",
+                  "description": "Error Budget Remaining is less than or equal to 5%.",
+                  "severity": 5,
+                  "triggering": true,
+                  "rule": {
+                    "alertType": "ERROR_BUDGET",
+                    "metric": "BURNED_PERCENTAGE"
+                  },
+                  "threshold": {
+                    "type": "staticThreshold",
+                    "operator": ">=",
+                    "value": 0.05,
+                    "lastUpdated": 1716454787342
+                  },
+                  "sloIds": [
+                    "SLOEANnWh9tQOa2h88kGxK6wQ"
+                  ],
+                  "alertChannelIds": [],
+                  "timeThreshold": {
+                    "expiry": null,
+                    "timeWindow": 600000
+                  },
+                  "customPayloadFields": [
+                    {
+                      "type": "staticString",
+                      "key": "foo",
+                      "value": "bar"
+                    }
+                  ],
+                  "id": "ln3IGogYS-S7CPqcOQYTNA",
+                  "created": 1717668384754,
+                  "initialCreated": 1717668384754,
+                  "readOnly": false,
+                  "enabled": true
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
                 }
               }
-            }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "Website SLOs do not support triggering -> true"
+                  ]
+                },
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                  }
+                }
+              }
+            },
+            "description": "Service levels Alert Config with Website SLOs do not support triggering"
           }
         },
         "security": [
@@ -9332,6 +9438,8 @@
         "operationId": "deleteServiceLevelsAlertConfig",
         "parameters": [
           {
+            "description": "Service Levels Alert Configuration ID",
+            "example": "ln3IGogYS-S7CPqcOQYTNA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -9365,6 +9473,8 @@
         "operationId": "findServiceLevelsAlertConfig",
         "parameters": [
           {
+            "description": "Service Levels Alert Configuration ID",
+            "example": "ln3IGogYS-S7CPqcOQYTNA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -9373,6 +9483,8 @@
             }
           },
           {
+            "description": "Service Levels Alert Version Creation Date",
+            "example": 1706617456952,
             "in": "query",
             "name": "validOn",
             "schema": {
@@ -9386,26 +9498,40 @@
             "content": {
               "application/json": {
                 "example": {
-                  "name": "Service level status below 70%",
-                  "rule": "SLO_STATUS",
-                  "severity": 10,
+                  "name": "Error Budget Remaining is low",
+                  "description": "Error Budget Remaining is less than or equal to 5%.",
+                  "severity": 5,
+                  "triggering": true,
+                  "rule": {
+                    "alertType": "ERROR_BUDGET",
+                    "metric": "BURNED_PERCENTAGE"
+                  },
                   "threshold": {
                     "type": "staticThreshold",
-                    "value": 0.7,
-                    "operator": "<=",
-                    "lastUpdated": 0
+                    "operator": ">=",
+                    "value": 0.05,
+                    "lastUpdated": 1716454787342
                   },
-                  "triggering": false,
-                  "description": "Calls are slower or equal to 33 ms based on latency (90th).",
                   "sloIds": [
-                    "qweqwqeqw",
-                    "qqq"
+                    "SLOEANnWh9tQOa2h88kGxK6wQ"
                   ],
+                  "alertChannelIds": [],
                   "timeThreshold": {
+                    "expiry": null,
                     "timeWindow": 600000
                   },
-                  "alertChannelIds": [],
-                  "customPayloadFields": []
+                  "customPayloadFields": [
+                    {
+                      "type": "staticString",
+                      "key": "foo",
+                      "value": "bar"
+                    }
+                  ],
+                  "id": "ln3IGogYS-S7CPqcOQYTNA",
+                  "created": 1717668384754,
+                  "initialCreated": 1717668384754,
+                  "readOnly": false,
+                  "enabled": true
                 },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
@@ -9413,6 +9539,21 @@
               }
             },
             "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found"
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                }
+              }
+            },
+            "description": "Service levels Alert Config with given ID not found"
           }
         },
         "security": [
@@ -9431,6 +9572,8 @@
         "operationId": "updateServiceLevelsAlertConfig",
         "parameters": [
           {
+            "description": "Service Levels Alert Configuration ID",
+            "example": "ln3IGogYS-S7CPqcOQYTNA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -9442,26 +9585,112 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "alertChannelIds": [],
+                "customPayloadFields": [
+                  {
+                    "key": "foo",
+                    "id": "avvh9tbxpfRE65t",
+                    "type": "staticString",
+                    "value": "bar"
+                  }
+                ],
+                "description": "Error Budget Remaining is less than or equal to 5%.",
+                "name": "Error Budget Remaining is low",
+                "rule": {
+                  "alertType": "ERROR_BUDGET",
+                  "metric": "BURNED_PERCENTAGE"
+                },
+                "severity": 5,
+                "sloIds": [
+                  "SLOEANnWh9tQOa2h88kGxK6wQ"
+                ],
+                "threshold": {
+                  "type": "staticThreshold",
+                  "value": 0.05,
+                  "operator": ">=",
+                  "lastUpdated": 1716454787342
+                },
+                "timeThreshold": {
+                  "timeWindow": 600000
+                },
+                "triggering": true
+              },
               "schema": {
                 "$ref": "#/components/schemas/ServiceLevelsAlertConfig"
               }
             }
           },
+          "description": "Update Request Body",
           "required": true
         },
         "responses": {
           "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "name": "Error Budget Remaining is low",
+                  "description": "Error Budget Remaining is less than or equal to 5%.",
+                  "severity": 5,
+                  "triggering": true,
+                  "rule": {
+                    "alertType": "ERROR_BUDGET",
+                    "metric": "BURNED_PERCENTAGE"
+                  },
+                  "threshold": {
+                    "type": "staticThreshold",
+                    "operator": ">=",
+                    "value": 0.05,
+                    "lastUpdated": 1716454787342
+                  },
+                  "sloIds": [
+                    "SLOEANnWh9tQOa2h88kGxK6wQ"
+                  ],
+                  "alertChannelIds": [],
+                  "timeThreshold": {
+                    "expiry": null,
+                    "timeWindow": 600000
+                  },
+                  "customPayloadFields": [
+                    {
+                      "type": "staticString",
+                      "key": "foo",
+                      "value": "bar"
+                    }
+                  ],
+                  "id": "ln3IGogYS-S7CPqcOQYTNA",
+                  "created": 1717668384754,
+                  "initialCreated": 1717668384754,
+                  "readOnly": false,
+                  "enabled": true
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
                 }
               }
             },
-            "description": "Synthetic Smart Alert successfully updated"
+            "description": "Service levels Smart Alert successfully updated"
           },
           "204": {
-            "description": "Synthetic Smart Alert did not change"
+            "description": "Service levels Smart Alert did not change"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "Website SLOs do not support triggering -> true"
+                  ]
+                },
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                  }
+                }
+              }
+            },
+            "description": "Service levels Alert Config with Website SLOs do not support triggering"
           }
         },
         "security": [
@@ -9482,6 +9711,8 @@
         "operationId": "disableServiceLevelsAlertConfig",
         "parameters": [
           {
+            "description": "Service Levels Alert Configuration ID",
+            "example": "ln3IGogYS-S7CPqcOQYTNA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -9526,6 +9757,8 @@
         "operationId": "enableServiceLevelsAlertConfig",
         "parameters": [
           {
+            "description": "Service Levels Alert Configuration ID",
+            "example": "ln3IGogYS-S7CPqcOQYTNA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -9570,6 +9803,8 @@
         "operationId": "restoreServiceLevelsAlertConfig",
         "parameters": [
           {
+            "description": "Service Levels Alert Configuration ID",
+            "example": "ln3IGogYS-S7CPqcOQYTNA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -9578,6 +9813,8 @@
             }
           },
           {
+            "description": "Service Levels Alert Version Creation Date",
+            "example": 1706617456952,
             "in": "path",
             "name": "created",
             "required": true,
@@ -9624,6 +9861,8 @@
         "operationId": "findServiceLevelsAlertConfigVersions",
         "parameters": [
           {
+            "description": "Service Levels Alert Configuration ID",
+            "example": "ln3IGogYS-S7CPqcOQYTNA",
             "in": "path",
             "name": "id",
             "required": true,
@@ -9636,28 +9875,36 @@
           "200": {
             "content": {
               "application/json": {
-                "example": {
-                  "name": "Service level status below 70%",
-                  "rule": "SLO_STATUS",
-                  "severity": 10,
-                  "threshold": {
-                    "type": "staticThreshold",
-                    "value": 0.7,
-                    "operator": "<=",
-                    "lastUpdated": 0
+                "example": [
+                  {
+                    "id": "ln3IGogYS-S7CPqcOQYTNA",
+                    "created": 1717507017767,
+                    "enabled": false,
+                    "deleted": false,
+                    "changeSummary": {
+                      "changeType": "DISABLE",
+                      "author": {
+                        "id": "SCzqyU_LTtmO9CCnvvVOAg",
+                        "type": "API",
+                        "fullName": "userToken"
+                      }
+                    }
                   },
-                  "triggering": false,
-                  "description": "Calls are slower or equal to 33 ms based on latency (90th).",
-                  "sloIds": [
-                    "qweqwqeqw",
-                    "qqq"
-                  ],
-                  "timeThreshold": {
-                    "timeWindow": 600000
-                  },
-                  "alertChannelIds": [],
-                  "customPayloadFields": []
-                },
+                  {
+                    "id": "ln3IGogYS-S7CPqcOQYTNA",
+                    "created": 1717506979607,
+                    "enabled": true,
+                    "deleted": false,
+                    "changeSummary": {
+                      "changeType": "CREATE",
+                      "author": {
+                        "id": "SCzqyU_LTtmO9CCnvvVOAg",
+                        "type": "API",
+                        "fullName": "userToken"
+                      }
+                    }
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "items": {
@@ -9667,6 +9914,21 @@
               }
             },
             "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found"
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                }
+              }
+            },
+            "description": "Service levels Alert Config with given ID not found"
           }
         },
         "security": [
@@ -13395,70 +13657,6 @@
         ]
       }
     },
-    "/api/infrastructure-monitoring/topology/filtered-topology": {
-      "post": {
-        "operationId": "getApplicationInfrastructure",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "examples": {
-                "This example retrieves the topology information for an Application Id.": {
-                  "description": "This example retrieves the topology information for an Application Id.",
-                  "value": {
-                    "appId": "AB3DeFGHIJkLm9OpQrstUVwxY_z",
-                    "extendedTraversal": [
-                      {
-                        "terminus": "kubernetesService",
-                        "related": [
-                          "kubernetesPod",
-                          "kubernetesPersistentVolume",
-                          "kubernetesPersistentVolumeClaim"
-                        ]
-                      },
-                      {
-                        "terminus": "host",
-                        "related": [
-                          "vsphereVM",
-                          "vsphereHost",
-                          "vsphereDatacenter"
-                        ]
-                      }
-                    ]
-                  }
-                }
-              },
-              "schema": {
-                "$ref": "#/components/schemas/GetApplicationTopologyQuery"
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Topology"
-                }
-              }
-            },
-            "description": "snapshots matching appId as well as snapshots related snapshots to terminus snapshots"
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ],
-        "summary": "Get Application Infrastructure",
-        "tags": [
-          "Infrastructure Resources"
-        ],
-        "description": "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\r\n**Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\r\n- Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.\r\n- The **size** parameter can be used in order to limit the maximum number of retrieved snapshots.\r\n- The **offline** parameter is used to allow deeper visibility into snapshots. Set to `false`, the query will return all snapshots that are still available on the given **to** timestamp. However, set to `true`, the query will return all snapshots that have been active within the time window, this must at least include the online result and snapshots terminated within this time.\r\n"
-      }
-    },
     "/api/instana/health": {
       "get": {
         "operationId": "getHealthState",
@@ -16859,84 +17057,6 @@
         "description": "See [creating group mapping](#operation/createGroupMapping)"
       }
     },
-    "/api/settings/rca/incident/feedback": {
-      "get": {
-        "operationId": "getRCAIncidentFeedbackById",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "default response"
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ],
-        "summary": "Get feedback of an RCA Incident's probable root cause entity whether good or bad. ",
-        "tags": [
-          "Events"
-        ]
-      }
-    },
-    "/api/settings/rca/incident/feedback/{id}": {
-      "post": {
-        "operationId": "postRCAIncidentFeedbackById",
-        "parameters": [
-          {
-            "example": "exampleRcaIncidentId",
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RCAFeedback"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ],
-        "summary": "Post feedback of an RCA Incident's probable root cause entity whether good or bad. ",
-        "tags": [
-          "Events"
-        ]
-      }
-    },
     "/api/settings/session": {
       "delete": {
         "operationId": "deleteSessionSettings",
@@ -19991,6 +20111,145 @@
         ]
       }
     },
+    "/api/synthetics/metrics": {
+      "post": {
+        "operationId": "getMetricsResult",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "pagination": {
+                  "page": 1,
+                  "pageSize": 3
+                },
+                "metrics": [
+                  {
+                    "metric": "synthetic.metricsResponseTime",
+                    "aggregation": "SUM"
+                  }
+                ],
+                "timeFrame": {
+                  "to": 0,
+                  "windowSize": 144000000
+                },
+                "groups": [
+                  {
+                    "groupbyTag": "synthetic.applicationId"
+                  },
+                  {
+                    "groupbyTag": "synthetic.tags",
+                    "groupbyTagSecondLevelTag": "region"
+                  }
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GetMetricsResult"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "metricsResult": [
+                    {
+                      "tests": [
+                        {
+                          "testId": "6GwdCuiMjGdMrtz8THjo",
+                          "testName": "rumattach-BasicNavTest",
+                          "locationId": [
+                            "f7cEoG61DJfVyWcDnWsc"
+                          ],
+                          "applicationId": "application1",
+                          "serviceId": "serviceId1"
+                        }
+                      ],
+                      "metrics": [
+                        {
+                          "synthetic.metricsResponseTime": 1276
+                        }
+                      ],
+                      "customMetrics": [
+                        {
+                          "region": "region1"
+                        }
+                      ]
+                    },
+                    {
+                      "tests": [
+                        {
+                          "testId": "OCnmrLSlNgzntI68094j",
+                          "testName": "test-javascript-bundled",
+                          "locationId": [
+                            "wHICfVoIpiHbwawo5xQ6"
+                          ],
+                          "applicationId": "application2",
+                          "serviceId": "serviceId2"
+                        }
+                      ],
+                      "metrics": [
+                        {
+                          "synthetic.metricsResponseTime": 14
+                        }
+                      ],
+                      "customMetrics": [
+                        {
+                          "location": "location1",
+                          "region": "region2"
+                        }
+                      ]
+                    },
+                    {
+                      "tests": [
+                        {
+                          "testId": "9i6gpys6whaYtN5k9VeD",
+                          "testName": "My_Test_ReadFile",
+                          "locationId": [
+                            "DemoPoP1_saas_instana_test"
+                          ],
+                          "applicationId": "application3",
+                          "serviceId": "serviceid3"
+                        }
+                      ],
+                      "metrics": [
+                        {
+                          "synthetic.metricsResponseTime": 7
+                        }
+                      ],
+                      "customMetrics": [
+                        {
+                          "location": "location3",
+                          "region": "region3"
+                        }
+                      ]
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 3,
+                  "totalHits": 2212
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get Synthetic metrics",
+        "tags": [
+          "Synthetic Metrics"
+        ]
+      }
+    },
     "/api/synthetics/results": {
       "post": {
         "operationId": "getSyntheticResult",
@@ -20864,7 +21123,7 @@
                 "credentialValue": "123456"
               },
               "schema": {
-                "$ref": "#/components/schemas/SyntheticCredentials"
+                "$ref": "#/components/schemas/SyntheticCredential"
               }
             }
           },
@@ -20889,6 +21148,149 @@
         "tags": [
           "Synthetic Settings"
         ]
+      }
+    },
+    "/api/synthetics/settings/credentials/associations": {
+      "get": {
+        "operationId": "getSyntheticCredentialAssociations",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "credentialName": "password1",
+                    "createdAt": 1717617206785,
+                    "modifiedAt": 1717617206785
+                  },
+                  {
+                    "credentialName": "password2",
+                    "applications": [
+                      "f4KX5zd8RW2pERKKFUCZgQ"
+                    ],
+                    "applicationLabels": [
+                      "All Services"
+                    ],
+                    "createdAt": 1717620972843,
+                    "modifiedAt": 1717620972843
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SyntheticCredential"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canUseSyntheticCredentials",
+              "canConfigureSyntheticTests"
+            ]
+          }
+        ],
+        "summary": "(Technical Preview) All Synthetic Credential Names and Associations",
+        "tags": [
+          "Synthetic Settings"
+        ]
+      }
+    },
+    "/api/synthetics/settings/credentials/associations/{name}": {
+      "get": {
+        "operationId": "getOneSyntheticCredentialAssociations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "credentialName": "password4",
+                  "applications": [
+                    "f4KX5zd8RW2pERKKFUCZgQ"
+                  ],
+                  "applicationLabels": [
+                    "All Services"
+                  ],
+                  "createdAt": 1717620972843,
+                  "modifiedAt": 1717620972843
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SyntheticCredential"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canUseSyntheticCredentials",
+              "canConfigureSyntheticTests"
+            ]
+          }
+        ],
+        "summary": "(Technical Preview) A Synthetic Credential with Name and Associations",
+        "tags": [
+          "Synthetic Settings"
+        ]
+      },
+      "patch": {
+        "operationId": "patchSyntheticCredentialAssociations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": "    {\n        \"applications\": [\n           \"f4KX5zd8RW2pERKKFUCZgQ\"\n        ],\n    }\n",
+              "schema": {
+                "$ref": "#/components/schemas/SyntheticCredential"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canUseSyntheticCredentials",
+              "canConfigureSyntheticTests"
+            ]
+          }
+        ],
+        "summary": "(Technical Preview) Patch the associations of a Synthetic Credential",
+        "tags": [
+          "Synthetic Settings"
+        ],
+        "description": "This API updates the endpoint associations of a Synthetic Credential.\n\n- Credential values cannot be patched.\n- Credentials can be associated to multiple application ids.\n- Patching a credential association will replace the entire array with the full set of values provided.\n\n## Sample script and payload: \n- A sample script to patch a DB2 Admin password and associate it to application ids 'Ss2FBjSTQVef5LsqhPiYkg' and 'KJ8MdZVqK4odMUoBaClH'.\n\n```\ncurl -k -v -X PATCH \\\nhttps://<Host>/api/synthetics/settings/credentials/associations/db2AdminPwd \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"applications\" : [ \"Ss2FBjSTQVef5LsqhPiYkg\", \"KJ8MdZVqK4odMUoBaClH\" ]\n  }'\n```"
       }
     },
     "/api/synthetics/settings/credentials/{name}": {
@@ -21531,7 +21933,7 @@
         "tags": [
           "Synthetic Settings"
         ],
-        "description": "This API endpoint updates selected attributes of a Synthetic Test.\n\n- All attributes listed as in the schema, including the required ones, are optional for this call.\n- Synthetic Test configuration properties set to null will be removed from the configuration.\n- For major updates to the Synthetic Test or to remove main attributes, see \"Update a Synthetic test\"\n\n## Sample script and payload: \n- A sample script to patch a simple HTTP Script Test to enable it and to switch from multi-scripts to single script.\n\n```\ncurl -k -v -X PATCH \\\nhttps://<Host>/api/synthetics/settings/tests/Ilfs9bW97KkTxuyGtxBF \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"active\" : true,\n    \"configuration\" : { \n      \"scripts\" : null,\n      \"script\" : \"//script goes here\"\n    }\n  }'\n```"
+        "description": "This API endpoint updates selected attributes of a Synthetic Test.\n\n- All attributes listed as in the schema, including the required ones, are optional for this call.\n- Synthetic Test configuration properties set to null will be removed from the configuration.\n- Patching an array attribute will replace the entire array with the full set of values provided.\n- For major updates to the Synthetic Test or to remove main attributes, see \"Update a Synthetic test\"\n\n## Sample script and payload: \n- A sample script to patch a simple HTTP Script Test to enable it and to switch from multi-scripts to single script.\n\n```\ncurl -k -v -X PATCH \\\nhttps://<Host>/api/synthetics/settings/tests/Ilfs9bW97KkTxuyGtxBF \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"active\" : true,\n    \"configuration\" : { \n      \"scripts\" : null,\n      \"script\" : \"//script goes here\"\n    }\n  }'\n```"
       },
       "put": {
         "operationId": "updateSyntheticTest",
@@ -22933,6 +23335,7 @@
             "PAGER_DUTY": "#/components/schemas/PagerdutyIntegration",
             "PROMETHEUS_WEBHOOK": "#/components/schemas/PrometheusWebhookIntegration",
             "SALESFORCE": "#/components/schemas/SalesforceIntegration",
+            "SERVICE_NOW_APPLICATION": "#/components/schemas/ServiceNowEnhancedIntegration",
             "SERVICE_NOW_WEBHOOK": "#/components/schemas/ServiceNowIntegration",
             "SLACK": "#/components/schemas/SlackIntegration",
             "SPLUNK": "#/components/schemas/SplunkIntegration",
@@ -24487,46 +24890,6 @@
           }
         ]
       },
-      "ApplicationExtendedTraversal": {
-        "type": "object",
-        "description": "extended Traversal",
-        "properties": {
-          "related": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "host",
-                "vsphereDatacenter",
-                "vsphereHost",
-                "vsphereVM",
-                "kubernetesService",
-                "kubernetesPod",
-                "kubernetesPersistentVolume",
-                "kubernetesPersistentVolumeClaim"
-              ]
-            }
-          },
-          "terminus": {
-            "type": "string",
-            "description": "Plugin ID of terminus",
-            "enum": [
-              "host",
-              "vsphereDatacenter",
-              "vsphereHost",
-              "vsphereVM",
-              "kubernetesService",
-              "kubernetesPod",
-              "kubernetesPersistentVolume",
-              "kubernetesPersistentVolumeClaim"
-            ]
-          }
-        },
-        "required": [
-          "related",
-          "terminus"
-        ]
-      },
       "ApplicationItem": {
         "type": "object",
         "properties": {
@@ -25347,6 +25710,14 @@
           }
         }
       },
+      "CommonVulnerabilitiesAndExposuresIssue": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Event"
+          }
+        ]
+      },
       "Condition": {
         "type": "object",
         "properties": {
@@ -25545,6 +25916,62 @@
           "ownerId",
           "title"
         ]
+      },
+      "CustomEmailSubjectPrefix": {
+        "type": "object",
+        "properties": {
+          "agentMonitoringIssue": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "A map containing the open and close email subject value of a given agent monitoring issue",
+              "example": "{\"openValue\":\"Open email subject prefix value\",\"closeValue\":\"Close email subject prefix value\"}"
+            },
+            "description": "A map containing the open and close email subject value of a given agent monitoring issue",
+            "example": {
+              "closeValue": "Close email subject prefix value",
+              "openValue": "Open email subject prefix value"
+            }
+          },
+          "change": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "A map containing the open and close email subject value of a given change event",
+              "example": "{\"changeValue\":\"Email subject prefix value\"}"
+            },
+            "description": "A map containing the open and close email subject value of a given change event",
+            "example": {
+              "changeValue": "Email subject prefix value"
+            }
+          },
+          "incident": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "A map containing the open and close email subject value of a given incident",
+              "example": "{\"openValue\":\"Open email subject prefix value\",\"closeValue\":\"Close email subject prefix value\"}"
+            },
+            "description": "A map containing the open and close email subject value of a given incident",
+            "example": {
+              "closeValue": "Close email subject prefix value",
+              "openValue": "Open email subject prefix value"
+            }
+          },
+          "issue": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "A map containing the open and close email subject value of a given issue",
+              "example": "{\"openValue\":\"Open email subject prefix value\",\"closeValue\":\"Close email subject prefix value\"}"
+            },
+            "description": "A map containing the open and close email subject value of a given issue",
+            "example": {
+              "closeValue": "Close email subject prefix value",
+              "openValue": "Open email subject prefix value"
+            }
+          }
+        }
       },
       "CustomEventMobileAppAlertRule": {
         "type": "object",
@@ -25995,6 +26422,9 @@
           {
             "type": "object",
             "properties": {
+              "customEmailSubjectPrefix": {
+                "$ref": "#/components/schemas/CustomEmailSubjectPrefix"
+              },
               "emails": {
                 "type": "array",
                 "items": {
@@ -26588,6 +27018,7 @@
                 "online",
                 "offline",
                 "agent_monitoring_issue",
+                "cve_issue",
                 "none"
               ]
             },
@@ -27088,25 +27519,6 @@
           "timeFrame"
         ]
       },
-      "GetApplicationTopologyQuery": {
-        "type": "object",
-        "properties": {
-          "appId": {
-            "type": "string",
-            "description": "Application Id"
-          },
-          "extendedTraversal": {
-            "type": "array",
-            "description": "extended Traversal",
-            "items": {
-              "$ref": "#/components/schemas/ApplicationExtendedTraversal"
-            }
-          }
-        },
-        "required": [
-          "appId"
-        ]
-      },
       "GetApplications": {
         "type": "object",
         "properties": {
@@ -27507,6 +27919,44 @@
           "pagination",
           "tagFilterExpression",
           "timeFrame"
+        ]
+      },
+      "GetMetricsResult": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyntheticMetricTagGroup"
+            }
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyntheticMetricConfiguration"
+            }
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            }
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          }
+        },
+        "required": [
+          "metrics"
         ]
       },
       "GetMobileAppBeaconGroups": {
@@ -29575,7 +30025,6 @@
                   "service_20",
                   "endpoint_20",
                   "website",
-                  "sli",
                   "synthetic",
                   "mobile_app"
                 ],
@@ -30035,6 +30484,9 @@
             "type": "integer",
             "format": "int64"
           },
+          "muteAlerts": {
+            "type": "boolean"
+          },
           "reasonForClosing": {
             "type": "string"
           },
@@ -30118,6 +30570,9 @@
                 "type": "object"
               }
             }
+          },
+          "aiOriginated": {
+            "type": "boolean"
           },
           "builtIn": {
             "type": "boolean"
@@ -30526,6 +30981,76 @@
         "required": [
           "operator",
           "prefix"
+        ]
+      },
+      "MetricsResult": {
+        "type": "object",
+        "properties": {
+          "metricsResult": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricsResultItem"
+            }
+          }
+        },
+        "required": [
+          "metricsResult"
+        ]
+      },
+      "MetricsResultItem": {
+        "type": "object",
+        "properties": {
+          "customTags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object"
+              }
+            }
+          },
+          "tests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricsTestResultItem"
+            }
+          }
+        },
+        "required": [
+          "metrics",
+          "tests"
+        ]
+      },
+      "MetricsTestResultItem": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "serviceId": {
+            "type": "string"
+          },
+          "testId": {
+            "type": "string"
+          },
+          "testName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "testId"
         ]
       },
       "MobileApp": {
@@ -31113,6 +31638,16 @@
           "stackTrace": {
             "type": "string",
             "maxLength": 16384,
+            "minLength": 0
+          },
+          "stackTraceKeyChecksum": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 0
+          },
+          "stackTraceKeyInformation": {
+            "type": "string",
+            "maxLength": 1024,
             "minLength": 0
           },
           "stackTraceLine": {
@@ -31921,29 +32456,6 @@
           "kind",
           "name",
           "webhookUrl"
-        ]
-      },
-      "RCAFeedback": {
-        "type": "object",
-        "properties": {
-          "eventId": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 0
-          },
-          "feedback": {
-            "type": "boolean"
-          },
-          "snapshotId": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 0
-          }
-        },
-        "required": [
-          "eventId",
-          "feedback",
-          "snapshotId"
         ]
       },
       "RecurrentMaintenanceWindow": {
@@ -32815,6 +33327,56 @@
         "required": [
           "endpoints",
           "serviceId"
+        ]
+      },
+      "ServiceNowEnhancedIntegration": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractIntegration"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "autoCloseIncidents": {
+                "type": "boolean"
+              },
+              "instanaUrl": {
+                "type": "string"
+              },
+              "manuallyClosedIncidents": {
+                "type": "boolean"
+              },
+              "password": {
+                "type": "string"
+              },
+              "resolutionOfIncident": {
+                "type": "boolean"
+              },
+              "serviceNowUrl": {
+                "type": "string"
+              },
+              "tenant": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "password",
+          "serviceNowUrl",
+          "tenant",
+          "unit",
+          "username"
         ]
       },
       "ServiceNowIntegration": {
@@ -34177,14 +34739,40 @@
           "defaultRules"
         ]
       },
-      "SyntheticCredentials": {
+      "SyntheticCredential": {
         "type": "object",
         "properties": {
+          "applicationLabels": {
+            "type": "array",
+            "description": "(Technology Preview)",
+            "items": {
+              "type": "string",
+              "description": "(Technology Preview)"
+            }
+          },
+          "applications": {
+            "type": "array",
+            "description": "(Technology Preview)",
+            "items": {
+              "type": "string",
+              "description": "(Technology Preview)"
+            }
+          },
+          "createdAt": {
+            "type": "integer",
+            "format": "int64"
+          },
           "credentialName": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
           },
           "credentialValue": {
             "type": "string"
+          },
+          "modifiedAt": {
+            "type": "integer",
+            "format": "int64"
           }
         },
         "required": [
@@ -34345,6 +34933,33 @@
           "metric"
         ]
       },
+      "SyntheticMetricTagGroup": {
+        "type": "object",
+        "properties": {
+          "groupbyTag": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "groupbyTagEntity": {
+            "type": "string",
+            "enum": [
+              "NOT_APPLICABLE",
+              "DESTINATION",
+              "SOURCE"
+            ]
+          },
+          "groupbyTagSecondLevelKey": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "groupbyTag",
+          "groupbyTagEntity"
+        ]
+      },
       "SyntheticPlaybackCapabilities": {
         "type": "object",
         "properties": {
@@ -34385,6 +35000,26 @@
             "type": "string",
             "maxLength": 512,
             "minLength": 0
+          },
+          "applicationLabels": {
+            "type": "array",
+            "description": "(Technology Preview)",
+            "items": {
+              "type": "string",
+              "description": "(Technology Preview)"
+            },
+            "maxItems": 1,
+            "minItems": 0
+          },
+          "applications": {
+            "type": "array",
+            "description": "(Technology Preview)",
+            "items": {
+              "type": "string",
+              "description": "(Technology Preview)"
+            },
+            "maxItems": 1,
+            "minItems": 0
           },
           "configuration": {
             "$ref": "#/components/schemas/SyntheticTypeConfiguration"
@@ -36003,6 +36638,7 @@
                 "online",
                 "offline",
                 "agent_monitoring_issue",
+                "cve_issue",
                 "none"
               ]
             },
@@ -37973,7 +38609,8 @@
       "tags": [
         "Infrastructure Analyze",
         "Service Levels Objective(SLO) Configurations",
-        "Service Levels Objective(SLO) Report"
+        "Service Levels Objective(SLO) Report",
+        "Service levels Alert Configuration"
       ]
     },
     {

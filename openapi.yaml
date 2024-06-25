@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Introduction to Instana public APIs
-  version: 1.275.949
+  version: 1.276.1145
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -374,6 +374,7 @@ tags:
       - **createdBy** The user identifier who created the test resource.
       - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
       - **locations** It is an array of the PoP location IDs where the Synthetic tests are located.
+      - **applications** (Technology Preview) It is an array of the unique identifiers of the Application Perspectives associated to this test.
       - **modifiedAt** The test last updated time, following RFC3339 standard.
       - **modifiedBy** The user identifier who updated the test resource.
       - **playbackMode** Defines how the Synthetic test should be executed across multiple
@@ -391,6 +392,8 @@ tags:
 
       It is required that the credentials used in the test be created before the test is created or modified.
 
+      (Technology Preview) Credentials can be associated to multiple Application Perspective.
+
       Tests using credentials are validated during test creation and update whether you use the API or UI, as follows:
 
       1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  
@@ -398,6 +401,9 @@ tags:
 
       2. The credentials or secrets used in the test must exist.  
         Requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`.
+
+      3. (Technology Preview) Credentials associated to Application Perspectives can only be used by tests that are associated to at least one common Application Perspective.
+         Requests to create or update a test referencing credentials without matching Application Perspectives will fail with return code `Bad Request`.
   - name: Synthetic Test Playback Results
     description: "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes), \n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second), \n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values). \n   \n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), \n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate tests.\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results.\nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for responseTime and responseSize must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseSize\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: synthetic.id (a string representing the test result ID), \nsynthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\nsynthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\nsynthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values).\n\nThe following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\nsynthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\nThe metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate tests.\n\nThe metric synthetic.tags adds the latest list of custom properties to the response.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get the custom metrics of a Synthetic SSLCertificate test\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.customMetrics\"],\n  \"tagFilters\":[{\n    \"stringValue\":\"dk6yzb9fxCDlB6axIhUu\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 172800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only synthetic.metricsResponseTime (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have three options to search for a test.\n\n**syntheticType | locationId | applicationId**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n\nTests can also be filtered by their active state (`true`/`false`) using the custom property label `synthetic.testActive`.\n```\n\"tagFilters\": [{ \n  \"name\":\"synthetic.testActive\", \n  \"operator\":\"EQUALS\",\n  \"booleanValue\": false \n}]\n```\n\n### Defaults\n\n**syntheticType | locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a list of active Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"tagFilterExpression\": { \n        \"type\":\"EXPRESSION\",\n        \"logicalOperator\":\"AND\",\n        \"elements\":[{\n          \"name\": \"synthetic.locationId\", \n          \"operator\": \"EQUALS\", \n          \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n        }, {\n          \"name\": \"synthetic.testActive\",\n          \"operator\": \"EQUALS\",\n          \"booleanValue\": true\n        }]\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
   - name: Action Catalog
@@ -3835,7 +3841,7 @@ paths:
           content:
             application/json:
               example:
-                - id: '0'
+                - id: gBwNFIbjS6Ozwt0a12regg
                   label: biz-perspective5
                   description: This is an example business perspective
                   tagFilterExpression:
@@ -3918,7 +3924,7 @@ paths:
           content:
             application/json:
               example:
-                id: 0
+                id: gBwNFIbjS6Ozwt0a12regg
                 label: biz-perspective1
                 description: This is an example business perspective
                 tagFilterExpression:
@@ -3990,7 +3996,7 @@ paths:
           content:
             application/json:
               example:
-                id: '0'
+                id: gBwNFIbjS6Ozwt0a12regg
                 label: biz-perspective5
                 description: This is an example business perspective
                 tagFilterExpression:
@@ -4041,9 +4047,8 @@ paths:
         content:
           application/json:
             example:
-              id: '0'
+              id: gBwNFIbjS6Ozwt0a12regg
               label: biz-perspective1
-              description: This is an example business perspective
               tagFilterExpression:
                 type: EXPRESSION
                 logicalOperator: AND
@@ -4080,8 +4085,9 @@ paths:
           content:
             application/json:
               example:
-                id: '0'
+                id: gBwNFIbjS6Ozwt0a12regg
                 label: biz-perspective1
+                description: This is an example business perspective
                 tagFilterExpression:
                   type: EXPRESSION
                   logicalOperator: AND
@@ -4127,13 +4133,6 @@ paths:
           schema:
             type: integer
             format: int64
-        - in: query
-          name: dataSource
-          schema:
-            type: string
-            enum:
-              - CALLS
-              - TRACES
         - in: query
           name: useCase
           schema:
@@ -4996,14 +4995,22 @@ paths:
               $ref: '#/components/schemas/AbstractIntegration'
         required: true
       responses:
-        default:
+        '200':
           content:
-            application/json: {}
-          description: default response
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbstractIntegration'
+          description: Persisted an alert channel setting
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: failed persisting an alert channel setting
       security:
         - ApiKeyAuth:
             - CanConfigureIntegrations
-      summary: Update alerting channel
+      summary: Update alert channel
       tags:
         - Event Settings
   /api/events/settings/alerts:
@@ -6526,11 +6533,15 @@ paths:
       description: Configs are sorted descending by their created date.
       operationId: findActiveServiceLevelsAlertConfigs
       parameters:
-        - in: query
+        - description: Service Levels Objective(SLO) Configuration ID
+          example: SLOEANnWh9tQOa2h88kGxK6wQ
+          in: query
           name: sloId
           schema:
             type: string
-        - in: query
+        - description: List of Service Levels Alert Configuration IDs
+          example: ln3IGogYS-S7CPqcOQYTNA
+          in: query
           name: alertIds
           schema:
             type: array
@@ -6544,23 +6555,33 @@ paths:
           content:
             application/json:
               example:
-                - name: Service level status below 70%
-                  rule: SLO_STATUS
-                  severity: 10
-                  threshold:
-                    type: staticThreshold
-                    value: 0.7
-                    operator: <=
-                    lastUpdated: 0
-                  triggering: false
-                  description: Calls are slower or equal to 33 ms based on latency (90th).
-                  sloIds:
-                    - qweqwqeqw
-                    - qqq
-                  timeThreshold:
-                    timeWindow: 600000
-                  alertChannelIds: []
-                  customPayloadFields: []
+                name: Error Budget Remaining is low
+                description: Error Budget Remaining is less than or equal to 5%.
+                severity: 5
+                triggering: true
+                rule:
+                  alertType: ERROR_BUDGET
+                  metric: BURNED_PERCENTAGE
+                threshold:
+                  type: staticThreshold
+                  operator: '>='
+                  value: 0.05
+                  lastUpdated: 1716454787342
+                sloIds:
+                  - SLOEANnWh9tQOa2h88kGxK6wQ
+                alertChannelIds: []
+                timeThreshold:
+                  expiry: null
+                  timeWindow: 600000
+                customPayloadFields:
+                  - type: staticString
+                    key: foo
+                    value: bar
+                id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717668384754
+                initialCreated: 1717668384754
+                readOnly: false
+                enabled: true
               schema:
                 type: array
                 items:
@@ -6577,15 +6598,79 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              alertChannelIds: []
+              customPayloadFields:
+                - key: foo
+                  id: avvh9tbxpfRE65t
+                  type: staticString
+                  value: bar
+              description: Error Budget Remaining is less than or equal to 5%.
+              name: Error Budget Remaining is low
+              rule:
+                alertType: ERROR_BUDGET
+                metric: BURNED_PERCENTAGE
+              severity: 5
+              sloIds:
+                - SLOEANnWh9tQOa2h88kGxK6wQ
+              threshold:
+                type: staticThreshold
+                value: 0.05
+                operator: '>='
+                lastUpdated: 1716454787342
+              timeThreshold:
+                timeWindow: 600000
+              triggering: true
             schema:
               $ref: '#/components/schemas/ServiceLevelsAlertConfig'
+        description: Create Request Body
         required: true
       responses:
-        default:
+        '200':
           content:
             application/json:
+              example:
+                name: Error Budget Remaining is low
+                description: Error Budget Remaining is less than or equal to 5%.
+                severity: 5
+                triggering: true
+                rule:
+                  alertType: ERROR_BUDGET
+                  metric: BURNED_PERCENTAGE
+                threshold:
+                  type: staticThreshold
+                  operator: '>='
+                  value: 0.05
+                  lastUpdated: 1716454787342
+                sloIds:
+                  - SLOEANnWh9tQOa2h88kGxK6wQ
+                alertChannelIds: []
+                timeThreshold:
+                  expiry: null
+                  timeWindow: 600000
+                customPayloadFields:
+                  - type: staticString
+                    key: foo
+                    value: bar
+                id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717668384754
+                initialCreated: 1717668384754
+                readOnly: false
+                enabled: true
               schema:
                 $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: OK
+        '400':
+          content:
+            application/json:
+              example:
+                errors:
+                  - Website SLOs do not support triggering -> true
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Service levels Alert Config with Website SLOs do not support triggering
       security:
         - ApiKeyAuth:
             - CanConfigureServiceLevelsAlerts
@@ -6596,7 +6681,9 @@ paths:
     delete:
       operationId: deleteServiceLevelsAlertConfig
       parameters:
-        - in: path
+        - description: Service Levels Alert Configuration ID
+          example: ln3IGogYS-S7CPqcOQYTNA
+          in: path
           name: id
           required: true
           schema:
@@ -6616,12 +6703,16 @@ paths:
       description: Find a Service levels Alert Config by ID. This will deliver deleted configs too.
       operationId: findServiceLevelsAlertConfig
       parameters:
-        - in: path
+        - description: Service Levels Alert Configuration ID
+          example: ln3IGogYS-S7CPqcOQYTNA
+          in: path
           name: id
           required: true
           schema:
             type: string
-        - in: query
+        - description: Service Levels Alert Version Creation Date
+          example: 1706617456952
+          in: query
           name: validOn
           schema:
             type: integer
@@ -6631,26 +6722,45 @@ paths:
           content:
             application/json:
               example:
-                name: Service level status below 70%
-                rule: SLO_STATUS
-                severity: 10
+                name: Error Budget Remaining is low
+                description: Error Budget Remaining is less than or equal to 5%.
+                severity: 5
+                triggering: true
+                rule:
+                  alertType: ERROR_BUDGET
+                  metric: BURNED_PERCENTAGE
                 threshold:
                   type: staticThreshold
-                  value: 0.7
-                  operator: <=
-                  lastUpdated: 0
-                triggering: false
-                description: Calls are slower or equal to 33 ms based on latency (90th).
+                  operator: '>='
+                  value: 0.05
+                  lastUpdated: 1716454787342
                 sloIds:
-                  - qweqwqeqw
-                  - qqq
-                timeThreshold:
-                  timeWindow: 600000
+                  - SLOEANnWh9tQOa2h88kGxK6wQ
                 alertChannelIds: []
-                customPayloadFields: []
+                timeThreshold:
+                  expiry: null
+                  timeWindow: 600000
+                customPayloadFields:
+                  - type: staticString
+                    key: foo
+                    value: bar
+                id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717668384754
+                initialCreated: 1717668384754
+                readOnly: false
+                enabled: true
               schema:
                 $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
           description: OK
+        '404':
+          content:
+            application/json:
+              example:
+                errors:
+                  - 'Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found'
+              schema:
+                $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Service levels Alert Config with given ID not found
       security:
         - ApiKeyAuth:
             - Default
@@ -6660,7 +6770,9 @@ paths:
     post:
       operationId: updateServiceLevelsAlertConfig
       parameters:
-        - in: path
+        - description: Service Levels Alert Configuration ID
+          example: ln3IGogYS-S7CPqcOQYTNA
+          in: path
           name: id
           required: true
           schema:
@@ -6668,18 +6780,81 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              alertChannelIds: []
+              customPayloadFields:
+                - key: foo
+                  id: avvh9tbxpfRE65t
+                  type: staticString
+                  value: bar
+              description: Error Budget Remaining is less than or equal to 5%.
+              name: Error Budget Remaining is low
+              rule:
+                alertType: ERROR_BUDGET
+                metric: BURNED_PERCENTAGE
+              severity: 5
+              sloIds:
+                - SLOEANnWh9tQOa2h88kGxK6wQ
+              threshold:
+                type: staticThreshold
+                value: 0.05
+                operator: '>='
+                lastUpdated: 1716454787342
+              timeThreshold:
+                timeWindow: 600000
+              triggering: true
             schema:
               $ref: '#/components/schemas/ServiceLevelsAlertConfig'
+        description: Update Request Body
         required: true
       responses:
         '200':
           content:
             application/json:
+              example:
+                name: Error Budget Remaining is low
+                description: Error Budget Remaining is less than or equal to 5%.
+                severity: 5
+                triggering: true
+                rule:
+                  alertType: ERROR_BUDGET
+                  metric: BURNED_PERCENTAGE
+                threshold:
+                  type: staticThreshold
+                  operator: '>='
+                  value: 0.05
+                  lastUpdated: 1716454787342
+                sloIds:
+                  - SLOEANnWh9tQOa2h88kGxK6wQ
+                alertChannelIds: []
+                timeThreshold:
+                  expiry: null
+                  timeWindow: 600000
+                customPayloadFields:
+                  - type: staticString
+                    key: foo
+                    value: bar
+                id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717668384754
+                initialCreated: 1717668384754
+                readOnly: false
+                enabled: true
               schema:
                 $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
-          description: Synthetic Smart Alert successfully updated
+          description: Service levels Smart Alert successfully updated
         '204':
-          description: Synthetic Smart Alert did not change
+          description: Service levels Smart Alert did not change
+        '400':
+          content:
+            application/json:
+              example:
+                errors:
+                  - Website SLOs do not support triggering -> true
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Service levels Alert Config with Website SLOs do not support triggering
       security:
         - ApiKeyAuth:
             - CanConfigureServiceLevelsAlerts
@@ -6690,7 +6865,9 @@ paths:
     put:
       operationId: disableServiceLevelsAlertConfig
       parameters:
-        - in: path
+        - description: Service Levels Alert Configuration ID
+          example: ln3IGogYS-S7CPqcOQYTNA
+          in: path
           name: id
           required: true
           schema:
@@ -6716,7 +6893,9 @@ paths:
     put:
       operationId: enableServiceLevelsAlertConfig
       parameters:
-        - in: path
+        - description: Service Levels Alert Configuration ID
+          example: ln3IGogYS-S7CPqcOQYTNA
+          in: path
           name: id
           required: true
           schema:
@@ -6742,12 +6921,16 @@ paths:
     put:
       operationId: restoreServiceLevelsAlertConfig
       parameters:
-        - in: path
+        - description: Service Levels Alert Configuration ID
+          example: ln3IGogYS-S7CPqcOQYTNA
+          in: path
           name: id
           required: true
           schema:
             type: string
-        - in: path
+        - description: Service Levels Alert Version Creation Date
+          example: 1706617456952
+          in: path
           name: created
           required: true
           schema:
@@ -6775,7 +6958,9 @@ paths:
       description: Find all versions of a Service levels Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.
       operationId: findServiceLevelsAlertConfigVersions
       parameters:
-        - in: path
+        - description: Service Levels Alert Configuration ID
+          example: ln3IGogYS-S7CPqcOQYTNA
+          in: path
           name: id
           required: true
           schema:
@@ -6785,28 +6970,40 @@ paths:
           content:
             application/json:
               example:
-                name: Service level status below 70%
-                rule: SLO_STATUS
-                severity: 10
-                threshold:
-                  type: staticThreshold
-                  value: 0.7
-                  operator: <=
-                  lastUpdated: 0
-                triggering: false
-                description: Calls are slower or equal to 33 ms based on latency (90th).
-                sloIds:
-                  - qweqwqeqw
-                  - qqq
-                timeThreshold:
-                  timeWindow: 600000
-                alertChannelIds: []
-                customPayloadFields: []
+                - id: ln3IGogYS-S7CPqcOQYTNA
+                  created: 1717507017767
+                  enabled: false
+                  deleted: false
+                  changeSummary:
+                    changeType: DISABLE
+                    author:
+                      id: SCzqyU_LTtmO9CCnvvVOAg
+                      type: API
+                      fullName: userToken
+                - id: ln3IGogYS-S7CPqcOQYTNA
+                  created: 1717506979607
+                  enabled: true
+                  deleted: false
+                  changeSummary:
+                    changeType: CREATE
+                    author:
+                      id: SCzqyU_LTtmO9CCnvvVOAg
+                      type: API
+                      fullName: userToken
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConfigVersion'
           description: OK
+        '404':
+          content:
+            application/json:
+              example:
+                errors:
+                  - 'Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found'
+              schema:
+                $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Service levels Alert Config with given ID not found
       security:
         - ApiKeyAuth:
             - Default
@@ -9398,44 +9595,6 @@ paths:
       summary: Gets the infrastructure topology
       tags:
         - Infrastructure Topology
-  /api/infrastructure-monitoring/topology/filtered-topology:
-    post:
-      operationId: getApplicationInfrastructure
-      requestBody:
-        content:
-          application/json:
-            examples:
-              This example retrieves the topology information for an Application Id.:
-                description: This example retrieves the topology information for an Application Id.
-                value:
-                  appId: AB3DeFGHIJkLm9OpQrstUVwxY_z
-                  extendedTraversal:
-                    - terminus: kubernetesService
-                      related:
-                        - kubernetesPod
-                        - kubernetesPersistentVolume
-                        - kubernetesPersistentVolumeClaim
-                    - terminus: host
-                      related:
-                        - vsphereVM
-                        - vsphereHost
-                        - vsphereDatacenter
-            schema:
-              $ref: '#/components/schemas/GetApplicationTopologyQuery'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Topology'
-          description: snapshots matching appId as well as snapshots related snapshots to terminus snapshots
-      security:
-        - ApiKeyAuth:
-            - Default
-      summary: Get Application Infrastructure
-      tags:
-        - Infrastructure Resources
-      description: "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\r\n**Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\r\n- Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.\r\n- The **size** parameter can be used in order to limit the maximum number of retrieved snapshots.\r\n- The **offline** parameter is used to allow deeper visibility into snapshots. Set to `false`, the query will return all snapshots that are still available on the given **to** timestamp. However, set to `true`, the query will return all snapshots that have been active within the time window, this must at least include the online result and snapshots terminated within this time.\r\n"
   /api/instana/health:
     get:
       operationId: getHealthState
@@ -11766,52 +11925,6 @@ paths:
       tags:
         - Groups
       description: 'See [creating group mapping](#operation/createGroupMapping)'
-  /api/settings/rca/incident/feedback:
-    get:
-      operationId: getRCAIncidentFeedbackById
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-        - ApiKeyAuth:
-            - Default
-      summary: 'Get feedback of an RCA Incident''s probable root cause entity whether good or bad. '
-      tags:
-        - Events
-  '/api/settings/rca/incident/feedback/{id}':
-    post:
-      operationId: postRCAIncidentFeedbackById
-      parameters:
-        - example: exampleRcaIncidentId
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: string
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RCAFeedback'
-      security:
-        - ApiKeyAuth:
-            - Default
-      summary: 'Post feedback of an RCA Incident''s probable root cause entity whether good or bad. '
-      tags:
-        - Events
   /api/settings/session:
     delete:
       operationId: deleteSessionSettings
@@ -14245,6 +14358,80 @@ paths:
       summary: Get synthetic tag catalog
       tags:
         - Synthetic Catalog
+  /api/synthetics/metrics:
+    post:
+      operationId: getMetricsResult
+      requestBody:
+        content:
+          application/json:
+            example:
+              pagination:
+                page: 1
+                pageSize: 3
+              metrics:
+                - metric: synthetic.metricsResponseTime
+                  aggregation: SUM
+              timeFrame:
+                to: 0
+                windowSize: 144000000
+              groups:
+                - groupbyTag: synthetic.applicationId
+                - groupbyTag: synthetic.tags
+                  groupbyTagSecondLevelTag: region
+            schema:
+              $ref: '#/components/schemas/GetMetricsResult'
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                metricsResult:
+                  - tests:
+                      - testId: 6GwdCuiMjGdMrtz8THjo
+                        testName: rumattach-BasicNavTest
+                        locationId:
+                          - f7cEoG61DJfVyWcDnWsc
+                        applicationId: application1
+                        serviceId: serviceId1
+                    metrics:
+                      - synthetic.metricsResponseTime: 1276
+                    customMetrics:
+                      - region: region1
+                  - tests:
+                      - testId: OCnmrLSlNgzntI68094j
+                        testName: test-javascript-bundled
+                        locationId:
+                          - wHICfVoIpiHbwawo5xQ6
+                        applicationId: application2
+                        serviceId: serviceId2
+                    metrics:
+                      - synthetic.metricsResponseTime: 14
+                    customMetrics:
+                      - location: location1
+                        region: region2
+                  - tests:
+                      - testId: 9i6gpys6whaYtN5k9VeD
+                        testName: My_Test_ReadFile
+                        locationId:
+                          - DemoPoP1_saas_instana_test
+                        applicationId: application3
+                        serviceId: serviceid3
+                    metrics:
+                      - synthetic.metricsResponseTime: 7
+                    customMetrics:
+                      - location: location3
+                        region: region3
+                page: 1
+                pageSize: 3
+                totalHits: 2212
+              schema:
+                $ref: '#/components/schemas/MetricsResult'
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get Synthetic metrics
+      tags:
+        - Synthetic Metrics
   /api/synthetics/results:
     post:
       operationId: getSyntheticResult
@@ -14825,7 +15012,7 @@ paths:
               credentialName: userPassword
               credentialValue: '123456'
             schema:
-              $ref: '#/components/schemas/SyntheticCredentials'
+              $ref: '#/components/schemas/SyntheticCredential'
         required: true
       responses:
         default:
@@ -14838,6 +15025,116 @@ paths:
       summary: Create a Synthetic Credential
       tags:
         - Synthetic Settings
+  /api/synthetics/settings/credentials/associations:
+    get:
+      operationId: getSyntheticCredentialAssociations
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                - credentialName: password1
+                  createdAt: 1717617206785
+                  modifiedAt: 1717617206785
+                - credentialName: password2
+                  applications:
+                    - f4KX5zd8RW2pERKKFUCZgQ
+                  applicationLabels:
+                    - All Services
+                  createdAt: 1717620972843
+                  modifiedAt: 1717620972843
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SyntheticCredential'
+      security:
+        - ApiKeyAuth:
+            - canUseSyntheticCredentials
+            - canConfigureSyntheticTests
+      summary: (Technical Preview) All Synthetic Credential Names and Associations
+      tags:
+        - Synthetic Settings
+  '/api/synthetics/settings/credentials/associations/{name}':
+    get:
+      operationId: getOneSyntheticCredentialAssociations
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                credentialName: password4
+                applications:
+                  - f4KX5zd8RW2pERKKFUCZgQ
+                applicationLabels:
+                  - All Services
+                createdAt: 1717620972843
+                modifiedAt: 1717620972843
+              schema:
+                $ref: '#/components/schemas/SyntheticCredential'
+      security:
+        - ApiKeyAuth:
+            - canUseSyntheticCredentials
+            - canConfigureSyntheticTests
+      summary: (Technical Preview) A Synthetic Credential with Name and Associations
+      tags:
+        - Synthetic Settings
+    patch:
+      operationId: patchSyntheticCredentialAssociations
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example: |2
+                  {
+                      "applications": [
+                         "f4KX5zd8RW2pERKKFUCZgQ"
+                      ],
+                  }
+            schema:
+              $ref: '#/components/schemas/SyntheticCredential'
+        required: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - canUseSyntheticCredentials
+            - canConfigureSyntheticTests
+      summary: (Technical Preview) Patch the associations of a Synthetic Credential
+      tags:
+        - Synthetic Settings
+      description: |-
+        This API updates the endpoint associations of a Synthetic Credential.
+
+        - Credential values cannot be patched.
+        - Credentials can be associated to multiple application ids.
+        - Patching a credential association will replace the entire array with the full set of values provided.
+
+        ## Sample script and payload: 
+        - A sample script to patch a DB2 Admin password and associate it to application ids 'Ss2FBjSTQVef5LsqhPiYkg' and 'KJ8MdZVqK4odMUoBaClH'.
+
+        ```
+        curl -k -v -X PATCH \
+        https://<Host>/api/synthetics/settings/credentials/associations/db2AdminPwd \
+        -H 'authorization: apiToken <Token>' \
+        -H 'content-type: application/json' \
+        -d '{
+            "applications" : [ "Ss2FBjSTQVef5LsqhPiYkg", "KJ8MdZVqK4odMUoBaClH" ]
+          }'
+        ```
   '/api/synthetics/settings/credentials/{name}':
     delete:
       operationId: deleteSyntheticCredential
@@ -15442,6 +15739,7 @@ paths:
 
         - All attributes listed as in the schema, including the required ones, are optional for this call.
         - Synthetic Test configuration properties set to null will be removed from the configuration.
+        - Patching an array attribute will replace the entire array with the full set of values provided.
         - For major updates to the Synthetic Test or to remove main attributes, see "Update a Synthetic test"
 
         ## Sample script and payload: 
@@ -16400,6 +16698,7 @@ components:
           PAGER_DUTY: '#/components/schemas/PagerdutyIntegration'
           PROMETHEUS_WEBHOOK: '#/components/schemas/PrometheusWebhookIntegration'
           SALESFORCE: '#/components/schemas/SalesforceIntegration'
+          SERVICE_NOW_APPLICATION: '#/components/schemas/ServiceNowEnhancedIntegration'
           SERVICE_NOW_WEBHOOK: '#/components/schemas/ServiceNowIntegration'
           SLACK: '#/components/schemas/SlackIntegration'
           SPLUNK: '#/components/schemas/SplunkIntegration'
@@ -17520,38 +17819,6 @@ components:
               additionalProperties:
                 type: object
               writeOnly: true
-    ApplicationExtendedTraversal:
-      type: object
-      description: extended Traversal
-      properties:
-        related:
-          type: array
-          items:
-            type: string
-            enum:
-              - host
-              - vsphereDatacenter
-              - vsphereHost
-              - vsphereVM
-              - kubernetesService
-              - kubernetesPod
-              - kubernetesPersistentVolume
-              - kubernetesPersistentVolumeClaim
-        terminus:
-          type: string
-          description: Plugin ID of terminus
-          enum:
-            - host
-            - vsphereDatacenter
-            - vsphereHost
-            - vsphereVM
-            - kubernetesService
-            - kubernetesPod
-            - kubernetesPersistentVolume
-            - kubernetesPersistentVolumeClaim
-      required:
-        - related
-        - terminus
     ApplicationItem:
       type: object
       properties:
@@ -18119,6 +18386,10 @@ components:
           $ref: '#/components/schemas/SnapshotPreview'
         space:
           $ref: '#/components/schemas/SnapshotPreview'
+    CommonVulnerabilitiesAndExposuresIssue:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Event'
     Condition:
       type: object
       properties:
@@ -18255,6 +18526,48 @@ components:
         - id
         - ownerId
         - title
+    CustomEmailSubjectPrefix:
+      type: object
+      properties:
+        agentMonitoringIssue:
+          type: object
+          additionalProperties:
+            type: string
+            description: A map containing the open and close email subject value of a given agent monitoring issue
+            example: '{"openValue":"Open email subject prefix value","closeValue":"Close email subject prefix value"}'
+          description: A map containing the open and close email subject value of a given agent monitoring issue
+          example:
+            closeValue: Close email subject prefix value
+            openValue: Open email subject prefix value
+        change:
+          type: object
+          additionalProperties:
+            type: string
+            description: A map containing the open and close email subject value of a given change event
+            example: '{"changeValue":"Email subject prefix value"}'
+          description: A map containing the open and close email subject value of a given change event
+          example:
+            changeValue: Email subject prefix value
+        incident:
+          type: object
+          additionalProperties:
+            type: string
+            description: A map containing the open and close email subject value of a given incident
+            example: '{"openValue":"Open email subject prefix value","closeValue":"Close email subject prefix value"}'
+          description: A map containing the open and close email subject value of a given incident
+          example:
+            closeValue: Close email subject prefix value
+            openValue: Open email subject prefix value
+        issue:
+          type: object
+          additionalProperties:
+            type: string
+            description: A map containing the open and close email subject value of a given issue
+            example: '{"openValue":"Open email subject prefix value","closeValue":"Close email subject prefix value"}'
+          description: A map containing the open and close email subject value of a given issue
+          example:
+            closeValue: Close email subject prefix value
+            openValue: Open email subject prefix value
     CustomEventMobileAppAlertRule:
       type: object
       allOf:
@@ -18572,6 +18885,8 @@ components:
         - $ref: '#/components/schemas/AbstractIntegration'
         - type: object
           properties:
+            customEmailSubjectPrefix:
+              $ref: '#/components/schemas/CustomEmailSubjectPrefix'
             emails:
               type: array
               items:
@@ -18993,6 +19308,7 @@ components:
               - online
               - offline
               - agent_monitoring_issue
+              - cve_issue
               - none
           maxItems: 1024
           minItems: 0
@@ -19342,19 +19658,6 @@ components:
       required:
         - metrics
         - timeFrame
-    GetApplicationTopologyQuery:
-      type: object
-      properties:
-        appId:
-          type: string
-          description: Application Id
-        extendedTraversal:
-          type: array
-          description: extended Traversal
-          items:
-            $ref: '#/components/schemas/ApplicationExtendedTraversal'
-      required:
-        - appId
     GetApplications:
       type: object
       properties:
@@ -19650,6 +19953,31 @@ components:
         - pagination
         - tagFilterExpression
         - timeFrame
+    GetMetricsResult:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyntheticMetricTagGroup'
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyntheticMetricConfiguration'
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+      required:
+        - metrics
     GetMobileAppBeaconGroups:
       type: object
       properties:
@@ -21142,7 +21470,6 @@ components:
                 - service_20
                 - endpoint_20
                 - website
-                - sli
                 - synthetic
                 - mobile_app
               writeOnly: true
@@ -21473,6 +21800,8 @@ components:
         closeTimestamp:
           type: integer
           format: int64
+        muteAlerts:
+          type: boolean
         reasonForClosing:
           type: string
         username:
@@ -21529,6 +21858,8 @@ components:
             type: object
             additionalProperties:
               type: object
+        aiOriginated:
+          type: boolean
         builtIn:
           type: boolean
         readOnly:
@@ -21852,6 +22183,52 @@ components:
       required:
         - operator
         - prefix
+    MetricsResult:
+      type: object
+      properties:
+        metricsResult:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricsResultItem'
+      required:
+        - metricsResult
+    MetricsResultItem:
+      type: object
+      properties:
+        customTags:
+          type: object
+          additionalProperties:
+            type: string
+        metrics:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricsTestResultItem'
+      required:
+        - metrics
+        - tests
+    MetricsTestResultItem:
+      type: object
+      properties:
+        applicationId:
+          type: string
+        locationId:
+          type: array
+          items:
+            type: string
+        serviceId:
+          type: string
+        testId:
+          type: string
+        testName:
+          type: string
+      required:
+        - testId
     MobileApp:
       type: object
       properties:
@@ -22294,6 +22671,14 @@ components:
         stackTrace:
           type: string
           maxLength: 16384
+          minLength: 0
+        stackTraceKeyChecksum:
+          type: string
+          maxLength: 128
+          minLength: 0
+        stackTraceKeyInformation:
+          type: string
+          maxLength: 1024
           minLength: 0
         stackTraceLine:
           type: array
@@ -22870,23 +23255,6 @@ components:
         - kind
         - name
         - webhookUrl
-    RCAFeedback:
-      type: object
-      properties:
-        eventId:
-          type: string
-          maxLength: 64
-          minLength: 0
-        feedback:
-          type: boolean
-        snapshotId:
-          type: string
-          maxLength: 64
-          minLength: 0
-      required:
-        - eventId
-        - feedback
-        - snapshotId
     RecurrentMaintenanceWindow:
       type: object
       allOf:
@@ -23510,6 +23878,39 @@ components:
       required:
         - endpoints
         - serviceId
+    ServiceNowEnhancedIntegration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/AbstractIntegration'
+        - type: object
+          properties:
+            autoCloseIncidents:
+              type: boolean
+            instanaUrl:
+              type: string
+            manuallyClosedIncidents:
+              type: boolean
+            password:
+              type: string
+            resolutionOfIncident:
+              type: boolean
+            serviceNowUrl:
+              type: string
+            tenant:
+              type: string
+            unit:
+              type: string
+            username:
+              type: string
+      required:
+        - id
+        - kind
+        - name
+        - password
+        - serviceNowUrl
+        - tenant
+        - unit
+        - username
     ServiceNowIntegration:
       type: object
       allOf:
@@ -24471,13 +24872,33 @@ components:
       required:
         - customRules
         - defaultRules
-    SyntheticCredentials:
+    SyntheticCredential:
       type: object
       properties:
+        applicationLabels:
+          type: array
+          description: (Technology Preview)
+          items:
+            type: string
+            description: (Technology Preview)
+        applications:
+          type: array
+          description: (Technology Preview)
+          items:
+            type: string
+            description: (Technology Preview)
+        createdAt:
+          type: integer
+          format: int64
         credentialName:
           type: string
+          maxLength: 128
+          minLength: 1
         credentialValue:
           type: string
+        modifiedAt:
+          type: integer
+          format: int64
       required:
         - credentialName
         - credentialValue
@@ -24595,6 +25016,26 @@ components:
       required:
         - aggregation
         - metric
+    SyntheticMetricTagGroup:
+      type: object
+      properties:
+        groupbyTag:
+          type: string
+          maxLength: 256
+          minLength: 0
+        groupbyTagEntity:
+          type: string
+          enum:
+            - NOT_APPLICABLE
+            - DESTINATION
+            - SOURCE
+        groupbyTagSecondLevelKey:
+          type: string
+          maxLength: 256
+          minLength: 0
+      required:
+        - groupbyTag
+        - groupbyTagEntity
     SyntheticPlaybackCapabilities:
       type: object
       properties:
@@ -24625,6 +25066,22 @@ components:
           type: string
           maxLength: 512
           minLength: 0
+        applicationLabels:
+          type: array
+          description: (Technology Preview)
+          items:
+            type: string
+            description: (Technology Preview)
+          maxItems: 1
+          minItems: 0
+        applications:
+          type: array
+          description: (Technology Preview)
+          items:
+            type: string
+            description: (Technology Preview)
+          maxItems: 1
+          minItems: 0
         configuration:
           $ref: '#/components/schemas/SyntheticTypeConfiguration'
         createdAt:
@@ -25754,6 +26211,7 @@ components:
               - online
               - offline
               - agent_monitoring_issue
+              - cve_issue
               - none
           maxItems: 6
           minItems: 0
@@ -27165,6 +27623,7 @@ x-tagGroups:
       - Infrastructure Analyze
       - Service Levels Objective(SLO) Configurations
       - Service Levels Objective(SLO) Report
+      - Service levels Alert Configuration
   - name: Closed Beta Features
     tags:
       - Infrastructure Alert Configuration
