@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Introduction to Instana public APIs
-  version: 1.275.949
+  version: 1.276.1145
   x-description: info
   x-logo:
     altText: instana logo
@@ -3471,7 +3471,7 @@ paths:
           content:
             application/json:
               example:
-              - id: "0"
+              - id: gBwNFIbjS6Ozwt0a12regg
                 label: biz-perspective5
                 description: This is an example business perspective
                 tagFilterExpression:
@@ -3555,7 +3555,7 @@ paths:
           content:
             application/json:
               example:
-                id: 0
+                id: gBwNFIbjS6Ozwt0a12regg
                 label: biz-perspective1
                 description: This is an example business perspective
                 tagFilterExpression:
@@ -3628,7 +3628,7 @@ paths:
           content:
             application/json:
               example:
-                id: "0"
+                id: gBwNFIbjS6Ozwt0a12regg
                 label: biz-perspective5
                 description: This is an example business perspective
                 tagFilterExpression:
@@ -3679,9 +3679,8 @@ paths:
         content:
           application/json:
             example:
-              id: "0"
+              id: gBwNFIbjS6Ozwt0a12regg
               label: biz-perspective1
-              description: This is an example business perspective
               tagFilterExpression:
                 type: EXPRESSION
                 logicalOperator: AND
@@ -3719,8 +3718,9 @@ paths:
           content:
             application/json:
               example:
-                id: "0"
+                id: gBwNFIbjS6Ozwt0a12regg
                 label: biz-perspective1
+                description: This is an example business perspective
                 tagFilterExpression:
                   type: EXPRESSION
                   logicalOperator: AND
@@ -3767,13 +3767,6 @@ paths:
         schema:
           type: integer
           format: int64
-      - in: query
-        name: dataSource
-        schema:
-          type: string
-          enum:
-          - CALLS
-          - TRACES
       - in: query
         name: useCase
         schema:
@@ -4588,14 +4581,22 @@ paths:
               $ref: '#/components/schemas/AbstractIntegration'
         required: true
       responses:
-        default:
+        "200":
           content:
-            application/json: {}
-          description: default response
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbstractIntegration'
+          description: Persisted an alert channel setting
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: failed persisting an alert channel setting
       security:
       - ApiKeyAuth:
         - CanConfigureIntegrations
-      summary: Update alerting channel
+      summary: Update alert channel
       tags:
       - Event Settings
   /api/events/settings/alerts:
@@ -5938,11 +5939,15 @@ paths:
       description: Configs are sorted descending by their created date.
       operationId: findActiveServiceLevelsAlertConfigs
       parameters:
-      - in: query
+      - description: Service Levels Objective(SLO) Configuration ID
+        example: SLOEANnWh9tQOa2h88kGxK6wQ
+        in: query
         name: sloId
         schema:
           type: string
-      - in: query
+      - description: List of Service Levels Alert Configuration IDs
+        example: ln3IGogYS-S7CPqcOQYTNA
+        in: query
         name: alertIds
         schema:
           type: array
@@ -5956,23 +5961,33 @@ paths:
           content:
             application/json:
               example:
-              - name: Service level status below 70%
-                rule: SLO_STATUS
-                severity: 10
+                name: Error Budget Remaining is low
+                description: Error Budget Remaining is less than or equal to 5%.
+                severity: 5
+                triggering: true
+                rule:
+                  alertType: ERROR_BUDGET
+                  metric: BURNED_PERCENTAGE
                 threshold:
                   type: staticThreshold
-                  value: 0.7
-                  operator: <=
-                  lastUpdated: 0
-                triggering: false
-                description: Calls are slower or equal to 33 ms based on latency (90th).
+                  operator: '>='
+                  value: 0.05
+                  lastUpdated: 1716454787342
                 sloIds:
-                - qweqwqeqw
-                - qqq
-                timeThreshold:
-                  timeWindow: 600000
+                - SLOEANnWh9tQOa2h88kGxK6wQ
                 alertChannelIds: []
-                customPayloadFields: []
+                timeThreshold:
+                  expiry: null
+                  timeWindow: 600000
+                customPayloadFields:
+                - type: staticString
+                  key: foo
+                  value: bar
+                id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717668384754
+                initialCreated: 1717668384754
+                readOnly: false
+                enabled: true
               schema:
                 type: array
                 items:
@@ -5989,15 +6004,80 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              alertChannelIds: []
+              customPayloadFields:
+              - key: foo
+                id: avvh9tbxpfRE65t
+                type: staticString
+                value: bar
+              description: Error Budget Remaining is less than or equal to 5%.
+              name: Error Budget Remaining is low
+              rule:
+                alertType: ERROR_BUDGET
+                metric: BURNED_PERCENTAGE
+              severity: 5
+              sloIds:
+              - SLOEANnWh9tQOa2h88kGxK6wQ
+              threshold:
+                type: staticThreshold
+                value: 0.05
+                operator: '>='
+                lastUpdated: 1716454787342
+              timeThreshold:
+                timeWindow: 600000
+              triggering: true
             schema:
               $ref: '#/components/schemas/ServiceLevelsAlertConfig'
+        description: Create Request Body
         required: true
       responses:
-        default:
+        "200":
           content:
             application/json:
+              example:
+                name: Error Budget Remaining is low
+                description: Error Budget Remaining is less than or equal to 5%.
+                severity: 5
+                triggering: true
+                rule:
+                  alertType: ERROR_BUDGET
+                  metric: BURNED_PERCENTAGE
+                threshold:
+                  type: staticThreshold
+                  operator: '>='
+                  value: 0.05
+                  lastUpdated: 1716454787342
+                sloIds:
+                - SLOEANnWh9tQOa2h88kGxK6wQ
+                alertChannelIds: []
+                timeThreshold:
+                  expiry: null
+                  timeWindow: 600000
+                customPayloadFields:
+                - type: staticString
+                  key: foo
+                  value: bar
+                id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717668384754
+                initialCreated: 1717668384754
+                readOnly: false
+                enabled: true
               schema:
                 $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: OK
+        "400":
+          content:
+            application/json:
+              example:
+                errors:
+                - Website SLOs do not support triggering -> true
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Service levels Alert Config with Website SLOs do not support
+            triggering
       security:
       - ApiKeyAuth:
         - CanConfigureServiceLevelsAlerts
@@ -6009,7 +6089,9 @@ paths:
     delete:
       operationId: deleteServiceLevelsAlertConfig
       parameters:
-      - in: path
+      - description: Service Levels Alert Configuration ID
+        example: ln3IGogYS-S7CPqcOQYTNA
+        in: path
         name: id
         required: true
         schema:
@@ -6030,12 +6112,16 @@ paths:
         configs too.
       operationId: findServiceLevelsAlertConfig
       parameters:
-      - in: path
+      - description: Service Levels Alert Configuration ID
+        example: ln3IGogYS-S7CPqcOQYTNA
+        in: path
         name: id
         required: true
         schema:
           type: string
-      - in: query
+      - description: Service Levels Alert Version Creation Date
+        example: 1706617456952
+        in: query
         name: validOn
         schema:
           type: integer
@@ -6045,26 +6131,45 @@ paths:
           content:
             application/json:
               example:
-                name: Service level status below 70%
-                rule: SLO_STATUS
-                severity: 10
+                name: Error Budget Remaining is low
+                description: Error Budget Remaining is less than or equal to 5%.
+                severity: 5
+                triggering: true
+                rule:
+                  alertType: ERROR_BUDGET
+                  metric: BURNED_PERCENTAGE
                 threshold:
                   type: staticThreshold
-                  value: 0.7
-                  operator: <=
-                  lastUpdated: 0
-                triggering: false
-                description: Calls are slower or equal to 33 ms based on latency (90th).
+                  operator: '>='
+                  value: 0.05
+                  lastUpdated: 1716454787342
                 sloIds:
-                - qweqwqeqw
-                - qqq
-                timeThreshold:
-                  timeWindow: 600000
+                - SLOEANnWh9tQOa2h88kGxK6wQ
                 alertChannelIds: []
-                customPayloadFields: []
+                timeThreshold:
+                  expiry: null
+                  timeWindow: 600000
+                customPayloadFields:
+                - type: staticString
+                  key: foo
+                  value: bar
+                id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717668384754
+                initialCreated: 1717668384754
+                readOnly: false
+                enabled: true
               schema:
                 $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
           description: OK
+        "404":
+          content:
+            application/json:
+              example:
+                errors:
+                - "Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found"
+              schema:
+                $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Service levels Alert Config with given ID not found
       security:
       - ApiKeyAuth:
         - Default
@@ -6074,7 +6179,9 @@ paths:
     post:
       operationId: updateServiceLevelsAlertConfig
       parameters:
-      - in: path
+      - description: Service Levels Alert Configuration ID
+        example: ln3IGogYS-S7CPqcOQYTNA
+        in: path
         name: id
         required: true
         schema:
@@ -6082,18 +6189,82 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              alertChannelIds: []
+              customPayloadFields:
+              - key: foo
+                id: avvh9tbxpfRE65t
+                type: staticString
+                value: bar
+              description: Error Budget Remaining is less than or equal to 5%.
+              name: Error Budget Remaining is low
+              rule:
+                alertType: ERROR_BUDGET
+                metric: BURNED_PERCENTAGE
+              severity: 5
+              sloIds:
+              - SLOEANnWh9tQOa2h88kGxK6wQ
+              threshold:
+                type: staticThreshold
+                value: 0.05
+                operator: '>='
+                lastUpdated: 1716454787342
+              timeThreshold:
+                timeWindow: 600000
+              triggering: true
             schema:
               $ref: '#/components/schemas/ServiceLevelsAlertConfig'
+        description: Update Request Body
         required: true
       responses:
         "200":
           content:
             application/json:
+              example:
+                name: Error Budget Remaining is low
+                description: Error Budget Remaining is less than or equal to 5%.
+                severity: 5
+                triggering: true
+                rule:
+                  alertType: ERROR_BUDGET
+                  metric: BURNED_PERCENTAGE
+                threshold:
+                  type: staticThreshold
+                  operator: '>='
+                  value: 0.05
+                  lastUpdated: 1716454787342
+                sloIds:
+                - SLOEANnWh9tQOa2h88kGxK6wQ
+                alertChannelIds: []
+                timeThreshold:
+                  expiry: null
+                  timeWindow: 600000
+                customPayloadFields:
+                - type: staticString
+                  key: foo
+                  value: bar
+                id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717668384754
+                initialCreated: 1717668384754
+                readOnly: false
+                enabled: true
               schema:
                 $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
-          description: Synthetic Smart Alert successfully updated
+          description: Service levels Smart Alert successfully updated
         "204":
-          description: Synthetic Smart Alert did not change
+          description: Service levels Smart Alert did not change
+        "400":
+          content:
+            application/json:
+              example:
+                errors:
+                - Website SLOs do not support triggering -> true
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Service levels Alert Config with Website SLOs do not support
+            triggering
       security:
       - ApiKeyAuth:
         - CanConfigureServiceLevelsAlerts
@@ -6105,7 +6276,9 @@ paths:
     put:
       operationId: disableServiceLevelsAlertConfig
       parameters:
-      - in: path
+      - description: Service Levels Alert Configuration ID
+        example: ln3IGogYS-S7CPqcOQYTNA
+        in: path
         name: id
         required: true
         schema:
@@ -6131,7 +6304,9 @@ paths:
     put:
       operationId: enableServiceLevelsAlertConfig
       parameters:
-      - in: path
+      - description: Service Levels Alert Configuration ID
+        example: ln3IGogYS-S7CPqcOQYTNA
+        in: path
         name: id
         required: true
         schema:
@@ -6157,12 +6332,16 @@ paths:
     put:
       operationId: restoreServiceLevelsAlertConfig
       parameters:
-      - in: path
+      - description: Service Levels Alert Configuration ID
+        example: ln3IGogYS-S7CPqcOQYTNA
+        in: path
         name: id
         required: true
         schema:
           type: string
-      - in: path
+      - description: Service Levels Alert Version Creation Date
+        example: 1706617456952
+        in: path
         name: created
         required: true
         schema:
@@ -6192,7 +6371,9 @@ paths:
         date.
       operationId: findServiceLevelsAlertConfigVersions
       parameters:
-      - in: path
+      - description: Service Levels Alert Configuration ID
+        example: ln3IGogYS-S7CPqcOQYTNA
+        in: path
         name: id
         required: true
         schema:
@@ -6202,28 +6383,40 @@ paths:
           content:
             application/json:
               example:
-                name: Service level status below 70%
-                rule: SLO_STATUS
-                severity: 10
-                threshold:
-                  type: staticThreshold
-                  value: 0.7
-                  operator: <=
-                  lastUpdated: 0
-                triggering: false
-                description: Calls are slower or equal to 33 ms based on latency (90th).
-                sloIds:
-                - qweqwqeqw
-                - qqq
-                timeThreshold:
-                  timeWindow: 600000
-                alertChannelIds: []
-                customPayloadFields: []
+              - id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717507017767
+                enabled: false
+                deleted: false
+                changeSummary:
+                  changeType: DISABLE
+                  author:
+                    id: SCzqyU_LTtmO9CCnvvVOAg
+                    type: API
+                    fullName: userToken
+              - id: ln3IGogYS-S7CPqcOQYTNA
+                created: 1717506979607
+                enabled: true
+                deleted: false
+                changeSummary:
+                  changeType: CREATE
+                  author:
+                    id: SCzqyU_LTtmO9CCnvvVOAg
+                    type: API
+                    fullName: userToken
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConfigVersion'
           description: OK
+        "404":
+          content:
+            application/json:
+              example:
+                errors:
+                - "Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found"
+              schema:
+                $ref: '#/components/schemas/ServiceLevelseAlertConfigWithMetadata'
+          description: Service levels Alert Config with given ID not found
       security:
       - ApiKeyAuth:
         - Default
@@ -8746,46 +8939,6 @@ paths:
       summary: Gets the infrastructure topology
       tags:
       - Infrastructure Topology
-  /api/infrastructure-monitoring/topology/filtered-topology:
-    post:
-      operationId: getApplicationInfrastructure
-      requestBody:
-        content:
-          application/json:
-            examples:
-              This example retrieves the topology information for an Application Id.:
-                description: This example retrieves the topology information for an
-                  Application Id.
-                value:
-                  appId: AB3DeFGHIJkLm9OpQrstUVwxY_z
-                  extendedTraversal:
-                  - terminus: kubernetesService
-                    related:
-                    - kubernetesPod
-                    - kubernetesPersistentVolume
-                    - kubernetesPersistentVolumeClaim
-                  - terminus: host
-                    related:
-                    - vsphereVM
-                    - vsphereHost
-                    - vsphereDatacenter
-            schema:
-              $ref: '#/components/schemas/GetApplicationTopologyQuery'
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Topology'
-          description: snapshots matching appId as well as snapshots related snapshots
-            to terminus snapshots
-      security:
-      - ApiKeyAuth:
-        - Default
-      summary: Get Application Infrastructure
-      tags:
-      - Infrastructure Resources
-      x-description: getSnapshots
   /api/instana/health:
     get:
       description: Get basic health of application.
@@ -10907,56 +11060,6 @@ paths:
       tags:
       - Groups
       x-description: updateGroupMapping
-  /api/settings/rca/incident/feedback:
-    get:
-      operationId: getRCAIncidentFeedbackById
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-      - ApiKeyAuth:
-        - Default
-      summary: 'Get feedback of an RCA Incident''s probable root cause entity whether
-        good or bad. '
-      tags:
-      - Events
-      x-description: getRCAIncidentFeedbackById
-  /api/settings/rca/incident/feedback/{id}:
-    post:
-      operationId: postRCAIncidentFeedbackById
-      parameters:
-      - example: exampleRcaIncidentId
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: string
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RCAFeedback'
-      security:
-      - ApiKeyAuth:
-        - Default
-      summary: 'Post feedback of an RCA Incident''s probable root cause entity whether
-        good or bad. '
-      tags:
-      - Events
-      x-description: postRCAIncidentFeedbackById
   /api/settings/session:
     delete:
       operationId: deleteSessionSettings
@@ -13174,6 +13277,81 @@ paths:
       tags:
       - Synthetic Catalog
       x-description: getSyntheticTagCatalog
+  /api/synthetics/metrics:
+    post:
+      operationId: getMetricsResult
+      requestBody:
+        content:
+          application/json:
+            example:
+              pagination:
+                page: 1
+                pageSize: 3
+              metrics:
+              - metric: synthetic.metricsResponseTime
+                aggregation: SUM
+              timeFrame:
+                to: 0
+                windowSize: 144000000
+              groups:
+              - groupbyTag: synthetic.applicationId
+              - groupbyTag: synthetic.tags
+                groupbyTagSecondLevelTag: region
+            schema:
+              $ref: '#/components/schemas/GetMetricsResult'
+        x-payload: getMetricsResult
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                metricsResult:
+                - tests:
+                  - testId: 6GwdCuiMjGdMrtz8THjo
+                    testName: rumattach-BasicNavTest
+                    locationId:
+                    - f7cEoG61DJfVyWcDnWsc
+                    applicationId: application1
+                    serviceId: serviceId1
+                  metrics:
+                  - synthetic.metricsResponseTime: 1276
+                  customMetrics:
+                  - region: region1
+                - tests:
+                  - testId: OCnmrLSlNgzntI68094j
+                    testName: test-javascript-bundled
+                    locationId:
+                    - wHICfVoIpiHbwawo5xQ6
+                    applicationId: application2
+                    serviceId: serviceId2
+                  metrics:
+                  - synthetic.metricsResponseTime: 14
+                  customMetrics:
+                  - location: location1
+                    region: region2
+                - tests:
+                  - testId: 9i6gpys6whaYtN5k9VeD
+                    testName: My_Test_ReadFile
+                    locationId:
+                    - DemoPoP1_saas_instana_test
+                    applicationId: application3
+                    serviceId: serviceid3
+                  metrics:
+                  - synthetic.metricsResponseTime: 7
+                  customMetrics:
+                  - location: location3
+                    region: region3
+                page: 1
+                pageSize: 3
+                totalHits: 2212
+              schema:
+                $ref: '#/components/schemas/MetricsResult'
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get Synthetic metrics
+      tags:
+      - Synthetic Metrics
   /api/synthetics/results:
     post:
       operationId: getSyntheticResult
@@ -13762,7 +13940,7 @@ paths:
               credentialName: userPassword
               credentialValue: "123456"
             schema:
-              $ref: '#/components/schemas/SyntheticCredentials'
+              $ref: '#/components/schemas/SyntheticCredential'
         required: true
       responses:
         default:
@@ -13776,6 +13954,98 @@ paths:
       tags:
       - Synthetic Settings
       x-payload: createSyntheticCredential
+  /api/synthetics/settings/credentials/associations:
+    get:
+      operationId: getSyntheticCredentialAssociations
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+              - credentialName: password1
+                createdAt: 1717617206785
+                modifiedAt: 1717617206785
+              - credentialName: password2
+                applications:
+                - f4KX5zd8RW2pERKKFUCZgQ
+                applicationLabels:
+                - All Services
+                createdAt: 1717620972843
+                modifiedAt: 1717620972843
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SyntheticCredential'
+      security:
+      - ApiKeyAuth:
+        - canUseSyntheticCredentials
+        - canConfigureSyntheticTests
+      summary: (Technical Preview) All Synthetic Credential Names and Associations
+      tags:
+      - Synthetic Settings
+  /api/synthetics/settings/credentials/associations/{name}:
+    get:
+      operationId: getOneSyntheticCredentialAssociations
+      parameters:
+      - in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                credentialName: password4
+                applications:
+                - f4KX5zd8RW2pERKKFUCZgQ
+                applicationLabels:
+                - All Services
+                createdAt: 1717620972843
+                modifiedAt: 1717620972843
+              schema:
+                $ref: '#/components/schemas/SyntheticCredential'
+      security:
+      - ApiKeyAuth:
+        - canUseSyntheticCredentials
+        - canConfigureSyntheticTests
+      summary: (Technical Preview) A Synthetic Credential with Name and Associations
+      tags:
+      - Synthetic Settings
+    patch:
+      operationId: patchSyntheticCredentialAssociations
+      parameters:
+      - in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            example: |2
+                  {
+                      "applications": [
+                         "f4KX5zd8RW2pERKKFUCZgQ"
+                      ],
+                  }
+            schema:
+              $ref: '#/components/schemas/SyntheticCredential'
+        required: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - canUseSyntheticCredentials
+        - canConfigureSyntheticTests
+      summary: (Technical Preview) Patch the associations of a Synthetic Credential
+      tags:
+      - Synthetic Settings
+      x-description: patchSyntheticCredentialAssociations
   /api/synthetics/settings/credentials/{name}:
     delete:
       operationId: deleteSyntheticCredential
@@ -15226,6 +15496,7 @@ components:
           PAGER_DUTY: '#/components/schemas/PagerdutyIntegration'
           PROMETHEUS_WEBHOOK: '#/components/schemas/PrometheusWebhookIntegration'
           SALESFORCE: '#/components/schemas/SalesforceIntegration'
+          SERVICE_NOW_APPLICATION: '#/components/schemas/ServiceNowEnhancedIntegration'
           SERVICE_NOW_WEBHOOK: '#/components/schemas/ServiceNowIntegration'
           SLACK: '#/components/schemas/SlackIntegration'
           SPLUNK: '#/components/schemas/SplunkIntegration'
@@ -16346,38 +16617,6 @@ components:
             additionalProperties:
               type: object
             writeOnly: true
-    ApplicationExtendedTraversal:
-      type: object
-      description: extended Traversal
-      properties:
-        related:
-          type: array
-          items:
-            type: string
-            enum:
-            - host
-            - vsphereDatacenter
-            - vsphereHost
-            - vsphereVM
-            - kubernetesService
-            - kubernetesPod
-            - kubernetesPersistentVolume
-            - kubernetesPersistentVolumeClaim
-        terminus:
-          type: string
-          description: Plugin ID of terminus
-          enum:
-          - host
-          - vsphereDatacenter
-          - vsphereHost
-          - vsphereVM
-          - kubernetesService
-          - kubernetesPod
-          - kubernetesPersistentVolume
-          - kubernetesPersistentVolumeClaim
-      required:
-      - related
-      - terminus
     ApplicationItem:
       type: object
       properties:
@@ -16946,6 +17185,10 @@ components:
           $ref: '#/components/schemas/SnapshotPreview'
         space:
           $ref: '#/components/schemas/SnapshotPreview'
+    CommonVulnerabilitiesAndExposuresIssue:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/Event'
     Condition:
       type: object
       properties:
@@ -17082,6 +17325,59 @@ components:
       - id
       - ownerId
       - title
+    CustomEmailSubjectPrefix:
+      type: object
+      properties:
+        agentMonitoringIssue:
+          type: object
+          additionalProperties:
+            type: string
+            description: A map containing the open and close email subject value of
+              a given agent monitoring issue
+            example: "{\"openValue\":\"Open email subject prefix value\",\"closeValue\"\
+              :\"Close email subject prefix value\"}"
+          description: A map containing the open and close email subject value of
+            a given agent monitoring issue
+          example:
+            closeValue: Close email subject prefix value
+            openValue: Open email subject prefix value
+        change:
+          type: object
+          additionalProperties:
+            type: string
+            description: A map containing the open and close email subject value of
+              a given change event
+            example: "{\"changeValue\":\"Email subject prefix value\"}"
+          description: A map containing the open and close email subject value of
+            a given change event
+          example:
+            changeValue: Email subject prefix value
+        incident:
+          type: object
+          additionalProperties:
+            type: string
+            description: A map containing the open and close email subject value of
+              a given incident
+            example: "{\"openValue\":\"Open email subject prefix value\",\"closeValue\"\
+              :\"Close email subject prefix value\"}"
+          description: A map containing the open and close email subject value of
+            a given incident
+          example:
+            closeValue: Close email subject prefix value
+            openValue: Open email subject prefix value
+        issue:
+          type: object
+          additionalProperties:
+            type: string
+            description: A map containing the open and close email subject value of
+              a given issue
+            example: "{\"openValue\":\"Open email subject prefix value\",\"closeValue\"\
+              :\"Close email subject prefix value\"}"
+          description: A map containing the open and close email subject value of
+            a given issue
+          example:
+            closeValue: Close email subject prefix value
+            openValue: Open email subject prefix value
     CustomEventMobileAppAlertRule:
       type: object
       allOf:
@@ -17399,6 +17695,8 @@ components:
       - $ref: '#/components/schemas/AbstractIntegration'
       - type: object
         properties:
+          customEmailSubjectPrefix:
+            $ref: '#/components/schemas/CustomEmailSubjectPrefix'
           emails:
             type: array
             items:
@@ -17820,6 +18118,7 @@ components:
             - online
             - offline
             - agent_monitoring_issue
+            - cve_issue
             - none
           maxItems: 1024
           minItems: 0
@@ -18169,19 +18468,6 @@ components:
       required:
       - metrics
       - timeFrame
-    GetApplicationTopologyQuery:
-      type: object
-      properties:
-        appId:
-          type: string
-          description: Application Id
-        extendedTraversal:
-          type: array
-          description: extended Traversal
-          items:
-            $ref: '#/components/schemas/ApplicationExtendedTraversal'
-      required:
-      - appId
     GetApplications:
       type: object
       properties:
@@ -18479,6 +18765,31 @@ components:
       - pagination
       - tagFilterExpression
       - timeFrame
+    GetMetricsResult:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyntheticMetricTagGroup'
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyntheticMetricConfiguration'
+        order:
+          $ref: '#/components/schemas/Order'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
+        tagFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagFilter'
+        timeFrame:
+          $ref: '#/components/schemas/TimeFrame'
+      required:
+      - metrics
     GetMobileAppBeaconGroups:
       type: object
       properties:
@@ -19972,7 +20283,6 @@ components:
             - service_20
             - endpoint_20
             - website
-            - sli
             - synthetic
             - mobile_app
             writeOnly: true
@@ -20303,6 +20613,8 @@ components:
         closeTimestamp:
           type: integer
           format: int64
+        muteAlerts:
+          type: boolean
         reasonForClosing:
           type: string
         username:
@@ -20359,6 +20671,8 @@ components:
             type: object
             additionalProperties:
               type: object
+        aiOriginated:
+          type: boolean
         builtIn:
           type: boolean
         readOnly:
@@ -20682,6 +20996,52 @@ components:
       required:
       - operator
       - prefix
+    MetricsResult:
+      type: object
+      properties:
+        metricsResult:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricsResultItem'
+      required:
+      - metricsResult
+    MetricsResultItem:
+      type: object
+      properties:
+        customTags:
+          type: object
+          additionalProperties:
+            type: string
+        metrics:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricsTestResultItem'
+      required:
+      - metrics
+      - tests
+    MetricsTestResultItem:
+      type: object
+      properties:
+        applicationId:
+          type: string
+        locationId:
+          type: array
+          items:
+            type: string
+        serviceId:
+          type: string
+        testId:
+          type: string
+        testName:
+          type: string
+      required:
+      - testId
     MobileApp:
       type: object
       properties:
@@ -21124,6 +21484,14 @@ components:
         stackTrace:
           type: string
           maxLength: 16384
+          minLength: 0
+        stackTraceKeyChecksum:
+          type: string
+          maxLength: 128
+          minLength: 0
+        stackTraceKeyInformation:
+          type: string
+          maxLength: 1024
           minLength: 0
         stackTraceLine:
           type: array
@@ -21701,23 +22069,6 @@ components:
       - kind
       - name
       - webhookUrl
-    RCAFeedback:
-      type: object
-      properties:
-        eventId:
-          type: string
-          maxLength: 64
-          minLength: 0
-        feedback:
-          type: boolean
-        snapshotId:
-          type: string
-          maxLength: 64
-          minLength: 0
-      required:
-      - eventId
-      - feedback
-      - snapshotId
     RecurrentMaintenanceWindow:
       type: object
       allOf:
@@ -22341,6 +22692,39 @@ components:
       required:
       - endpoints
       - serviceId
+    ServiceNowEnhancedIntegration:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AbstractIntegration'
+      - type: object
+        properties:
+          autoCloseIncidents:
+            type: boolean
+          instanaUrl:
+            type: string
+          manuallyClosedIncidents:
+            type: boolean
+          password:
+            type: string
+          resolutionOfIncident:
+            type: boolean
+          serviceNowUrl:
+            type: string
+          tenant:
+            type: string
+          unit:
+            type: string
+          username:
+            type: string
+      required:
+      - id
+      - kind
+      - name
+      - password
+      - serviceNowUrl
+      - tenant
+      - unit
+      - username
     ServiceNowIntegration:
       type: object
       allOf:
@@ -23302,13 +23686,33 @@ components:
       required:
       - customRules
       - defaultRules
-    SyntheticCredentials:
+    SyntheticCredential:
       type: object
       properties:
+        applicationLabels:
+          type: array
+          description: (Technology Preview)
+          items:
+            type: string
+            description: (Technology Preview)
+        applications:
+          type: array
+          description: (Technology Preview)
+          items:
+            type: string
+            description: (Technology Preview)
+        createdAt:
+          type: integer
+          format: int64
         credentialName:
           type: string
+          maxLength: 128
+          minLength: 1
         credentialValue:
           type: string
+        modifiedAt:
+          type: integer
+          format: int64
       required:
       - credentialName
       - credentialValue
@@ -23426,6 +23830,26 @@ components:
       required:
       - aggregation
       - metric
+    SyntheticMetricTagGroup:
+      type: object
+      properties:
+        groupbyTag:
+          type: string
+          maxLength: 256
+          minLength: 0
+        groupbyTagEntity:
+          type: string
+          enum:
+          - NOT_APPLICABLE
+          - DESTINATION
+          - SOURCE
+        groupbyTagSecondLevelKey:
+          type: string
+          maxLength: 256
+          minLength: 0
+      required:
+      - groupbyTag
+      - groupbyTagEntity
     SyntheticPlaybackCapabilities:
       type: object
       properties:
@@ -23456,6 +23880,22 @@ components:
           type: string
           maxLength: 512
           minLength: 0
+        applicationLabels:
+          type: array
+          description: (Technology Preview)
+          items:
+            type: string
+            description: (Technology Preview)
+          maxItems: 1
+          minItems: 0
+        applications:
+          type: array
+          description: (Technology Preview)
+          items:
+            type: string
+            description: (Technology Preview)
+          maxItems: 1
+          minItems: 0
         configuration:
           $ref: '#/components/schemas/SyntheticTypeConfiguration'
         createdAt:
@@ -24587,6 +25027,7 @@ components:
             - online
             - offline
             - agent_monitoring_issue
+            - cve_issue
             - none
           maxItems: 6
           minItems: 0
@@ -25995,6 +26436,7 @@ x-tagGroups:
   - Infrastructure Analyze
   - Service Levels Objective(SLO) Configurations
   - Service Levels Objective(SLO) Report
+  - Service levels Alert Configuration
 - name: Closed Beta Features
   tags:
   - Infrastructure Alert Configuration
