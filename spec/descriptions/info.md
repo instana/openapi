@@ -5,15 +5,12 @@ Searching for answers and best pratices? Check our [IBM Instana Community](https
 ### Overview
 The Instana REST API provides programmatic access to the Instana platform. It can be used to retrieve data available through the Instana UI Dashboard -- metrics, events, traces, etc -- and also to automate configuration tasks such as user management.
 
-#### Navigating the API Docs
-The API endpoints are grouped by product area and functionality. This generally maps to how our UI Dashboard is organized making it easier to locate which endpoints you'd use to fetch the data you see visualized in our UI. These areas include:
+#### Navigating the API documentation
+The API endpoints are grouped by product area and functionality. This generally maps to how our UI Dashboard is organized, hopefully making it easier to locate which endpoints you'd use to fetch the data you see visualized in our UI. The [UI sections](https://www.ibm.com/docs/en/instana-observability/current?topic=working-user-interface#navigation-menu) include:
 - Websites & Mobile Apps
-- (Business Monitoring)
 - Applications
-- (Platforms)
 - Infrastructure
 - Synthetic Monitoring
-- (Analytics)
 - Events
 - Automation
 - Service Levels
@@ -23,11 +20,9 @@ The API endpoints are grouped by product area and functionality. This generally 
 #### Rate Limiting
 A rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.
 
-**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.
-
-**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.
-
-**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.
+- **X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.
+- **X-RateLimit-Remaining:** How many calls may still be executed within the current hour.
+- **X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.
 
 #### Further Reading
 We provide additional documentation for our REST API in our [product documentation](https://www.ibm.com/docs/en/instana-observability/current?topic=apis-web-rest-api). Here you'll also find some common queries for accessing data using our API endpoints.
