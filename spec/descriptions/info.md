@@ -128,8 +128,7 @@ func readTags() {
 ```
 
 #### Java
-Download the latest openapi generator cli. Follow instructions provided in the official documentation provided by [OpenAPI Tools](https://github.com/OpenAPITools) for downloading the [openapi-generator-cli.jar]
-(https://github.com/OpenAPITools/openapi-generator?tab=readme-ov-file#13---download-jar)
+Download the latest openapi generator cli. Follow instructions provided in the official documentation provided by [OpenAPI Tools](https://github.com/OpenAPITools) for downloading the [openapi-generator-cli.jar](https://github.com/OpenAPITools/openapi-generator?tab=readme-ov-file#13---download-jar).
 
 Dpending on your environment, please use one of the following java http client implementations which will create a valid client for our OpenAPI specification:
 ```
