@@ -128,12 +128,10 @@ func readTags() {
 ```
 
 #### Java
-Download the latest openapi generator cli:
-```
-wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar
-```
+Download the latest openapi generator cli. Follow instructions provided in the official documentation provided by [OpenAPI Tools](https://github.com/OpenAPITools) for downloading the [openapi-generator-cli.jar]
+(https://github.com/OpenAPITools/openapi-generator?tab=readme-ov-file#13---download-jar)
 
-A list for calls for different java http client implementations, which creates a valid generated source code for our spec.
+Dpending on your environment, please use one of the following java http client implementations which will create a valid client for our OpenAPI specification:
 ```
 //Nativ Java HTTP Client
 java -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8 --library native
