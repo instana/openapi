@@ -2,10 +2,10 @@ Searching for answers and best pratices? Check our [IBM Instana Community](https
 
 ## Instana REST API documentation
 
-### Overview
+## Overview
 The Instana REST API provides programmatic access to the Instana platform. It can be used to retrieve data available through the Instana UI Dashboard -- metrics, events, traces, etc -- and also to automate configuration tasks such as user management.
 
-#### Navigating the API documentation
+### Navigating the API documentation
 The API endpoints are grouped by product area and functionality. This generally maps to how our UI Dashboard is organized, hopefully making it easier to locate which endpoints you'd use to fetch the data you see visualized in our UI. The [UI sections](https://www.ibm.com/docs/en/instana-observability/current?topic=working-user-interface#navigation-menu) include:
 - Websites & Mobile Apps
 - Applications
@@ -17,24 +17,24 @@ The API endpoints are grouped by product area and functionality. This generally 
 - Settings
 - etc
 
-#### Rate Limiting
+### Rate Limiting
 A rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.
 
 - **X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.
 - **X-RateLimit-Remaining:** How many calls may still be executed within the current hour.
 - **X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.
 
-#### Further Reading
-We provide additional documentation for our REST API in our [product documentation](https://www.ibm.com/docs/en/instana-observability/current?topic=apis-web-rest-api). Here you'll also find some common queries for accessing data using our API endpoints.
+### Further Reading
+We provide additional documentation for our REST API in our [product documentation](https://www.ibm.com/docs/en/instana-observability/current?topic=apis-web-rest-api). Here you'll also find some common queries for retrieving data and configuring Instana.
 
-### Getting Started with the REST API
+## Getting Started with the REST API
 
-#### API base URL
+### API base URL
 The base URL for an specific instance of Instana can be determined using the tenant and unit information.
 - `base`: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.
 - `apiToken`: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.
 
-#### Curl Example
+### Curl Example
 Here is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.
 
 ```bash
@@ -70,10 +70,7 @@ curl --request POST \
   }'
 ```
 
-
-
-
-## Generating REST API clients
+### Generating REST API clients
 
 The API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format.
 You can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).
@@ -81,7 +78,7 @@ You can download the current specification at our [GitHub API documentation](htt
 OpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. Please make sure that you always use the latest version of the generator, as a number of improvements are regularly made.
 To generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).
 
-### Go
+#### Go
 For example, to generate a client library for Go to interact with our backend, you can use the following script; mind replacing the values of the `UNIT_NAME` and `TENANT_NAME` environment variables using those for your tenant unit:
 
 ```bash
@@ -132,7 +129,7 @@ func readTags() {
 }
 ```
 
-### Java
+#### Java
 Download the latest openapi generator cli:
 ```
 wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar
