@@ -7,14 +7,14 @@
       "url": "http://instana.com"
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
-    "title": "Introduction to Instana public APIs",
-    "version": "1.276.1145",
+    "title": "Instana REST API documentation",
+    "version": "1.277.1253",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
       "url": "header-logo.svg"
     },
-    "description": "Searching for answers and best pratices? Check our [IBM Instana Community](https://community.ibm.com/community/user/aiops/communities/community-home?CommunityKey=58f324a3-3104-41be-9510-5b7c413cc48f).\n\n## Agent REST API\n### Event SDK REST Web Service\nUsing the Event SDK REST Web Service, it is possible to integrate custom health checks and other event sources into Instana. Each one running the Instana Agent can be used to feed in manual events. The agent has an endpoint which listens on `http://localhost:42699/com.instana.plugin.generic.event` and accepts the following JSON via a POST request:\n\n```json\n{\n    \"title\": <string>,\n    \"text\": <string>,\n    \"severity\": <integer> , -1, 5 or 10\n    \"timestamp\": <integer>, timestamp in milliseconds from epoch\n    \"duration\": <integer>, duration in milliseconds\n}\n```\n\n*Title* and *text* are used for display purposes.\n\n*Severity* is an optional integer of -1, 5 and 10. A value of -1 or EMPTY will generate a Change. A value of 5 will generate a *warning Issue*, and a value of 10 will generate a *critical Issue*.\n\nWhen absent, the event is treated as a change without severity. *Timestamp* is the timestamp of the event, but it is optional, in which case the current time is used. *Duration* can be used to mark a timespan for the event. It also is optional, in which case the event will be marked as \"instant\" rather than \"from-to.\"\n\nThe endpoint also accepts a batch of events, which then need to be given as an array:\n\n```json\n[\n    {\n    // event as above\n    },\n    {\n    // event as above\n    }\n]\n```\n\n#### Ruby Example\n\n```ruby\nduration = (Time.now.to_f * 1000).floor - deploy_start_time_in_ms\npayload = {}\npayload[:title] = 'Deployed MyApp'\npayload[:text] = 'pglombardo deployed MyApp@revision'\npayload[:duration] = duration\n\nuri = URI('http://localhost:42699/com.instana.plugin.generic.event')\nreq = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')\nreq.body = payload.to_json\nNet::HTTP.start(uri.hostname, uri.port) do |http|\n    http.request(req)\nend\n```\n\n#### Curl Example\n\n```bash\ncurl -XPOST http://localhost:42699/com.instana.plugin.generic.event -H \"Content-Type: application/json\" -d '{\"title\":\"Custom API Events \", \"text\": \"Failure Redeploying Service Duration\", \"duration\": 5000, \"severity\": -1}'\n```\n\n#### PowerShell Example\n\nFor Powershell you can either use the standard Cmdlets `Invoke-WebRequest` or `Invoke-RestMethod`. The parameters to be provided are basically the same.\n\n```bash\nInvoke-RestMethod\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method POST\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n\n```bash\nInvoke-WebRequest\n    -Uri http://localhost:42699/com.instana.plugin.generic.event\n    -Method Post\n    -Body '{\"title\":\"PowerShell Event \", \"text\": \"You used PowerShell to create this event!\", \"duration\": 5000, \"severity\": -1}'\n```\n### Trace SDK REST Web Service\nUsing the Trace SDK REST Web Service, it is possible to integrate Instana into any application regardless of language. Each active Instana Agent can be used to feed manually captured traces into the Web Service, which can be joined with automatically captured traces or be completely separate. The Agent offers an endpoint that listens on `http://localhost:42699/com.instana.plugin.generic.trace` and accepts the following JSON via a POST request:\n\n```json\n{\n  \"spanId\": <string>,\n  \"parentId\": <string>,\n  \"traceId\": <string>,\n  \"timestamp\": <64 bit long>,\n  \"duration\": <64 bit long>,\n  \"name\": <string>,\n  \"type\": <string>,\n  \"error\": <boolean>,\n  \"data\": {\n    <string> : <string>\n  }\n}\n```\n\nspanId is the unique identifier for any particular span. The trace is defined by a root span, that is, a span that does not have a parentId. The traceId needs to be identical for all spans that belong to the same trace, and is allowed to be overlapping with a spanId. traceId, spanId and parentId are 64-bit unique values encoded as hex string like b0789916ff8f319f. Spans form a hierarchy by referencing the spanId of the parent as parentId. An example of a span hierarchy in a trace is shown below:\n\n```text\n  root (spanId=1, traceId=1, type=Entry)\n    child A (spanId=2, traceId=1, parentId=1, type=Exit)\n      child A (spanId=3, traceId=1, parentId=2, type=Entry)\n        child B (spanId=4, traceId=1, parentId=3, type=Exit)\n  child B (spanId=5, traceId=1, parentId=4, type=Entry)\n```\n\nThe timestamp and duration fields are in milliseconds. The timestamp must be the epoch timestamp coordinated to Coordinated Universal Time.\n\nThe name field can be any string that is used to visualize and group traces, and can contain any text. However, simplicity is recommended.\n\nThe type field is optional, when absent is treated as ENTRY. Options are ENTRY, EXIT, INTERMEDIATE, or EUM. Setting the type is important for the UI. It is assumed that after an ENTRY, child spans are INTERMEDIATE or EXIT. After an EXIT an ENTRY should follow. This is visualized as a remote call.\n\nThe data field is optional and can contain arbitrary key-value pairs. The behavior of supplying duplicate keys is unspecified.\n\nThe error field is optional and can be set to true to indicate an erroneous span.\n\nThe endpoint also accepts a batch of spans, which then need to be given as an array:\n\n```json\n[\n  {\n    // span as above\n  },\n  {\n    // span as above\n  }\n]\n```\n\nFor traces received via the Trace SDK Web Service the same rules regarding [Conversion and Service/Endpoint Naming](https://www.ibm.com/docs/en/obi/current?topic=references-java-trace-sdk#conversion-and-naming) are applied as for the Java Trace SDK. In particular these key-value pairs in data are used for naming: service, endpoint and call.name.\n\nNote: The optional [Instana Agent Service](https://www.ibm.com/docs/en/obi/current?topic=requirements-installing-host-agent-kubernetes#instana-agent-service) provided on Kubernetes via the Instana Agent Helm Chart is very useful in combination with the Trace Web SDK support, as it ensures that the data is pushed to the Instana Agent running on the same Kubernetes node, ensuring the Instana Agent can correctly fill in the infrastructure correlation data.\n\n#### Curl Example\n\nThe following example shows how to send to the host agent data about a matching ENTRY and EXIT call, which simulates a process that receives an HTTP GET request targeted to the https://orders.happyshop.com/my/service/asdasd URL and routes it to an upstream service at the https://crm.internal/orders/asdasd URL.\n\n```bash\n#!/bin/bash\n\ncurl -0 -v -X POST 'http://localhost:42699/com.instana.plugin.generic.trace' -H 'Content-Type: application/json; charset=utf-8' -d @- <<EOF\n[\n  {\n    \"spanId\": \"8165b19a37094800\",\n    \"traceId\": \"1368e0592a91fe00\",\n    \"timestamp\": 1591346182000,\n    \"duration\": 134,\n    \"name\": \"GET /my/service/asdasd\",\n    \"type\": \"ENTRY\",\n    \"error\": false,\n    \"data\": {\n      \"http.url\": \"https://orders.happyshop.com/my/service/asdasd\",\n      \"http.method\": \"GET\",\n      \"http.status_code\": 200,\n      \"http.path\": \"/my/service/asdasd\",\n      \"http.host\": \"orders.happyshop.com\"\n    }\n  },\n  {\n    \"spanId\": \"7ddf6b31b320cc00\",\n    \"parentId\": \"8165b19a37094800\",\n    \"traceId\": \"1368e0592a91fe00\",\n    \"timestamp\": 1591346182010,\n    \"duration\": 97,\n    \"name\": \"GET /orders/asdasd\",\n    \"type\": \"EXIT\",\n    \"error\": false,\n    \"data\": {\n      \"http.url\": \"https://crm.internal/orders/asdasd\",\n      \"http.method\": \"GET\",\n      \"http.status_code\": 200,\n      \"http.path\": \"/orders/asdasd\",\n      \"http.host\": \"crm.internal\"\n    }\n  }\n]\nEOF\n```\n\n#### Limitations\n\nAdhere to the following rate limits for the trace web service:\n\n- Maximum API calls/sec: 20  \n- Maximum payload per POST request: A span must not exceed 4 KiB. The request size must not exceed 4 MiB.  \n- Maximum batch size (spans/array): 1000  \n\n## Backend REST API\nThe Instana API allows retrieval and configuration of key data points. Among others, this API enables automatic reaction and further analysis of identified incidents as well as reporting capabilities.\n\nThe API documentation refers to two crucial parameters that you need to know about before reading further:\n\n- `base`: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\n- `apiToken`: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n\n### Example\nHere is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.\n\n```bash\ncurl --request GET \\\n  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'\n```\n\nNext we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.\n\n```bash\ncurl --request POST \\\n  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"group\":{\n      \"groupbyTag\":\"endpoint.name\"\n  },\n  \"tagFilters\":[\n  \t{\n  \t\t\"name\":\"call.error.count\",\n  \t\t\"value\":\"0\",\n  \t\t\"operator\":\"GREATER_THAN\"\n  \t}\n  ],\n  \"metrics\":[\n  \t{\n  \t\t\"metric\":\"errors\",\n  \t\t\"aggregation\":\"MEAN\"\n  \t}\n  ]\n  }'\n```\n\n\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n**X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n\n**X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n\n**X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n## Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format.\nYou can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. Please make sure that you always use the latest version of the generator, as a number of improvements are regularly made.\nTo generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\n### Go\nFor example, to generate a client library for Go to interact with our backend, you can use the following script; mind replacing the values of the `UNIT_NAME` and `TENANT_NAME` environment variables using those for your tenant unit:\n\n```bash\n#!/bin/bash\n\n### This script assumes you have the `java` and `wget` commands on the path\n\nexport UNIT_NAME='myunit' # for example: prod\nexport TENANT_NAME='mytenant' # for example: awesomecompany\n\n//Download the generator to your current working directory:\nwget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar --server-variables \"tenant=${TENANT_NAME},unit=${UNIT_NAME}\"\n\n//generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n//(optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs, and you can start right away using the client from the example above:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetApplicationTagCatalog(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n\n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n\n### Java\nDownload the latest openapi generator cli:\n```\nwget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar\n```\n\nA list for calls for different java http client implementations, which creates a valid generated source code for our spec.\n```\n//Nativ Java HTTP Client\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8 --library native\n\n//Spring WebClient\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library webclient\n\n//Spring RestTemplate\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library resttemplate\n\n```\n"
+    "description": "Searching for answers and best pratices? Check our [IBM Instana Community](https://community.ibm.com/community/user/aiops/communities/community-home?CommunityKey=58f324a3-3104-41be-9510-5b7c413cc48f).\n\n## Overview\nThe Instana REST API provides programmatic access to the Instana platform. It can be used to retrieve data available through the Instana UI Dashboard -- metrics, events, traces, etc -- and also to automate configuration tasks such as user management.\n\n### Navigating the API documentation\nThe API endpoints are grouped by product area and functionality. This generally maps to how our UI Dashboard is organized, hopefully making it easier to locate which endpoints you'd use to fetch the data you see visualized in our UI. The [UI sections](https://www.ibm.com/docs/en/instana-observability/current?topic=working-user-interface#navigation-menu) include:\n- Websites & Mobile Apps\n- Applications\n- Infrastructure\n- Synthetic Monitoring\n- Events\n- Automation\n- Service Levels\n- Settings\n- etc\n\n### Rate Limiting\nA rate limit is applied to API usage. Up to 5,000 calls per hour can be made. How many remaining calls can be made and when this call limit resets, can inspected via three headers that are part of the responses of the API server.\n\n- **X-RateLimit-Limit:** Shows the maximum number of calls that may be executed per hour.\n- **X-RateLimit-Remaining:** How many calls may still be executed within the current hour.\n- **X-RateLimit-Reset:** Time when the remaining calls will be reset to the limit. For compatibility reasons with other rate limited APIs, this date is not the date in milliseconds, but instead in seconds since 1970-01-01T00:00:00+00:00.\n\n### Further Reading\nWe provide additional documentation for our REST API in our [product documentation](https://www.ibm.com/docs/en/instana-observability/current?topic=apis-web-rest-api). Here you'll also find some common queries for retrieving data and configuring Instana.\n\n## Getting Started with the REST API\n\n### API base URL\nThe base URL for an specific instance of Instana can be determined using the tenant and unit information.\n- `base`: This is the base URL of a tenant unit, e.g. `https://test-example.instana.io`. This is the same URL that is used to access the Instana user interface.\n- `apiToken`: Requests against the Instana API require valid API tokens. An initial API token can be generated via the Instana user interface. Any additional API tokens can be generated via the API itself.\n\n### Curl Example\nHere is an Example to use the REST API with Curl. First lets get all the available metrics with possible aggregations with a GET call.\n\n```bash\ncurl --request GET \\\n  --url https://test-instana.instana.io/api/application-monitoring/catalog/metrics \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx'\n```\n\nNext we can get every call grouped by the endpoint name that has an error count greater then zero. As a metric we could get the mean error rate for example.\n\n```bash\ncurl --request POST \\\n  --url https://test-instana.instana.io/api/application-monitoring/analyze/call-groups \\\n  --header 'authorization: apiToken xxxxxxxxxxxxxxxx' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"group\":{\n      \"groupbyTag\":\"endpoint.name\"\n  },\n  \"tagFilters\":[\n  \t{\n  \t\t\"name\":\"call.error.count\",\n  \t\t\"value\":\"0\",\n  \t\t\"operator\":\"GREATER_THAN\"\n  \t}\n  ],\n  \"metrics\":[\n  \t{\n  \t\t\"metric\":\"errors\",\n  \t\t\"aggregation\":\"MEAN\"\n  \t}\n  ]\n  }'\n```\n\n### Generating REST API clients\n\nThe API is specified using the [OpenAPI v3](https://github.com/OAI/OpenAPI-Specification) (previously known as Swagger) format.\nYou can download the current specification at our [GitHub API documentation](https://instana.github.io/openapi/openapi.yaml).\n\nOpenAPI tries to solve the issue of ever-evolving APIs and clients lagging behind. Please make sure that you always use the latest version of the generator, as a number of improvements are regularly made.\nTo generate a client library for your language, you can use the [OpenAPI client generators](https://github.com/OpenAPITools/openapi-generator).\n\n#### Go\nFor example, to generate a client library for Go to interact with our backend, you can use the following script; mind replacing the values of the `UNIT_NAME` and `TENANT_NAME` environment variables using those for your tenant unit:\n\n```bash\n#!/bin/bash\n\n### This script assumes you have the `java` and `wget` commands on the path\n\nexport UNIT_NAME='myunit' # for example: prod\nexport TENANT_NAME='mytenant' # for example: awesomecompany\n\n//Download the generator to your current working directory:\nwget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.3.1/openapi-generator-cli-4.3.1.jar -O openapi-generator-cli.jar --server-variables \"tenant=${TENANT_NAME},unit=${UNIT_NAME}\"\n\n//generate a client library that you can vendor into your repository\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g go \\\n    -o pkg/instana/openapi \\\n    --skip-validate-spec\n\n//(optional) format the Go code according to the Go code standard\ngofmt -s -w pkg/instana/openapi\n```\n\nThe generated clients contain comprehensive READMEs, and you can start right away using the client from the example above:\n\n```go\nimport instana \"./pkg/instana/openapi\"\n\n// readTags will read all available application monitoring tags along with their type and category\nfunc readTags() {\n\tconfiguration := instana.NewConfiguration()\n\tconfiguration.Host = \"tenant-unit.instana.io\"\n\tconfiguration.BasePath = \"https://tenant-unit.instana.io\"\n\n\tclient := instana.NewAPIClient(configuration)\n\tauth := context.WithValue(context.Background(), instana.ContextAPIKey, instana.APIKey{\n\t\tKey:    apiKey,\n\t\tPrefix: \"apiToken\",\n\t})\n\n\ttags, _, err := client.ApplicationCatalogApi.GetApplicationTagCatalog(auth)\n\tif err != nil {\n\t\tfmt.Fatalf(\"Error calling the API, aborting.\")\n\t}\n\n\tfor _, tag := range tags {\n\t\tfmt.Printf(\"%s (%s): %s\\n\", tag.Category, tag.Type, tag.Name)\n\t}\n}\n```\n\n#### Java\nFollow the instructions provided in the official documentation from [OpenAPI Tools](https://github.com/OpenAPITools) to download the [openapi-generator-cli.jar](https://github.com/OpenAPITools/openapi-generator?tab=readme-ov-file#13---download-jar).\n\nDepending on your environment, use one of the following java http client implementations which will create a valid client for our OpenAPI specification:\n```\n//Nativ Java HTTP Client\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8 --library native\n\n//Spring WebClient\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library webclient\n\n//Spring RestTemplate\njava -jar openapi-generator-cli.jar generate -i https://instana.github.io/openapi/openapi.yaml -g java -o pkg/instana/openapi --skip-validate-spec  -p dateLibrary=java8,hideGenerationTimestamp=true --library resttemplate\n\n```\n"
   },
   "servers": [
     {
@@ -4065,10 +4065,7 @@
                   "totalHits": 1
                 },
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ActionInstance"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResult"
                 }
               }
             }
@@ -4241,115 +4238,6 @@
           }
         ],
         "summary": "Get action instance details",
-        "tags": [
-          "Action History"
-        ]
-      }
-    },
-    "/api/automation/actioninstances/{actionInstanceId}/feedback": {
-      "put": {
-        "operationId": "setActionInstanceFeedback",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "actionInstanceId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "windowSize",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "in": "query",
-            "name": "to",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "example": {
-                "feedback": 5,
-                "comment": "The action remediated the issue"
-              },
-              "schema": {
-                "type": "string"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "actionInstanceId": "fqiH0HOgR1-4Ygoy5EDycw",
-                  "actionId": "d473c1b0-0740-4d08-95fe-31e5d0a9faff",
-                  "actionName": "Hello World",
-                  "type": "SCRIPT",
-                  "status": "SUCCESS",
-                  "returnCode": 0,
-                  "errorMessage": "",
-                  "createdDate": 1710162882369,
-                  "startDate": 1710162882653,
-                  "endDate": 1710162882826,
-                  "eventId": "M3wuBxuaSDyecZJ7ICioiw",
-                  "eventSpecificationId": "en0FW6XRWu7aRsD4055dbMLAuSU",
-                  "problemText": "Test event",
-                  "hostSnapshotId": "2nIOVtEW-iPbsEIi89-yDqJHi2g",
-                  "inputParameters": [],
-                  "outputParameters": [],
-                  "metadata": [
-                    {
-                      "name": "feedback",
-                      "value": "5"
-                    },
-                    {
-                      "name": "comment",
-                      "value": "The action remediated the issue."
-                    }
-                  ],
-                  "targetSnapshotId": "jfSmhACY-Oa3a8zfjJxvOxJeDSk",
-                  "externalSourceType": "",
-                  "actorId": "5ee5195fbea6150001758c40",
-                  "actorName": "Stan",
-                  "actorType": "USER",
-                  "eventEntityType": "",
-                  "actionDescription": "Simple script action for testing",
-                  "policyId": "2nIOVtEW-iPbsEIi89-yDqJabc",
-                  "output": "Hello world!"
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ActionInstance"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          },
-          {
-            "ApiKeyAuth": [
-              "canRunAutomationActions"
-            ]
-          }
-        ],
-        "summary": "Set action instance feedback",
         "tags": [
           "Action History"
         ]
@@ -5327,7 +5215,8 @@
                 "example": [
                   {
                     "id": "gBwNFIbjS6Ozwt0a12regg",
-                    "label": "biz-perspective5",
+                    "label": "biz-perspective",
+                    "name": "biz-perspective",
                     "description": "This is an example business perspective",
                     "tagFilterExpression": {
                       "type": "EXPRESSION",
@@ -5396,7 +5285,8 @@
           "content": {
             "application/json": {
               "example": {
-                "label": "biz-perspective1",
+                "label": "biz-perspective",
+                "name": "biz-perspective",
                 "description": "This is an example business perspective",
                 "tagFilterExpression": {
                   "type": "EXPRESSION",
@@ -5452,7 +5342,8 @@
               "application/json": {
                 "example": {
                   "id": "gBwNFIbjS6Ozwt0a12regg",
-                  "label": "biz-perspective1",
+                  "label": "biz-perspective",
+                  "name": "biz-perspective",
                   "description": "This is an example business perspective",
                   "tagFilterExpression": {
                     "type": "EXPRESSION",
@@ -5566,7 +5457,8 @@
               "application/json": {
                 "example": {
                   "id": "gBwNFIbjS6Ozwt0a12regg",
-                  "label": "biz-perspective5",
+                  "label": "biz-perspective",
+                  "name": "biz-perspective",
                   "description": "This is an example business perspective",
                   "tagFilterExpression": {
                     "type": "EXPRESSION",
@@ -5644,8 +5536,8 @@
           "content": {
             "application/json": {
               "example": {
-                "id": "gBwNFIbjS6Ozwt0a12regg",
-                "label": "biz-perspective1",
+                "label": "biz-perspective",
+                "name": "biz-perspective",
                 "tagFilterExpression": {
                   "type": "EXPRESSION",
                   "logicalOperator": "AND",
@@ -5688,7 +5580,7 @@
                 }
               },
               "schema": {
-                "$ref": "#/components/schemas/BusinessPerspectiveConfig"
+                "$ref": "#/components/schemas/UpdatedBusinessPerspectiveConfig"
               }
             }
           },
@@ -5700,7 +5592,8 @@
               "application/json": {
                 "example": {
                   "id": "gBwNFIbjS6Ozwt0a12regg",
-                  "label": "biz-perspective1",
+                  "label": "biz-perspective",
+                  "name": "biz-perspective",
                   "description": "This is an example business perspective",
                   "tagFilterExpression": {
                     "type": "EXPRESSION",
@@ -5744,7 +5637,7 @@
                   }
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/ApplicationConfig"
+                  "$ref": "#/components/schemas/BusinessPerspectiveConfig"
                 }
               }
             }
@@ -6863,6 +6756,177 @@
           "Events"
         ],
         "description": "This endpoint retrieves all kubernetes info events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n"
+      }
+    },
+    "/api/events/raw-events": {
+      "get": {
+        "operationId": "rawEvents",
+        "parameters": [
+          {
+            "description": "The start time in milliseconds since epoch from which to retrieve events. Calculated as `to - windowSize`",
+            "example": 1718786315805,
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "description": "The end time in milliseconds since epoch up to which to retrieve events.",
+            "example": 1718789915805,
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "description": "The query string to filter events based on specific criteria.",
+            "example": "(entity.host.fqdn:ip-10-255* entity.zone:k8s*) AND (event.type:incident)",
+            "in": "query",
+            "name": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The number of events to retrieve.",
+            "example": 30,
+            "in": "query",
+            "name": "retrievalSize",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "description": "The field by which to order the events.",
+            "example": "start",
+            "in": "query",
+            "name": "orderBy",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The direction in which to order the events.",
+            "example": "DESC",
+            "in": "query",
+            "name": "orderDirection",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "eventId": "gM73SycATrOFMcL5qspByQ",
+                    "start": 1706774419000,
+                    "end": 1706783931000,
+                    "type": "incident",
+                    "state": "open",
+                    "problem": "New Event-test-01",
+                    "detail": "test",
+                    "severity": 5,
+                    "entityName": ".NET App",
+                    "entityLabel": "powershell.exe",
+                    "metrics": [
+                      {
+                        "metricName": "threads.lck_crs",
+                        "snapshotId": "zqEuPom1v7YK61jRU8cEpRhCI1w",
+                        "entityId": {
+                          "steadyId": "55428",
+                          "pluginId": "com.instana.forge.infrastructure.runtime.clr.ClrRuntimePlatform",
+                          "host": "00:15:5d:ff:fe:98:d1:f6"
+                        }
+                      }
+                    ],
+                    "entityType": "INFRASTRUCTURE",
+                    "fixSuggestion": "test",
+                    "snapshotId": "zqEuPom1v7YK61jRU8cEpRhCI1w",
+                    "recentEvents": [
+                      {
+                        "eventId": "ZzaptuusSOutGLGmqD-wzA"
+                      },
+                      {
+                        "eventId": "oeqTbltKQw6pp1OJi_QH_Q"
+                      },
+                      {
+                        "eventId": "Cnv-8y96SOW2CzZbn7SK7Q"
+                      },
+                      {
+                        "eventId": "vidr6ZX9QmqhtdvBrYFR3Q"
+                      },
+                      {
+                        "eventId": "NWfYJEUjSLSPJbxfCEW6kA"
+                      },
+                      {
+                        "eventId": "iJ2Bm8Y5Qq-Fh-IAwAnRqQ"
+                      },
+                      {
+                        "eventId": "kHiCKKByTdW0sMhhjxvgQg"
+                      },
+                      {
+                        "eventId": "w-hl_-8NQXKEIemcNR5ouw"
+                      },
+                      {
+                        "eventId": "Vn0weJOGROaFKwRtqNDaeg"
+                      },
+                      {
+                        "eventId": "Z9yz38EOR3aR0rYlBN3oRQ"
+                      },
+                      {
+                        "eventId": "h7-N1PT9Sim4dCbyM-sf3g"
+                      },
+                      {
+                        "eventId": "nnWCZ2L2STi8lXFbPNUgUg"
+                      },
+                      {
+                        "eventId": "j1NlsfUYTz69t3dqSMekPQ"
+                      }
+                    ],
+                    "probableCause": [],
+                    "probableCauseMetadata": {}
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RawEvent"
+                  }
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get raw events",
+        "tags": [
+          "Events"
+        ]
       }
     },
     "/api/events/settings/alertingChannels": {
@@ -23758,6 +23822,9 @@
           "description": {
             "type": "string"
           },
+          "entityType": {
+            "type": "string"
+          },
           "eventId": {
             "type": "string"
           },
@@ -24397,11 +24464,67 @@
           "canViewTraceDetails": {
             "type": "boolean"
           },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "integer",
+            "format": "int64"
+          },
           "id": {
             "type": "string"
           },
           "internalId": {
             "type": "string"
+          },
+          "lastUsedOn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "limitedApplicationsScope": {
+            "type": "boolean"
+          },
+          "limitedAutomationScope": {
+            "type": "boolean"
+          },
+          "limitedBizOpsScope": {
+            "type": "boolean"
+          },
+          "limitedInfrastructureScope": {
+            "type": "boolean"
+          },
+          "limitedKubernetesScope": {
+            "type": "boolean"
+          },
+          "limitedLogsScope": {
+            "type": "boolean"
+          },
+          "limitedMobileAppsScope": {
+            "type": "boolean"
+          },
+          "limitedOpenstackScope": {
+            "type": "boolean"
+          },
+          "limitedPcfScope": {
+            "type": "boolean"
+          },
+          "limitedPhmcScope": {
+            "type": "boolean"
+          },
+          "limitedPvcScope": {
+            "type": "boolean"
+          },
+          "limitedSyntheticsScope": {
+            "type": "boolean"
+          },
+          "limitedVsphereScope": {
+            "type": "boolean"
+          },
+          "limitedWebsitesScope": {
+            "type": "boolean"
+          },
+          "limitedZhmcScope": {
+            "type": "boolean"
           },
           "name": {
             "type": "string"
@@ -25562,7 +25685,7 @@
         "properties": {
           "description": {
             "type": "string",
-            "maxLength": 512,
+            "maxLength": 300,
             "minLength": 0
           },
           "id": {
@@ -25570,18 +25693,17 @@
             "maxLength": 128,
             "minLength": 1
           },
-          "label": {
+          "name": {
             "type": "string",
-            "maxLength": 128,
-            "minLength": 1
+            "maxLength": 100,
+            "minLength": 0
           },
           "tagFilterExpression": {
             "$ref": "#/components/schemas/TagFilterExpressionElement"
           }
         },
         "required": [
-          "id",
-          "label"
+          "id"
         ]
       },
       "CallGroupsItem": {
@@ -27607,7 +27729,10 @@
         "type": "object",
         "properties": {
           "query": {
-            "type": "string"
+            "type": "string",
+            "description": "Search term used to filter results using fields such as label, description, tag name or keywords",
+            "maxLength": 200,
+            "minLength": 0
           },
           "tagFilterExpression": {
             "$ref": "#/components/schemas/TagFilterExpressionElement"
@@ -27616,7 +27741,8 @@
             "$ref": "#/components/schemas/TimeFrame"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "description": "Entity type. Identifier for the monitored technology."
           }
         },
         "required": [
@@ -29301,6 +29427,7 @@
           },
           "valueFormat": {
             "type": "string",
+            "description": "|\n* NUMBER: Generic number\n* BYTES: Number of bytes\n* KILO_BYTES: Number of kilobytes\n* MEGA_BYTES: Number of megabytes\n* PERCENTAGE: Percentage in scale [0,1]\n* PERCENTAGE_100: Percentage in scale [0,100]\n* PERCENTAGE_NO_CAPPING: Percentage in scale [0,1] but value could exceed 1 for example when metric is aggregated\n* PERCENTAGE_100_NO_CAPPING: Percentage in scale [0,100] but value could exceed 100 for example when metric is aggregated\n* LATENCY: Time in milliseconds, with value of 0 should not be considered a a strict 0, but considered as < 1ms\n* NANOS: Time in nanoseconds\n* MILLIS: Time in milliseconds\n* MICROS: Time in microseconds\n* SECONDS: Time in seconds\n* RATE: Number of occurrences per second\n* BYTE_RATE: Number of bytes per second\n* UNDEFINED: Metric value unit is not known\n",
             "enum": [
               "NUMBER",
               "BYTES",
@@ -30763,6 +30890,7 @@
           },
           "formatter": {
             "type": "string",
+            "description": "|\n* NUMBER: Generic number\n* BYTES: Number of bytes\n* KILO_BYTES: Number of kilobytes\n* MEGA_BYTES: Number of megabytes\n* PERCENTAGE: Percentage in scale [0,1]\n* PERCENTAGE_100: Percentage in scale [0,100]\n* PERCENTAGE_NO_CAPPING: Percentage in scale [0,1] but value could exceed 1 for example when metric is aggregated\n* PERCENTAGE_100_NO_CAPPING: Percentage in scale [0,100] but value could exceed 100 for example when metric is aggregated\n* LATENCY: Time in milliseconds, with value of 0 should not be considered a a strict 0, but considered as < 1ms\n* NANOS: Time in nanoseconds\n* MILLIS: Time in milliseconds\n* MICROS: Time in microseconds\n* SECONDS: Time in seconds\n* RATE: Number of occurrences per second\n* BYTE_RATE: Number of bytes per second\n* UNDEFINED: Metric value unit is not known\n",
             "enum": [
               "NUMBER",
               "BYTES",
@@ -30847,12 +30975,15 @@
         "type": "object",
         "properties": {
           "category": {
-            "type": "string"
+            "type": "string",
+            "description": "Category of the metric"
           },
           "crossSeriesAggregations": {
             "type": "array",
+            "description": "Possible cross series aggregation the metric supports",
             "items": {
               "type": "string",
+              "description": "Possible cross series aggregation the metric supports",
               "enum": [
                 "SUM",
                 "MEAN",
@@ -30875,10 +31006,12 @@
             "uniqueItems": true
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Description of the metric"
           },
           "format": {
             "type": "string",
+            "description": "|\n* NUMBER: Generic number\n* BYTES: Number of bytes\n* KILO_BYTES: Number of kilobytes\n* MEGA_BYTES: Number of megabytes\n* PERCENTAGE: Percentage in scale [0,1]\n* PERCENTAGE_100: Percentage in scale [0,100]\n* PERCENTAGE_NO_CAPPING: Percentage in scale [0,1] but value could exceed 1 for example when metric is aggregated\n* PERCENTAGE_100_NO_CAPPING: Percentage in scale [0,100] but value could exceed 100 for example when metric is aggregated\n* LATENCY: Time in milliseconds, with value of 0 should not be considered a a strict 0, but considered as < 1ms\n* NANOS: Time in nanoseconds\n* MILLIS: Time in milliseconds\n* MICROS: Time in microseconds\n* SECONDS: Time in seconds\n* RATE: Number of occurrences per second\n* BYTE_RATE: Number of bytes per second\n* UNDEFINED: Metric value unit is not known\n",
             "enum": [
               "NUMBER",
               "BYTES",
@@ -30899,10 +31032,12 @@
             ]
           },
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Identifier for the metric"
           },
           "infraTagCategory": {
             "type": "string",
+            "description": "Category of the entity",
             "enum": [
               "ACE",
               "ALICLOUD",
@@ -30942,10 +31077,12 @@
             ]
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Label for the metric"
           },
           "ownerType": {
-            "type": "string"
+            "type": "string",
+            "description": "Type of the entity associated with the metric"
           }
         },
         "required": [
@@ -31032,6 +31169,12 @@
         "properties": {
           "applicationId": {
             "type": "string"
+          },
+          "applicationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "locationId": {
             "type": "array",
@@ -31991,21 +32134,18 @@
         "properties": {
           "description": {
             "type": "string",
-            "maxLength": 512,
+            "maxLength": 300,
             "minLength": 0
           },
-          "label": {
+          "name": {
             "type": "string",
-            "maxLength": 128,
-            "minLength": 1
+            "maxLength": 100,
+            "minLength": 0
           },
           "tagFilterExpression": {
             "$ref": "#/components/schemas/TagFilterExpressionElement"
           }
-        },
-        "required": [
-          "label"
-        ]
+        }
       },
       "NewManualServiceConfig": {
         "type": "object",
@@ -32456,6 +32596,79 @@
           "kind",
           "name",
           "webhookUrl"
+        ]
+      },
+      "RawEvent": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "end": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "entityLabel": {
+            "type": "string"
+          },
+          "entityTimestamp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "Entity10",
+              "App20",
+              "Service20",
+              "Endpoint20",
+              "Website",
+              "Synthetic",
+              "MobileApp"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "manualCloseTimestamp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "manuallyClosed": {
+            "type": "boolean"
+          },
+          "metricAccessId": {
+            "type": "string"
+          },
+          "plugin": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smartAlert": {
+            "type": "boolean"
+          },
+          "start": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "state": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cursor"
         ]
       },
       "RecurrentMaintenanceWindow": {
@@ -35007,9 +35220,7 @@
             "items": {
               "type": "string",
               "description": "(Technology Preview)"
-            },
-            "maxItems": 1,
-            "minItems": 0
+            }
           },
           "applications": {
             "type": "array",
@@ -35017,9 +35228,7 @@
             "items": {
               "type": "string",
               "description": "(Technology Preview)"
-            },
-            "maxItems": 1,
-            "minItems": 0
+            }
           },
           "configuration": {
             "$ref": "#/components/schemas/SyntheticTypeConfiguration"
@@ -35590,8 +35799,20 @@
           "applicationId": {
             "type": "string"
           },
+          "applicationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "applicationLabel": {
             "type": "string"
+          },
+          "applicationLabels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "createdAt": {
             "type": "integer",
@@ -35770,6 +35991,12 @@
         "properties": {
           "applicationId": {
             "type": "string"
+          },
+          "applicationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "customTags": {
             "type": "object",
@@ -36450,6 +36677,24 @@
           "type"
         ]
       },
+      "UpdatedBusinessPerspectiveConfig": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 0
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          }
+        }
+      },
       "UsageResult": {
         "type": "object",
         "properties": {
@@ -36677,7 +36922,8 @@
               "ApplicationSmartAlert",
               "GlobalApplicationSmartAlert",
               "SyntheticSmartAlert",
-              "InfraSmartAlert"
+              "InfraSmartAlert",
+              "ServiceLevelSmartAlert"
             ]
           }
         },
@@ -38504,17 +38750,20 @@
   },
   "x-tagGroups": [
     {
-      "name": "Infrastructure Monitoring",
+      "name": "Websites & Mobile Apps",
       "tags": [
-        "Infrastructure Analyze",
-        "Infrastructure Metrics",
-        "Infrastructure Resources",
-        "Infrastructure Catalog",
-        "Infrastructure Topology"
+        "Website Metrics",
+        "Website Catalog",
+        "Website Analyze",
+        "Website Configuration",
+        "Mobile App Metrics",
+        "Mobile App Catalog",
+        "Mobile App Analyze",
+        "Mobile App Configuration"
       ]
     },
     {
-      "name": "Application Monitoring",
+      "name": "Applications",
       "tags": [
         "Application Metrics",
         "Application Resources",
@@ -38527,21 +38776,13 @@
       ]
     },
     {
-      "name": "Website Monitoring",
+      "name": "Infrastructure",
       "tags": [
-        "Website Metrics",
-        "Website Catalog",
-        "Website Analyze",
-        "Website Configuration"
-      ]
-    },
-    {
-      "name": "Mobile App Monitoring",
-      "tags": [
-        "Mobile App Metrics",
-        "Mobile App Catalog",
-        "Mobile App Analyze",
-        "Mobile App Configuration"
+        "Infrastructure Analyze",
+        "Infrastructure Metrics",
+        "Infrastructure Resources",
+        "Infrastructure Catalog",
+        "Infrastructure Topology"
       ]
     },
     {
@@ -38554,16 +38795,27 @@
       ]
     },
     {
-      "name": "Event",
+      "name": "Events",
       "tags": [
         "Events",
         "Event Settings"
       ]
     },
     {
-      "name": "Host Agent",
+      "name": "Automation",
       "tags": [
-        "Host Agent"
+        "Action Catalog",
+        "Action History",
+        "Policies"
+      ]
+    },
+    {
+      "name": "Service Levels",
+      "tags": [
+        "SLI Settings",
+        "SLI Report",
+        "Apdex Settings",
+        "Apdex Report"
       ]
     },
     {
@@ -38579,29 +38831,6 @@
         "Session Settings",
         "Automation Settings",
         "Authentication"
-      ]
-    },
-    {
-      "name": "Pipeline Feedback",
-      "tags": [
-        "Releases"
-      ]
-    },
-    {
-      "name": "Automation",
-      "tags": [
-        "Action Catalog",
-        "Action History",
-        "Policies"
-      ]
-    },
-    {
-      "name": "Service Level Indicators",
-      "tags": [
-        "SLI Settings",
-        "SLI Report",
-        "Apdex Settings",
-        "Apdex Report"
       ]
     },
     {
@@ -38622,6 +38851,8 @@
     {
       "name": "Instana",
       "tags": [
+        "Releases",
+        "Host Agent",
         "Health",
         "Usage"
       ]
