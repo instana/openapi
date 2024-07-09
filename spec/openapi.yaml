@@ -5,8 +5,8 @@ info:
     name: © Instana
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
-  title: Introduction to Instana public APIs
-  version: 1.276.1145
+  title: Instana REST API documentation
+  version: 1.277.1253
   x-description: info
   x-logo:
     altText: instana logo
@@ -2671,9 +2671,7 @@ paths:
                 pageSize: 50
                 totalHits: 1
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ActionInstance'
+                $ref: '#/components/schemas/PaginatedResult'
       security:
       - ApiKeyAuth:
         - Default
@@ -2791,79 +2789,6 @@ paths:
       - ApiKeyAuth:
         - Default
       summary: Get action instance details
-      tags:
-      - Action History
-  /api/automation/actioninstances/{actionInstanceId}/feedback:
-    put:
-      operationId: setActionInstanceFeedback
-      parameters:
-      - in: path
-        name: actionInstanceId
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: windowSize
-        schema:
-          type: integer
-          format: int64
-      - in: query
-        name: to
-        schema:
-          type: integer
-          format: int64
-      requestBody:
-        content:
-          application/json:
-            example:
-              feedback: 5
-              comment: The action remediated the issue
-            schema:
-              type: string
-        required: true
-      responses:
-        default:
-          content:
-            application/json:
-              example:
-                actionInstanceId: fqiH0HOgR1-4Ygoy5EDycw
-                actionId: d473c1b0-0740-4d08-95fe-31e5d0a9faff
-                actionName: Hello World
-                type: SCRIPT
-                status: SUCCESS
-                returnCode: 0
-                errorMessage: ""
-                createdDate: 1710162882369
-                startDate: 1710162882653
-                endDate: 1710162882826
-                eventId: M3wuBxuaSDyecZJ7ICioiw
-                eventSpecificationId: en0FW6XRWu7aRsD4055dbMLAuSU
-                problemText: Test event
-                hostSnapshotId: 2nIOVtEW-iPbsEIi89-yDqJHi2g
-                inputParameters: []
-                outputParameters: []
-                metadata:
-                - name: feedback
-                  value: "5"
-                - name: comment
-                  value: The action remediated the issue.
-                targetSnapshotId: jfSmhACY-Oa3a8zfjJxvOxJeDSk
-                externalSourceType: ""
-                actorId: 5ee5195fbea6150001758c40
-                actorName: Stan
-                actorType: USER
-                eventEntityType: ""
-                actionDescription: Simple script action for testing
-                policyId: 2nIOVtEW-iPbsEIi89-yDqJabc
-                output: Hello world!
-              schema:
-                $ref: '#/components/schemas/ActionInstance'
-      security:
-      - ApiKeyAuth:
-        - Default
-      - ApiKeyAuth:
-        - canRunAutomationActions
-      summary: Set action instance feedback
       tags:
       - Action History
   /api/automation/actions:
@@ -3472,7 +3397,8 @@ paths:
             application/json:
               example:
               - id: gBwNFIbjS6Ozwt0a12regg
-                label: biz-perspective5
+                label: biz-perspective
+                name: biz-perspective
                 description: This is an example business perspective
                 tagFilterExpression:
                   type: EXPRESSION
@@ -3516,7 +3442,8 @@ paths:
         content:
           application/json:
             example:
-              label: biz-perspective1
+              label: biz-perspective
+              name: biz-perspective
               description: This is an example business perspective
               tagFilterExpression:
                 type: EXPRESSION
@@ -3556,7 +3483,8 @@ paths:
             application/json:
               example:
                 id: gBwNFIbjS6Ozwt0a12regg
-                label: biz-perspective1
+                label: biz-perspective
+                name: biz-perspective
                 description: This is an example business perspective
                 tagFilterExpression:
                   type: EXPRESSION
@@ -3629,7 +3557,8 @@ paths:
             application/json:
               example:
                 id: gBwNFIbjS6Ozwt0a12regg
-                label: biz-perspective5
+                label: biz-perspective
+                name: biz-perspective
                 description: This is an example business perspective
                 tagFilterExpression:
                   type: EXPRESSION
@@ -3679,8 +3608,8 @@ paths:
         content:
           application/json:
             example:
-              id: gBwNFIbjS6Ozwt0a12regg
-              label: biz-perspective1
+              label: biz-perspective
+              name: biz-perspective
               tagFilterExpression:
                 type: EXPRESSION
                 logicalOperator: AND
@@ -3710,7 +3639,7 @@ paths:
                       operator: EQUALS
                       entity: DESTINATION
             schema:
-              $ref: '#/components/schemas/BusinessPerspectiveConfig'
+              $ref: '#/components/schemas/UpdatedBusinessPerspectiveConfig'
         required: true
         x-payload: updateBusinessPerspective
       responses:
@@ -3719,7 +3648,8 @@ paths:
             application/json:
               example:
                 id: gBwNFIbjS6Ozwt0a12regg
-                label: biz-perspective1
+                label: biz-perspective
+                name: biz-perspective
                 description: This is an example business perspective
                 tagFilterExpression:
                   type: EXPRESSION
@@ -3750,7 +3680,7 @@ paths:
                         operator: EQUALS
                         entity: DESTINATION
               schema:
-                $ref: '#/components/schemas/ApplicationConfig'
+                $ref: '#/components/schemas/BusinessPerspectiveConfig'
       security:
       - ApiKeyAuth:
         - Default
@@ -4455,6 +4385,112 @@ paths:
       tags:
       - Events
       x-description: kubernetesInfoEvents
+  /api/events/raw-events:
+    get:
+      operationId: rawEvents
+      parameters:
+      - description: The start time in milliseconds since epoch from which to retrieve
+          events. Calculated as `to - windowSize`
+        example: 1718786315805
+        in: query
+        name: from
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - description: The end time in milliseconds since epoch up to which to retrieve
+          events.
+        example: 1718789915805
+        in: query
+        name: to
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - description: The query string to filter events based on specific criteria.
+        example: (entity.host.fqdn:ip-10-255* entity.zone:k8s*) AND (event.type:incident)
+        in: query
+        name: query
+        required: true
+        schema:
+          type: string
+      - description: The number of events to retrieve.
+        example: 30
+        in: query
+        name: retrievalSize
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - description: The field by which to order the events.
+        example: start
+        in: query
+        name: orderBy
+        required: true
+        schema:
+          type: string
+      - description: The direction in which to order the events.
+        example: DESC
+        in: query
+        name: orderDirection
+        required: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - eventId: gM73SycATrOFMcL5qspByQ
+                start: 1706774419000
+                end: 1706783931000
+                type: incident
+                state: open
+                problem: New Event-test-01
+                detail: test
+                severity: 5
+                entityName: .NET App
+                entityLabel: powershell.exe
+                metrics:
+                - metricName: threads.lck_crs
+                  snapshotId: zqEuPom1v7YK61jRU8cEpRhCI1w
+                  entityId:
+                    steadyId: "55428"
+                    pluginId: com.instana.forge.infrastructure.runtime.clr.ClrRuntimePlatform
+                    host: 00:15:5d:ff:fe:98:d1:f6
+                entityType: INFRASTRUCTURE
+                fixSuggestion: test
+                snapshotId: zqEuPom1v7YK61jRU8cEpRhCI1w
+                recentEvents:
+                - eventId: ZzaptuusSOutGLGmqD-wzA
+                - eventId: oeqTbltKQw6pp1OJi_QH_Q
+                - eventId: Cnv-8y96SOW2CzZbn7SK7Q
+                - eventId: vidr6ZX9QmqhtdvBrYFR3Q
+                - eventId: NWfYJEUjSLSPJbxfCEW6kA
+                - eventId: iJ2Bm8Y5Qq-Fh-IAwAnRqQ
+                - eventId: kHiCKKByTdW0sMhhjxvgQg
+                - eventId: w-hl_-8NQXKEIemcNR5ouw
+                - eventId: Vn0weJOGROaFKwRtqNDaeg
+                - eventId: Z9yz38EOR3aR0rYlBN3oRQ
+                - eventId: h7-N1PT9Sim4dCbyM-sf3g
+                - eventId: nnWCZ2L2STi8lXFbPNUgUg
+                - eventId: j1NlsfUYTz69t3dqSMekPQ
+                probableCause: []
+                probableCauseMetadata: {}
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RawEvent'
+          description: OK
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get raw events
+      tags:
+      - Events
   /api/events/settings/alertingChannels:
     get:
       operationId: getAlertingChannels
@@ -15799,6 +15835,8 @@ components:
           $ref: '#/components/schemas/Action'
         description:
           type: string
+        entityType:
+          type: string
         eventId:
           type: string
         name:
@@ -16251,10 +16289,48 @@ components:
           type: boolean
         canViewTraceDetails:
           type: boolean
+        createdBy:
+          type: string
+        createdOn:
+          type: integer
+          format: int64
         id:
           type: string
         internalId:
           type: string
+        lastUsedOn:
+          type: integer
+          format: int64
+        limitedApplicationsScope:
+          type: boolean
+        limitedAutomationScope:
+          type: boolean
+        limitedBizOpsScope:
+          type: boolean
+        limitedInfrastructureScope:
+          type: boolean
+        limitedKubernetesScope:
+          type: boolean
+        limitedLogsScope:
+          type: boolean
+        limitedMobileAppsScope:
+          type: boolean
+        limitedOpenstackScope:
+          type: boolean
+        limitedPcfScope:
+          type: boolean
+        limitedPhmcScope:
+          type: boolean
+        limitedPvcScope:
+          type: boolean
+        limitedSyntheticsScope:
+          type: boolean
+        limitedVsphereScope:
+          type: boolean
+        limitedWebsitesScope:
+          type: boolean
+        limitedZhmcScope:
+          type: boolean
         name:
           type: string
       required:
@@ -17082,21 +17158,20 @@ components:
       properties:
         description:
           type: string
-          maxLength: 512
+          maxLength: 300
           minLength: 0
         id:
           type: string
           maxLength: 128
           minLength: 1
-        label:
+        name:
           type: string
-          maxLength: 128
-          minLength: 1
+          maxLength: 100
+          minLength: 0
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
       required:
       - id
-      - label
     CallGroupsItem:
       type: object
       properties:
@@ -18538,12 +18613,17 @@ components:
       properties:
         query:
           type: string
+          description: "Search term used to filter results using fields such as label,\
+            \ description, tag name or keywords"
+          maxLength: 200
+          minLength: 0
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
         timeFrame:
           $ref: '#/components/schemas/TimeFrame'
         type:
           type: string
+          description: Entity type. Identifier for the monitored technology.
       required:
       - tagFilterExpression
       - timeFrame
@@ -19746,6 +19826,24 @@ components:
           minLength: 0
         valueFormat:
           type: string
+          description: |
+            |
+            * NUMBER: Generic number
+            * BYTES: Number of bytes
+            * KILO_BYTES: Number of kilobytes
+            * MEGA_BYTES: Number of megabytes
+            * PERCENTAGE: Percentage in scale [0,1]
+            * PERCENTAGE_100: Percentage in scale [0,100]
+            * PERCENTAGE_NO_CAPPING: Percentage in scale [0,1] but value could exceed 1 for example when metric is aggregated
+            * PERCENTAGE_100_NO_CAPPING: Percentage in scale [0,100] but value could exceed 100 for example when metric is aggregated
+            * LATENCY: Time in milliseconds, with value of 0 should not be considered a a strict 0, but considered as < 1ms
+            * NANOS: Time in nanoseconds
+            * MILLIS: Time in milliseconds
+            * MICROS: Time in microseconds
+            * SECONDS: Time in seconds
+            * RATE: Number of occurrences per second
+            * BYTE_RATE: Number of bytes per second
+            * UNDEFINED: Metric value unit is not known
           enum:
           - NUMBER
           - BYTES
@@ -20821,6 +20919,24 @@ components:
           type: string
         formatter:
           type: string
+          description: |
+            |
+            * NUMBER: Generic number
+            * BYTES: Number of bytes
+            * KILO_BYTES: Number of kilobytes
+            * MEGA_BYTES: Number of megabytes
+            * PERCENTAGE: Percentage in scale [0,1]
+            * PERCENTAGE_100: Percentage in scale [0,100]
+            * PERCENTAGE_NO_CAPPING: Percentage in scale [0,1] but value could exceed 1 for example when metric is aggregated
+            * PERCENTAGE_100_NO_CAPPING: Percentage in scale [0,100] but value could exceed 100 for example when metric is aggregated
+            * LATENCY: Time in milliseconds, with value of 0 should not be considered a a strict 0, but considered as < 1ms
+            * NANOS: Time in nanoseconds
+            * MILLIS: Time in milliseconds
+            * MICROS: Time in microseconds
+            * SECONDS: Time in seconds
+            * RATE: Number of occurrences per second
+            * BYTE_RATE: Number of bytes per second
+            * UNDEFINED: Metric value unit is not known
           enum:
           - NUMBER
           - BYTES
@@ -20884,10 +21000,13 @@ components:
       properties:
         category:
           type: string
+          description: Category of the metric
         crossSeriesAggregations:
           type: array
+          description: Possible cross series aggregation the metric supports
           items:
             type: string
+            description: Possible cross series aggregation the metric supports
             enum:
             - SUM
             - MEAN
@@ -20908,8 +21027,27 @@ components:
           uniqueItems: true
         description:
           type: string
+          description: Description of the metric
         format:
           type: string
+          description: |
+            |
+            * NUMBER: Generic number
+            * BYTES: Number of bytes
+            * KILO_BYTES: Number of kilobytes
+            * MEGA_BYTES: Number of megabytes
+            * PERCENTAGE: Percentage in scale [0,1]
+            * PERCENTAGE_100: Percentage in scale [0,100]
+            * PERCENTAGE_NO_CAPPING: Percentage in scale [0,1] but value could exceed 1 for example when metric is aggregated
+            * PERCENTAGE_100_NO_CAPPING: Percentage in scale [0,100] but value could exceed 100 for example when metric is aggregated
+            * LATENCY: Time in milliseconds, with value of 0 should not be considered a a strict 0, but considered as < 1ms
+            * NANOS: Time in nanoseconds
+            * MILLIS: Time in milliseconds
+            * MICROS: Time in microseconds
+            * SECONDS: Time in seconds
+            * RATE: Number of occurrences per second
+            * BYTE_RATE: Number of bytes per second
+            * UNDEFINED: Metric value unit is not known
           enum:
           - NUMBER
           - BYTES
@@ -20929,8 +21067,10 @@ components:
           - UNDEFINED
         id:
           type: string
+          description: Identifier for the metric
         infraTagCategory:
           type: string
+          description: Category of the entity
           enum:
           - ACE
           - ALICLOUD
@@ -20969,8 +21109,10 @@ components:
           - WEBSPHERE
         label:
           type: string
+          description: Label for the metric
         ownerType:
           type: string
+          description: Type of the entity associated with the metric
       required:
       - id
       - infraTagCategory
@@ -21030,6 +21172,10 @@ components:
       properties:
         applicationId:
           type: string
+        applicationIds:
+          type: array
+          items:
+            type: string
         locationId:
           type: array
           items:
@@ -21756,16 +21902,14 @@ components:
       properties:
         description:
           type: string
-          maxLength: 512
+          maxLength: 300
           minLength: 0
-        label:
+        name:
           type: string
-          maxLength: 128
-          minLength: 1
+          maxLength: 100
+          minLength: 0
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
-      required:
-      - label
     NewManualServiceConfig:
       type: object
       properties:
@@ -22069,6 +22213,58 @@ components:
       - kind
       - name
       - webhookUrl
+    RawEvent:
+      type: object
+      properties:
+        cursor:
+          $ref: '#/components/schemas/IngestionOffsetCursor'
+        end:
+          type: integer
+          format: int64
+        entityId:
+          type: string
+        entityLabel:
+          type: string
+        entityTimestamp:
+          type: integer
+          format: int64
+        entityType:
+          type: string
+          enum:
+          - Entity10
+          - App20
+          - Service20
+          - Endpoint20
+          - Website
+          - Synthetic
+          - MobileApp
+        id:
+          type: string
+        manualCloseTimestamp:
+          type: integer
+          format: int64
+        manuallyClosed:
+          type: boolean
+        metricAccessId:
+          type: string
+        plugin:
+          type: string
+        severity:
+          type: integer
+          format: int32
+        smartAlert:
+          type: boolean
+        start:
+          type: integer
+          format: int64
+        state:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+      required:
+      - cursor
     RecurrentMaintenanceWindow:
       type: object
       allOf:
@@ -23886,16 +24082,12 @@ components:
           items:
             type: string
             description: (Technology Preview)
-          maxItems: 1
-          minItems: 0
         applications:
           type: array
           description: (Technology Preview)
           items:
             type: string
             description: (Technology Preview)
-          maxItems: 1
-          minItems: 0
         configuration:
           $ref: '#/components/schemas/SyntheticTypeConfiguration'
         createdAt:
@@ -24302,8 +24494,16 @@ components:
           type: boolean
         applicationId:
           type: string
+        applicationIds:
+          type: array
+          items:
+            type: string
         applicationLabel:
           type: string
+        applicationLabels:
+          type: array
+          items:
+            type: string
         createdAt:
           type: integer
           format: int64
@@ -24425,6 +24625,10 @@ components:
       properties:
         applicationId:
           type: string
+        applicationIds:
+          type: array
+          items:
+            type: string
         customTags:
           type: object
           additionalProperties:
@@ -24895,6 +25099,19 @@ components:
             type: string
       required:
       - type
+    UpdatedBusinessPerspectiveConfig:
+      type: object
+      properties:
+        description:
+          type: string
+          maxLength: 300
+          minLength: 0
+        name:
+          type: string
+          maxLength: 100
+          minLength: 0
+        tagFilterExpression:
+          $ref: '#/components/schemas/TagFilterExpressionElement'
     UsageResult:
       type: object
       properties:
@@ -25059,6 +25276,7 @@ components:
           - GlobalApplicationSmartAlert
           - SyntheticSmartAlert
           - InfraSmartAlert
+          - ServiceLevelSmartAlert
       required:
       - id
       - label
@@ -26363,14 +26581,17 @@ components:
       type: apiKey
       x-description: authorization
 x-tagGroups:
-- name: Infrastructure Monitoring
+- name: Websites & Mobile Apps
   tags:
-  - Infrastructure Analyze
-  - Infrastructure Metrics
-  - Infrastructure Resources
-  - Infrastructure Catalog
-  - Infrastructure Topology
-- name: Application Monitoring
+  - Website Metrics
+  - Website Catalog
+  - Website Analyze
+  - Website Configuration
+  - Mobile App Metrics
+  - Mobile App Catalog
+  - Mobile App Analyze
+  - Mobile App Configuration
+- name: Applications
   tags:
   - Application Metrics
   - Application Resources
@@ -26380,31 +26601,34 @@ x-tagGroups:
   - Application Topology
   - Application Alert Configuration
   - Global Application Alert Configuration
-- name: Website Monitoring
+- name: Infrastructure
   tags:
-  - Website Metrics
-  - Website Catalog
-  - Website Analyze
-  - Website Configuration
-- name: Mobile App Monitoring
-  tags:
-  - Mobile App Metrics
-  - Mobile App Catalog
-  - Mobile App Analyze
-  - Mobile App Configuration
+  - Infrastructure Analyze
+  - Infrastructure Metrics
+  - Infrastructure Resources
+  - Infrastructure Catalog
+  - Infrastructure Topology
 - name: Synthetic Monitoring
   tags:
   - Synthetic Catalog
   - Synthetic Settings
   - Synthetic Test Playback Results
   - Synthetic Alert Configuration
-- name: Event
+- name: Events
   tags:
   - Events
   - Event Settings
-- name: Host Agent
+- name: Automation
   tags:
-  - Host Agent
+  - Action Catalog
+  - Action History
+  - Policies
+- name: Service Levels
+  tags:
+  - SLI Settings
+  - SLI Report
+  - Apdex Settings
+  - Apdex Report
 - name: Settings
   tags:
   - Custom Dashboards
@@ -26417,20 +26641,6 @@ x-tagGroups:
   - Session Settings
   - Automation Settings
   - Authentication
-- name: Pipeline Feedback
-  tags:
-  - Releases
-- name: Automation
-  tags:
-  - Action Catalog
-  - Action History
-  - Policies
-- name: Service Level Indicators
-  tags:
-  - SLI Settings
-  - SLI Report
-  - Apdex Settings
-  - Apdex Report
 - name: Open Beta Features
   tags:
   - Infrastructure Analyze
@@ -26442,5 +26652,7 @@ x-tagGroups:
   - Infrastructure Alert Configuration
 - name: Instana
   tags:
+  - Releases
+  - Host Agent
   - Health
   - Usage
