@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Instana REST API documentation
-  version: 1.277.1253
+  version: 1.278.749
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -869,6 +869,9 @@ paths:
         - Application Analyze
   /api/application-monitoring/applications:
     get:
+      description: |
+        Use this API endpoint if one wants to retrieve a list of Application Perspectives.
+        A use case could be to view the application id of an Application Perspective.
       operationId: getApplications
       parameters:
         - description: Name of application
@@ -931,6 +934,9 @@ paths:
         - Application Resources
   /api/application-monitoring/applications/services:
     get:
+      description: |
+        Use this API endpoint if one wants to retrieve a list of Application/Services.
+        A use case could be to view the application id or service ID of an Application Perspective or a Service.
       operationId: getApplicationServices
       parameters:
         - description: Name of application/service
@@ -1003,6 +1009,9 @@ paths:
         - Application Resources
   /api/application-monitoring/applications/services/endpoints:
     get:
+      description: |
+        Use this API endpoint if one wants to retrieve a list of Endpoints.
+        A use case could be to view the endpoint id of an Endpoint.
       operationId: getApplicationEndpoints
       parameters:
         - description: Name of service
@@ -1225,9 +1234,14 @@ paths:
       description: "This endpoint retrieves all available tags for your monitored system.\n\nThese tags can be used to group metric results.\n```\n\"group\": {\n  \"groupbyTag\": \"service.name\"\n}\n```\n\nThese tags can be used to filter metric results.\n```\n\"tagFilters\": [{\n\t\"name\": \"application.name\",\n\t\"operator\": \"EQUALS\",\n\t\"value\": \"example\"\n}]\n```\n"
   /api/application-monitoring/metrics/applications:
     post:
+      description: |
+        Use this API endpoint if one wants to retrieve one or more supported aggregation of supported metrics for an Application Perspective.
+        For eg: retrieve `MEAN` aggregation of `latency` metric for an Application Perspective `app`.
+        For more information on supported metrics, refer `Get Metric catalog`.
       operationId: getApplicationMetrics
       parameters:
-        - in: query
+        - description: 'If enabled, fill the missing data points in the metric result with timestamp and value 0.'
+          in: query
           name: fillTimeSeries
           schema:
             type: boolean
@@ -1285,9 +1299,14 @@ paths:
         - Application Metrics
   /api/application-monitoring/metrics/endpoints:
     post:
+      description: |
+        Use this API endpoint if one wants to retrieve one or more supported aggregation of supported metrics for an Endpoint.
+        For eg: retrieve `MEAN` aggregation of `latency` metric for an Endpoint `GET /api/foo`.
+        For more information on supported metrics, refer `Get Metric catalog`.
       operationId: getEndpointsMetrics
       parameters:
-        - in: query
+        - description: 'If enabled, fill the missing data points in the metric result with timestamp and value 0.'
+          in: query
           name: fillTimeSeries
           schema:
             type: boolean
@@ -1353,9 +1372,14 @@ paths:
         - Application Metrics
   /api/application-monitoring/metrics/services:
     post:
+      description: |
+        Use this API endpoint if one wants to retrieve one or more supported aggregation of supported metrics for a Service.
+        For eg: retrieve `MEAN` aggregation of `latency` metric for a Service `payment`.
+        For more information on supported metrics, refer `Get Metric catalog`.
       operationId: getServicesMetrics
       parameters:
-        - in: query
+        - description: 'If enabled, fill the missing data points in the metric result with timestamp and value 0.'
+          in: query
           name: fillTimeSeries
           schema:
             type: boolean
@@ -1426,6 +1450,9 @@ paths:
         - Application Metrics
   /api/application-monitoring/services:
     get:
+      description: |
+        Use this API endpoint if one wants to retrieve a list of Services.
+        A use case could be to view the service id of a Service.
       operationId: getServices
       parameters:
         - description: Name of service
@@ -2920,6 +2947,11 @@ paths:
         - Application Analyze
   /api/application-monitoring/v2/metrics:
     post:
+      description: |
+        Use this API endpoint if one wants to retrieve one or more supported aggregation of supported metrics for a combination of entities.
+        For eg: retrieve `MEAN` aggregation of `latency` metric for an Endpoint `GET /api/foo`, Service `payment` and Application Perspective `app`.
+        Consider this API endpoint an upgraded version of `Get Application Metrics`, `Get Endpoint metrics` and `Get Service metrics`.
+        For more information on supported metrics, refer `Get Metric catalog`.
       operationId: getApplicationDataMetricsV2
       requestBody:
         content:
@@ -2962,6 +2994,67 @@ paths:
       tags:
         - Application Metrics
   /api/automation/actioninstances:
+    delete:
+      operationId: deleteActionInstances
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: to
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: targetSnapshotId
+          schema:
+            type: string
+        - in: query
+          name: eventId
+          schema:
+            type: string
+        - in: query
+          name: eventSpecificationId
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: types
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: actionStatuses
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: actionIds
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                deletedDocumentsCount: '2'
+      security:
+        - ApiKeyAuth:
+            - Default
+        - ApiKeyAuth:
+            - canDeleteAutomationActionHistory
+      summary: Delete automation action instances
+      tags:
+        - Action History
     get:
       operationId: getActionInstances
       parameters:
@@ -3108,6 +3201,38 @@ paths:
       tags:
         - Action History
   '/api/automation/actioninstances/{actionInstanceId}':
+    delete:
+      operationId: deleteActionInstance
+      parameters:
+        - in: path
+          name: actionInstanceId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: to
+          schema:
+            type: integer
+            format: int64
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                deletedDocumentsCount: '2'
+      security:
+        - ApiKeyAuth:
+            - Default
+        - ApiKeyAuth:
+            - canDeleteAutomationActionHistory
+      summary: Delete an automation action instance
+      tags:
+        - Action History
     get:
       operationId: getActionInstance
       parameters:
@@ -3206,6 +3331,25 @@ paths:
         - ApiKeyAuth:
             - Default
       summary: Get all automation actions
+      tags:
+        - Action Catalog
+  /api/automation/actions/tags:
+    get:
+      operationId: getActionsTags
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                tags:
+                  - tag1
+                  - tag2
+              schema:
+                type: string
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get all the tags from all the non-builtin automation actions
       tags:
         - Action Catalog
   '/api/automation/actions/{id}':
@@ -3549,6 +3693,25 @@ paths:
         - ApiKeyAuth:
             - canConfigureAutomationPolicies
       summary: Create automation policies
+      tags:
+        - Policies
+  /api/automation/policies/tags:
+    get:
+      operationId: getPoliciesTags
+      responses:
+        default:
+          content:
+            application/json:
+              example:
+                tags:
+                  - tag1
+                  - tag2
+              schema:
+                type: string
+      security:
+        - ApiKeyAuth:
+            - Default
+      summary: Get all the tags from all the automation policies
       tags:
         - Policies
   '/api/automation/policies/{id}':
@@ -17068,15 +17231,30 @@ components:
               minimum: 0.5
       required:
         - operator
+    AdaptiveThresholdRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Threshold'
+        - type: object
+          properties:
+            deviationFactor:
+              type: number
+              format: double
+              exclusiveMaximum: false
+              exclusiveMinimum: false
+              maximum: 16
+              minimum: 0.5
     AdjustedTimeframe:
       type: object
       properties:
         to:
           type: integer
           format: int64
+          description: 'end of timeframe expressed as the Unix epoch time in milliseconds. Eg: `ISO 8601` standard time `2024-06-27T05:05:55.615Z` can be represented as `1719464755615` in Unix epoch time in milliseconds.'
         windowSize:
           type: integer
           format: int64
+          description: windowSize in milliseconds
           minimum: 0
       required:
         - to
@@ -17453,6 +17631,8 @@ components:
           type: boolean
         canCreateThreadDump:
           type: boolean
+        canDeleteAutomationActionHistory:
+          type: boolean
         canDeleteLogs:
           type: boolean
         canEditAllAccessibleCustomDashboards:
@@ -17492,6 +17672,9 @@ components:
         createdBy:
           type: string
         createdOn:
+          type: integer
+          format: int64
+        expiresOn:
           type: integer
           format: int64
         id:
@@ -17542,6 +17725,7 @@ components:
       properties:
         aggregation:
           type: string
+          description: 'Set aggregation that can be applied to a series of values. Eg: `MEAN`.'
           enum:
             - SUM
             - MEAN
@@ -17562,8 +17746,10 @@ components:
         granularity:
           type: integer
           format: int32
+          description: 'If the granularity is set you will get data points with the specified granularity in seconds. Default: `1000` milliseconds'
         metric:
           type: string
+          description: 'Set a particular metric, eg: `latency`.'
         numeratorTagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
       required:
@@ -17571,19 +17757,24 @@ components:
         - metric
     Application:
       type: object
+      description: Returns a list of Application Perspectives.
       properties:
         boundaryScope:
           type: string
+          description: 'Here, `ALL` Application Boundary Scope is considered.'
         entityType:
           type: string
+          description: 'Since, this is an Application Perspective, it will be of type `APPLICATION`.'
           enum:
             - APPLICATION
             - SERVICE
             - ENDPOINT
         id:
           type: string
+          description: 'Unique ID of the Application Perspective. Eg: `Av62RoIKQv-A3n6DbMQh9g`.'
         label:
           type: string
+          description: 'Name of the Application Perspective. Eg: `app1`.'
       required:
         - boundaryScope
         - id
@@ -17953,17 +18144,21 @@ components:
       properties:
         items:
           type: array
+          description: Returns a list of Application Perspectives.
           items:
             $ref: '#/components/schemas/Application'
         page:
           type: integer
           format: int32
+          description: Page number you want to retrieve in a request / retrieved in a response.
         pageSize:
           type: integer
           format: int32
+          description: number of elements retrieved in a single query.
         totalHits:
           type: integer
           format: int32
+          description: 'The number of results returned. For eg: If `items` has 5 elements, `totalhits` will be 5'
     ApplicationScope:
       type: object
       properties:
@@ -18682,6 +18877,7 @@ components:
           minLength: 0
         ruleLogicalOperator:
           type: string
+          description: Set AND / OR
           enum:
             - AND
             - OR
@@ -18743,6 +18939,7 @@ components:
           minLength: 0
         ruleLogicalOperator:
           type: string
+          description: Set AND / OR
           enum:
             - AND
             - OR
@@ -18978,22 +19175,27 @@ components:
         - syntheticType
     Endpoint:
       type: object
+      description: Returns a list of Endpoints.
       properties:
         entityType:
           type: string
+          description: 'Since, this is a Endpoint, it will be of type `ENDPOINT`.'
           enum:
             - APPLICATION
             - SERVICE
             - ENDPOINT
         id:
           type: string
+          description: 'Unique ID of the Service. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`.'
         isSynthetic:
           type: boolean
           writeOnly: true
         label:
           type: string
+          description: 'Name of the Endpoint. Eg: `GET /api/fetch`.'
         serviceId:
           type: string
+          description: The serviceId this endpoint belongs to.
         synthetic:
           type: boolean
         syntheticType:
@@ -19004,11 +19206,14 @@ components:
             - MIXED
         technologies:
           type: array
+          description: 'List of technologies: `Eg:["springbootApplicationContainer"]`'
           items:
             type: string
+            description: 'List of technologies: `Eg:["springbootApplicationContainer"]`'
           uniqueItems: true
         type:
           type: string
+          description: The type of the Endpoint.
           enum:
             - UNDEFINED
             - RPC
@@ -19126,17 +19331,21 @@ components:
       properties:
         items:
           type: array
+          description: Returns a list of Endpoints.
           items:
             $ref: '#/components/schemas/Endpoint'
         page:
           type: integer
           format: int32
+          description: Page number you want to retrieve in a request / retrieved in a response.
         pageSize:
           type: integer
           format: int32
+          description: number of elements retrieved in a single query.
         totalHits:
           type: integer
           format: int32
+          description: 'The number of results returned. For eg: If `items` has 5 elements, `totalhits` will be 5'
     EndpointSimple:
       type: object
       properties:
@@ -19501,14 +19710,17 @@ components:
           uniqueItems: true
         entityType:
           type: string
+          description: 'Since, this is a Service, it will be of type `SERVICE`.'
           enum:
             - APPLICATION
             - SERVICE
             - ENDPOINT
         id:
           type: string
+          description: 'Unique ID of the Service. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.'
         label:
           type: string
+          description: 'Name of the Service. Eg: `payment`.'
         maxSeverity:
           type: number
           format: double
@@ -19520,18 +19732,24 @@ components:
           minimum: 0
         snapshotIds:
           type: array
+          description: A unique identifier the metrics are assigned to.
           items:
             type: string
+            description: A unique identifier the metrics are assigned to.
           uniqueItems: true
         technologies:
           type: array
+          description: 'List of technologies: `Eg:["springbootApplicationContainer"]`'
           items:
             type: string
+            description: 'List of technologies: `Eg:["springbootApplicationContainer"]`'
           uniqueItems: true
         types:
           type: array
+          description: 'Shows types of Endpoints a Service can consist of. It may be one or more. Eg: `HTTP` `OPENTELEMETRY` can be in 1 Service.'
           items:
             type: string
+            description: 'Shows types of Endpoints a Service can consist of. It may be one or more. Eg: `HTTP` `OPENTELEMETRY` can be in 1 Service.'
             enum:
               - UNDEFINED
               - RPC
@@ -19736,15 +19954,27 @@ components:
       properties:
         applicationBoundaryScope:
           type: string
+          description: |-
+            Use when querying calls of an application:
+             `INBOUND`: only inbound calls 
+             `ALL`: all the calls to that application (inbound + internal)
           enum:
             - ALL
             - INBOUND
         applicationId:
           type: string
+          description: |
+            An Instana generated unique identifier for an Application. If specified, the list of results will be filtered for the specified Application ID. Eg: `Av62RoIKQv-A3n6DbMQh9g`.
+            One can see the application id from Instana UI by going to an Application Perspective page. In the URL, there will be `appId=Av62RoIKQv-A3n6DbMQh9g`.
+            Alternatively, one can use `Get applications` API endpoint to get the application id in `id` parameter.
           maxLength: 64
           minLength: 0
         endpointId:
           type: string
+          description: |
+            An Instana generated unique identifier for an Endpoint. If specified, the list of results will be filtered for the specified Endpoint ID. Eg `NCRq5oYnan5x-PkdTPQwLLUdu5M`.
+            One can see the endpoint id from Instana UI by going to an Endpoint page. In the URL, there will be `endpointId=NCRq5oYnan5x-PkdTPQwLLUdu5M`.
+            Alternatively, one can use `Get endpoints` API endpoint to get the endpoint id in `id` parameter.
           maxLength: 64
           minLength: 0
         endpointTypes:
@@ -19770,12 +20000,14 @@ components:
           writeOnly: true
         metrics:
           type: array
+          description: 'A list of objects each of which defines a metric and the (statistical) aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize it for the defined time frame. Eg: `[{ ''metric'': ''latency'', ''aggregation'': ''MEAN''}]`. To know more about supported metrics and its aggregation, See `Get Metric catalog`.'
           items:
             $ref: '#/components/schemas/AppDataMetricConfiguration'
           maxItems: 5
           minItems: 1
         nameFilter:
           type: string
+          description: 'filter by name with `contains` semantic. Eg: Let''s say there are 2 names `app1` and `app2`, you can set `app`` here to include the two names'
           maxLength: 256
           minLength: 0
         order:
@@ -19784,6 +20016,10 @@ components:
           $ref: '#/components/schemas/Pagination'
         serviceId:
           type: string
+          description: |
+            An Instana generated unique identifier for a Service. If specified, the list of results will be filtered for the specified Service ID. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+            One can see the service id from Instana UI by going to a Service page. In the URL, there will be `serviceId=3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+            Alternatively, one can use `Get services` API endpoint to get the service id in `id` parameter.
           maxLength: 64
           minLength: 0
         technologies:
@@ -19906,21 +20142,35 @@ components:
       properties:
         applicationBoundaryScope:
           type: string
+          description: |-
+            Use when querying calls of an application:
+             `INBOUND`: only inbound calls 
+             `ALL`: all the calls to that application (inbound + internal)
           enum:
             - ALL
             - INBOUND
         applicationId:
           type: string
+          description: |
+            An Instana generated unique identifier for an Application. If specified, the list of results will be filtered for the specified Application ID. Eg: `Av62RoIKQv-A3n6DbMQh9g`.
+            One can see the application id from Instana UI by going to an Application Perspective page. In the URL, there will be `appId=Av62RoIKQv-A3n6DbMQh9g`.
+            Alternatively, one can use `Get applications` API endpoint to get the application id in `id` parameter.
           maxLength: 64
           minLength: 0
         endpointId:
           type: string
+          description: |
+            An Instana generated unique identifier for an Endpoint. If specified, the list of results will be filtered for the specified Endpoint ID. Eg `NCRq5oYnan5x-PkdTPQwLLUdu5M`.
+            One can see the endpoint id from Instana UI by going to an Endpoint page. In the URL, there will be `endpointId=NCRq5oYnan5x-PkdTPQwLLUdu5M`.
+            Alternatively, one can use `Get endpoints` API endpoint to get the endpoint id in `id` parameter.
           maxLength: 64
           minLength: 0
         endpointTypes:
           type: array
+          description: 'A list of endpoint types, each of which is a string. An endpoint can specified for a database, an SDK, etc.'
           items:
             type: string
+            description: 'A list of endpoint types, each of which is a string. An endpoint can specified for a database, an SDK, etc.'
             enum:
               - UNDEFINED
               - RPC
@@ -19941,14 +20191,17 @@ components:
           uniqueItems: true
         excludeSynthetic:
           type: boolean
+          description: 'A variable used to specify whether synthetic endpoints should be excluded. If set to ''true'', synthetic endpoints will be excluded from the result.'
         metrics:
           type: array
+          description: 'A list of objects each of which defines a metric and the (statistical) aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize it for the defined time frame. Eg: `[{ ''metric'': ''latency'', ''aggregation'': ''MEAN''}]`. To know more about supported metrics and its aggregation, See `Get Metric catalog`.'
           items:
             $ref: '#/components/schemas/AppDataMetricConfiguration'
           maxItems: 5
           minItems: 1
         nameFilter:
           type: string
+          description: 'filter by endpoint name with `contains` semantic. Eg: Let''s say there are 2 Endpoint names `GET /api/fetch` and `GET /api/update`, you can set `GET /api/` here to include the two Endpoints.'
           maxLength: 256
           minLength: 0
         order:
@@ -19957,6 +20210,10 @@ components:
           $ref: '#/components/schemas/Pagination'
         serviceId:
           type: string
+          description: |
+            An Instana generated unique identifier for a Service. If specified, the list of results will be filtered for the specified Service ID. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+            One can see the service id from Instana UI by going to a Service page. In the URL, there will be `serviceId=3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+            Alternatively, one can use `Get services` API endpoint to get the service id in `id` parameter.
           maxLength: 64
           minLength: 0
         timeFrame:
@@ -20181,27 +20438,42 @@ components:
       properties:
         applicationBoundaryScope:
           type: string
+          description: |-
+            Use when querying calls of an application:
+             `INBOUND`: only inbound calls 
+             `ALL`: all the calls to that application (inbound + internal)
           enum:
             - ALL
             - INBOUND
         applicationId:
           type: string
+          description: |
+            An Instana generated unique identifier for an Application. If specified, the list of results will be filtered for the specified Application ID. Eg: `Av62RoIKQv-A3n6DbMQh9g`.
+            One can see the application id from Instana UI by going to an Application Perspective page. In the URL, there will be `appId=Av62RoIKQv-A3n6DbMQh9g`.
+            Alternatively, one can use `Get applications` API endpoint to get the application id in `id` parameter.
           maxLength: 64
           minLength: 0
         contextScope:
           type: string
+          description: |-
+            separate filtering and group by service id field
+             - upstream is filtered on destination service and groups on source service
+             - downstream is filtered on source service and groups on destination service
+             - none is filtered on destination service and no grouping
           enum:
             - NONE
             - UPSTREAM
             - DOWNSTREAM
         metrics:
           type: array
+          description: 'A list of objects each of which defines a metric and the (statistical) aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize it for the defined time frame. Eg: `[{ ''metric'': ''latency'', ''aggregation'': ''MEAN''}]`. To know more about supported metrics and its aggregation, See `Get Metric catalog`.'
           items:
             $ref: '#/components/schemas/AppDataMetricConfiguration'
           maxItems: 5
           minItems: 1
         nameFilter:
           type: string
+          description: 'filter by name with `contains` semantic. Eg: Let''s say there are 2 service names `ecomm-order` and `ecomm-deliver`, you can set `ecomm-` here to include the two Services.'
           maxLength: 256
           minLength: 0
         order:
@@ -20210,12 +20482,18 @@ components:
           $ref: '#/components/schemas/Pagination'
         serviceId:
           type: string
+          description: |
+            An Instana generated unique identifier for a Service. If specified, the list of results will be filtered for the specified Service ID. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+            One can see the service id from Instana UI by going to a Service page. In the URL, there will be `serviceId=3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+            Alternatively, one can use `Get services` API endpoint to get the service id in `id` parameter.
           maxLength: 64
           minLength: 0
         technologies:
           type: array
+          description: 'A list of technologies to be used for filtering data. For example, technologies could include AWS ECS, Cassandra, DB2, JVM, Kafka, etc. A full list of available technologies can be found in X.'
           items:
             type: string
+            description: 'A list of technologies to be used for filtering data. For example, technologies could include AWS ECS, Cassandra, DB2, JVM, Kafka, etc. A full list of available technologies can be found in X.'
           maxItems: 20
           minItems: 0
           uniqueItems: true
@@ -21120,6 +21398,12 @@ components:
           $ref: '#/components/schemas/PredictiveTrigger'
         rule:
           $ref: '#/components/schemas/InfraAlertRule'
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleWithThresholdInfraAlertRule'
+          maxItems: 1
+          minItems: 1
         severity:
           type: integer
           format: int32
@@ -21136,9 +21420,7 @@ components:
         - granularity
         - groupBy
         - name
-        - rule
         - tagFilterExpression
-        - threshold
         - timeThreshold
     InfraAlertConfigWithMetadata:
       type: object
@@ -21201,6 +21483,12 @@ components:
           type: boolean
         rule:
           $ref: '#/components/schemas/InfraAlertRule'
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleWithThresholdInfraAlertRule'
+          maxItems: 1
+          minItems: 1
         severity:
           type: integer
           format: int32
@@ -21218,9 +21506,7 @@ components:
         - groupBy
         - id
         - name
-        - rule
         - tagFilterExpression
-        - threshold
         - timeThreshold
     InfraAlertRule:
       type: object
@@ -21981,6 +22267,7 @@ components:
       properties:
         aggregation:
           type: string
+          description: 'Set aggregation that can be applied to a series of values. Eg: `MEAN`.'
           enum:
             - SUM
             - MEAN
@@ -22001,8 +22288,10 @@ components:
         granularity:
           type: integer
           format: int32
+          description: 'If the granularity is set you will get data points with the specified granularity in seconds. Default: `1000` milliseconds'
         metric:
           type: string
+          description: 'Set a particular metric, eg: `latency`.'
       required:
         - aggregation
         - metric
@@ -22986,6 +23275,7 @@ components:
       properties:
         aggregation:
           type: string
+          description: 'Set aggregation that can be applied to a series of values. Eg: `MEAN`.'
           enum:
             - SUM
             - MEAN
@@ -23006,8 +23296,10 @@ components:
         granularity:
           type: integer
           format: int32
+          description: 'If the granularity is set you will get data points with the specified granularity in seconds. Default: `1000` milliseconds'
         metric:
           type: string
+          description: 'Set a particular metric, eg: `latency`.'
         numeratorTagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
       required:
@@ -23169,11 +23461,13 @@ components:
       properties:
         by:
           type: string
+          description: If the granularity is set to `1` you can use the metric name eg. `latency.p95` to order by that value.
         collation:
           type: string
-          description: language code used for sorting. Ignored for infrastructure queries.
+          description: Language code used for sorting. Ignored for infrastructure queries.
         direction:
           type: string
+          description: 'The order in which results will be sorted, either `ASC` for ascending or `DESC` for descending.'
           enum:
             - ASC
             - DESC
@@ -23220,10 +23514,12 @@ components:
         page:
           type: integer
           format: int32
+          description: 'Page number for a specific page in the results. For example, if you''d like to retrieve the 5th page out of 10 pages, the value would be 5.'
           minimum: 1
         pageSize:
           type: integer
           format: int32
+          description: 'Set the number of items you want to return with one query. Eg: if you want to retrieve 10 items, the value would be 10.'
           maximum: 200
           minimum: 1
     Parameter:
@@ -23564,6 +23860,26 @@ components:
       required:
         - inputKind
         - inputName
+    RuleWithThresholdInfraAlertRule:
+      type: object
+      properties:
+        rule:
+          $ref: '#/components/schemas/InfraAlertRule'
+        thresholdOperator:
+          type: string
+          enum:
+            - '>'
+            - '>='
+            - <
+            - <=
+        thresholds:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Threshold'
+      required:
+        - rule
+        - thresholdOperator
+        - thresholds
     RunConfiguration:
       type: object
       properties:
@@ -23645,31 +23961,41 @@ components:
           type: string
     Service:
       type: object
+      description: Returns a list of Services.
       properties:
         entityType:
           type: string
+          description: 'Since, this is a Service, it will be of type `SERVICE`.'
           enum:
             - APPLICATION
             - SERVICE
             - ENDPOINT
         id:
           type: string
+          description: 'Unique ID of the Service. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.'
         label:
           type: string
+          description: 'Name of the Service. Eg: `payment`.'
         snapshotIds:
           type: array
+          description: A unique identifier the metrics are assigned to.
           items:
             type: string
+            description: A unique identifier the metrics are assigned to.
           uniqueItems: true
         technologies:
           type: array
+          description: 'List of technologies: `Eg:["springbootApplicationContainer"]`'
           items:
             type: string
+            description: 'List of technologies: `Eg:["springbootApplicationContainer"]`'
           uniqueItems: true
         types:
           type: array
+          description: 'Shows types of Endpoints a Service can consist of. It may be one or more. Eg: `HTTP` `OPENTELEMETRY` can be in 1 Service.'
           items:
             type: string
+            description: 'Shows types of Endpoints a Service can consist of. It may be one or more. Eg: `HTTP` `OPENTELEMETRY` can be in 1 Service.'
             enum:
               - UNDEFINED
               - RPC
@@ -24130,17 +24456,21 @@ components:
       properties:
         items:
           type: array
+          description: Returns a list of Services.
           items:
             $ref: '#/components/schemas/Service'
         page:
           type: integer
           format: int32
+          description: Page number you want to retrieve in a request / retrieved in a response.
         pageSize:
           type: integer
           format: int32
+          description: number of elements retrieved in a single query.
         totalHits:
           type: integer
           format: int32
+          description: 'The number of results returned. For eg: If `items` has 5 elements, `totalhits` will be 5'
     ServiceScope:
       type: object
       properties:
@@ -24473,6 +24803,7 @@ components:
             - PLATFORM
             - PACKAGE
             - OS
+            - CACHE
             - OTHER
         usedBy:
           type: array
@@ -24767,6 +25098,32 @@ components:
           minimum: -1
       required:
         - file
+    StaticBaselineThresholdRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Threshold'
+        - type: object
+          properties:
+            baseline:
+              type: array
+              items:
+                type: array
+                items:
+                  type: number
+            deviationFactor:
+              type: number
+              format: double
+              exclusiveMaximum: false
+              exclusiveMinimum: false
+              maximum: 16
+              minimum: 0.5
+            seasonality:
+              type: string
+              enum:
+                - WEEKLY
+                - DAILY
+      required:
+        - seasonality
     StaticStringField:
       type: object
       allOf:
@@ -24794,6 +25151,16 @@ components:
               minimum: 0
       required:
         - operator
+    StaticThresholdRule:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Threshold'
+        - type: object
+          properties:
+            value:
+              type: number
+              format: double
+              minimum: 0
     StatusCodeApplicationAlertRule:
       type: object
       allOf:
@@ -25184,6 +25551,7 @@ components:
       properties:
         aggregation:
           type: string
+          description: 'Set aggregation that can be applied to a series of values. Eg: `MEAN`.'
           enum:
             - SUM
             - MEAN
@@ -25204,8 +25572,10 @@ components:
         granularity:
           type: integer
           format: int32
+          description: 'If the granularity is set you will get data points with the specified granularity in seconds. Default: `1000` milliseconds'
         metric:
           type: string
+          description: 'Set a particular metric, eg: `latency`.'
       required:
         - aggregation
         - metric
@@ -25536,6 +25906,7 @@ components:
                 $ref: '#/components/schemas/TagFilterExpressionElement'
             logicalOperator:
               type: string
+              description: Set AND / OR
               enum:
                 - AND
                 - OR
@@ -25985,7 +26356,7 @@ components:
         to:
           type: integer
           format: int64
-          description: end of timeframe expressed as the Unix epoch time in milliseconds
+          description: 'end of timeframe expressed as the Unix epoch time in milliseconds. Eg: `ISO 8601` standard time `2024-06-27T05:05:55.615Z` can be represented as `1719464755615` in Unix epoch time in milliseconds.'
         windowSize:
           type: integer
           format: int64
@@ -27521,6 +27892,7 @@ components:
       properties:
         aggregation:
           type: string
+          description: 'Set aggregation that can be applied to a series of values. Eg: `MEAN`.'
           enum:
             - SUM
             - MEAN
@@ -27541,8 +27913,10 @@ components:
         granularity:
           type: integer
           format: int32
+          description: 'If the granularity is set you will get data points with the specified granularity in seconds. Default: `1000` milliseconds'
         metric:
           type: string
+          description: 'Set a particular metric, eg: `latency`.'
       required:
         - aggregation
         - metric
