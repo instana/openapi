@@ -1,3 +1,3 @@
-API Tokens are unique strings that are used to authenticate and authorize access to the API. These are used to secure API endpoints and ensure that only authorized users can access certain functions. When you raise a request to the API, you must include the API Tokens in the request header to verify your identity.
+API Tokens are unique strings that are used to authenticate and authorize access to the API. These are used to secure API endpoints and ensure that only authorized users can access certain functions. When you raise a request to the API, you must include the API Token in the request header to verify your identity.
 
 Instana API Tokens are specific to Tenant Unit (TU) and cannot be used across TUs. Each token has its associated set of permissions, which are preselected when you create the token.
