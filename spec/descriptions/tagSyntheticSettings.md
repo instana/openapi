@@ -96,7 +96,7 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
 - **createdBy** The user identifier who created the test resource.
 - **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.
 - **locations** It is an array of the PoP location IDs where the Synthetic tests are located.
-- **applications** (Technology Preview) It is an array of the unique identifiers of the Application Perspectives associated to this test.
+- **applications** It is an array of the unique identifiers of the Application Perspectives associated to this test.
 - **modifiedAt** The test last updated time, following RFC3339 standard.
 - **modifiedBy** The user identifier who updated the test resource.
 - **playbackMode** Defines how the Synthetic test should be executed across multiple
@@ -114,7 +114,7 @@ All Script Tests can use credentials in their body and API Simple Tests can use 
 
 It is required that the credentials used in the test be created before the test is created or modified.
 
-(Technology Preview) Credentials can be associated to multiple Application Perspective.
+Credentials can be associated to multiple Application Perspectives, Websites, and Mobile Apps.
 
 Tests using credentials are validated during test creation and update whether you use the API or UI, as follows:
 
@@ -124,5 +124,5 @@ Tests using credentials are validated during test creation and update whether yo
 2. The credentials or secrets used in the test must exist.  
   Requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`.
 
-3. (Technology Preview) Credentials associated to Application Perspectives can only be used by tests that are associated to at least one common Application Perspective.
+3. Credentials associated to Application Perspectives can only be used by tests that are associated to at least one common Application Perspective.
    Requests to create or update a test referencing credentials without matching Application Perspectives will fail with return code `Bad Request`.
