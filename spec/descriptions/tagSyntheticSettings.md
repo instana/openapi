@@ -124,5 +124,5 @@ Tests using credentials are validated during test creation and update whether yo
 2. The credentials or secrets used in the test must exist.  
   Requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`.
 
-3. Credentials associated to Application Perspectives can only be used by tests that are associated to at least one common Application Perspective.
-   Requests to create or update a test referencing credentials without matching Application Perspectives will fail with return code `Bad Request`.
+3. Credentials associated to Application Perspectives, Websites, and Mobile Apps can only be used by tests that are associated to at least one common Application Perspective, Websites, and MobileApps.
+   Requests to create or update a test referencing credentials without matching Application Perspectives, Websites, or Mobile Apps will fail with return code `Bad Request`.
