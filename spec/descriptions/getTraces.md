@@ -1,11 +1,3 @@
 This endpoint retrieves the metrics for traces.
 
-**Manditory Paramters:**
-
-**Optional Paramters:**
-
-**Defaults:**
-
-**Limits:**
-
-**Tips:**
+**order.by:** Supported values include: `traceId`, `traceLabel`, `serviceLabel`, `duration` and `timestamp`.
