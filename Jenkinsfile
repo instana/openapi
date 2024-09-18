@@ -55,10 +55,4 @@ pipeline {
             }
         }
     }
-
-    post {
-        always {
-            // Actions to perform after the pipeline completes, such as cleanup or notifications
-        }
-    }
 }
