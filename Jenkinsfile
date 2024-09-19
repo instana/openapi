@@ -1,42 +1,58 @@
-#!groovy
+pipeline {
+    agent any
 
-// define global vars for use in later stages
-def gitCommitId = null
+    environment {
+        // Define global variables here if needed
+        GIT_COMMIT_ID = ''
+    }
 
-stage('Checkout') {
-  node {
-    deleteDir()
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    deleteDir()
+                    checkout scm
 
-    checkout scm
-
-    gitCommitId = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-
-    currentBuild.displayName = "#${env.BUILD_NUMBER}:${env.VERSION}"
-  }
-}
-
-stage ('Generate and publish OpenAPI specs') {
-  node {
-    timeout(time: 10, unit: 'MINUTES') {
-      if (env.BRANCH_NAME == 'master') {
-        withCredentials([usernamePassword(credentialsId: 'delivery-instana-io-internal-project-artifact-read-writer-creds', usernameVariable: 'DELIVERY_INSTANA_USR', passwordVariable: 'DELIVERY_INSTANA_PWD')]) {
-          sh "./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
+                    env.GIT_COMMIT_ID = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+                    currentBuild.displayName = "#${env.BUILD_NUMBER}:${env.VERSION}"
+                }
+            }
         }
-      }
-    }
-  }
-}
 
-stage ('Trigger API end-to-end tests') {
-  timeout(time: 30, unit: 'MINUTES') {
-    if (env.BRANCH_NAME == 'master') {
-      def versionParts = env.VERSION.tokenize('.')
-      def releaseNumber = versionParts[1]
+        stage('Generate and publish OpenAPI specs') {
+            when {
+                expression { return env.BRANCH_NAME == 'master' }
+            }
+            options {
+                timeout(time: 10, unit: 'MINUTES')
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'delivery-instana-io-internal-project-artifact-read-writer-creds', 
+                                                 usernameVariable: 'DELIVERY_INSTANA_USR', 
+                                                 passwordVariable: 'DELIVERY_INSTANA_PWD')]) {
+                    sh "./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
+                }
+            }
+        }
 
-      build job: '/tests/rest-api-e2e-tests', parameters: [
-          string(name: 'BRANCH_NAME', value: "release-${releaseNumber}"),
-          string(name: 'ENVIRONMENT', value: 'preview-instana')
-      ]
+        stage('Trigger API end-to-end tests') {
+            when {
+                expression { return env.BRANCH_NAME == 'master' }
+            }
+            options {
+                timeout(time: 30, unit: 'MINUTES')
+            }
+            steps {
+                script {
+                    def versionParts = env.VERSION.tokenize('.')
+                    def releaseNumber = versionParts[1]
+
+                    build job: '/tests/rest-api-e2e-tests', parameters: [
+                        string(name: 'BRANCH_NAME', value: "release-${releaseNumber}"),
+                        string(name: 'ENVIRONMENT', value: 'preview-instana')
+                    ]
+                }
+            }
+        }
     }
-  }
 }
