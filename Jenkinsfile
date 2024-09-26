@@ -21,7 +21,7 @@ pipeline {
 
         stage('Generate and publish OpenAPI specs') {
             when {
-                expression { return env.BRANCH_NAME == 'master' }
+                expression { return env.BRANCH_NAME == 'test-jenkins-workers' }
             }
             options {
                 timeout(time: 10, unit: 'MINUTES')
@@ -37,7 +37,7 @@ pipeline {
 
         stage('Trigger API end-to-end tests') {
             when {
-                expression { return env.BRANCH_NAME == 'master' }
+                expression { return env.BRANCH_NAME == 'test-jenkins-workers' }
             }
             options {
                 timeout(time: 30, unit: 'MINUTES')
