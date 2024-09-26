@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'jenkins-worker-0' }
+    agent { label 'jenkins-worker0' }
 
     environment {
         // Define global variables here if needed
