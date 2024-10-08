@@ -11,7 +11,6 @@ pipeline {
             steps {
                 script {
                     deleteDir()
-                    sh " ssh-keyscan -t rsa github.com:instana/openapi.git >> ~/.ssh/known_hosts "
                     checkout scm
 
                     env.GIT_COMMIT_ID = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
