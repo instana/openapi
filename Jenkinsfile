@@ -35,7 +35,6 @@ pipeline {
                             chmod 600 $SSH_KEY
                             eval $(ssh-agent -s)
                             ssh-add $SSH_KEY
-                            git clone git@github.com:instana/openapi.git
                        '''
                     sh "./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
                 }
