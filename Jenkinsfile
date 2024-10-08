@@ -29,9 +29,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'delivery-instana-io-internal-project-artifact-read-writer-creds', 
                                                  usernameVariable: 'DELIVERY_INSTANA_USR', 
-                                                 passwordVariable: 'DELIVERY_INSTANA_PWD')      
-                                ],
-                               [sshUserPrivateKey(credentialsId: 'id_openapi_public_github', keyFileVariable: 'SSH_KEY')]) {
+                                                 passwordVariable: 'DELIVERY_INSTANA_PWD'),
+                               sshUserPrivateKey(credentialsId: 'id_openapi_public_github', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
                             chmod 600 $SSH_KEY
                             eval $(ssh-agent -s)
