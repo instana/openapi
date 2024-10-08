@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'jenkins-worker1' }
+    agent { label 'jenkins-worker0' }
 
     environment {
         // Define global variables here if needed
@@ -11,6 +11,7 @@ pipeline {
             steps {
                 script {
                     deleteDir()
+                    sh " ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts "
                     checkout scm
 
                     env.GIT_COMMIT_ID = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
