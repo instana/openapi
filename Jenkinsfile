@@ -27,7 +27,6 @@ pipeline {
                     echo "Navigating to the project directory"
                     cd /jenkins/workspace/openapi-deploy-pipeline/
 
-                    # Install dependencies with NVM
                     echo "Installing Node.js using NVM"
                     nvm install
                     '''
