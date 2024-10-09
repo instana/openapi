@@ -19,6 +19,22 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    // Navigate to the correct directory and install Node.js using NVM
+                    sh '''
+                    echo "Navigating to the project directory"
+                    cd /jenkins/workspace/openapi-deploy-pipeline/
+
+                    # Install dependencies with NVM
+                    echo "Installing Node.js using NVM"
+                    nvm install
+                    '''
+                }
+            }
+        }
+
         stage('Generate and publish OpenAPI specs') {
             when {
                 expression { return env.BRANCH_NAME == 'master' }
