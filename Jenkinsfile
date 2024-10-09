@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'jenkins-worker0' }
+    agent any
 
     environment {
         // Define global variables here if needed
@@ -21,7 +21,7 @@ pipeline {
 
         stage('Generate and publish OpenAPI specs') {
             when {
-                expression { return env.BRANCH_NAME == 'test-jenkins-workers' }
+                expression { return env.BRANCH_NAME == 'master' }
             }
             options {
                 timeout(time: 10, unit: 'MINUTES')
@@ -41,7 +41,7 @@ pipeline {
 
         stage('Trigger API end-to-end tests') {
             when {
-                expression { return env.BRANCH_NAME == 'test-jenkins-workers' }
+                expression { return env.BRANCH_NAME == 'master' }
             }
             options {
                 timeout(time: 30, unit: 'MINUTES')
