@@ -29,8 +29,12 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'delivery-instana-io-internal-project-artifact-read-writer-creds', 
                                                  usernameVariable: 'DELIVERY_INSTANA_USR', 
-                                                 passwordVariable: 'DELIVERY_INSTANA_PWD')]) {
-                    sh "./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
+                                                 passwordVariable: 'DELIVERY_INSTANA_PWD'),
+                               sshUserPrivateKey(credentialsId: 'id_openapi_public_github', keyFileVariable: 'SSH_KEY')]) {
+                    sh '''
+                            chmod 600 $SSH_KEY
+                       '''
+                    sh "GIT_SSH_COMMAND=\"ssh -i ${env.SSH_KEY} -o IdentitiesOnly=yes\" ./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
                 }
             }
         }
