@@ -34,7 +34,7 @@ pipeline {
                     sh '''
                             chmod 600 $SSH_KEY
                        '''
-                    sh "export GIT_SSH_COMMAND=\"ssh -i ${env.SSH_KEY} -o IdentitiesOnly=yes\""
+                    env.GIT_SSH_COMMAND = "ssh -i ${env.SSH_KEY} -o IdentitiesOnly=yes"
                     sh "echo 'Start DEBUG'"
                     sh "git --version"
                     sh "echo ${env.GIT_SSH_COMMAND}"
