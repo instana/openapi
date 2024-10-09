@@ -34,7 +34,7 @@ pipeline {
                     sh '''
                             chmod 600 $SSH_KEY
                        '''
-                    sh "GIT_SSH_COMMAND=\"ssh -i ${env.SSH_KEY} -o IdentitiesOnly=yes\"./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
+                    sh "GIT_SSH_COMMAND=\"ssh -i ${env.SSH_KEY} -o IdentitiesOnly=yes\" ./ci/publish.bash ${env.VERSION} ${env.BUILD_URL}"
                 }
             }
         }
