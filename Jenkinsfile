@@ -27,19 +27,10 @@ pipeline {
                     echo "Navigating to the project directory"
                     cd /jenkins/workspace/openapi-deploy-pipeline/
 
+                    echo "Setting NVM_DIR to /root/.nvm"
+                    export NVM_DIR="/root/.nvm"
                     echo "Sourcing NVM"
-                    echo "NVM_DIR: $NVM_DIR"
-                    ls -l $NVM_DIR
-                    
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-
-                    echo "NVM_DIR: $NVM_DIR"
-                    if [ -s "$NVM_DIR/nvm.sh" ]; then
-                        echo "NVM sourced successfully"
-                    else
-                        echo "NVM is not found at $NVM_DIR"
-                    fi
+                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
                     echo "Installing Node.js using NVM"
                     nvm install
