@@ -28,6 +28,9 @@ pipeline {
                     cd /jenkins/workspace/openapi-deploy-pipeline/
 
                     echo "Sourcing NVM"
+                    echo "NVM_DIR: $NVM_DIR"
+                    ls -l $NVM_DIR
+                    
                     export NVM_DIR="$HOME/.nvm"
                     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
