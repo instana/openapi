@@ -30,7 +30,7 @@ pipeline {
                     echo "Setting NVM_DIR to /root/.nvm"
                     export NVM_DIR="/root/.nvm"
                     echo "Sourcing NVM"
-                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                    if [ -s "$NVM_DIR/nvm.sh" ]; then . "$NVM_DIR/nvm.sh"; fi
 
                     echo "Installing Node.js using NVM"
                     nvm install
