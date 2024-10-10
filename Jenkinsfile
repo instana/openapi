@@ -31,6 +31,13 @@ pipeline {
                     export NVM_DIR="$HOME/.nvm"
                     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
+                    echo "NVM_DIR: $NVM_DIR"
+                    if [ -s "$NVM_DIR/nvm.sh" ]; then
+                        echo "NVM sourced successfully"
+                    else
+                        echo "NVM is not found at $NVM_DIR"
+                    fi
+
                     echo "Installing Node.js using NVM"
                     nvm install
                     '''
