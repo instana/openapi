@@ -27,8 +27,14 @@ pipeline {
                     echo "Navigating to the project directory"
                     cd /jenkins/workspace/openapi-deploy-pipeline/
 
+                    echo "Sourcing NVM"
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" > /dev/null 2>&1
+
                     echo "Installing Node.js using NVM"
-                    nvm install
+                    nvm install > /dev/null 2>&1
+                    echo "Now using node version: $(node -v)"
+                    echo "Now using npm version: $(npm -v)"
                     '''
                 }
             }
