@@ -28,6 +28,8 @@ pipeline {
                         echo "Installing NVM"
                         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
                         export NVM_DIR="$HOME/.nvm"
+                        nvm use system
+                        npm uninstall -g a_module
                         [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         echo "Now using node version: $(node -v)"
                         echo "Now using npm version: $(npm -v)"
