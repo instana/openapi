@@ -31,8 +31,8 @@ curl -u "${DELIVERY_INSTANA_USR}:${DELIVERY_INSTANA_PWD}" \
     https://delivery.instana.io/artifactory/int-maven-backend-local/com/instana/openapi/${VERSION}/openapi-${VERSION}.yaml
 
 echo "Installing dependencies..."
-nvm install
 source $HOME/.nvm/nvm.sh
+nvm install
 nvm use
 npm install
 
