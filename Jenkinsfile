@@ -31,6 +31,7 @@ pipeline {
                         npm uninstall -g a_module
                         export NVM_DIR="$HOME/.nvm"
                         [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                        nvm install
                         echo "Now using node version: $(node -v)"
                         echo "Now using npm version: $(npm -v)"
                     else
