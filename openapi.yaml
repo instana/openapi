@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Instana REST API documentation
-  version: 1.283.860
+  version: 1.284.860
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -1938,7 +1938,7 @@ paths:
           description: OK
       security:
         - ApiKeyAuth:
-            - ConfigureServiceMapping
+            - CanConfigureServiceMapping
       summary: All Endpoint configurations
       tags:
         - Application Settings
@@ -1971,7 +1971,7 @@ paths:
           description: OK
       security:
         - ApiKeyAuth:
-            - ConfigureServiceMapping
+            - CanConfigureServiceMapping
       summary: Create endpoint configuration
       tags:
         - Application Settings
@@ -1991,7 +1991,7 @@ paths:
           description: default response
       security:
         - ApiKeyAuth:
-            - ConfigureServiceMapping
+            - CanConfigureServiceMapping
       summary: Delete endpoint configuration
       tags:
         - Application Settings
@@ -2018,7 +2018,7 @@ paths:
           description: OK
       security:
         - ApiKeyAuth:
-            - ConfigureServiceMapping
+            - CanConfigureServiceMapping
       summary: Endpoint configuration
       tags:
         - Application Settings
@@ -2073,7 +2073,7 @@ paths:
           description: OK
       security:
         - ApiKeyAuth:
-            - ConfigureServiceMapping
+            - CanConfigureServiceMapping
       summary: Update endpoint configuration
       tags:
         - Application Settings
@@ -3059,9 +3059,10 @@ paths:
         - Application Metrics
   /api/automation/actioninstances:
     delete:
+      description: 'Deletes the automation action run results from the action run history. The results to delete is filtered by the filter values given in the query parameters. The automation action run result will be deleted only if the action run result was created within the timeframe specified in the `from` and `to` query parameters. This call requires `Deletion of automation action history` permission and, `from` and `to` query parameters.'
       operationId: deleteActionInstances
       parameters:
-        - description: From date filter in milliseconds (13-digit) to look up the Action Instances to delete
+        - description: From date filter in milliseconds (13-digit) to look up the action run results to delete
           example: 1706713140000
           in: query
           name: from
@@ -3069,7 +3070,7 @@ paths:
           schema:
             type: integer
             format: int64
-        - description: To date filter in milliseconds (13-digit) to look up the Action Instances to delete
+        - description: To date filter in milliseconds (13-digit) to look up the action run results to delete
           example: 1706713140000
           in: query
           name: to
@@ -3077,31 +3078,31 @@ paths:
           schema:
             type: integer
             format: int64
-        - description: Target snapshot ID to look up the Action Instances to delete
-          example: nCtEoR6NSPqG61QkIkwwCw
+        - description: Target snapshot ID to look up the action run results to delete
+          example: aCtEoR6NSPqG61QkIkwwCw
           in: query
           name: targetSnapshotId
           schema:
             type: string
-        - description: Event ID filter to look up the Action Instances to delete
-          example: nCtEoR6NSPqG61QkIkwwCw
+        - description: Event ID filter to look up the action run results to delete
+          example: bCtEoR6NSPqG61QkIkwwCw
           in: query
           name: eventId
           schema:
             type: string
-        - description: Event specification ID filter to look up the Action Instances to delete
+        - description: Event specification ID filter to look up the action run results to delete
           example: 1706713140000
           in: query
           name: eventSpecificationId
           schema:
             type: string
-        - description: 'Text in Action Instance name, description and event name to filter the Action Instances to delete'
+        - description: 'Text in action run result name, description and event name to filter the action run results to delete'
           example: 1706713140000
           in: query
           name: search
           schema:
             type: string
-        - description: Action type filter to look up the Action Instances to delete
+        - description: Action type filter to look up the action run results to delete
           example: 'One or more of the following types HTTP, SCRIPT, ANSIBLE, GITHUB, GITLAB, JIRA'
           in: query
           name: types
@@ -3109,7 +3110,7 @@ paths:
             type: array
             items:
               type: string
-        - description: Action status filter to look up the Action Instances to delete
+        - description: Action status filter to look up the action run results to delete
           example: 'One or more of the following status SUBMITTED, IN_PROGRESS, SUCCESS, FAILED, TIMEOUT'
           in: query
           name: actionStatuses
@@ -3117,8 +3118,8 @@ paths:
             type: array
             items:
               type: string
-        - description: List of action IDs  to filter the Action Instances to delete
-          example: nCtEoR6NSPqG61QkIkwwCw
+        - description: List of action IDs  to filter the action run results to delete
+          example: cCtEoR6NSPqG61QkIkwwCw
           in: query
           name: actionIds
           schema:
@@ -3131,71 +3132,78 @@ paths:
             application/json:
               example:
                 deletedDocumentsCount: '2'
-          description: OK
+          description: Automation action run results are deleted.
+        '400':
+          description: '`from` date or `to` date query parameter is missing.'
+        '403':
+          description: Automation feature is not enabled or Insufficient permissions.
+        '500':
+          description: The request do not contain a valid user or API Token.
       security:
         - ApiKeyAuth:
             - Default
         - ApiKeyAuth:
             - canDeleteAutomationActionHistory
-      summary: Delete automation action instances
+      summary: Delete automation action run results.
       tags:
         - Action History
     get:
+      description: 'Get the details of automation action run results from action run history. The results are filtered by the filters in the query parameters. The automation action run result will be fetched only if the action run results were created within the timeframe specified by the `windowSize` and `to` query parameters. The `windowSize` parameter is used to compute the from date (`from = to - windowSize`) of the timeframe. The default value for `windowSize` is 10 minutes and the default value for `to` is current system time. When using personal access tokens, the user must have at least `Viewer` access for Automation and the automation action run results returned are also filtered based on the access set in `Limited access` permission settings. This API returns paginated result as specified in query parameters `page` and `pageSize`. The response contains list of automation action run results whose contents corresponds to the `page` query parameter and whose size corresponds to the `pageSize` query parameter.'
       operationId: getActionInstances
       parameters:
-        - description: Window size filter in milliseconds (to compute the from date) to get the action instance details
+        - description: Window size filter in milliseconds (to compute the from date) to get the action run result details
           example: 10000
           in: query
           name: windowSize
           schema:
             type: integer
             format: int64
-        - description: To date filter in milliseconds (13-digit) to get the action instance details
+        - description: To date filter in milliseconds (13-digit) to get the action run result details
           example: 1706713140000
           in: query
           name: to
           schema:
             type: integer
             format: int64
-        - description: Page to fetch -- used for paging the action instance records
+        - description: Page to fetch -- used for paging the action run result records
           example: 2
           in: query
           name: page
           schema:
             type: integer
             format: int32
-        - description: Number of records to return in each page -- used for paging the action instance records
+        - description: Number of records to return in each page -- used for paging the action run result records
           example: 50
           in: query
           name: pageSize
           schema:
             type: integer
             format: int32
-        - description: Target snapshot ID filter to get the action instance details
+        - description: Target snapshot ID filter to get the action run result details
           example: nCtEoR6NSPqG61QkIkwwCw
           in: query
           name: targetSnapshotId
           schema:
             type: string
-        - description: Event ID filter to get the action instance details
+        - description: Event ID filter to get the action run result details
           example: nCtEoR6NSPqG61QkIkwwCw
           in: query
           name: eventId
           schema:
             type: string
-        - description: Event specification ID filter to get the action instance details
+        - description: Event specification ID filter to get the action run result details
           example: 1706713140000
           in: query
           name: eventSpecificationId
           schema:
             type: string
-        - description: 'Text in Action Instance name, description and event name filter to get the action instance details'
+        - description: 'Text in action run result name, description and event name filter to get the action run result details'
           example: 1706713140000
           in: query
           name: search
           schema:
             type: string
-        - description: Action type filter to get the action instance details
+        - description: Action type filter to get the action run result details
           example: 'One or more of the following types HTTP, SCRIPT, ANSIBLE, GITHUB, GITLAB, JIRA'
           in: query
           name: types
@@ -3203,7 +3211,7 @@ paths:
             type: array
             items:
               type: string
-        - description: Action status filter to get the action instance details
+        - description: Action status filter to get the action run result details
           example: 'One or more of the following status SUBMITTED, IN_PROGRESS, SUCCESS, FAILED, TIMEOUT'
           in: query
           name: actionStatuses
@@ -3211,13 +3219,13 @@ paths:
             type: array
             items:
               type: string
-        - description: Action instance column to order the result set.
-          example: Name of the action instance column. Default is action instance start date.
+        - description: Action run result column to order the result set.
+          example: Name of the action run result column. Default is action run result start date.
           in: query
           name: orderBy
           schema:
             type: string
-        - description: Action instance column to order direction.
+        - description: Sort order direction.
           example: asc or desc
           in: query
           name: orderDirection
@@ -3245,17 +3253,20 @@ paths:
                     metadata: []
                 page: 1
                 pageSize: 50
-                totalHits: 1
+                totalHits: 500
               schema:
                 $ref: '#/components/schemas/PaginatedResult'
-          description: OK
+          description: Automation action run result details are returned.
+        '403':
+          description: Automation feature is not enabled or Insufficient permissions.
       security:
         - ApiKeyAuth:
             - Default
-      summary: Get all automation action instances
+      summary: Get the details of automation action run results from action run history.
       tags:
         - Action History
     post:
+      description: Submits the automation action for execution on an agent. The automation action to execute and the agent on which to execute the action must be specified as actionId and hostId. For more details on the request payload see the request sample. This call requires `Execution of automation actions`  permission.
       operationId: addActionInstance
       requestBody:
         content:
@@ -3272,7 +3283,7 @@ paths:
               async: 'true'
               timeout: '600'
             schema:
-              type: string
+              $ref: '#/components/schemas/ActionInstanceRequest'
         required: true
       responses:
         '200':
@@ -3302,27 +3313,32 @@ paths:
                 policyId: 2nIOVtEW-iPbsEIi89-yDqJabc
               schema:
                 $ref: '#/components/schemas/ActionInstance'
-          description: OK
+          description: Automation action submitted for execution on the agent.
+        '400':
+          description: The payload in the request body is not valid or the action ID (actionId) in the payload is invalid or the agent host ID (hostId) in the payload is invalid.
+        '403':
+          description: Automation feature is not enabled or Insufficient permissions.
       security:
         - ApiKeyAuth:
             - Default
         - ApiKeyAuth:
             - canRunAutomationActions
-      summary: Run an automation action
+      summary: Run an automation action.
       tags:
         - Action History
   '/api/automation/actioninstances/{actionInstanceId}':
     delete:
+      description: 'Deletes the automation action run result specified in the request path from the action run history. The automation action run result will be deleted only if the action run result was created within the timeframe specified in the `from` and `to` query parameters. To get the automation action run result ID and the created time, you can run `/api/automation/actioninstances` and `/api/automation/actioninstances/<{actionInstanceId}>` REST calls. This call requires `Deletion of automation action history` permission.'
       operationId: deleteActionInstance
       parameters:
-        - description: Action Instance ID to delete
+        - description: Automation action run result ID to delete.
           example: nCtEoR6NSPqG61QkIkwwCw
           in: path
           name: actionInstanceId
           required: true
           schema:
             type: string
-        - description: From date filter in milliseconds (13-digit) to look up the Action Instance ID
+        - description: From date filter in milliseconds (13-digit) to look up the action run result ID.
           example: 1706713140000
           in: query
           name: from
@@ -3330,8 +3346,8 @@ paths:
           schema:
             type: integer
             format: int64
-        - description: To date filter in milliseconds (13-digit) to look up the Action Instance ID
-          example: 1706713140000
+        - description: To date filter in milliseconds (13-digit) to look up the action run result ID.
+          example: 1706713190000
           in: query
           name: to
           required: true
@@ -3344,33 +3360,40 @@ paths:
             application/json:
               example:
                 deletedDocumentsCount: '2'
-          description: OK
+          description: Automation action run result is deleted.
+        '400':
+          description: 'Automation action run result ID is missing in the request path, or `from` date or `to` date is missing in the query parameters.'
+        '403':
+          description: Automation feature is not enabled or Insufficient permissions.
+        '500':
+          description: The request do not contain a valid user or API Token.
       security:
         - ApiKeyAuth:
             - Default
         - ApiKeyAuth:
             - canDeleteAutomationActionHistory
-      summary: Delete an automation action instance
+      summary: Deletes an automation action run result from the action run history by ID.
       tags:
         - Action History
     get:
+      description: 'Get the details of automation action run result specified in the request path from action run history. The automation action run result will be fetched only if the action run result was created within the timeframe specified by the `windowSize` and `to` query parameters. The `windowSize` parameter is used to compute the from date (`from = to - windowSize`) of the timeframe. The default value for `windowSize` is 10 minutes and the default value for `to` is current system time. To get the automation action run result ID and the created time, you can run `/api/automation/actioninstances` REST calls. When using personal access tokens, the user must have at least `Viewer` access for Automation.'
       operationId: getActionInstance
       parameters:
-        - description: Action Instance ID to get action instance details
+        - description: action run result ID to get action run result details
           example: nCtEoR6NSPqG61QkIkwwCw
           in: path
           name: actionInstanceId
           required: true
           schema:
             type: string
-        - description: Window size filter in milliseconds (to compute the from date) to get the action instance details
+        - description: Window size in milliseconds. This value is used compute the from date `(from = to - windowSize)` to get the action run result details. The default `windowSize` is set to 10 minutes if this value is not provided.
           example: 10000
           in: query
           name: windowSize
           schema:
             type: integer
             format: int64
-        - description: To date filter in milliseconds (13-digit) to get the action instance details
+        - description: To date filter in milliseconds (13-digit) to get the action run result details. The default `to` date is set to `System.currentTimeMillis()` if this value is not provided.
           example: 1706713140000
           in: query
           name: to
@@ -3410,15 +3433,20 @@ paths:
                 output: Hello world!
               schema:
                 $ref: '#/components/schemas/ActionInstance'
-          description: OK
+          description: The automation action run result detail is returned.
+        '400':
+          description: Missing automation action run result ID.
+        '403':
+          description: Automation feature is not enabled or Insufficient permissions.
       security:
         - ApiKeyAuth:
             - Default
-      summary: Get action instance details
+      summary: Get the details of an automation action run result by ID from action run history.
       tags:
         - Action History
   /api/automation/actions:
     get:
+      description: 'Get all automation actions. When using personal access tokens, the user must have at least `Viewer` access for Automation and the actions returned are also filtered based on the access set in `Limited access` permission settings.'
       operationId: getActions
       responses:
         '200':
@@ -3454,37 +3482,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Action'
-          description: OK
-      security:
-        - ApiKeyAuth:
-            - Default
-      summary: Get all automation actions
-      tags:
-        - Action Catalog
-  /api/automation/actions/tags:
-    get:
-      operationId: getActionsTags
-      responses:
-        '200':
-          content:
-            application/json:
-              example:
-                tags:
-                  - tag1
-                  - tag2
-              schema:
-                type: string
-          description: OK
+          description: Automation actions are returned.
+        '403':
+          description: Automation feature is not enabled or Insufficient permissions.
         '500':
-          description: Internal server error
+          description: Failed to retrieve the automation actions.
       security:
         - ApiKeyAuth:
             - Default
-      summary: Get all the tags from all the non-builtin automation actions
+      summary: Get all automation actions.
       tags:
         - Action Catalog
   '/api/automation/actions/{id}':
     get:
+      description: 'Get an automation action by ID specified in the request path. When using personal access tokens, the user must have at least `Viewer` access for Automation and the actions returned are also filtered based on the access set in `Limited access` permission settings.'
       operationId: getActionByID
       parameters:
         - description: Automation action ID
@@ -3526,17 +3537,20 @@ paths:
                 modifiedAt: 1703191040.321448
               schema:
                 $ref: '#/components/schemas/Action'
-          description: OK
+          description: Automation action is returned.
+        '403':
+          description: Automation feature is not enabled or Insufficient permissions.
         '404':
-          description: Automation action not found
+          description: 'Automation action not found. '
       security:
         - ApiKeyAuth:
             - Default
-      summary: Get an automation action by ID
+      summary: Get an automation action by ID.
       tags:
         - Action Catalog
   /api/automation/ai/action/match:
     post:
+      description: Get automation actions that match the incident or issue data in the request body. When using personal API tokens the the actions returned are also filtered based on the access set in `Limited access` permission settings and the user must have at least `Viewer` access for Automation.
       operationId: getActionMatches
       parameters:
         - in: query
@@ -3588,12 +3602,18 @@ paths:
                   confidence: low
                   aiEngine: NLP
               schema:
-                $ref: '#/components/schemas/ActionMatch'
-          description: OK
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActionMatch'
+          description: The automation actions that match the incident are returned.
+        '403':
+          description: Automation feature is not enabled or Insufficient permissions.
+        '500':
+          description: Failed to retrieve the matching automation actions.
       security:
         - ApiKeyAuth:
             - Default
-      summary: Get actions from event matching data
+      summary: Get automation actions that match the incidents or issues.
       tags:
         - Action Catalog
   /api/automation/parameters/dynamic:
@@ -3625,6 +3645,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetDynamicParameterValues'
           description: OK
+        '500':
+          description: Internal server error
       security:
         - ApiKeyAuth:
             - Default
@@ -3664,6 +3686,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/TagCatalog'
           description: OK
+        '500':
+          description: Internal server error
       security:
         - ApiKeyAuth:
             - Default
@@ -3672,17 +3696,21 @@ paths:
         - Action Catalog
   /api/automation/policies:
     get:
+      description: 'Returns all the automation policies filtered by the values in optional query parameters. When using personal access tokens, the user must have at least `Viewer` access for Automation and the automation policies returned are also filtered based on the access set in `Limited access` permission settings.'
       operationId: getPolicies
       parameters:
-        - in: query
+        - description: 'Filter policies by the event or alert type that can trigger a policy. This is an optional parameter. Valid values are customEvent, builtinEvent, applicationSmartAlert, globalApplicationSmartAlert, websiteSmartAlert, infraSmartAlert, mobileAppSmartAlert, syntheticsSmartAlert, logSmartAlert, sloSmartAlert'
+          in: query
           name: triggerType
           schema:
             type: string
-        - in: query
+        - description: Trigger identifier. This is an optional parameter.
+          in: query
           name: triggerId
           schema:
             type: string
-        - in: query
+        - description: Filter policies by policy execution type. This is an optional parameter.  Valid values are automatic or manual
+          in: query
           name: executionType
           schema:
             type: string
@@ -3736,14 +3764,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Policy'
-          description: OK
+          description: Automation policies list filtered by the values in query parameters.
+        '403':
+          description: Insufficient permissions.
+        '500':
+          description: Failed to retrieve the automation policies.
       security:
         - ApiKeyAuth:
             - Default
-      summary: Get all automation policies
+      summary: Get all automation policies.
       tags:
         - Policies
     post:
+      description: Creates a new automation policy. Policy creation requires `Configuration of automation policies` permission.
       operationId: addPolicy
       requestBody:
         content:
@@ -3813,19 +3846,22 @@ paths:
                               modifiedAt: 1703191040.321448
               schema:
                 $ref: '#/components/schemas/Policy'
-          description: OK
+          description: New policy created.
         '400':
           description: Invalid request body
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - Default
         - ApiKeyAuth:
             - canConfigureAutomationPolicies
-      summary: Create an automation policy
+      summary: Create an automation policy.
       tags:
         - Policies
   /api/automation/policies/bulk:
     post:
+      description: Creates a list of automation policies. Policy creation requires `Configuration of automation policies` permission.
       operationId: addPolicies
       requestBody:
         content:
@@ -3844,39 +3880,24 @@ paths:
                 items:
                   $ref: '#/components/schemas/Policy'
           description: OK
+        '400':
+          description: Invalid request body
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - Default
         - ApiKeyAuth:
             - canConfigureAutomationPolicies
-      summary: Create automation policies
-      tags:
-        - Policies
-  /api/automation/policies/tags:
-    get:
-      operationId: getPoliciesTags
-      responses:
-        '200':
-          content:
-            application/json:
-              example:
-                tags:
-                  - tag1
-                  - tag2
-              schema:
-                type: string
-          description: OK
-      security:
-        - ApiKeyAuth:
-            - Default
-      summary: Get all the tags from all the automation policies
+      summary: Create automation policies.
       tags:
         - Policies
   '/api/automation/policies/{id}':
     delete:
+      description: Deletes an automation policy by identifier. Policy deletion requires `Configuration of automation policies` permission. When using personal tokens the automation policies deleted are based on the access set in `Limited access` permission settings.
       operationId: deletePolicy
       parameters:
-        - description: Automation policy ID
+        - description: Automation policy ID to delete
           example: a14700b0-401b-47eb-a751-deda0035fde3
           in: path
           name: id
@@ -3888,15 +3909,18 @@ paths:
           description: Automation policy successfully deleted
         '400':
           description: Automation policy does not exist
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - Default
         - ApiKeyAuth:
             - canConfigureAutomationPolicies
-      summary: Deletes an automation policy
+      summary: Deletes an automation policy by identifier.
       tags:
         - Policies
     get:
+      description: 'Returns the automation policy filtered by the ID in request parameter. When using personal access tokens, the user must have at least `Viewer` access for Automation and the automation policies returned are also filtered based on the access set in `Limited access` permission settings.'
       operationId: getPolicyByID
       parameters:
         - description: Automation policy ID
@@ -3953,16 +3977,19 @@ paths:
                               modifiedAt: 1703191040.321448
               schema:
                 $ref: '#/components/schemas/Policy'
-          description: OK
+          description: Automation policy filtered by the ID in request parameter.
+        '403':
+          description: Insufficient permissions.
         '404':
-          description: Automation policy not found
+          description: Automation policy not found.
       security:
         - ApiKeyAuth:
             - Default
-      summary: Get an automation policy by ID
+      summary: Get an automation policy by ID.
       tags:
         - Policies
     put:
+      description: Updates an automation policy by identifier. Policy updates requires `Configuration of automation policies` permission. When using personal tokens the automation policies updated are based on the access set in `Limited access` permission settings.
       operationId: updatePolicy
       parameters:
         - in: path
@@ -4038,15 +4065,17 @@ paths:
                               modifiedAt: 1703191040.321448
               schema:
                 $ref: '#/components/schemas/Policy'
-          description: OK
+          description: Automation policy successfully updated.
         '400':
-          description: Invalid request body
+          description: Invalid request body.
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - Default
         - ApiKeyAuth:
             - canConfigureAutomationPolicies
-      summary: Updates an automation policy
+      summary: Updates an automation policy by identifier.
       tags:
         - Policies
   /api/business-monitoring/activities:
@@ -5418,6 +5447,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ValidatedAlertingConfiguration'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
         '403':
           description: Insufficient permissions.
       security:
@@ -5451,18 +5482,21 @@ paths:
         - Event Settings
   '/api/events/settings/alerts/{id}':
     delete:
+      description: Delete a specific Alert Configuration by ID
       operationId: deleteAlert
       parameters:
-        - in: path
+        - description: ID of a specific Alert Configuration to delete.
+          example: hu6ynJbwgB4X1rjkkw
+          in: path
           name: id
           required: true
           schema:
             type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        '204':
+          description: Successful - no content to return.
+        '401':
+          description: Unauthorized access - requires user authentication.
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -5504,10 +5538,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/AlertingConfigurationWithLastUpdated'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
         '403':
           description: Insufficient permissions.
         '404':
-          description: The requested configuration does not exist.
+          description: Resource not found.
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
@@ -5515,9 +5551,12 @@ paths:
       tags:
         - Event Settings
     put:
+      description: Create or update a specific Alert configuration by ID
       operationId: putAlert
       parameters:
-        - in: path
+        - description: ID of a specific Alert Configuration to create or update.
+          example: hu6ynJbwgB4X1rjk
+          in: path
           name: id
           required: true
           schema:
@@ -5525,6 +5564,40 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              id: hu6ynJbwgB4X1rjk
+              alertName: Alerts Test
+              muteUntil: 9007199254740991
+              integrationIds:
+                - ctCR9Q373YAY27H_
+                - wyAPFbP_xZCeEUn6
+                - M01h5MDfb7YVQPAz
+                - BH4nVcoPdSpJH_4U
+                - ldF14o6dCKmQFJxP
+                - IbQkmZ46_oUGV-L7
+                - wpWi9SYL7cJOu_UZ
+                - ds1Lpvix2WVoWTKg
+              eventFilteringConfiguration:
+                query: null
+                ruleIds: []
+                eventTypes:
+                  - incident
+                  - critical
+                applicationAlertConfigIds: []
+                validVersion: 1
+              customPayloadFields:
+                - type: staticString
+                  key: assignment_group
+                  value: ITSM App-Dev
+                - type: staticString
+                  key: category
+                  value: Software
+                - type: staticString
+                  key: change_test
+                  value: test kevin
+                - type: staticString
+                  key: assigned_to
+                  value: Antony Alldis
             schema:
               $ref: '#/components/schemas/AlertingConfiguration'
         required: true
@@ -5532,13 +5605,53 @@ paths:
         '200':
           content:
             application/json:
+              example:
+                id: hu6ynJbwgB4X1rjk
+                alertName: Alerts Test
+                muteUntil: 0
+                integrationIds:
+                  - ctCR9Q373YAY27H_
+                  - wyAPFbP_xZCeEUn6
+                  - M01h5MDfb7YVQPAz
+                  - BH4nVcoPdSpJH_4U
+                  - ldF14o6dCKmQFJxP
+                  - IbQkmZ46_oUGV-L7
+                  - wpWi9SYL7cJOu_UZ
+                  - ds1Lpvix2WVoWTKg
+                eventFilteringConfiguration:
+                  query: null
+                  ruleIds: []
+                  eventTypes:
+                    - incident
+                    - critical
+                  applicationAlertConfigIds: []
+                  validVersion: 1
+                customPayloadFields:
+                  - type: staticString
+                    key: assignment_group
+                    value: ITSM App-Dev
+                  - type: staticString
+                    key: category
+                    value: Software
+                  - type: staticString
+                    key: change_test
+                    value: test kevin
+                  - type: staticString
+                    key: assigned_to
+                    value: Antony Alldis
               schema:
                 $ref: '#/components/schemas/AlertingConfigurationWithLastUpdated'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
+        '422':
+          description: Unprocessable request - missing/invalid data.
       security:
         - ApiKeyAuth:
             - CanConfigureCustomAlerts
-      summary: Update Alert Configuration
+      summary: Create or update Alert Configuration
       tags:
         - Event Settings
   /api/events/settings/application-alert-configs:
@@ -6176,13 +6289,15 @@ paths:
         - Application Alert Configuration
   /api/events/settings/custom-payload-configurations:
     delete:
-      description: Deletes a Global Custom Payload Configuration
+      description: Deletes a Global Custom Payload Configuration.
       operationId: deleteCustomPayloadConfiguration
       responses:
         '200':
           description: OK
         '401':
-          description: Unauthorized request
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - CanConfigureGlobalAlertPayload
@@ -6190,7 +6305,7 @@ paths:
       tags:
         - Event Settings
     get:
-      description: Returns All Global Custom Payload Configurations
+      description: Gets All Global Custom Payload Configurations.
       operationId: getCustomPayloadConfigurations
       parameters:
         - in: query
@@ -6217,68 +6332,26 @@ paths:
                       key: zone
                       value:
                         tagName: agent.zone
-                        key: null
-                    - type: dynamic
-                      key: podName
-                      value:
-                        tagName: kubernetes.pod.name
-                        key: null
-                    - type: dynamic
-                      key: HostName
-                      value:
-                        tagName: host.name
-                        key: null
-                    - type: dynamic
-                      key: FQDN
-                      value:
-                        tagName: host.fqdn
-                        key: null
-                    - type: dynamic
-                      key: deploymentName
-                      value:
-                        tagName: kubernetes.deployment.name
-                        key: null
-                    - type: dynamic
-                      key: deploymentNamespace
-                      value:
-                        tagName: kubernetes.deployment.namespace
-                        key: null
-                    - type: dynamic
-                      key: KafkaClusterName
-                      value:
-                        tagName: kafka.cluster.name
-                        key: null
+                        key: app
                     - type: staticString
                       key: global_custom_payload
                       value: 42+1
-                    - type: staticString
-                      key: string
-                      value: customValue
-                    - type: staticString
-                      key: string
-                      value: globalCustomValue-1
-                    - type: staticString
-                      key: string
-                      value: globalCustomValue-2
-                    - type: staticString
-                      key: string
-                      value: customValue
                   lastUpdated: 1723212859513
               schema:
                 $ref: '#/components/schemas/CustomPayloadWithLastUpdated'
           description: OK
         '401':
-          description: 'Unauthorized Request: API Token is invalid.'
+          description: Unauthorized access - requires user authentication.
         '403':
-          description: Forbidden Request
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - CanConfigureGlobalAlertPayload
-      summary: Retrieve Global Custom Payload Configurations
+      summary: Get All Global Custom Payload Configurations
       tags:
         - Event Settings
     put:
-      description: Create or Update Global Custom Payload Configuration
+      description: Creates or Updates Global Custom Payload Configuration.
       operationId: upsertCustomPayloadConfiguration
       requestBody:
         content:
@@ -6317,31 +6390,58 @@ paths:
                   $ref: '#/components/schemas/CustomPayloadWithLastUpdated'
           description: OK
         '401':
-          description: 'Unauthorized Request: API Token is invalid.'
+          description: Unauthorized access - requires user authentication.
         '403':
-          description: Forbidden Request
+          description: Insufficient permissions.
         '422':
           description: 'Unable to process request, request data is invalid.'
       security:
         - ApiKeyAuth:
             - CanConfigureGlobalAlertPayload
-      summary: Manage Global Custom Payload Configuration
+      summary: Create/Update Global Custom Payload Configuration
       tags:
         - Event Settings
   /api/events/settings/custom-payload-configurations/catalog:
     get:
+      description: 'Custom payload tags used to filter, extract and aggregate specific data like AP calls for alert notifications. The catalog defines available tags like application.name and their types, and other attributes.'
       operationId: getCustomPayloadTagCatalog
       responses:
         '200':
           content:
             application/json:
+              example:
+                - tagTree:
+                    - label: Agent
+                      description: null
+                      icon: null
+                      children:
+                        - label: Tag
+                          icon: lib_views_tag
+                          tagName: agent.tag
+                          queryable: true
+                          type: TAG
+                      scoreBoost: null
+                      type: LEVEL
+                      queryable: false
+                  tags:
+                    - name: azure.appservice.name
+                      label: App Service Name
+                      type: STRING
+                      description: null
+                      canApplyToSource: true
+                      canApplyToDestination: true
+                      idTag: false
               schema:
                 $ref: '#/components/schemas/TagCatalog'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - CanConfigureGlobalAlertPayload
-      summary: Get tag catalog for custom payload in alerting
+      summary: Get Tag Catalog for Custom Payload
       tags:
         - Event Settings
   /api/events/settings/event-specifications/built-in:
@@ -17928,7 +18028,7 @@ paths:
         - ApiKeyAuth:
             - canUseSyntheticCredentials
             - canConfigureSyntheticTests
-      summary: (Private Preview) All Synthetic Credential Names and Associations
+      summary: All Synthetic Credential Names and Associations
       tags:
         - Synthetic Settings
   '/api/synthetics/settings/credentials/associations/{name}':
@@ -17959,10 +18059,11 @@ paths:
         - ApiKeyAuth:
             - canUseSyntheticCredentials
             - canConfigureSyntheticTests
-      summary: (Private Preview) A Synthetic Credential with Name and Associations
+      summary: A Synthetic Credential with Name and Associations
       tags:
         - Synthetic Settings
     patch:
+      deprecated: true
       operationId: patchSyntheticCredentialAssociations
       parameters:
         - in: path
@@ -17991,7 +18092,7 @@ paths:
         - ApiKeyAuth:
             - canUseSyntheticCredentials
             - canConfigureSyntheticTests
-      summary: (Private Preview) Patch the associations of a Synthetic Credential
+      summary: Patch the associations of a Synthetic Credential (This API will be replaced by a new API in R285)
       tags:
         - Synthetic Settings
       description: |-
@@ -18031,6 +18132,46 @@ paths:
         - ApiKeyAuth:
             - canConfigureSyntheticCredentials
       summary: Delete Synthetic credential
+      tags:
+        - Synthetic Settings
+  /api/synthetics/settings/datacenters:
+    get:
+      operationId: getSyntheticDatacenters
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SyntheticDatacenter'
+          description: OK
+      security:
+        - ApiKeyAuth:
+            - canConfigureSyntheticLocations
+      summary: All Synthetic datacenters
+      tags:
+        - Synthetic Settings
+  '/api/synthetics/settings/datacenters/{datacenterId}':
+    get:
+      operationId: getSyntheticDatacenter
+      parameters:
+        - in: path
+          name: datacenterId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyntheticDatacenter'
+          description: OK
+      security:
+        - ApiKeyAuth:
+            - canConfigureSyntheticLocations
+      summary: Synthetic datacenter
       tags:
         - Synthetic Settings
   /api/synthetics/settings/locations:
@@ -19705,24 +19846,30 @@ components:
         - relationType
     Action:
       type: object
+      description: 'Automation action definition. When this is used in policy creation request, only `id` should be specified.'
       properties:
         createdAt:
           type: string
           format: date-time
+          description: Action created time.
         description:
           type: string
+          description: Action description.
           maxLength: 512
           minLength: 0
         fields:
           type: array
+          description: List of fields that describe an action.
           items:
             $ref: '#/components/schemas/Field'
         id:
           type: string
+          description: Action identifier.
           maxLength: 128
           minLength: 1
         inputParameters:
           type: array
+          description: List of inputs to the action.
           items:
             $ref: '#/components/schemas/Parameter'
         metadata:
@@ -19730,20 +19877,21 @@ components:
         modifiedAt:
           type: string
           format: date-time
+          description: Action modified time.
         name:
           type: string
+          description: Action name.
           maxLength: 128
           minLength: 1
-        outputParameters:
-          type: array
-          items:
-            $ref: '#/components/schemas/Parameter'
         tags:
           type: array
+          description: List of tags added to the action.
           items:
             type: string
+            description: List of tags added to the action.
         type:
           type: string
+          description: 'Action type can be one of the following values:  SCRIPT, HTTP, ANSIBLE, EXTERNAL, GITHUB, GITLAB, JIRA, MANUAL, DOC_LINK'
           enum:
             - SCRIPT
             - HTTP
@@ -19764,13 +19912,16 @@ components:
         - type
     ActionConfiguration:
       type: object
+      description: List of action configurations.
       properties:
         action:
           $ref: '#/components/schemas/Action'
         agentId:
           type: string
+          description: Identifier of the agent host on which to run the action.
         inputParameterValues:
           type: array
+          description: List of action input parameters.
           items:
             $ref: '#/components/schemas/ParameterValue'
       required:
@@ -19780,18 +19931,26 @@ components:
       properties:
         actionDescription:
           type: string
+          description: Action description of the action to run.
         actionId:
           type: string
+          description: Action identifier of the action to run.
         actionInstanceId:
           type: string
+          description: Action run identifier.
+          readOnly: true
         actionName:
           type: string
+          description: Action name of the action to run.
         actorId:
           type: string
+          description: 'User identifier, API token or the policy identifier that started the action run.'
         actorName:
           type: string
+          description: 'Name of the user, API token or the policy that started the action run.'
         actorType:
           type: string
+          description: Type of Actor. Valid values are listed in the enum definition.
           enum:
             - ACTOR_UNKNOWN
             - USER
@@ -19800,47 +19959,59 @@ components:
         createdDate:
           type: integer
           format: int64
+          description: Action run created timestamp. The timestamp at which the action run got submitted.
         endDate:
           type: integer
           format: int64
+          description: Action run end timestamp. The timestamp at which the action run ended on the agent host.
         errorMessage:
           type: string
+          description: 'Error message, if any, of action run on the agent host.'
         eventEntityType:
           type: string
+          description: Event entity type set in the event that triggered this action run.
         eventId:
           type: string
+          description: Event identifier of the event that triggered this action run.
         eventSpecificationId:
           type: string
+          description: Event specification identifier of the event that triggered this action run.
         externalSourceType:
           type: string
+          description: If the action type is external this field contains the name of the external source.
         hostSnapshotId:
           type: string
+          description: Host snapshot identifier of the agent on which the action ran.
         inputParameters:
           type: array
+          description: List of input parameters to this action run.
           items:
             $ref: '#/components/schemas/ActionInstanceParameter'
         metadata:
           type: array
+          description: List of metadata parameters set to this action run by sensors.
           items:
             $ref: '#/components/schemas/ActionInstanceMetadataEntry'
         output:
           type: string
-        outputParameters:
-          type: array
-          items:
-            $ref: '#/components/schemas/ActionInstanceParameter'
+          description: Action run output.
         policyId:
           type: string
+          description: Identifier of the policy that triggered this action run.
         problemText:
           type: string
+          description: Event problem text of the event that triggered this action run.
         returnCode:
           type: integer
           format: int32
+          description: Return code of action run on the agent host.
         startDate:
           type: integer
           format: int64
+          description: Action run start timestamp. The timestamp at which the action run started on the agent host.
         status:
           type: string
+          description: Action run status. Valid values are listed in the enum definition.
           enum:
             - STATUS_UNKNOWN
             - SUBMITTED
@@ -19851,8 +20022,10 @@ components:
             - TIMEOUT
         targetSnapshotId:
           type: string
+          description: Action target entity identifier set in the event that triggered this action run. This is the identifier of the entity on which an incident or issue was raised.
         type:
           type: string
+          description: Action type. Valid values are listed in the enum definition.
           enum:
             - SCRIPT
             - HTTP
@@ -19869,27 +20042,80 @@ components:
         - type
     ActionInstanceMetadataEntry:
       type: object
+      description: List of metadata parameters set to this action run by sensors.
       properties:
         name:
           type: string
+          description: Metadata name.
         value:
           type: string
+          description: Metadata value.
       required:
         - name
     ActionInstanceParameter:
       type: object
+      description: List of input parameters to this action run.
       properties:
         displayName:
           type: string
+          description: Parameter display name.
         name:
           type: string
+          description: Parameter name.
         type:
           type: string
+          description: 'Parameter type. Valid values are `static`, `dynamic` or `vault`'
         value:
           type: string
+          description: Parameter value.
       required:
         - displayName
         - name
+    ActionInstanceRequest:
+      type: object
+      properties:
+        actionId:
+          type: string
+          description: Action identifier of the action to run.
+        async:
+          type: string
+          description: '`"true"` if the action should be run in asynchronous mode `"false"` otherwise. Default is `"true"`.'
+        eventId:
+          type: string
+          description: Event identifier (incident or issue) associated with the policy.
+        hostId:
+          type: string
+          description: Agent host identifier on which to run the action.
+        inputParameters:
+          type: array
+          description: Action run input parameters.
+          items:
+            $ref: '#/components/schemas/ActionInstanceRequestParameters'
+        policyId:
+          type: string
+          description: Policy identifier that associates the action trigger (incident or issue) to the action to run.
+        timeout:
+          type: string
+          description: Action run time out. Default is `30 seconds`.
+      required:
+        - actionId
+        - hostId
+    ActionInstanceRequestParameters:
+      type: object
+      description: Action run input parameters.
+      properties:
+        name:
+          type: string
+          description: Name of the input parameter.
+        type:
+          type: string
+          description: 'Type of the input parameter. Valid values are `static`, `dynamic` or `vault`. Default is `static`.'
+        value:
+          type: string
+          description: Value of the input parameter
+      required:
+        - name
+        - value
     ActionMatch:
       type: object
       properties:
@@ -19910,26 +20136,18 @@ components:
     ActionSearchSpace:
       type: object
       properties:
-        action:
-          $ref: '#/components/schemas/Action'
         description:
           type: string
+          description: The description of an incident or issue.
         entityType:
           type: string
+          description: The entity type associated with the incident or issue.
         eventId:
           type: string
+          description: The event identifier associated with the incident or issue.
         name:
           type: string
-        searchOrder:
-          type: string
-        searchTarget:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        type:
-          type: string
+          description: The name of an incident or issue.
       required:
         - name
     AdaptiveBaseline:
@@ -20620,8 +20838,6 @@ components:
         includeSynthetic:
           type: boolean
           description: 'Flag to include Synthetic Calls. These calls have a synthetic endpoint as their destination, such as calls to health-check endpoints. '
-        lowSeverityThreshold:
-          $ref: '#/components/schemas/TupleSeverityThreshold'
         name:
           type: string
           description: Name of the application alert configuration. Used as a template for the title of alert/event notifications triggered by this Smart Alert configuration.
@@ -20753,8 +20969,6 @@ components:
           format: int64
           description: Unix timestamp representing the time of the initial revision.
           minimum: 1
-        lowSeverityThreshold:
-          $ref: '#/components/schemas/TupleSeverityThreshold'
         name:
           type: string
           description: Name of the application alert configuration. Used as a template for the title of alert/event notifications triggered by this Smart Alert configuration.
@@ -21523,9 +21737,11 @@ components:
         - $ref: '#/components/schemas/Event'
     Condition:
       type: object
+      description: This applies to only `automatic` policy type. A Dynamic Focus Query that selects a list of entities on which the policy is run.
       properties:
         query:
           type: string
+          description: Dynamic Focus Query string that selects a list of entities on which the policy is run.
     ConfigVersion:
       type: object
       properties:
@@ -22041,15 +22257,20 @@ components:
         - tagName
     DynamicParameter:
       type: object
+      description: List of dynamic parameters
       properties:
         key:
           type: string
+          description: Parameter key
         name:
           type: string
+          description: Parameter name
         resolvedValue:
           type: string
+          description: Parameter value after resolution
         tagName:
           type: string
+          description: 'The name of the tag. Eg: `call.name`'
     EditUser:
       type: object
       properties:
@@ -22436,6 +22657,7 @@ components:
             - Website
             - Synthetic
             - MobileApp
+            - Log
         id:
           type: string
           maxLength: 64
@@ -22522,6 +22744,7 @@ components:
           APPLICATION: '#/components/schemas/ApplicationEventResult'
           ENDPOINT: '#/components/schemas/EndpointEventResult'
           INFRASTRUCTURE: '#/components/schemas/InfraEventResult'
+          LOG: '#/components/schemas/LogEventResult'
           MOBILE_APP: '#/components/schemas/MobileAppEventResult'
           SERVICE: '#/components/schemas/ServiceEventResult'
           SYNTHETICS: '#/components/schemas/SyntheticsEventResult'
@@ -22713,6 +22936,7 @@ components:
         - metricName
     Field:
       type: object
+      description: List of fields that describe an action.
       properties:
         description:
           type: string
@@ -23061,13 +23285,16 @@ components:
       properties:
         eventId:
           type: string
+          description: Event identifier
         parameters:
           type: array
+          description: List of dynamic parameters
           items:
             $ref: '#/components/schemas/DynamicParameter'
         timestamp:
           type: integer
           format: int64
+          description: The start of the timestamp expressed in Unix epoch time in milliseconds.
       required:
         - eventId
         - parameters
@@ -23846,8 +24073,6 @@ components:
           format: int64
           description: Unix timestamp representing the time of the initial revision.
           minimum: 1
-        lowSeverityThreshold:
-          $ref: '#/components/schemas/TupleSeverityThreshold'
         name:
           type: string
           description: Name of the application alert configuration. Used as a template for the title of alert/event notifications triggered by this Smart Alert configuration.
@@ -23953,8 +24178,6 @@ components:
         includeSynthetic:
           type: boolean
           description: 'Flag to include Synthetic Calls. These calls have a synthetic endpoint as their destination, such as calls to health-check endpoints. '
-        lowSeverityThreshold:
-          $ref: '#/components/schemas/TupleSeverityThreshold'
         name:
           type: string
           description: Name of the application alert configuration. Used as a template for the title of alert/event notifications triggered by this Smart Alert configuration.
@@ -24894,6 +25117,7 @@ components:
                 - website
                 - synthetic
                 - mobile_app
+                - log
               writeOnly: true
             incidents:
               type: array
@@ -25137,6 +25361,19 @@ components:
         - id
         - name
         - type
+    LogEventResult:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/EventResult'
+        - type: object
+          properties:
+            probableRootCause:
+              type: object
+              additionalProperties:
+                type: object
+              writeOnly: true
+            snapshotId:
+              type: string
     LogTimeThreshold:
       type: object
       discriminator:
@@ -25441,21 +25678,29 @@ components:
         - type
     MetaData:
       type: object
+      description: Action metadata.
       properties:
         ai:
           type: array
+          description: List of metadata for AI originated actions.
           items:
             type: object
             additionalProperties:
               type: object
+              description: List of metadata for AI originated actions.
+            description: List of metadata for AI originated actions.
         aiOriginated:
           type: boolean
+          description: AI originated action flag. Value is `true` if action is AI generated `false` otherwise.
         builtIn:
           type: boolean
+          description: Built-in out of the box action flag. Value is `true` if built-in action `false` otherwise.
         readOnly:
           type: boolean
+          description: Read only action flag. Value is `true` if read only `false` otherwise.
         sensorImported:
           type: boolean
+          description: Sensor imported action flag. Value is `true` if action is imported from sensor `false` otherwise.
     MetricAPIResult:
       type: object
       properties:
@@ -26848,37 +27093,46 @@ components:
           minimum: 1
     Parameter:
       type: object
+      description: List of inputs to the action.
       properties:
         description:
           type: string
+          description: Parameter description.
         hidden:
           type: boolean
+          description: Is parameter hidden or not.
         label:
           type: string
+          description: Parameter label.
         name:
           type: string
+          description: Parameter name.
         required:
           type: boolean
+          description: Is parameter required or not.
         secured:
           type: boolean
+          description: Is parameter secured or not.
         type:
           type: string
+          description: 'Parameter type. Valid values are `static`, `dynamic`, or `vault`. Default value is `static`'
         value:
           type: string
-        valueType:
-          type: string
+          description: Parameter value.
       required:
         - label
         - name
         - type
-        - valueType
     ParameterValue:
       type: object
+      description: List of action input parameters.
       properties:
         name:
           type: string
+          description: Parameter name.
         value:
           type: string
+          description: Parameter value.
       required:
         - name
         - value
@@ -26920,24 +27174,31 @@ components:
       properties:
         description:
           type: string
+          description: Policy description.
           maxLength: 512
           minLength: 0
         id:
           type: string
+          description: Policy identifier.
           maxLength: 128
           minLength: 1
+          readOnly: true
         name:
           type: string
+          description: Policy name.
           maxLength: 128
           minLength: 1
         tags:
           type: array
+          description: A list of policy tags.
           items:
             type: string
+            description: A list of policy tags.
         trigger:
           $ref: '#/components/schemas/Trigger'
         typeConfigurations:
           type: array
+          description: List of configurations that contains the list of actions to run and the mode (automatic or manual) in which the policy is run.
           items:
             $ref: '#/components/schemas/TypeConfiguration'
       required:
@@ -26947,13 +27208,16 @@ components:
         - typeConfigurations
     PolicyRunnable:
       type: object
+      description: Runnable associated with the policy. It can be a `workflow` or `action`. Currently only supports `action`.
       properties:
         id:
           type: string
+          description: Action identifier.
         runConfiguration:
           $ref: '#/components/schemas/RunConfiguration'
         type:
           type: string
+          description: Type of runnable. Supported value is `action`.
           enum:
             - action
             - workflow
@@ -27170,9 +27434,11 @@ components:
         - thresholds
     RunConfiguration:
       type: object
+      description: Action run configuration.
       properties:
         actions:
           type: array
+          description: List of action configurations.
           items:
             $ref: '#/components/schemas/ActionConfiguration'
       required:
@@ -28798,16 +29064,12 @@ components:
       properties:
         applicationLabels:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         applications:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         createdAt:
           type: integer
           format: int64
@@ -28823,16 +29085,12 @@ components:
           type: string
         mobileAppLabels:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         mobileApps:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         modifiedAt:
           type: integer
           format: int64
@@ -28842,19 +29100,67 @@ components:
           minLength: 0
         websiteLabels:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         websites:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
       required:
         - credentialName
         - credentialValue
+    SyntheticDatacenter:
+      type: object
+      properties:
+        cityName:
+          type: string
+        code:
+          type: string
+          maxLength: 128
+          minLength: 1
+        configuration:
+          $ref: '#/components/schemas/SyntheticDatacenterConfiguration'
+        countryName:
+          type: string
+        datacenterId:
+          type: string
+        expectedActiveAt:
+          type: integer
+          format: int64
+        label:
+          type: string
+          maxLength: 128
+          minLength: 1
+        latitude:
+          type: number
+          format: double
+        locationLabel:
+          type: string
+        longitude:
+          type: number
+          format: double
+        modifiedAt:
+          type: integer
+          format: int64
+        provider:
+          type: string
+          maxLength: 128
+          minLength: 1
+        status:
+          type: string
+      required:
+        - cityName
+        - code
+        - countryName
+        - label
+        - provider
+    SyntheticDatacenterConfiguration:
+      type: object
+      properties:
+        ipAddress:
+          type: array
+          items:
+            type: string
     SyntheticGeoPoint:
       type: object
       properties:
@@ -29033,16 +29339,12 @@ components:
           minLength: 0
         applicationLabels:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         applications:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         configuration:
           $ref: '#/components/schemas/SyntheticTypeConfiguration'
         createdAt:
@@ -29082,16 +29384,12 @@ components:
             type: string
         mobileAppLabels:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         mobileApps:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         modifiedAt:
           type: integer
           format: int64
@@ -29113,16 +29411,12 @@ components:
           minimum: 1
         websiteLabels:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
         websites:
           type: array
-          description: (Private Preview)
           items:
             type: string
-            description: (Private Preview)
       required:
         - active
         - configuration
@@ -29243,10 +29537,36 @@ components:
             description: |
               List of other names that can refer to this tag
           uniqueItems: true
+        availability:
+          type: array
+          description: |
+            List of product areas this tag is available in
+          items:
+            type: string
+            description: |
+              List of product areas this tag is available in
+            enum:
+              - INFRASTRUCTURE_METRICS
+              - APPLICATION
+              - WEBSITE
+              - MOBILE_APP
+              - EUM
+              - EVENT
+              - SLI
+              - SLO
+              - SLO_PREVIEW
+              - USAGE
+              - LOG
+              - SYNTHETICS
+              - SYNTHETICS_DETAIL
+              - APDEX
+              - BIZOPS
+              - UNKNOWN
+          uniqueItems: true
         canApplyToDestination:
           type: boolean
           description: |
-            Whether the tag is available for destination nor not.
+            Whether the tag is available for destination or not.
             If source and destination is false, it means the tag is independent of source and destination. Eg: of such tag is `call.http.path`.
         canApplyToSource:
           type: boolean
@@ -30169,13 +30489,17 @@ components:
                 - all
     Trigger:
       type: object
+      description: The trigger is the Instana event or Smart Alert that defines the initial conditions that must be met for the policy to apply on the actions in `typeConfiguration`.
       properties:
         id:
           type: string
+          description: Trigger (Instana event or Smart Alert) identifier.
         name:
           type: string
+          description: A name of the trigger (name of Instana event or Smart Alert).
         type:
           type: string
+          description: Instana event or Smart Alert type. The type must be one of the enum values.
           enum:
             - customEvent
             - builtinEvent
@@ -30190,23 +30514,15 @@ components:
       required:
         - id
         - type
-    TupleSeverityThreshold:
-      type: object
-      properties:
-        t1:
-          type: string
-          enum:
-            - WARNING
-            - CRITICAL
-        t2:
-          $ref: '#/components/schemas/Threshold'
     TypeConfiguration:
       type: object
+      description: List of configurations that contains the list of actions to run and the mode (automatic or manual) in which the policy is run.
       properties:
         condition:
           $ref: '#/components/schemas/Condition'
         name:
           type: string
+          description: The policy type determines how a policy is run. Value must be one of the enum values. Value `manual` means the policy is run manually when an event is raised. Value `automatic` means policy is run automatically when an event is raised.
           enum:
             - automatic
             - manual
