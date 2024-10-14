@@ -22,19 +22,18 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Navigate to the correct directory and install Node.js using NVM
                     sh '''
-                    echo "Navigating to the project directory"
-                    cd /jenkins/workspace/openapi-deploy-pipeline/
-
-                    echo "Sourcing NVM"
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" > /dev/null 2>&1
-
-                    echo "Installing Node.js using NVM"
-                    nvm install > /dev/null 2>&1
-                    echo "Now using node version: $(node -v)"
-                    echo "Now using npm version: $(npm -v)"
+                    # Check if NVM is already installed
+                    if [ ! -d "$HOME/.nvm" ]; then
+                        echo "Installing NVM"
+                        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+                        export NVM_DIR="$HOME/.nvm"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                        echo "Now using node version: $(node -v)"
+                        echo "Now using npm version: $(npm -v)"
+                    else
+                        echo "NVM version $(node -v) is already installed"
+                    fi
                     '''
                 }
             }
