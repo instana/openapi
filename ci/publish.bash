@@ -37,7 +37,7 @@ nvm use
 npm install
 
 if [ -z "$(which yarn)" ]; then
-  npm install -g yarn@1.9.4
+  npm install -g yarn@1.22.22
 fi
 
 echo "Generating spec descriptions..."
