@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Instana REST API documentation
-  version: 1.284.871
+  version: 1.285.1341
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -664,6 +664,11 @@ paths:
       summary: Get grouped trace metrics
       tags:
         - Application Analyze
+      description: |
+        The API endpoint retrieves metrics for traces that are grouped in the endpoint or service name.
+
+        The supported `groupbyTag` are `trace.endpoint.name` and `trace.service.name`. 
+        {: note}
   /api/application-monitoring/analyze/traces:
     post:
       operationId: getTraces
@@ -1143,6 +1148,7 @@ paths:
             enum:
               - GROUPING
               - FILTERING
+              - SERVICE_MAPPING
               - SMART_ALERTS
               - SMART_ALERTS_LOGS
               - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -1243,6 +1249,7 @@ paths:
             enum:
               - GROUPING
               - FILTERING
+              - SERVICE_MAPPING
               - SMART_ALERTS
               - SMART_ALERTS_LOGS
               - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -2796,6 +2803,26 @@ paths:
       summary: Update service configuration
       tags:
         - Application Settings
+  '/api/application-monitoring/settings/subtrace/{id}':
+    delete:
+      operationId: deleteSubtraceConfig
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - ConfigureServiceMapping
+      summary: Delete subtrace configuration
+      tags:
+        - Application Settings
   /api/application-monitoring/topology/services:
     get:
       operationId: getServicesMap
@@ -3141,8 +3168,6 @@ paths:
           description: The request do not contain a valid user or API Token.
       security:
         - ApiKeyAuth:
-            - Default
-        - ApiKeyAuth:
             - canDeleteAutomationActionHistory
       summary: Delete automation action run results.
       tags:
@@ -3320,8 +3345,6 @@ paths:
           description: Automation feature is not enabled or Insufficient permissions.
       security:
         - ApiKeyAuth:
-            - Default
-        - ApiKeyAuth:
             - canRunAutomationActions
       summary: Run an automation action.
       tags:
@@ -3368,8 +3391,6 @@ paths:
         '500':
           description: The request do not contain a valid user or API Token.
       security:
-        - ApiKeyAuth:
-            - Default
         - ApiKeyAuth:
             - canDeleteAutomationActionHistory
       summary: Deletes an automation action run result from the action run history by ID.
@@ -3649,8 +3670,6 @@ paths:
           description: Internal server error
       security:
         - ApiKeyAuth:
-            - Default
-        - ApiKeyAuth:
             - canRunAutomationActions
       summary: Resolve dynamic parameter values
       tags:
@@ -3853,8 +3872,6 @@ paths:
           description: Insufficient permissions.
       security:
         - ApiKeyAuth:
-            - Default
-        - ApiKeyAuth:
             - canConfigureAutomationPolicies
       summary: Create an automation policy.
       tags:
@@ -3886,8 +3903,6 @@ paths:
           description: Insufficient permissions.
       security:
         - ApiKeyAuth:
-            - Default
-        - ApiKeyAuth:
             - canConfigureAutomationPolicies
       summary: Create automation policies.
       tags:
@@ -3912,8 +3927,6 @@ paths:
         '403':
           description: Insufficient permissions.
       security:
-        - ApiKeyAuth:
-            - Default
         - ApiKeyAuth:
             - canConfigureAutomationPolicies
       summary: Deletes an automation policy by identifier.
@@ -4071,8 +4084,6 @@ paths:
         '403':
           description: Insufficient permissions.
       security:
-        - ApiKeyAuth:
-            - Default
         - ApiKeyAuth:
             - canConfigureAutomationPolicies
       summary: Updates an automation policy by identifier.
@@ -4436,6 +4447,7 @@ paths:
             enum:
               - GROUPING
               - FILTERING
+              - SERVICE_MAPPING
               - SMART_ALERTS
               - SMART_ALERTS_LOGS
               - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -9398,7 +9410,7 @@ paths:
           description: The event id refers to an event that is not open.
       security:
         - ApiKeyAuth:
-            - CanConfigureCustomAlerts
+            - CanManuallyCloseIssue
       summary: Manually close an event.
       tags:
         - Event Settings
@@ -12176,6 +12188,7 @@ paths:
             enum:
               - GROUPING
               - FILTERING
+              - SERVICE_MAPPING
               - SMART_ALERTS
               - SMART_ALERTS_LOGS
               - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -17158,6 +17171,7 @@ paths:
             enum:
               - GROUPING
               - FILTERING
+              - SERVICE_MAPPING
               - SMART_ALERTS
               - SMART_ALERTS_LOGS
               - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -17991,10 +18005,10 @@ paths:
               $ref: '#/components/schemas/SyntheticCredential'
         required: true
       responses:
-        default:
+        '200':
           content:
             application/json: {}
-          description: default response
+          description: OK
       security:
         - ApiKeyAuth:
             - canConfigureSyntheticCredentials
@@ -18062,58 +18076,6 @@ paths:
       summary: A Synthetic Credential with Name and Associations
       tags:
         - Synthetic Settings
-    patch:
-      deprecated: true
-      operationId: patchSyntheticCredentialAssociations
-      parameters:
-        - in: path
-          name: name
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            example: |2
-                  {
-                      "applications": [
-                         "f4KX5zd8RW2pERKKFUCZgQ"
-                      ],
-                  }
-            schema:
-              $ref: '#/components/schemas/SyntheticCredential'
-        required: true
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-        - ApiKeyAuth:
-            - canUseSyntheticCredentials
-            - canConfigureSyntheticTests
-      summary: Patch the associations of a Synthetic Credential (This API will be replaced by a new API in R285)
-      tags:
-        - Synthetic Settings
-      description: |-
-        This API updates the endpoint associations of a Synthetic Credential.
-
-        - Credential values cannot be patched.
-        - Credentials can be associated to multiple application ids.
-        - Patching a credential association will replace the entire array with the full set of values provided.
-
-        ## Sample script and payload: 
-        - A sample script to patch a DB2 Admin password and associate it to application ids 'Ss2FBjSTQVef5LsqhPiYkg' and 'KJ8MdZVqK4odMUoBaClH'.
-
-        ```
-        curl -k -v -X PATCH \
-        https://<Host>/api/synthetics/settings/credentials/associations/db2AdminPwd \
-        -H 'authorization: apiToken <Token>' \
-        -H 'content-type: application/json' \
-        -d '{
-            "applications" : [ "Ss2FBjSTQVef5LsqhPiYkg", "KJ8MdZVqK4odMUoBaClH" ]
-          }'
-        ```
   '/api/synthetics/settings/credentials/{name}':
     delete:
       operationId: deleteSyntheticCredential
@@ -18132,6 +18094,66 @@ paths:
         - ApiKeyAuth:
             - canConfigureSyntheticCredentials
       summary: Delete Synthetic credential
+      tags:
+        - Synthetic Settings
+    patch:
+      operationId: patchSyntheticCredential
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              credentialValue: newPassword
+              applications:
+                - f4KX5zd8RW2pERKKFUCZgQ
+            schema:
+              $ref: '#/components/schemas/SyntheticCredential'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: OK
+      security:
+        - ApiKeyAuth:
+            - canUseSyntheticCredentials
+            - canConfigureSyntheticTests
+      summary: Patch a Synthetic Credential
+      tags:
+        - Synthetic Settings
+    put:
+      operationId: updateSyntheticCredential
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              credentialName: userPassword
+              credentialValue: '123456'
+              applications:
+                - f4KX5zd8RW2pERKKFUCZgQ
+            schema:
+              $ref: '#/components/schemas/SyntheticCredential'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: OK
+      security:
+        - ApiKeyAuth:
+            - canConfigureSyntheticCredentials
+      summary: Update a Synthetic Credential
       tags:
         - Synthetic Settings
   /api/synthetics/settings/datacenters:
@@ -19062,6 +19084,7 @@ paths:
             enum:
               - GROUPING
               - FILTERING
+              - SERVICE_MAPPING
               - SMART_ALERTS
               - SMART_ALERTS_LOGS
               - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -30487,6 +30510,8 @@ components:
               enum:
                 - erroneous
                 - all
+      required:
+        - trafficType
     Trigger:
       type: object
       description: The trigger is the Instana event or Smart Alert that defines the initial conditions that must be met for the policy to apply on the actions in `typeConfiguration`.
