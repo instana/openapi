@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.284.871
+  version: 1.285.1341
   x-description: info
   x-logo:
     altText: instana logo
@@ -831,6 +831,7 @@ paths:
           enum:
           - GROUPING
           - FILTERING
+          - SERVICE_MAPPING
           - SMART_ALERTS
           - SMART_ALERTS_LOGS
           - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -926,6 +927,7 @@ paths:
           enum:
           - GROUPING
           - FILTERING
+          - SERVICE_MAPPING
           - SMART_ALERTS
           - SMART_ALERTS_LOGS
           - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -2416,6 +2418,26 @@ paths:
       summary: Update service configuration
       tags:
       - Application Settings
+  /api/application-monitoring/settings/subtrace/{id}:
+    delete:
+      operationId: deleteSubtraceConfig
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - ConfigureServiceMapping
+      summary: Delete subtrace configuration
+      tags:
+      - Application Settings
   /api/application-monitoring/topology/services:
     get:
       operationId: getServicesMap
@@ -2774,8 +2796,6 @@ paths:
           description: The request do not contain a valid user or API Token.
       security:
       - ApiKeyAuth:
-        - Default
-      - ApiKeyAuth:
         - canDeleteAutomationActionHistory
       summary: Delete automation action run results.
       tags:
@@ -2978,8 +2998,6 @@ paths:
           description: Automation feature is not enabled or Insufficient permissions.
       security:
       - ApiKeyAuth:
-        - Default
-      - ApiKeyAuth:
         - canRunAutomationActions
       summary: Run an automation action.
       tags:
@@ -3035,8 +3053,6 @@ paths:
         "500":
           description: The request do not contain a valid user or API Token.
       security:
-      - ApiKeyAuth:
-        - Default
       - ApiKeyAuth:
         - canDeleteAutomationActionHistory
       summary: Deletes an automation action run result from the action run history
@@ -3341,8 +3357,6 @@ paths:
           description: Internal server error
       security:
       - ApiKeyAuth:
-        - Default
-      - ApiKeyAuth:
         - canRunAutomationActions
       summary: Resolve dynamic parameter values
       tags:
@@ -3556,8 +3570,6 @@ paths:
           description: Insufficient permissions.
       security:
       - ApiKeyAuth:
-        - Default
-      - ApiKeyAuth:
         - canConfigureAutomationPolicies
       summary: Create an automation policy.
       tags:
@@ -3590,8 +3602,6 @@ paths:
           description: Insufficient permissions.
       security:
       - ApiKeyAuth:
-        - Default
-      - ApiKeyAuth:
         - canConfigureAutomationPolicies
       summary: Create automation policies.
       tags:
@@ -3619,8 +3629,6 @@ paths:
         "403":
           description: Insufficient permissions.
       security:
-      - ApiKeyAuth:
-        - Default
       - ApiKeyAuth:
         - canConfigureAutomationPolicies
       summary: Deletes an automation policy by identifier.
@@ -3784,8 +3792,6 @@ paths:
         "403":
           description: Insufficient permissions.
       security:
-      - ApiKeyAuth:
-        - Default
       - ApiKeyAuth:
         - canConfigureAutomationPolicies
       summary: Updates an automation policy by identifier.
@@ -4155,6 +4161,7 @@ paths:
           enum:
           - GROUPING
           - FILTERING
+          - SERVICE_MAPPING
           - SMART_ALERTS
           - SMART_ALERTS_LOGS
           - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -9040,7 +9047,7 @@ paths:
           description: The event id refers to an event that is not open.
       security:
       - ApiKeyAuth:
-        - CanConfigureCustomAlerts
+        - CanManuallyCloseIssue
       summary: Manually close an event.
       tags:
       - Event Settings
@@ -11852,6 +11859,7 @@ paths:
           enum:
           - GROUPING
           - FILTERING
+          - SERVICE_MAPPING
           - SMART_ALERTS
           - SMART_ALERTS_LOGS
           - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -16413,6 +16421,7 @@ paths:
           enum:
           - GROUPING
           - FILTERING
+          - SERVICE_MAPPING
           - SMART_ALERTS
           - SMART_ALERTS_LOGS
           - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -17256,10 +17265,10 @@ paths:
               $ref: "#/components/schemas/SyntheticCredential"
         required: true
       responses:
-        default:
+        "200":
           content:
             application/json: {}
-          description: default response
+          description: OK
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticCredentials
@@ -17328,41 +17337,6 @@ paths:
       summary: A Synthetic Credential with Name and Associations
       tags:
       - Synthetic Settings
-    patch:
-      deprecated: true
-      operationId: patchSyntheticCredentialAssociations
-      parameters:
-      - in: path
-        name: name
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            example: |2
-                  {
-                      "applications": [
-                         "f4KX5zd8RW2pERKKFUCZgQ"
-                      ],
-                  }
-            schema:
-              $ref: "#/components/schemas/SyntheticCredential"
-        required: true
-      responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
-      security:
-      - ApiKeyAuth:
-        - canUseSyntheticCredentials
-        - canConfigureSyntheticTests
-      summary: Patch the associations of a Synthetic Credential (This API will be
-        replaced by a new API in R285)
-      tags:
-      - Synthetic Settings
-      x-description: patchSyntheticCredentialAssociations
   /api/synthetics/settings/credentials/{name}:
     delete:
       operationId: deleteSyntheticCredential
@@ -17383,6 +17357,68 @@ paths:
       summary: Delete Synthetic credential
       tags:
       - Synthetic Settings
+    patch:
+      operationId: patchSyntheticCredential
+      parameters:
+      - in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              credentialValue: newPassword
+              applications:
+              - f4KX5zd8RW2pERKKFUCZgQ
+            schema:
+              $ref: "#/components/schemas/SyntheticCredential"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json: {}
+          description: OK
+      security:
+      - ApiKeyAuth:
+        - canUseSyntheticCredentials
+        - canConfigureSyntheticTests
+      summary: Patch a Synthetic Credential
+      tags:
+      - Synthetic Settings
+      x-description: patchSyntheticCredential
+    put:
+      operationId: updateSyntheticCredential
+      parameters:
+      - in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              credentialName: userPassword
+              credentialValue: "123456"
+              applications:
+              - f4KX5zd8RW2pERKKFUCZgQ
+            schema:
+              $ref: "#/components/schemas/SyntheticCredential"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json: {}
+          description: OK
+      security:
+      - ApiKeyAuth:
+        - canConfigureSyntheticCredentials
+      summary: Update a Synthetic Credential
+      tags:
+      - Synthetic Settings
+      x-payload: updateSyntheticCredential
   /api/synthetics/settings/datacenters:
     get:
       operationId: getSyntheticDatacenters
@@ -18188,6 +18224,7 @@ paths:
           enum:
           - GROUPING
           - FILTERING
+          - SERVICE_MAPPING
           - SMART_ALERTS
           - SMART_ALERTS_LOGS
           - SMART_ALERTS_ADAPTIVE_BASELINE
@@ -29959,6 +29996,8 @@ components:
             enum:
             - erroneous
             - all
+      required:
+      - trafficType
     Trigger:
       type: object
       description: The trigger is the Instana event or Smart Alert that defines the
