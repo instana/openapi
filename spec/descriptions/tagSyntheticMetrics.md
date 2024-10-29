@@ -43,7 +43,7 @@ If **groups** includes a groupbyTag that is an array, such as synthetic.tags, th
 
 **groups** You can group test results by one or more tags.
 1. *groupbyTag* use the metric or tag name, e.g. "synthetic.applicationId", to group by its value
-2. *groupbyTagSecondLevelTag* optional, used to further qualify values when the *groupbyTag* is an array.
+2. *groupbyTagSecondLevelTag* is optional.  It is used to further qualify values when the *groupbyTag* is an array of key/value pairs, such as "synthetic.tags".
 3. *groupbyTagEntity* is ignored and therefore does not need to be specified.
 
 If *groups* is not specified, the default grouping is *synthetic.testId*.
@@ -58,7 +58,7 @@ An example of grouping by the custom property "region":
   ]
 ```
 
-**includeAggregatedTestIds** Optionally use when not grouping by testId.  Specifying *true* will return a list of tests that were included in the aggregated result for each row returned.
+**includeAggregatedTestIds** Optionally used when not grouping by testId.  Specifying *true* will return a list of tests that were included in the aggregated result for each row returned.
 
 **tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with
 logical operators "AND" or "OR".
