@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Instana REST API documentation",
-    "version": "1.285.1341",
+    "version": "1.286.252",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -171,6 +171,10 @@
       "name": "Synthetic Catalog"
     },
     {
+      "name": "Synthetic Metrics",
+      "description": "The endpoints of this group retrieve metrics for Synthetic test results.\n### Mandatory Parameters\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests:\n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), synthetic.successRate, and synthetic.tags (list of custom properties and values).\n\n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate tests.\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags. Metric synthetic.successRate only accepts SUM.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment. \n\nIf **groups** includes a groupbyTag that is an array, such as synthetic.tags, the maximum windowSize is *3600000* (1 hour).\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n  * If it is not set you will get an aggregated value for the selected timeframe\n  * If the granularity is set you will get data points with the specified granularity **in seconds**\n  * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n  * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n  * The granularity values are the same for all metrics\n\n**pagination** if you use pagination, fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**groups** You can group test results by one or more tags.\n1. *groupbyTag* use the metric or tag name, e.g. \"synthetic.applicationId\", to group by its value\n2. *groupbyTagSecondLevelTag* is optional.  It is used to further qualify values when the *groupbyTag* is an array of key/value pairs, such as \"synthetic.tags\".\n3. *groupbyTagEntity* is ignored and therefore does not need to be specified.\n\nIf *groups* is not specified, the default grouping is *synthetic.testId*.\n\nAn example of grouping by the custom property \"region\":\n```\n  \"groups\": [\n    {\n      \"groupbyTag\": \"synthetic.tags\",\n      \"groupbyTagSecondLevelTag\": \"region\"\n    }\n  ]\n```\n\n**includeAggregatedTestIds** Optionally used when not grouping by testId.  Specifying *true* will return a list of tests that were included in the aggregated result for each row returned.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators \"AND\" or \"OR\".\n\nA tagFilterExpression can specify a custom property by its key and value.\n```\n  \"tagFilterExpression\": {\n    \"type\": \"EXPRESSION\",\n    \"logicalOperator\": \"AND\",\n    \"elements\": [\n      {\n        \"name\": \"synthetic.tags\",\n        \"key\": \"region\",\n        \"value\": \"Denver\",\n        \"operator\": \"EQUALS\"\n      },\n      {\n        \"name\": \"synthetic.locationId\",\n        \"operator\": \"EQUALS\",\n        \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n      }\n    ]\n  }\n```\n\n### Defaults\n\n**groups**\n```\n  \"groups\": [\n    \"groupbyTag\": \"synthetic.testId\"\n  ]\n```\n\n**includeAggregatedTestIds**\n* *includeAggregatedTestIds:* *true* when grouping by synthetic.testId, otherwise *false*.\n\n**metrics**\n* *granularity:* 0\n\n**pagination**\n* If **pagination** is not specified, the entire result set is returned.\n\n**timeFrame**\n```\n  \"timeFrame\": {\n    \"to\": {current timestamp},\n    \"windowSize\": 60000\n  }\n```\n\n### Sample payload to get the mean synthetic.metricsResponseTIme for each Synthetic test within the specified timeFrame\n```json\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n} \n```\n\n### Sample payload to get the mean synthetic.metricsResponseTIme for each Synthetic test within the specified timeFrame grouped by applicationId\n```json\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     },\n     \"groups\": [{\n       \"groupbyTag\": \"synthetic.applicationId\"\n     }]\n} \n```\n\n### Sample payload to get the synthetic.successRate for the Synthetic tests within the specified timeFrame grouped by the two custom properties region and cluster.\n```json\n{\n    \"metrics\": [\n    {\n        \"aggregation\": \"SUM\",\n        \"metric\": \"synthetic.successRate\"\n    }],\n    \"timeFrame\": {\n        \"to\": 0,\n        \"windowSize\": 1800000\n    },\n    \"groups\": [\n    {\n        \"groupbyTag\": \"synthetic.tags\",\n        \"groupbyTagSecondLevelKey\": \"region\"\n    },\n    {\n        \"groupbyTag\": \"synthetic.tags\",\n        \"groupbyTagSecondLevelKey\": \"cluster\"\n    }]\n}\n```\n"
+    },
+    {
       "name": "Synthetic Settings",
       "description": "The API endpoints of this group can be used to manage Synthetic Locations, Synthetic Tests and Synthetic Credentials. \n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is managed or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and SSLCertificate. \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.\n    Right now, only Chrome and Firefox are supported. \n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,\n      WebpageScript, and SSLCertificate. The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      For API Simple, failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n      API Script and Browser Script test will retry if script failed for any reason.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). \n      It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.\n        - If user defined timeout value exceeds the `maxTimeout` or `testFrequency` in test configuration, the timeout value does not take effect \n          and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n        - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. \n          BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and SSLCertificateConfiguration. \n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=monitoring-using-api-scripts\n        - **BrowserScriptConfiguration** has the following properties:\n          - **script** A Node.js based test script, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **scriptType** The type of the script, right now, only Basic type is supported. \n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is BrowserScript. It is required.\n        - **WebpageActionConfiguration** has the following properties:\n          - **url** The URL of the Web page being tested. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageAction. It is required.\n        - **WebpageScriptConfiguration** has the following properties:\n          - **script** A Selenium IDE recording script. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageScript. It is required.\n      - **SSLCertificateConfiguration** has the following properties:\n          - **hostname** The hostname of the SSL enabled website.\n          - **port** The SSL port, set to 443 by default.\n          - **daysRemainingCheck** The number of days to use on the validation check. The test will fail when the certificate validity has less than this number of days remaining until expiration.\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **applications** It is an array of the unique identifiers of the Application Perspectives associated to this test.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,\n  Synthetic tests run at all locations simultaneously. \n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes. \n  For SSLCertificate tests, the default is every 24 hours and the range is from 60 minute to 1440 minutes.\n\n## Synthetic Credentials:\n\nSynthetic credentials can be used to store passwords and/or secrets used by the Synthetic Tests.\n\nAll Script Tests can use credentials in their body and API Simple Tests can use them on header parameters.\n\nIt is required that the credentials used in the test be created before the test is created or modified.\n\nCredentials can be associated to multiple Application Perspectives, Websites, and Mobile Apps.\n\nTests using credentials are validated during test creation and update whether you use the API or UI, as follows:\n\n1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  \n  Requests to create or update a test referencing credentials without the correct permission will fail with return code `Forbidden`.\n\n2. The credentials or secrets used in the test must exist.  \n  Requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`.\n\n3. Credentials associated to Application Perspectives, Websites, and Mobile Apps can only be used by tests that are associated to at least one common Application Perspective, Websites, and MobileApps.\n   Requests to create or update a test referencing credentials without matching Application Perspectives, Websites, or Mobile Apps will fail with return code `Bad Request`."
     },
@@ -198,7 +202,7 @@
         "operationId": "getApdexReport",
         "parameters": [
           {
-            "description": "apdexId",
+            "description": "Apdex Configuration ID",
             "example": "nCtEoR6NSPqG61QkIkwwCw",
             "in": "path",
             "name": "apdexId",
@@ -208,7 +212,7 @@
             }
           },
           {
-            "description": "Unix Timestamp milliseconds (13-digit)",
+            "description": "Starting point for the data retrieval, specified as 13 digit Unix Timestamp milliseconds",
             "example": 1706713140000,
             "in": "query",
             "name": "from",
@@ -219,7 +223,7 @@
             }
           },
           {
-            "description": "Unix Timestamp milliseconds (13-digit)",
+            "description": "Ending point for the data retrieval, specified as 13 digit Unix Timestamp milliseconds",
             "example": 1706813100000,
             "in": "query",
             "name": "to",
@@ -258,6 +262,24 @@
               }
             },
             "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "There is no Apdex configuration for the given ID."
+                  ]
+                },
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "No Apdex configuration for the given ID"
           }
         },
         "security": [
@@ -327,6 +349,7 @@
         "operationId": "getCallGroup",
         "parameters": [
           {
+            "description": "If enabled, fill the missing data points in the metric result with timestamp and value 0.",
             "in": "query",
             "name": "fillTimeSeries",
             "schema": {
@@ -453,6 +476,7 @@
         "operationId": "getTraceGroups",
         "parameters": [
           {
+            "description": "If enabled, fill the missing data points in the metric result with timestamp and value 0.",
             "in": "query",
             "name": "fillTimeSeries",
             "schema": {
@@ -463,7 +487,45 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "example": "{\n     \"group\": {\n         \"groupbyTag\": \"trace.endpoint.name\",\n         \"groupbyTagEntity\": \"NOT_APPLICABLE\"\n     },\n     \"metrics\": [\n         {\n             \"aggregation\": \"SUM\",\n             \"metric\": \"latency\"\n         }\n     ],\n     \"order\": {\n         \"by\": \"latency\",\n         \"direction\": \"ASC\"\n     },\n     \"pagination\": {\n          \"retrievalSize\": 20\n     }\n     \"tagFilterExpression\": {\n          \"type\": \"EXPRESSION\",\n          \"logicalOperator\": \"AND\",\n          \"elements\": [\n              {\n                  \"type\": \"TAG_FILTER\",\n                  \"name\": \"call.type\",\n                  \"operator\": \"EQUALS\",\n                  \"entity\": \"NOT_APPLICABLE\",\n                  \"value\": \"DATABASE\"\n              },\n              {\n                  \"type\": \"TAG_FILTER\",\n                  \"name\": \"service.name\",\n                  \"operator\": \"EQUALS\",\n                  \"entity\": \"DESTINATION\",\n                  \"value\": \"ratings\"\n              }\n          ]\n      },\n }\n",
+              "example": {
+                "group": {
+                  "groupbyTag": "trace.endpoint.name",
+                  "groupbyTagEntity": "NOT_APPLICABLE"
+                },
+                "metrics": [
+                  {
+                    "aggregation": "SUM",
+                    "metric": "latency"
+                  }
+                ],
+                "order": {
+                  "by": "latency",
+                  "direction": "ASC"
+                },
+                "pagination": {
+                  "retrievalSize": 20
+                },
+                "tagFilterExpression": {
+                  "type": "EXPRESSION",
+                  "logicalOperator": "AND",
+                  "elements": [
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "call.type",
+                      "operator": "EQUALS",
+                      "entity": "NOT_APPLICABLE",
+                      "value": "DATABASE"
+                    },
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "service.name",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION",
+                      "value": "ratings"
+                    }
+                  ]
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/GetTraceGroups"
               }
@@ -2030,7 +2092,7 @@
         "tags": [
           "Application Settings"
         ],
-        "description": "Create a new Application Perspective.\n\n## Deprecated Parameters\n**matchSpecification:** A binary tree sturcture of match expression connected with binary operator AND or OR. It is replaced by **tagFilterExpression** which is also used in Application Analyze API endpoints."
+        "description": "Use this API endpoint if one wants to create a new Application Perspective. This endpoint requires `canConfigureApplications` permission. \n\nOne can use `Create or update an API token` endpoint to update the permission by setting `canConfigureApplications` to `true`.\nIf one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.\nThere one can update the existing token or create a new token and set `Configuration of applications` to `true`.\n\n\n## Deprecated Parameters\n**matchSpecification:** A binary tree sturcture of match expression connected with binary operator AND or OR. It is replaced by **tagFilterExpression** which is also used in Application Analyze API endpoints."
       }
     },
     "/api/application-monitoring/settings/application/{id}": {
@@ -2304,7 +2366,7 @@
         "tags": [
           "Application Settings"
         ],
-        "description": "Update an existing Application Perspective.\n\n## Deprecated Parameters\n**matchSpecification:** A binary tree sturcture of match expression connected with binary operator AND or OR. It is replaced by **tagFilterExpression** which is also used in Application Analyze API endpoints."
+        "description": "Use this API endpoint if one wants to update an existing Application Perspective. This endpoint requires `canConfigureApplications` permission. One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureApplications` to `true`.\nIf one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.\nThere one can update the existing token or create a new token and set `Configuration of applications` to `true`.\n\n## Deprecated Parameters\n**matchSpecification:** A binary tree sturcture of match expression connected with binary operator AND or OR. It is replaced by **tagFilterExpression** which is also used in Application Analyze API endpoints."
       }
     },
     "/api/application-monitoring/settings/endpoint": {
@@ -3985,7 +4047,7 @@
                   "type": "TAG_FILTER",
                   "name": "service.name",
                   "operator": "EQUALS",
-                  "entity": "NOT_APPLICABLE",
+                  "entity": "DESTINATION",
                   "value": "warehouse"
                 },
                 "timeFrame": {
@@ -5086,6 +5148,9 @@
           "403": {
             "description": "Insufficient permissions."
           },
+          "422": {
+            "description": "Invalid input value."
+          },
           "500": {
             "description": "Failed to retrieve the automation policies."
           }
@@ -5212,11 +5277,14 @@
             },
             "description": "New policy created."
           },
-          "400": {
-            "description": "Invalid request body"
-          },
           "403": {
             "description": "Insufficient permissions."
+          },
+          "422": {
+            "description": "Invalid input value."
+          },
+          "500": {
+            "description": "Server Error."
           }
         },
         "security": [
@@ -5263,11 +5331,14 @@
             },
             "description": "OK"
           },
-          "400": {
-            "description": "Invalid request body"
-          },
           "403": {
             "description": "Insufficient permissions."
+          },
+          "422": {
+            "description": "Invalid input value."
+          },
+          "500": {
+            "description": "Server Error."
           }
         },
         "security": [
@@ -5303,11 +5374,11 @@
           "204": {
             "description": "Automation policy successfully deleted"
           },
-          "400": {
-            "description": "Automation policy does not exist"
-          },
           "403": {
             "description": "Insufficient permissions."
+          },
+          "422": {
+            "description": "Automation policy does not exist"
           }
         },
         "security": [
@@ -5547,11 +5618,14 @@
             },
             "description": "Automation policy successfully updated."
           },
-          "400": {
-            "description": "Invalid request body."
-          },
           "403": {
             "description": "Insufficient permissions."
+          },
+          "422": {
+            "description": "Invalid input value."
+          },
+          "500": {
+            "description": "Server Error."
           }
         },
         "security": [
@@ -11122,7 +11196,7 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Fetched list of the Service Level Alert Configurations Successfully"
           }
         },
         "security": [
@@ -11226,7 +11300,7 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Created new Service Levels Alert Configuration Successfully"
           },
           "400": {
             "content": {
@@ -11239,7 +11313,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                    "type": "string"
                   }
                 }
               }
@@ -11276,11 +11350,19 @@
           }
         ],
         "responses": {
-          "default": {
+          "204": {
+            "description": "Service Levels Alert Configuration Deleted Successfully"
+          },
+          "404": {
             "content": {
-              "application/json": {}
+              "application/json": {
+                "example": "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found\"]}",
+                "schema": {
+                  "type": "string"
+                }
+              }
             },
-            "description": "default response"
+            "description": "Service levels Alert Config with given ID not found"
           }
         },
         "security": [
@@ -11365,18 +11447,14 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Fetched Service Level Alert Configuration Successfully"
           },
           "404": {
             "content": {
               "application/json": {
-                "example": {
-                  "errors": [
-                    "Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found"
-                  ]
-                },
+                "example": "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found\"]}",
                 "schema": {
-                  "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                  "type": "string"
                 }
               }
             },
@@ -11496,10 +11574,10 @@
                 }
               }
             },
-            "description": "Service levels Smart Alert successfully updated"
+            "description": "Updated Service Levels Alert Configuration Successfully"
           },
           "204": {
-            "description": "Service levels Smart Alert did not change"
+            "description": "Service Levels Smart Alert Configuration did not change"
           },
           "400": {
             "content": {
@@ -11512,7 +11590,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                    "type": "string"
                   }
                 }
               }
@@ -11559,11 +11637,19 @@
           }
         },
         "responses": {
-          "default": {
+          "204": {
+            "description": "Service Levels Alert Configuration Disabled Successfully"
+          },
+          "404": {
             "content": {
-              "application/json": {}
+              "application/json": {
+                "example": "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found\"]}",
+                "schema": {
+                  "type": "string"
+                }
+              }
             },
-            "description": "default response"
+            "description": "Service levels Alert Config with given ID not found"
           }
         },
         "security": [
@@ -11605,11 +11691,19 @@
           }
         },
         "responses": {
-          "default": {
+          "204": {
+            "description": "Service Levels Alert Configuration Enabled Successfully"
+          },
+          "404": {
             "content": {
-              "application/json": {}
+              "application/json": {
+                "example": "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found\"]}",
+                "schema": {
+                  "type": "string"
+                }
+              }
             },
-            "description": "default response"
+            "description": "Service levels Alert Config with given ID not found"
           }
         },
         "security": [
@@ -11662,11 +11756,19 @@
           }
         },
         "responses": {
-          "default": {
+          "204": {
+            "description": "Service Levels Alert Configuration Restored Successfully"
+          },
+          "404": {
             "content": {
-              "application/json": {}
+              "application/json": {
+                "example": "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found\"]}",
+                "schema": {
+                  "type": "string"
+                }
+              }
             },
-            "description": "default response"
+            "description": "Service levels Alert Config with given ID not found"
           }
         },
         "security": [
@@ -11740,18 +11842,14 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Fetched list of Service Level Alert Configuration Versions Successfully"
           },
           "404": {
             "content": {
               "application/json": {
-                "example": {
-                  "errors": [
-                    "Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found"
-                  ]
-                },
+                "example": "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found\"]}",
                 "schema": {
-                  "$ref": "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                  "type": "string"
                 }
               }
             },
@@ -13289,6 +13387,41 @@
         "summary": "Get versions of Infra Alert Config",
         "tags": [
           "Infrastructure Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/manual-close": {
+      "post": {
+        "description": "Manually close a set of events. A close notification will be sent out and the event state will be updated accordingly for each event",
+        "operationId": "multiCloseEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualCloseInfo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The multi close operation was successful"
+          },
+          "207": {
+            "description": "Atleast one of the manual close operations failed"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanManuallyCloseIssue"
+            ]
+          }
+        ],
+        "summary": "Manually closing multiple events",
+        "tags": [
+          "Event Settings"
         ]
       }
     },
@@ -18499,6 +18632,22 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": [
+                {
+                  "apdexName": "Apdex Configuration One",
+                  "apdexEntity": {
+                    "apdexType": "website",
+                    "entityId": "XIZGGVT1TX2O-0OFeT2Yig",
+                    "threshold": 400,
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": []
+                    },
+                    "beaconType": "httpRequest"
+                  }
+                }
+              ],
               "schema": {
                 "$ref": "#/components/schemas/ApdexConfigurationInput"
               }
@@ -18535,7 +18684,7 @@
         "operationId": "getApdexConfigurationsForEntityTypeAndId",
         "parameters": [
           {
-            "description": "entityType",
+            "description": "Type of the Apdex Configuration, it could be APPLICATION or WEBSITE",
             "example": "APPLICATION",
             "in": "path",
             "name": "entityType",
@@ -18549,7 +18698,7 @@
             }
           },
           {
-            "description": "entityId",
+            "description": "Application or Website ID",
             "example": "XIZGGVT1TX2O-0OFeT2Yig",
             "in": "path",
             "name": "entityId",
@@ -18567,7 +18716,7 @@
                   {
                     "id": "u2MBXtasQoy3reni5-QZgg",
                     "createdAt": 1657743333352,
-                    "apdexName": "{string}",
+                    "apdexName": "Apdex Configuration One",
                     "apdexEntity": {
                       "apdexType": "website",
                       "entityId": "XIZGGVT1TX2O-0OFeT2Yig",
@@ -18583,7 +18732,7 @@
                   {
                     "id": "ShIqRJgpTT69HZHbfQKRGg",
                     "createdAt": 1693482558276,
-                    "apdexName": "{string}",
+                    "apdexName": "Apdex Configuration Two",
                     "apdexEntity": {
                       "apdexType": "website",
                       "entityId": "XIZGGVT1TX2O-0OFeT2Yig",
@@ -18624,6 +18773,8 @@
         "operationId": "deleteApdexConfiguration",
         "parameters": [
           {
+            "description": "Apdex Configuration ID",
+            "example": "NCAoNKqySWSK1U5GkmyZgQ",
             "in": "path",
             "name": "id",
             "required": true,
@@ -18655,7 +18806,7 @@
         "operationId": "getApdexConfiguration",
         "parameters": [
           {
-            "description": "id",
+            "description": "Apdex Configuration ID",
             "example": "NCAoNKqySWSK1U5GkmyZgQ",
             "in": "path",
             "name": "id",
@@ -18691,6 +18842,17 @@
               }
             },
             "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": "{\"errors\":[\"Apdex Configuration not found\"]}",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Apdex Configuration not found"
           }
         },
         "security": [
@@ -20987,7 +21149,9 @@
             "name": "pageSize",
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "description": "Size of the Page",
+              "example": 1
             }
           },
           {
@@ -20995,14 +21159,18 @@
             "name": "page",
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "description": "Page Number",
+              "example": 1
             }
           },
           {
             "in": "query",
             "name": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Keyword or Query which needs to be searched",
+              "example": "test SLO"
             }
           },
           {
@@ -21010,8 +21178,12 @@
             "name": "tag",
             "schema": {
               "type": "array",
+              "description": "List of tags which needs to be searched",
+              "example": "Testing",
               "items": {
-                "type": "string"
+                "type": "string",
+                "description": "List of tags which needs to be searched",
+                "example": "Testing"
               },
               "uniqueItems": true
             }
@@ -21021,10 +21193,13 @@
             "name": "entityType",
             "schema": {
               "type": "string",
+              "description": "SLO Entity Type which needs to be filtered",
               "enum": [
                 "application",
-                "website"
-              ]
+                "website",
+                "synthetic"
+              ],
+              "example": "application"
             }
           },
           {
@@ -21032,10 +21207,12 @@
             "name": "orderBy",
             "schema": {
               "type": "string",
+              "description": "Order By Value",
               "enum": [
                 "name",
                 "entityType"
-              ]
+              ],
+              "example": "name"
             }
           },
           {
@@ -21043,10 +21220,12 @@
             "name": "orderDirection",
             "schema": {
               "type": "string",
+              "description": "Order Direction of the Result, it could be ascending or descending",
               "enum": [
                 "ASC",
                 "DESC"
-              ]
+              ],
+              "example": "ASC"
             }
           },
           {
@@ -21054,8 +21233,12 @@
             "name": "sloIds",
             "schema": {
               "type": "array",
+              "description": "List of SLO IDs for which details need to be fetched",
+              "example": "SLOdCTspkHlS_OzNOATQWgsuw",
               "items": {
-                "type": "string"
+                "type": "string",
+                "description": "List of SLO IDs for which details need to be fetched",
+                "example": "SLOdCTspkHlS_OzNOATQWgsuw"
               }
             }
           },
@@ -21063,7 +21246,9 @@
             "in": "query",
             "name": "refresh",
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "description": "Boolean operator which specifies if the cache needs to be refreshed",
+              "example": false
             }
           }
         ],
@@ -21150,7 +21335,7 @@
                 }
               }
             },
-            "description": "List of the Service levels configurations"
+            "description": "Fetched list of the SLO Configurations Successfully"
           }
         },
         "security": [
@@ -21247,7 +21432,18 @@
                 }
               }
             },
-            "description": "Persisted SLO setting"
+            "description": "New SLO Configuration Created Successfully"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "example": "{\"errors\":[\"Unknown tag filter: call.error\"]}",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Invalid Tag Filter"
           }
         },
         "security": [
@@ -21271,7 +21467,9 @@
             "in": "query",
             "name": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Keyword or Query which needs to be searched",
+              "example": "test SLO"
             }
           },
           {
@@ -21279,8 +21477,12 @@
             "name": "tag",
             "schema": {
               "type": "array",
+              "description": "List of tags which needs to be searched",
+              "example": "Testing",
               "items": {
-                "type": "string"
+                "type": "string",
+                "description": "List of tags which needs to be searched",
+                "example": "Testing"
               },
               "uniqueItems": true
             }
@@ -21290,10 +21492,13 @@
             "name": "entityType",
             "schema": {
               "type": "string",
+              "description": "SLO Entity Type which needs to be filtered",
               "enum": [
                 "application",
-                "website"
-              ]
+                "website",
+                "synthetic"
+              ],
+              "example": "application"
             }
           }
         ],
@@ -21329,7 +21534,7 @@
                 }
               }
             },
-            "description": "List of SLO setting tags"
+            "description": "Fetched list of SLO Configuration tags Successfully"
           }
         },
         "security": [
@@ -21354,28 +21559,15 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Service Levels Objective Configuration ID",
+              "example": "SLOdCTspkHlS_OzNOATQWgsuw"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Specified SLO seeting is deleted."
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "errors": [
-                    "The sloConfiguration you are looking for does not exist."
-                  ]
-                },
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "SLO setting is not found"
+          "204": {
+            "description": "SLO Configuration Deleted Successfully"
           }
         },
         "security": [
@@ -21398,14 +21590,18 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Service Levels Objective Configuration ID",
+              "example": "SLOdCTspkHlS_OzNOATQWgsuw"
             }
           },
           {
             "in": "query",
             "name": "refresh",
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "description": "Boolean operator which specifies if the cache needs to be refreshed",
+              "example": false
             }
           }
         ],
@@ -21450,7 +21646,7 @@
                 }
               }
             },
-            "description": "Persisted SLO setting"
+            "description": "Fetched SLO Configuration Successfully"
           },
           "404": {
             "content": {
@@ -21465,7 +21661,7 @@
                 }
               }
             },
-            "description": "SLO setting is not found"
+            "description": "SLO Configuration Not Found"
           }
         },
         "security": [
@@ -21488,7 +21684,9 @@
             "name": "id",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Service Levels Objective Configuration ID",
+              "example": "SLOdCTspkHlS_OzNOATQWgsuw"
             }
           }
         ],
@@ -21572,7 +21770,7 @@
                 }
               }
             },
-            "description": "Persisted SLO setting"
+            "description": "Updated SLO Configuration Successfully"
           },
           "404": {
             "content": {
@@ -21587,7 +21785,7 @@
                 }
               }
             },
-            "description": "SLO setting is not found"
+            "description": "SLO Configuration Not Found"
           }
         },
         "security": [
@@ -22507,7 +22705,18 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "New SLI Configuration Created Successfully"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "example": "{\"errors\":[\"Unknown tag filter: call.eron\"]}",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Bad Request"
           }
         },
         "security": [
@@ -22529,6 +22738,7 @@
         "operationId": "getSliConfigsForEntityTypeAndIdV2",
         "parameters": [
           {
+            "description": "Type of the Entity, whether it is an application or website",
             "in": "path",
             "name": "entityType",
             "required": true,
@@ -22541,6 +22751,8 @@
             }
           },
           {
+            "description": "Unique ID of the Entity",
+            "example": "DkPX-x9VQuKBKopuilrkYw",
             "in": "path",
             "name": "entityId",
             "required": true,
@@ -22602,6 +22814,8 @@
         "operationId": "deleteSliConfigV2",
         "parameters": [
           {
+            "description": "ID of the Service Level Indicator (SLI)",
+            "example": "HXcNRWhDSWiZs3HiUAKr7g",
             "in": "path",
             "name": "id",
             "required": true,
@@ -22611,11 +22825,8 @@
           }
         ],
         "responses": {
-          "default": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "default response"
+          "204": {
+            "description": "SLI Configuration Deleted Successfully"
           }
         },
         "security": [
@@ -22634,6 +22845,8 @@
         "operationId": "getSliConfigV2",
         "parameters": [
           {
+            "description": "ID of the Service Level Indicator (SLI)",
+            "example": "HXcNRWhDSWiZs3HiUAKr7g",
             "in": "path",
             "name": "id",
             "required": true,
@@ -22672,6 +22885,21 @@
               }
             },
             "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "The SLI Configuration you are looking for does not exist."
+                  ]
+                },
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "SLI Configuration Not Found"
           }
         },
         "security": [
@@ -22692,7 +22920,7 @@
         "operationId": "getSli",
         "parameters": [
           {
-            "description": "sliId",
+            "description": "ID of the Service Level Indicator (SLI)",
             "example": "nCtEoR6NSPqG61QkIkwwCw",
             "in": "path",
             "name": "sliId",
@@ -22702,7 +22930,7 @@
             }
           },
           {
-            "description": "slo target",
+            "description": "Target SLO",
             "example": 0.99,
             "in": "query",
             "name": "slo",
@@ -22713,7 +22941,7 @@
             }
           },
           {
-            "description": "Timestamp milliseconds (13-digit)",
+            "description": "From Timestamp in milliseconds (13-digit)",
             "example": 1706713140000,
             "in": "query",
             "name": "from",
@@ -22724,7 +22952,7 @@
             }
           },
           {
-            "description": "Timestamp milliseconds (13-digit)",
+            "description": "To Timestamp in milliseconds (13-digit)",
             "example": 1706713140000,
             "in": "query",
             "name": "to",
@@ -22777,6 +23005,8 @@
         "operationId": "getSlo",
         "parameters": [
           {
+            "description": "Service Levels Objective(SLO) Configuration ID",
+            "example": "SLOEANnWh9tQOa2h88kGxK6wQ",
             "in": "path",
             "name": "sloId",
             "required": true,
@@ -22785,6 +23015,8 @@
             }
           },
           {
+            "description": "Starting point for the data retrieval, specified as 13 digit Unix Timestamp milliseconds",
+            "example": 1706713140000,
             "in": "query",
             "name": "from",
             "schema": {
@@ -22792,6 +23024,8 @@
             }
           },
           {
+            "description": "Ending point for the data retrieval, specified as 13 digit Unix Timestamp milliseconds",
+            "example": 1706813100000,
             "in": "query",
             "name": "to",
             "schema": {
@@ -23500,7 +23734,25 @@
                 }
               }
             },
-            "description": "Service Level report"
+            "description": "Fetched SLO Configuration Report Successfully"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "There is no SLO configuration for the given ID or the report hasn't been generated yet."
+                  ]
+                },
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "There is no SLO configuration for the given ID or the report hasn't been generated yet."
           }
         },
         "security": [
@@ -23780,6 +24032,7 @@
     },
     "/api/synthetics/metrics": {
       "post": {
+        "description": "API request to retrieve Synthetic Metrics.",
         "operationId": "getMetricsResult",
         "requestBody": {
           "content": {
@@ -23797,7 +24050,7 @@
                 ],
                 "timeFrame": {
                   "to": 0,
-                  "windowSize": 144000000
+                  "windowSize": 3600000
                 },
                 "groups": [
                   {
@@ -23903,6 +24156,15 @@
               }
             },
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -23912,7 +24174,7 @@
             ]
           }
         ],
-        "summary": "Get Synthetic metrics",
+        "summary": "Get Synthetic Metrics",
         "tags": [
           "Synthetic Metrics"
         ]
@@ -24744,6 +25006,7 @@
     },
     "/api/synthetics/settings/credentials": {
       "get": {
+        "description": "API request to retrieve the names of all Synthetic Credentials.",
         "operationId": "getSyntheticCredentialNames",
         "responses": {
           "200": {
@@ -24774,6 +25037,18 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -24790,6 +25065,7 @@
         ]
       },
       "post": {
+        "description": "API request to create Synthetic Credentials.",
         "operationId": "createSyntheticCredential",
         "requestBody": {
           "content": {
@@ -24811,6 +25087,15 @@
               "application/json": {}
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -24828,6 +25113,7 @@
     },
     "/api/synthetics/settings/credentials/associations": {
       "get": {
+        "description": "API request to retrieve all Synthetic Credentials.",
         "operationId": "getSyntheticCredentialAssociations",
         "responses": {
           "200": {
@@ -24860,6 +25146,18 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -24878,9 +25176,12 @@
     },
     "/api/synthetics/settings/credentials/associations/{name}": {
       "get": {
+        "description": "API request to retrieve a Synthetic Credential with matching name.",
         "operationId": "getOneSyntheticCredentialAssociations",
         "parameters": [
           {
+            "description": "Name of the credential to be retrieved",
+            "example": "password4test",
             "in": "path",
             "name": "name",
             "required": true,
@@ -24894,7 +25195,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "credentialName": "password4",
+                  "credentialName": "password4test",
                   "applications": [
                     "f4KX5zd8RW2pERKKFUCZgQ"
                   ],
@@ -24910,6 +25211,18 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -24928,9 +25241,12 @@
     },
     "/api/synthetics/settings/credentials/{name}": {
       "delete": {
+        "description": "API request to delete a Synthetic Credential.",
         "operationId": "deleteSyntheticCredential",
         "parameters": [
           {
+            "description": "Name of the credential to be deleted",
+            "example": "password4test",
             "in": "path",
             "name": "name",
             "required": true,
@@ -24940,11 +25256,23 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {}
             },
-            "description": "default response"
+            "description": "OK"
+          },
+          "204": {
+            "description": "Successful - no content to return."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -24963,6 +25291,8 @@
         "operationId": "patchSyntheticCredential",
         "parameters": [
           {
+            "description": "Name of the credential to be patched",
+            "example": "password4test",
             "in": "path",
             "name": "name",
             "required": true,
@@ -24975,7 +25305,7 @@
           "content": {
             "application/json": {
               "example": {
-                "credentialValue": "newPassword",
+                "credentialValue": "password4test",
                 "applications": [
                   "f4KX5zd8RW2pERKKFUCZgQ"
                 ]
@@ -24993,6 +25323,15 @@
               "application/json": {}
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25009,9 +25348,12 @@
         ]
       },
       "put": {
+        "description": "API request to update Synthetic Credentials.",
         "operationId": "updateSyntheticCredential",
         "parameters": [
           {
+            "description": "Name of the credential to be updated",
+            "example": "password4db2",
             "in": "path",
             "name": "name",
             "required": true,
@@ -25024,7 +25366,7 @@
           "content": {
             "application/json": {
               "example": {
-                "credentialName": "userPassword",
+                "credentialName": "password4db2",
                 "credentialValue": "123456",
                 "applications": [
                   "f4KX5zd8RW2pERKKFUCZgQ"
@@ -25043,6 +25385,15 @@
               "application/json": {}
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25060,11 +25411,50 @@
     },
     "/api/synthetics/settings/datacenters": {
       "get": {
+        "description": "API request to retrieve all Synthetic Datacenters.",
         "operationId": "getSyntheticDatacenters",
         "responses": {
           "200": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "code": "us-east-1",
+                    "label": "us-east-1(NVirginia)",
+                    "provider": "aws",
+                    "countryName": "USA",
+                    "cityName": "NVirginia",
+                    "latitude": 37.22,
+                    "longitude": -81.44,
+                    "status": "Active",
+                    "modifiedAt": 1728096600396,
+                    "configuration": {
+                      "ipAddress": [
+                        "34.226.13.189"
+                      ]
+                    },
+                    "locationLabel": "instana-test-aws-us-east-1-NVirginia",
+                    "datacenterId": "aws-us-east-1-NVirginia"
+                  },
+                  {
+                    "code": "eu-central-1",
+                    "label": "eu-central-1(Frankfurt)",
+                    "provider": "aws",
+                    "countryName": "DEU",
+                    "cityName": "Frankfurt",
+                    "latitude": 50.11,
+                    "longitude": 8.68,
+                    "status": "Active",
+                    "modifiedAt": 1710241599981,
+                    "configuration": {
+                      "ipAddress": [
+                        "3.122.151.177"
+                      ]
+                    },
+                    "locationLabel": "instana-test-aws-eu-central-1-Frankfurt",
+                    "datacenterId": "aws-eu-central-1-Frankfurt"
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "items": {
@@ -25074,6 +25464,15 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25091,9 +25490,12 @@
     },
     "/api/synthetics/settings/datacenters/{datacenterId}": {
       "get": {
+        "description": "API request to retrieve a Synthetic Datacenter with matching id.",
         "operationId": "getSyntheticDatacenter",
         "parameters": [
           {
+            "description": "Id of the datacenter to be retrieved",
+            "example": "aws-us-east-1-NVirginia",
             "in": "path",
             "name": "datacenterId",
             "required": true,
@@ -25106,12 +25508,42 @@
           "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "code": "us-east-1",
+                  "label": "us-east-1(NVirginia)",
+                  "provider": "aws",
+                  "countryName": "USA",
+                  "cityName": "NVirginia",
+                  "latitude": 37.22,
+                  "longitude": -81.44,
+                  "status": "Active",
+                  "modifiedAt": 1728096600396,
+                  "configuration": {
+                    "ipAddress": [
+                      "34.226.13.189"
+                    ]
+                  },
+                  "locationLabel": "instana-test-aws-us-east-1-NVirginia",
+                  "datacenterId": "aws-us-east-1-NVirginia"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/SyntheticDatacenter"
                 }
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25132,34 +25564,43 @@
         "operationId": "getSyntheticLocations",
         "parameters": [
           {
+            "description": "Defines the attribute by which the returned synthetic locations will be ordered by. Order using '+' means ASC and '-' means DESC",
+            "example": "+label",
             "in": "query",
             "name": "sort",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": " <+|-><attribute name>"
             }
           },
           {
+            "description": "Used in conjunction with limit. Defines how many pages will be skipped before returning the synthetic locations",
+            "example": 1,
             "in": "query",
             "name": "offset",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "int64"
             }
           },
           {
+            "description": "Defines the size of a page - the number of synthetic locations that will be returned by the query",
+            "example": 10,
             "in": "query",
             "name": "limit",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "int64"
             }
           },
           {
+            "description": "Defines the attributes by which the returned synthetic locations will be filtered by. Multiple filter parameters are allowed. See 'Supported filter attributes and operators' for complete list of supported attributes and operators.",
+            "example": "{locationType=Managed}",
             "in": "query",
             "name": "filter",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "type": "string",
+              "pattern": " {<attribute name><operator><attribute value>}"
             }
           }
         ],
@@ -25248,6 +25689,12 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25269,6 +25716,8 @@
         "operationId": "deleteSyntheticLocation",
         "parameters": [
           {
+            "description": "Identifier of the location to be deleted",
+            "example": "55bzhnXQ9uqwld4Ha3bD",
             "in": "path",
             "name": "id",
             "required": true,
@@ -25278,11 +25727,14 @@
           }
         ],
         "responses": {
-          "default": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "default response"
+          "204": {
+            "description": "Successful - no content to return."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25299,9 +25751,12 @@
         "description": "This API endpoint deletes a synthetic location.\n\nNote: Users cannot use this API to delete managed locations. "
       },
       "get": {
+        "description": "API request to retrieve a Synthetic Location with matching id.",
         "operationId": "getSyntheticLocation",
         "parameters": [
           {
+            "description": "Identifier of the location to be retrieved",
+            "example": "OjJPXWHmsE9deLzanNAW",
             "in": "path",
             "name": "id",
             "required": true,
@@ -25355,6 +25810,15 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25375,6 +25839,8 @@
         "operationId": "getSyntheticTests",
         "parameters": [
           {
+            "description": "Defines the application id by which the returned synthetic tests will be filtered by. ",
+            "example": "pWoK4onRRN-POTz1RU62UQ",
             "in": "query",
             "name": "applicationId",
             "schema": {
@@ -25382,6 +25848,8 @@
             }
           },
           {
+            "description": "Defines the location id by which the returned synthetic tests will be filtered by. ",
+            "example": "18WyhtDb5jpVOsjlNdeV",
             "in": "query",
             "name": "locationId",
             "schema": {
@@ -25389,13 +25857,43 @@
             }
           },
           {
+            "description": "Defines the attribute by which the returned synthetic tests will be ordered by. Order using '+' means ASC and '-' means DESC",
+            "example": "+label",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "pattern": " <+|-><attribute name>"
+            }
+          },
+          {
+            "description": "Used in conjunction with limit. Defines how many pages will be skipped before returning the synthetic tests",
+            "example": 1,
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "description": "Defines the size of a page - the number of synthetic tests that will be returned by the query",
+            "example": 10,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "description": "Defines the attributes by which the returned synthetic tests will be filtered by. Multiple filter parameters are allowed. See 'Supported filter attributes and operators' for complete list of supported attributes and operators.",
+            "example": "{label=MyTest}",
             "in": "query",
             "name": "filter",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "type": "string",
+              "pattern": " {<attribute name><operator><attribute value>}"
             }
           }
         ],
@@ -25482,6 +25980,15 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25572,6 +26079,15 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25590,9 +26106,12 @@
     },
     "/api/synthetics/settings/tests/{id}": {
       "delete": {
+        "description": "API request to delete a Synthetic Test.",
         "operationId": "deleteSyntheticTest",
         "parameters": [
           {
+            "description": "Id of the synthetic test to be deleted",
+            "example": "ic25Vt1T5dgKzi0K7812",
             "in": "path",
             "name": "id",
             "required": true,
@@ -25602,11 +26121,23 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {}
             },
-            "description": "default response"
+            "description": "OK"
+          },
+          "204": {
+            "description": "Successful - no content to return."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25622,9 +26153,12 @@
         ]
       },
       "get": {
+        "description": "API request to retrieve a Synthetic Test with matching id.",
         "operationId": "getSyntheticTest",
         "parameters": [
           {
+            "description": "Id of the synthetic test to be retrieved",
+            "example": "EFNRoPd39SgZBkULeQIf",
             "in": "path",
             "name": "id",
             "required": true,
@@ -25677,6 +26211,18 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25695,6 +26241,8 @@
         "operationId": "patchSyntheticTest",
         "parameters": [
           {
+            "description": "Id of the synthetic test to be patched",
+            "example": "ic25Vt1T5dgKzi0K7812",
             "in": "path",
             "name": "id",
             "required": true,
@@ -25726,6 +26274,18 @@
               "application/json": {}
             },
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -25745,6 +26305,8 @@
         "operationId": "updateSyntheticTest",
         "parameters": [
           {
+            "description": "Id of the synthetic test to be updated",
+            "example": "ic25Vt1T5dgKzi0K7812",
             "in": "path",
             "name": "id",
             "required": true,
@@ -25796,6 +26358,18 @@
               "application/json": {}
             },
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         },
         "security": [
@@ -27435,6 +28009,11 @@
             "type": "string",
             "description": "Action name of the action to run."
           },
+          "actionSnapshot": {
+            "type": "string",
+            "description": "Snapshot of the action definition.",
+            "readOnly": true
+          },
           "actorId": {
             "type": "string",
             "description": "User identifier, API token or the policy identifier that started the action run."
@@ -27835,6 +28414,10 @@
             "maxLength": 64,
             "minLength": 0
           },
+          "includeEntityNameInLegacyAlerts": {
+            "type": "boolean",
+            "description": "To include the entity name in a legacy alert based on built-in/custom events."
+          },
           "integrationIds": {
             "type": "array",
             "description": "List of Alert Channel IDs added in this Alert Configuration.",
@@ -27886,6 +28469,10 @@
             "description": "ID of the Alert Configuration.",
             "maxLength": 64,
             "minLength": 0
+          },
+          "includeEntityNameInLegacyAlerts": {
+            "type": "boolean",
+            "description": "To include the entity name in a legacy alert based on built-in/custom events."
           },
           "integrationIds": {
             "type": "array",
@@ -27964,15 +28551,18 @@
           },
           "apdexName": {
             "type": "string",
+            "description": "Name of the Apdex Configuration",
             "maxLength": 256,
             "minLength": 0
           },
           "createdAt": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Created Date of Apdex Configuration"
           },
           "id": {
             "type": "string",
+            "description": "Apdex Configuration ID",
             "maxLength": 64,
             "minLength": 0
           }
@@ -27991,6 +28581,7 @@
           },
           "apdexName": {
             "type": "string",
+            "description": "Name of the Apdex Configuration",
             "maxLength": 256,
             "minLength": 0
           }
@@ -28002,6 +28593,7 @@
       },
       "ApdexEntity": {
         "type": "object",
+        "description": "Entity which holds the information of Apdex Configuration",
         "discriminator": {
           "mapping": {
             "application": "#/components/schemas/ApplicationApdexEntity",
@@ -28035,24 +28627,30 @@
         "type": "object",
         "properties": {
           "apdexId": {
-            "type": "string"
+            "type": "string",
+            "description": "Apdex Configuration ID"
           },
           "apdexScore": {
             "type": "array",
+            "description": "Apdex Score in different timestamps from starting to the ending point",
             "items": {
               "type": "array",
+              "description": "Apdex Score in different timestamps from starting to the ending point",
               "items": {
-                "type": "number"
+                "type": "number",
+                "description": "Apdex Score in different timestamps from starting to the ending point"
               }
             }
           },
           "from": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Starting point for the data retrieval, specified as 13 digit Unix Timestamp milliseconds"
           },
           "to": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Ending point for the data retrieval, specified as 13 digit Unix Timestamp milliseconds"
           }
         }
       },
@@ -28279,6 +28877,9 @@
             "type": "boolean"
           },
           "canConfigureAutomationPolicies": {
+            "type": "boolean"
+          },
+          "canConfigureBizops": {
             "type": "boolean"
           },
           "canConfigureDatabaseManagement": {
@@ -28946,16 +29547,29 @@
             "properties": {
               "boundaryScope": {
                 "type": "string",
+                "description": "Application Boundary Scope, it could be ALL or INBOUND",
                 "enum": [
                   "ALL",
                   "INBOUND"
                 ]
               },
+              "entityId": {
+                "type": "string",
+                "description": "Application ID"
+              },
               "includeInternal": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "A boolean value indicating whether the SLO takes Internal calls into account"
               },
               "includeSynthetic": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "A boolean value indicating whether the SLO takes Synthetic calls into account"
+              },
+              "threshold": {
+                "type": "integer",
+                "format": "int32",
+                "description": "Value of the Apdex Threshold",
+                "minimum": 1
               }
             }
           }
@@ -29080,6 +29694,7 @@
           "page": {
             "type": "integer",
             "format": "int32",
+            "description": "Page Number",
             "minimum": 1
           },
           "pageSize": {
@@ -29185,20 +29800,24 @@
             "type": "object",
             "properties": {
               "applicationId": {
-                "type": "string"
+                "type": "string",
+                "description": "Specifies the ID of the Application that is to be monitored by the SLO"
               },
               "boundaryScope": {
                 "type": "string",
+                "description": "Defines the boundary of calls to be monitored, specifying whether to track all calls or only inbound calls",
                 "enum": [
                   "ALL",
                   "INBOUND"
                 ]
               },
               "endpointId": {
-                "type": "string"
+                "type": "string",
+                "description": "Specifies the ID of the Endpoint to be monitored by the application SLO"
               },
               "serviceId": {
-                "type": "string"
+                "type": "string",
+                "description": "Identifies the service to be monitored by the application SLO"
               }
             }
           }
@@ -29217,26 +29836,32 @@
             "type": "object",
             "properties": {
               "applicationId": {
-                "type": "string"
+                "type": "string",
+                "description": "The ID of the Application"
               },
               "boundaryScope": {
                 "type": "string",
+                "description": "The Boundary Scope of the Application",
                 "enum": [
                   "ALL",
                   "INBOUND"
                 ]
               },
               "endpointId": {
-                "type": "string"
+                "type": "string",
+                "description": "The Endpoint ID of the Application"
               },
               "includeInternal": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "A boolean value indicating whether the SLO takes Internal calls into account"
               },
               "includeSynthetic": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "A boolean value indicating whether the SLO takes Synthetic calls into account"
               },
               "serviceId": {
-                "type": "string"
+                "type": "string",
+                "description": "The Service ID of the Application"
               }
             }
           }
@@ -29354,6 +29979,7 @@
               "threshold": {
                 "type": "number",
                 "format": "double",
+                "description": "Threshold Value for the Blueprint",
                 "exclusiveMinimum": false,
                 "minimum": 0
               }
@@ -29374,13 +30000,15 @@
             "type": "object",
             "properties": {
               "applicationId": {
-                "type": "string"
+                "type": "string",
+                "description": "Specifies the ID of the Application that is to be monitored by the SLO"
               },
               "badEventFilterExpression": {
                 "$ref": "#/components/schemas/TagFilterExpressionElement"
               },
               "badEventFilters": {
                 "type": "array",
+                "description": "Defines the logical expression to filter data and classify events as Bad Events",
                 "items": {
                   "$ref": "#/components/schemas/TagFilter"
                 },
@@ -29389,19 +30017,22 @@
               },
               "boundaryScope": {
                 "type": "string",
+                "description": "Defines the boundary of calls to be monitored, specifying whether to track all calls or only inbound calls",
                 "enum": [
                   "ALL",
                   "INBOUND"
                 ]
               },
               "endpointId": {
-                "type": "string"
+                "type": "string",
+                "description": "Specifies the ID of the Endpoint to be monitored by the availability-based application SLO"
               },
               "goodEventFilterExpression": {
                 "$ref": "#/components/schemas/TagFilterExpressionElement"
               },
               "goodEventFilters": {
                 "type": "array",
+                "description": "Defines the logical expression to filter data and classify events as Good Events",
                 "items": {
                   "$ref": "#/components/schemas/TagFilter"
                 },
@@ -29409,13 +30040,16 @@
                 "minItems": 1
               },
               "includeInternal": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Boolean value indicating whether internal calls should be included in the monitoring process"
               },
               "includeSynthetic": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Boolean value indicating whether synthetic calls should be included in the monitoring process"
               },
               "serviceId": {
-                "type": "string"
+                "type": "string",
+                "description": "Identifies the service to be monitored by the availability-based application SLO"
               }
             }
           }
@@ -30854,6 +31488,7 @@
           "page": {
             "type": "integer",
             "format": "int32",
+            "description": "Page Number",
             "minimum": 1
           },
           "pageSize": {
@@ -31120,6 +31755,7 @@
             "properties": {
               "metric": {
                 "type": "string",
+                "description": "This is the service levels metric type. Error budget alert uses <b>spent</b> or <b>burn rate</b> metric.",
                 "enum": [
                   "BURN_RATE",
                   "BURNED_PERCENTAGE"
@@ -31593,7 +32229,8 @@
             "properties": {
               "startTimestamp": {
                 "type": "string",
-                "format": "date-time"
+                "format": "date-time",
+                "description": "The timestamp at which the fixed time window of the SLO starts"
               }
             }
           }
@@ -32220,6 +32857,7 @@
         "properties": {
           "groups": {
             "type": "array",
+            "description": " Grouping of data under `groupbyTag`, where `groupbyTagEntity` and `groupbyTagSecondLevelKey` are aspects of `groupbyTag`.",
             "items": {
               "$ref": "#/components/schemas/SyntheticMetricTagGroup"
             }
@@ -32230,24 +32868,16 @@
           },
           "metrics": {
             "type": "array",
+            "description": "A list of objects each of which defines a metric and the (statistical) aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize it for the defined time frame. Eg: `[{ 'metric': 'latency', 'aggregation': 'MEAN'}]`. To know more about supported metrics and its aggregation, See `Get Metric catalog`.",
             "items": {
               "$ref": "#/components/schemas/SyntheticMetricConfiguration"
             }
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
           },
           "pagination": {
             "$ref": "#/components/schemas/Pagination"
           },
           "tagFilterExpression": {
             "$ref": "#/components/schemas/TagFilterExpressionElement"
-          },
-          "tagFilters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagFilter"
-            }
           },
           "timeFrame": {
             "$ref": "#/components/schemas/TimeFrame"
@@ -32719,13 +33349,16 @@
             "$ref": "#/components/schemas/Group"
           },
           "includeInternal": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Flag to include Internal Calls. These calls are work done inside a service and correspond to intermediate spans in custom tracing."
           },
           "includeSynthetic": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Flag to include Synthetic Calls. These calls have a synthetic endpoint as their destination, such as calls to health-check endpoints."
           },
           "metrics": {
             "type": "array",
+            "description": "A list of objects each of which defines a metric and the (statistical) aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize it for the defined time frame. Eg: `[{ 'metric': 'latency', 'aggregation': 'MEAN'}]`. To know more about supported metrics and its aggregation, See `Get Metric catalog`.",
             "items": {
               "$ref": "#/components/schemas/MetricConfig"
             },
@@ -34518,6 +35151,9 @@
           "file"
         ]
       },
+      "Json": {
+        "type": "object"
+      },
       "KubernetesPhysicalContext": {
         "type": "object",
         "properties": {
@@ -34553,6 +35189,7 @@
               "threshold": {
                 "type": "number",
                 "format": "double",
+                "description": "Threshold Value for the Blueprint",
                 "exclusiveMinimum": false,
                 "minimum": 0
               }
@@ -35141,6 +35778,13 @@
           "disableEvent": {
             "type": "boolean"
           },
+          "eventIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
           "muteAlerts": {
             "type": "boolean"
           },
@@ -35275,6 +35919,7 @@
       },
       "MetricConfig": {
         "type": "object",
+        "description": "A list of objects each of which defines a metric and the (statistical) aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize it for the defined time frame. Eg: `[{ 'metric': 'latency', 'aggregation': 'MEAN'}]`. To know more about supported metrics and its aggregation, See `Get Metric catalog`.",
         "properties": {
           "aggregation": {
             "type": "string",
@@ -35316,9 +35961,11 @@
       },
       "MetricConfiguration": {
         "type": "object",
+        "description": "Details regarding the metric to be configured, including the metric name, threshold, and aggregation method",
         "properties": {
           "metricAggregation": {
             "type": "string",
+            "description": "Specifies the types of aggregations that can be applied to a series of values.\nFor example, `P25` refers to the 25th percentile. Note that not all aggregation methods are available for every metric.\nFor instance, the `Call count` metric supports only the `SUM` aggregation, whereas the `Error rate` metric only supports the `MEAN` aggregation.\n",
             "enum": [
               "SUM",
               "MEAN",
@@ -35340,11 +35987,13 @@
             ]
           },
           "metricName": {
-            "type": "string"
+            "type": "string",
+            "description": "Defines the name of the metric to be monitored. Examples include `calls` and `latency`"
           },
           "threshold": {
             "type": "number",
             "format": "double",
+            "description": "Specifies the threshold value for the metric being monitored",
             "exclusiveMinimum": true,
             "minimum": 0
           }
@@ -35636,6 +36285,14 @@
           "ownerType": {
             "type": "string",
             "description": "Type of the entity associated with the metric"
+          },
+          "tags": {
+            "type": "array",
+            "description": "Metric tags",
+            "items": {
+              "type": "string",
+              "description": "Metric tags"
+            }
           }
         },
         "required": [
@@ -35693,20 +36350,26 @@
           "customTags": {
             "type": "object",
             "additionalProperties": {
-              "type": "string"
-            }
+              "type": "string",
+              "description": "A map of custom properties composed of the custom property name and its value.  This information will be included if the custom properties were requested or if the query was grouped and the grouping included one or more custom properties."
+            },
+            "description": "A map of custom properties composed of the custom property name and its value.  This information will be included if the custom properties were requested or if the query was grouped and the grouping included one or more custom properties."
           },
           "metrics": {
             "type": "array",
+            "description": "A map of the requested metrics, composed of the metric name and its value.",
             "items": {
               "type": "object",
               "additionalProperties": {
-                "type": "object"
-              }
+                "type": "object",
+                "description": "A map of the requested metrics, composed of the metric name and its value."
+              },
+              "description": "A map of the requested metrics, composed of the metric name and its value."
             }
           },
           "tests": {
             "type": "array",
+            "description": "A description of the Synthetic test associated with the result item.  This information will be included if the request was grouped by synthetic.testId or if includeAggregatedTestId was true on the request.",
             "items": {
               "$ref": "#/components/schemas/MetricsTestResultItem"
             }
@@ -35718,30 +36381,55 @@
       },
       "MetricsTestResultItem": {
         "type": "object",
+        "description": "A description of the Synthetic test associated with the result item.  This information will be included if the request was grouped by synthetic.testId or if includeAggregatedTestId was true on the request.",
         "properties": {
           "applicationId": {
-            "type": "string"
+            "type": "string",
+            "description": "An identifier of an application associated with the Synthetic test.  This field is deprecated and will be replace by the applicationIds field."
           },
           "applicationIds": {
             "type": "array",
+            "description": "A list of the applications associated with the Synthetic test.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "A list of the applications associated with the Synthetic test."
             }
           },
           "locationId": {
             "type": "array",
+            "description": "A list of the locations associated with the Synthetic test.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "A list of the locations associated with the Synthetic test."
+            }
+          },
+          "mobileApplicationIds": {
+            "type": "array",
+            "description": "A list of the mobile applications associated with the Synthetic test.",
+            "items": {
+              "type": "string",
+              "description": "A list of the mobile applications associated with the Synthetic test."
             }
           },
           "serviceId": {
-            "type": "string"
+            "type": "string",
+            "description": "A service associated with the Synthetic test."
           },
           "testId": {
-            "type": "string"
+            "type": "string",
+            "description": "The testId for the Synthetic test."
           },
           "testName": {
-            "type": "string"
+            "type": "string",
+            "description": "The Synthetic test's name."
+          },
+          "websiteIds": {
+            "type": "array",
+            "description": "A list of the websites associated with the Synthetic test.",
+            "items": {
+              "type": "string",
+              "description": "A list of the websites associated with the Synthetic test."
+            }
           }
         },
         "required": [
@@ -36916,6 +37604,7 @@
           "page": {
             "type": "integer",
             "format": "int32",
+            "description": "Page Number",
             "minimum": 1
           },
           "pageSize": {
@@ -37720,6 +38409,7 @@
       },
       "ServiceLevelIndicator": {
         "type": "object",
+        "description": "Indicator of the Service Levels Objective Configuration, it indicates the type of metric by which the SLO should be evaluated",
         "discriminator": {
           "mapping": {
             "availability": "#/components/schemas/AvailabilityBlueprintIndicator",
@@ -37732,6 +38422,7 @@
         "properties": {
           "aggregation": {
             "type": "string",
+            "description": "Aggregation Type for the Threshold Value",
             "enum": [
               "SUM",
               "MEAN",
@@ -37762,10 +38453,12 @@
             ]
           },
           "operator": {
-            "type": "string"
+            "type": "string",
+            "description": "Operator for the Threshold Value"
           },
           "serviceLevelsMeasurement": {
             "type": "string",
+            "description": "Defines Measurement Type of SLO",
             "enum": [
               "eventBased",
               "timeBased",
@@ -37775,7 +38468,8 @@
           },
           "threshold": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "description": "Threshold Value for the Blueprint"
           },
           "type": {
             "type": "string",
@@ -37797,6 +38491,7 @@
             "properties": {
               "metric": {
                 "type": "string",
+                "description": "This is the service levels metric type. Service levels objective alerts using <b>status</b> metric.",
                 "enum": [
                   "STATUS"
                 ]
@@ -37810,13 +38505,15 @@
         "properties": {
           "createdDate": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "Created date of Service Levels Objective Configuration"
           },
           "entity": {
             "$ref": "#/components/schemas/SloEntity"
           },
           "id": {
             "type": "string",
+            "description": "Service Levels Objective Configuration ID",
             "maxLength": 64,
             "minLength": 0
           },
@@ -37825,20 +38522,25 @@
           },
           "lastUpdated": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "Last updated date of Service Levels Objective Configuration"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Name of the Service Levels Objective Configuration"
           },
           "tags": {
             "type": "array",
+            "description": "List of tags associated with Service Levels Objective Configuration",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "List of tags associated with Service Levels Objective Configuration"
             }
           },
           "target": {
             "type": "number",
             "format": "double",
+            "description": "Service Levels Objective Configuration Target",
             "exclusiveMaximum": false,
             "exclusiveMinimum": true,
             "maximum": 0.9999,
@@ -37862,8 +38564,10 @@
         "properties": {
           "alertChannelIds": {
             "type": "array",
+            "description": "This is the list of channel IDs when alert triggered and sent to.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "This is the list of channel IDs when alert triggered and sent to."
             },
             "maxItems": 1024,
             "minItems": 0,
@@ -37874,6 +38578,7 @@
           },
           "customPayloadFields": {
             "type": "array",
+            "description": "This is the custom name and value pairs to be sent along with the alert to the alert channels.",
             "items": {
               "$ref": "#/components/schemas/CustomPayloadField"
             },
@@ -37882,11 +38587,13 @@
           },
           "description": {
             "type": "string",
+            "description": "The description of the alert. It is also the alert message content.",
             "maxLength": 65536,
             "minLength": 0
           },
           "name": {
             "type": "string",
+            "description": "Name of the Service Levels Smart Alerts Configuration.",
             "maxLength": 256,
             "minLength": 0
           },
@@ -37895,12 +38602,15 @@
           },
           "severity": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "This is the severity of the alert. The value can be: <b>5</b>: warning, <b>10</b>: critical."
           },
           "sloIds": {
             "type": "array",
+            "description": "This is the list of SLO configurations related to this alert.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "This is the list of SLO configurations related to this alert."
             },
             "maxItems": 1024,
             "minItems": 0,
@@ -37913,7 +38623,8 @@
             "$ref": "#/components/schemas/ServiceLevelsTimeThreshold"
           },
           "triggering": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Incident flag. If value is true, this alert will become an accident."
           }
         },
         "required": [
@@ -37929,6 +38640,7 @@
       },
       "ServiceLevelsAlertRule": {
         "type": "object",
+        "description": "This is the service levels alert type. It could be error budget alert or service levels object alert.",
         "discriminator": {
           "mapping": {
             "ERROR_BUDGET": "#/components/schemas/ErrorBudgetAlertRule",
@@ -37947,6 +38659,7 @@
       },
       "ServiceLevelsBurnRateTimeWindows": {
         "type": "object",
+        "description": "This is the short and long time window setting for the burn rate alerts.",
         "properties": {
           "longTimeWindow": {
             "$ref": "#/components/schemas/AlertingTimeWindow"
@@ -37958,14 +38671,17 @@
       },
       "ServiceLevelsTimeThreshold": {
         "type": "object",
+        "description": "This is the warm-up and cool-down setting to emit or stop alert event after threshold reached.",
         "properties": {
           "expiry": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "This is the cooldown period when the active alert misses threshold and stop emitting notification."
           },
           "timeWindow": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "This is the grace period when the threshold is reached and the alert becomes active to emit notification."
           }
         }
       },
@@ -37974,8 +38690,10 @@
         "properties": {
           "alertChannelIds": {
             "type": "array",
+            "description": "This is the list of channel IDs when alert triggered and sent to.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "This is the list of channel IDs when alert triggered and sent to."
             },
             "maxItems": 1024,
             "minItems": 0,
@@ -37987,10 +38705,12 @@
           "created": {
             "type": "integer",
             "format": "int64",
+            "description": "Created Date of the version of Service Levels Smart Alerts Configuration.",
             "minimum": 1
           },
           "customPayloadFields": {
             "type": "array",
+            "description": "This is the custom name and value pairs to be sent along with the alert to the alert channels.",
             "items": {
               "$ref": "#/components/schemas/CustomPayloadField"
             },
@@ -37999,41 +38719,50 @@
           },
           "description": {
             "type": "string",
+            "description": "The description of the alert. It is also the alert message content.",
             "maxLength": 65536,
             "minLength": 0
           },
           "enabled": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Boolean Parameter specifying the enabled state of Service Levels Smart Alerts Configuration."
           },
           "id": {
             "type": "string",
+            "description": "Unique ID of the Service Levels Smart Alerts Configuration.",
             "maxLength": 64,
             "minLength": 0
           },
           "initialCreated": {
             "type": "integer",
             "format": "int64",
+            "description": "Created Date of the Initial version of Service Levels Smart Alerts Configuration.",
             "minimum": 1
           },
           "name": {
             "type": "string",
+            "description": "Name of the Service Levels Smart Alerts Configuration.",
             "maxLength": 256,
             "minLength": 0
           },
           "readOnly": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Boolean Parameter specifying the readonly access to Service Levels Smart Alerts Configuration."
           },
           "rule": {
             "$ref": "#/components/schemas/ServiceLevelsAlertRule"
           },
           "severity": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "This is the severity of the alert. The value can be: <b>5</b>: warning, <b>10</b>: critical."
           },
           "sloIds": {
             "type": "array",
+            "description": "This is the list of SLO configurations related to this alert.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "This is the list of SLO configurations related to this alert."
             },
             "maxItems": 1024,
             "minItems": 0,
@@ -38046,7 +38775,8 @@
             "$ref": "#/components/schemas/ServiceLevelsTimeThreshold"
           },
           "triggering": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Incident flag. If value is true, this alert will become an accident."
           }
         },
         "required": [
@@ -38145,6 +38875,7 @@
           "page": {
             "type": "integer",
             "format": "int32",
+            "description": "Page Number",
             "minimum": 1
           },
           "pageSize": {
@@ -38433,12 +39164,14 @@
         "properties": {
           "id": {
             "type": "string",
+            "description": "Unique ID for each SLI",
             "maxLength": 64,
             "minLength": 0
           },
           "initialEvaluationTimestamp": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Initial evaluation timestamp in milliseconds (13-digit)"
           },
           "metricConfiguration": {
             "$ref": "#/components/schemas/MetricConfiguration"
@@ -38448,6 +39181,7 @@
           },
           "sliName": {
             "type": "string",
+            "description": "The name of the Service Level Indicator (SLI) specified during its creation",
             "maxLength": 256,
             "minLength": 0
           }
@@ -38463,16 +39197,19 @@
         "properties": {
           "id": {
             "type": "string",
+            "description": "Unique ID for each SLI",
             "maxLength": 64,
             "minLength": 0
           },
           "initialEvaluationTimestamp": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Initial evaluation timestamp in milliseconds (13-digit)"
           },
           "lastUpdated": {
             "type": "integer",
             "format": "int64",
+            "description": "Last Updated timestamp in milliseconds (13-digit)",
             "minimum": 1
           },
           "metricConfiguration": {
@@ -38483,6 +39220,7 @@
           },
           "sliName": {
             "type": "string",
+            "description": "The name of the Service Level Indicator (SLI) specified during its creation",
             "maxLength": 256,
             "minLength": 0
           }
@@ -38495,6 +39233,7 @@
       },
       "SliEntity": {
         "type": "object",
+        "description": "Entity Type of the SLI Configuration",
         "discriminator": {
           "mapping": {
             "application": "#/components/schemas/ApplicationSliEntity",
@@ -38518,27 +39257,33 @@
         "properties": {
           "errorBudgetRemaining": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "This is the error budget remaining compared to the total error budget"
           },
           "fromTimestamp": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "from timestamp in milliseconds (13-digit)"
           },
           "sli": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "description": "Service Level Indicator: This indicates the actual performance measure of the service"
           },
           "slo": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "description": "Service Level Objective: This is the target value that should be met by the SLI"
           },
           "toTimestamp": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "to timestamp in milliseconds (13-digit)"
           },
           "totalErrorBudget": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "This is the total error budget available"
           },
           "violationDistribution": {
             "type": "object",
@@ -38551,9 +39296,11 @@
       },
       "SloEntity": {
         "type": "object",
+        "description": "Entity of the Service Levels Objective Configuration, it could be either Application nor Website",
         "discriminator": {
           "mapping": {
             "application": "#/components/schemas/ApplicationSloEntity",
+            "synthetic": "#/components/schemas/SyntheticSloEntity",
             "website": "#/components/schemas/WebsiteSloEntity"
           },
           "propertyName": "type"
@@ -38577,68 +39324,86 @@
             "type": "object",
             "additionalProperties": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "description": "Value of accumulated bad minutes/events of SLO configuration in different timestamps from starting to ending point"
+            },
+            "description": "Value of accumulated bad minutes/events of SLO configuration in different timestamps from starting to ending point"
           },
           "errorBudgetRemainChart": {
             "type": "object",
             "additionalProperties": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "description": "Error Budget Remain value of SLO configuration in different timestamps from starting to ending point"
+            },
+            "description": "Error Budget Remain value of SLO configuration in different timestamps from starting to ending point"
           },
           "errorBudgetRemaining": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "Latest Remaining Error Budget value of SLO Configuration"
           },
           "errorBudgetSpent": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "Spent Error Budget of SLO Configuration"
           },
           "errorBurnRate": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "Latest Burn Rate value of SLO Configuration"
           },
           "errorBurnRateChart": {
             "type": "object",
             "additionalProperties": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "description": "Budget Rate value of SLO configuration in different timestamps from starting to ending point"
+            },
+            "description": "Budget Rate value of SLO configuration in different timestamps from starting to ending point"
           },
           "errorChart": {
             "type": "object",
             "additionalProperties": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "description": "Value indicating presence of bad minutes/events of SLO configuration in different timestamps from starting to ending point"
+            },
+            "description": "Value indicating presence of bad minutes/events of SLO configuration in different timestamps from starting to ending point"
           },
           "fromTimestamp": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Starting point of the data retrieval, specified as 13 digit Unix Timestamp milliseconds"
           },
           "sli": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "description": "Latest Status value of SLO Configuration"
           },
           "slo": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "description": "Target status of SLO Configuration"
           },
           "toTimestamp": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Ending point of the data retrieval, specified as 13 digit Unix Timestamp milliseconds"
           },
           "totalErrorBudget": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "Latest Available Error Budget value of SLO Configuration"
           },
           "violationDistribution": {
             "type": "object",
             "additionalProperties": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "description": "Value indicating violation of SLO configuration in different timestamps from starting to ending point"
+            },
+            "description": "Value indicating violation of SLO configuration in different timestamps from starting to ending point"
           }
         }
       },
@@ -39300,6 +40065,7 @@
             }
           }
         ],
+        "description": "This threshold defines a static value to be evaluated with a specific operator.",
         "required": [
           "operator"
         ]
@@ -40019,6 +40785,7 @@
       },
       "SyntheticMetricTagGroup": {
         "type": "object",
+        "description": " Grouping of data under `groupbyTag`, where `groupbyTagEntity` and `groupbyTagSecondLevelKey` are aspects of `groupbyTag`.",
         "properties": {
           "groupbyTag": {
             "type": "string",
@@ -40070,6 +40837,31 @@
         "required": [
           "browserType",
           "syntheticType"
+        ]
+      },
+      "SyntheticSloEntity": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SloEntity"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "syntheticTestIds": {
+                "type": "array",
+                "description": "List of Unique Synthetic Tests IDs ",
+                "items": {
+                  "type": "string",
+                  "description": "List of Unique Synthetic Tests IDs "
+                },
+                "uniqueItems": true
+              }
+            }
+          }
+        ],
+        "required": [
+          "syntheticTestIds"
         ]
       },
       "SyntheticTest": {
@@ -41068,6 +41860,7 @@
           "page": {
             "type": "integer",
             "format": "int32",
+            "description": "Page Number",
             "minimum": 1
           },
           "pageSize": {
@@ -41271,6 +42064,7 @@
       },
       "TimeWindow": {
         "type": "object",
+        "description": "Time Window type of the SLO, it could be Fixed or Rolling",
         "discriminator": {
           "mapping": {
             "fixed": "#/components/schemas/FixedTimeWindow",
@@ -41281,10 +42075,12 @@
         "properties": {
           "duration": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "Duration of the Time Window"
           },
           "durationUnit": {
             "type": "string",
+            "description": "Unit of the Time Window Duration",
             "enum": [
               "millisecond",
               "second",
@@ -41487,20 +42283,26 @@
             "type": "object",
             "additionalProperties": {
               "type": "array",
+              "description": "Grouped metric details like `errors.mean`, `calls.sum`.\nIt is usually a array of key-value pair. Format of key is `metric.aggregation.granularity`, for example: `latency.p75.360`.\nFormat of value is `[earliest timestamp, value of key]`, for example: `[1725602720000, 0.013141001434936938]`.\n",
               "items": {
                 "type": "array",
+                "description": "Grouped metric details like `errors.mean`, `calls.sum`.\nIt is usually a array of key-value pair. Format of key is `metric.aggregation.granularity`, for example: `latency.p75.360`.\nFormat of value is `[earliest timestamp, value of key]`, for example: `[1725602720000, 0.013141001434936938]`.\n",
                 "items": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Grouped metric details like `errors.mean`, `calls.sum`.\nIt is usually a array of key-value pair. Format of key is `metric.aggregation.granularity`, for example: `latency.p75.360`.\nFormat of value is `[earliest timestamp, value of key]`, for example: `[1725602720000, 0.013141001434936938]`.\n"
                 }
               }
-            }
+            },
+            "description": "Grouped metric details like `errors.mean`, `calls.sum`.\nIt is usually a array of key-value pair. Format of key is `metric.aggregation.granularity`, for example: `latency.p75.360`.\nFormat of value is `[earliest timestamp, value of key]`, for example: `[1725602720000, 0.013141001434936938]`.\n"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Name of the group."
           },
           "timestamp": {
             "type": "integer",
             "format": "int64",
+            "description": "Earliest timestamp of the trace from the group",
             "minimum": 0
           }
         },
@@ -41636,6 +42438,7 @@
               "threshold": {
                 "type": "number",
                 "format": "double",
+                "description": "Threshold Value for the Blueprint",
                 "exclusiveMinimum": false,
                 "minimum": 0
               },
@@ -42030,6 +42833,10 @@
             "description": "ID of the Alert Configuration.",
             "maxLength": 64,
             "minLength": 0
+          },
+          "includeEntityNameInLegacyAlerts": {
+            "type": "boolean",
+            "description": "To include the entity name in a legacy alert based on built-in/custom events."
           },
           "integrationIds": {
             "type": "array",
@@ -42783,6 +43590,7 @@
             "properties": {
               "beaconType": {
                 "type": "string",
+                "description": "Website Beacon Type",
                 "enum": [
                   "pageLoad",
                   "resourceLoad",
@@ -42791,6 +43599,16 @@
                   "custom",
                   "pageChange"
                 ]
+              },
+              "entityId": {
+                "type": "string",
+                "description": "Website ID"
+              },
+              "threshold": {
+                "type": "integer",
+                "format": "int32",
+                "description": "Value of the Apdex Threshold",
+                "minimum": 1
               }
             }
           }
@@ -42975,6 +43793,7 @@
               },
               "beaconType": {
                 "type": "string",
+                "description": "Enum value to specify the type of beacons to be monitored",
                 "enum": [
                   "pageLoad",
                   "resourceLoad",
@@ -42988,7 +43807,8 @@
                 "$ref": "#/components/schemas/TagFilterExpressionElement"
               },
               "websiteId": {
-                "type": "string"
+                "type": "string",
+                "description": "Specifies the ID of the Website"
               }
             }
           }
@@ -43604,6 +44424,7 @@
             "properties": {
               "beaconType": {
                 "type": "string",
+                "description": "Type of Website Beacon to be considered for the SLO",
                 "enum": [
                   "pageLoad",
                   "resourceLoad",
@@ -43614,7 +44435,8 @@
                 ]
               },
               "websiteId": {
-                "type": "string"
+                "type": "string",
+                "description": "The ID of the Website"
               }
             }
           }
@@ -43635,6 +44457,7 @@
             "properties": {
               "beaconType": {
                 "type": "string",
+                "description": "Enum value to specify the type of beacons to be monitored",
                 "enum": [
                   "pageLoad",
                   "resourceLoad",
@@ -43648,7 +44471,8 @@
                 "$ref": "#/components/schemas/TagFilterExpressionElement"
               },
               "websiteId": {
-                "type": "string"
+                "type": "string",
+                "description": "Specifies the ID of the Website"
               }
             }
           }
@@ -43951,6 +44775,7 @@
       "name": "Synthetic Monitoring",
       "tags": [
         "Synthetic Catalog",
+        "Synthetic Metrics",
         "Synthetic Settings",
         "Synthetic Test Playback Results",
         "Synthetic Alert Configuration"
