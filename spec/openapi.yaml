@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.285.1341
+  version: 1.286.252
   x-description: info
   x-logo:
     altText: instana logo
@@ -103,6 +103,8 @@ tags:
   x-description: tagUsage
 - name: Synthetic Catalog
   x-description: tagSyntheticCatalog
+- name: Synthetic Metrics
+  x-description: tagSyntheticMetrics
 - name: Synthetic Settings
   x-description: tagSyntheticSettings
 - name: Synthetic Test Playback Results
@@ -121,14 +123,15 @@ paths:
       description: Generate Apdex Report for a specified Apdex ID.
       operationId: getApdexReport
       parameters:
-      - description: apdexId
+      - description: Apdex Configuration ID
         example: nCtEoR6NSPqG61QkIkwwCw
         in: path
         name: apdexId
         required: true
         schema:
           type: string
-      - description: Unix Timestamp milliseconds (13-digit)
+      - description: "Starting point for the data retrieval, specified as 13 digit\
+          \ Unix Timestamp milliseconds"
         example: 1706713140000
         in: query
         name: from
@@ -136,7 +139,8 @@ paths:
         schema:
           type: integer
           format: int64
-      - description: Unix Timestamp milliseconds (13-digit)
+      - description: "Ending point for the data retrieval, specified as 13 digit Unix\
+          \ Timestamp milliseconds"
         example: 1706813100000
         in: query
         name: to
@@ -162,6 +166,17 @@ paths:
                 items:
                   $ref: "#/components/schemas/ApdexReport"
           description: OK
+        "404":
+          content:
+            application/json:
+              example:
+                errors:
+                - There is no Apdex configuration for the given ID.
+              schema:
+                type: array
+                items:
+                  type: string
+          description: No Apdex configuration for the given ID
       security:
       - ApiKeyAuth: []
       summary: Generate Apdex report
@@ -205,7 +220,9 @@ paths:
     post:
       operationId: getCallGroup
       parameters:
-      - in: query
+      - description: "If enabled, fill the missing data points in the metric result\
+          \ with timestamp and value 0."
+        in: query
         name: fillTimeSeries
         schema:
           type: boolean
@@ -284,55 +301,45 @@ paths:
       x-description: getCallGroup
   /api/application-monitoring/analyze/trace-groups:
     post:
+      description: "In this endpoint, the supported `groupbyTag` are `trace.endpoint.name`\
+        \ and `trace.service.name`. "
       operationId: getTraceGroups
       parameters:
-      - in: query
+      - description: "If enabled, fill the missing data points in the metric result\
+          \ with timestamp and value 0."
+        in: query
         name: fillTimeSeries
         schema:
           type: boolean
       requestBody:
         content:
           application/json:
-            example: |
-              {
-                   "group": {
-                       "groupbyTag": "trace.endpoint.name",
-                       "groupbyTagEntity": "NOT_APPLICABLE"
-                   },
-                   "metrics": [
-                       {
-                           "aggregation": "SUM",
-                           "metric": "latency"
-                       }
-                   ],
-                   "order": {
-                       "by": "latency",
-                       "direction": "ASC"
-                   },
-                   "pagination": {
-                        "retrievalSize": 20
-                   }
-                   "tagFilterExpression": {
-                        "type": "EXPRESSION",
-                        "logicalOperator": "AND",
-                        "elements": [
-                            {
-                                "type": "TAG_FILTER",
-                                "name": "call.type",
-                                "operator": "EQUALS",
-                                "entity": "NOT_APPLICABLE",
-                                "value": "DATABASE"
-                            },
-                            {
-                                "type": "TAG_FILTER",
-                                "name": "service.name",
-                                "operator": "EQUALS",
-                                "entity": "DESTINATION",
-                                "value": "ratings"
-                            }
-                        ]
-                    },
-               }
+            example:
+              group:
+                groupbyTag: trace.endpoint.name
+                groupbyTagEntity: NOT_APPLICABLE
+              metrics:
+              - aggregation: SUM
+                metric: latency
+              order:
+                by: latency
+                direction: ASC
+              pagination:
+                retrievalSize: 20
+              tagFilterExpression:
+                type: EXPRESSION
+                logicalOperator: AND
+                elements:
+                - type: TAG_FILTER
+                  name: call.type
+                  operator: EQUALS
+                  entity: NOT_APPLICABLE
+                  value: DATABASE
+                - type: TAG_FILTER
+                  name: service.name
+                  operator: EQUALS
+                  entity: DESTINATION
+                  value: ratings
             schema:
               $ref: "#/components/schemas/GetTraceGroups"
         x-payload: getTraceGroups
@@ -2673,7 +2680,7 @@ paths:
                 type: TAG_FILTER
                 name: service.name
                 operator: EQUALS
-                entity: NOT_APPLICABLE
+                entity: DESTINATION
                 value: warehouse
               timeFrame:
                 to: 1669190589000
@@ -3483,6 +3490,8 @@ paths:
           description: Automation policies list filtered by the values in query parameters.
         "403":
           description: Insufficient permissions.
+        "422":
+          description: Invalid input value.
         "500":
           description: Failed to retrieve the automation policies.
       security:
@@ -3564,10 +3573,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Policy"
           description: New policy created.
-        "400":
-          description: Invalid request body
         "403":
           description: Insufficient permissions.
+        "422":
+          description: Invalid input value.
+        "500":
+          description: Server Error.
       security:
       - ApiKeyAuth:
         - canConfigureAutomationPolicies
@@ -3596,10 +3607,12 @@ paths:
                 items:
                   $ref: "#/components/schemas/Policy"
           description: OK
-        "400":
-          description: Invalid request body
         "403":
           description: Insufficient permissions.
+        "422":
+          description: Invalid input value.
+        "500":
+          description: Server Error.
       security:
       - ApiKeyAuth:
         - canConfigureAutomationPolicies
@@ -3624,10 +3637,10 @@ paths:
       responses:
         "204":
           description: Automation policy successfully deleted
-        "400":
-          description: Automation policy does not exist
         "403":
           description: Insufficient permissions.
+        "422":
+          description: Automation policy does not exist
       security:
       - ApiKeyAuth:
         - canConfigureAutomationPolicies
@@ -3787,10 +3800,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Policy"
           description: Automation policy successfully updated.
-        "400":
-          description: Invalid request body.
         "403":
           description: Insufficient permissions.
+        "422":
+          description: Invalid input value.
+        "500":
+          description: Server Error.
       security:
       - ApiKeyAuth:
         - canConfigureAutomationPolicies
@@ -7524,7 +7539,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
-          description: OK
+          description: Fetched list of the Service Level Alert Configurations Successfully
       security:
       - ApiKeyAuth:
         - Default
@@ -7597,7 +7612,7 @@ paths:
                 enabled: true
               schema:
                 $ref: "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
-          description: OK
+          description: Created new Service Levels Alert Configuration Successfully
         "400":
           content:
             application/json:
@@ -7607,7 +7622,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                  type: string
           description: Service levels Alert Config with Website SLOs do not support
             triggering
       security:
@@ -7629,10 +7644,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "204":
+          description: Service Levels Alert Configuration Deleted Successfully
+        "404":
           content:
-            application/json: {}
-          description: default response
+            application/json:
+              example: "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not\
+                \ found\"]}"
+              schema:
+                type: string
+          description: Service levels Alert Config with given ID not found
       security:
       - ApiKeyAuth:
         - CanConfigureServiceLevelsAlerts
@@ -7692,15 +7713,14 @@ paths:
                 enabled: true
               schema:
                 $ref: "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
-          description: OK
+          description: Fetched Service Level Alert Configuration Successfully
         "404":
           content:
             application/json:
-              example:
-                errors:
-                - "Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found"
+              example: "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not\
+                \ found\"]}"
               schema:
-                $ref: "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                type: string
           description: Service levels Alert Config with given ID not found
       security:
       - ApiKeyAuth:
@@ -7782,9 +7802,9 @@ paths:
                 enabled: true
               schema:
                 $ref: "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
-          description: Service levels Smart Alert successfully updated
+          description: Updated Service Levels Alert Configuration Successfully
         "204":
-          description: Service levels Smart Alert did not change
+          description: Service Levels Smart Alert Configuration did not change
         "400":
           content:
             application/json:
@@ -7794,7 +7814,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                  type: string
           description: Service levels Alert Config with Website SLOs do not support
             triggering
       security:
@@ -7822,10 +7842,16 @@ paths:
               type: string
               nullable: true
       responses:
-        default:
+        "204":
+          description: Service Levels Alert Configuration Disabled Successfully
+        "404":
           content:
-            application/json: {}
-          description: default response
+            application/json:
+              example: "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not\
+                \ found\"]}"
+              schema:
+                type: string
+          description: Service levels Alert Config with given ID not found
       security:
       - ApiKeyAuth:
         - CanConfigureServiceLevelsAlerts
@@ -7850,10 +7876,16 @@ paths:
               type: string
               nullable: true
       responses:
-        default:
+        "204":
+          description: Service Levels Alert Configuration Enabled Successfully
+        "404":
           content:
-            application/json: {}
-          description: default response
+            application/json:
+              example: "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not\
+                \ found\"]}"
+              schema:
+                type: string
+          description: Service levels Alert Config with given ID not found
       security:
       - ApiKeyAuth:
         - CanConfigureServiceLevelsAlerts
@@ -7886,10 +7918,16 @@ paths:
               type: string
               nullable: true
       responses:
-        default:
+        "204":
+          description: Service Levels Alert Configuration Restored Successfully
+        "404":
           content:
-            application/json: {}
-          description: default response
+            application/json:
+              example: "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not\
+                \ found\"]}"
+              schema:
+                type: string
+          description: Service levels Alert Config with given ID not found
       security:
       - ApiKeyAuth:
         - CanConfigureServiceLevelsAlerts
@@ -7939,15 +7977,15 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ConfigVersion"
-          description: OK
+          description: Fetched list of Service Level Alert Configuration Versions
+            Successfully
         "404":
           content:
             application/json:
-              example:
-                errors:
-                - "Config with id: -DZZjflTQTmZ7yGvBilPlQ is not found"
+              example: "{\"errors\":[\"Config with id: -DZZjflTQTmZ7yGvBilPlQ is not\
+                \ found\"]}"
               schema:
-                $ref: "#/components/schemas/ServiceLevelseAlertConfigWithMetadata"
+                type: string
           description: Service levels Alert Config with given ID not found
       security:
       - ApiKeyAuth:
@@ -9019,6 +9057,28 @@ paths:
       summary: Get versions of Infra Alert Config
       tags:
       - Infrastructure Alert Configuration
+  /api/events/settings/manual-close:
+    post:
+      description: Manually close a set of events. A close notification will be sent
+        out and the event state will be updated accordingly for each event
+      operationId: multiCloseEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManualCloseInfo"
+        required: true
+      responses:
+        "200":
+          description: The multi close operation was successful
+        "207":
+          description: Atleast one of the manual close operations failed
+      security:
+      - ApiKeyAuth:
+        - CanManuallyCloseIssue
+      summary: Manually closing multiple events
+      tags:
+      - Event Settings
   /api/events/settings/manual-close/{eventId}:
     post:
       description: Manually close an event (issue or incident). A close notification
@@ -12612,6 +12672,17 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+            - apdexName: Apdex Configuration One
+              apdexEntity:
+                apdexType: website
+                entityId: XIZGGVT1TX2O-0OFeT2Yig
+                threshold: 400
+                tagFilterExpression:
+                  type: EXPRESSION
+                  logicalOperator: AND
+                  elements: []
+                beaconType: httpRequest
             schema:
               $ref: "#/components/schemas/ApdexConfigurationInput"
         required: true
@@ -12634,7 +12705,8 @@ paths:
         entity id.
       operationId: getApdexConfigurationsForEntityTypeAndId
       parameters:
-      - description: entityType
+      - description: "Type of the Apdex Configuration, it could be APPLICATION or\
+          \ WEBSITE"
         example: APPLICATION
         in: path
         name: entityType
@@ -12644,7 +12716,7 @@ paths:
           enum:
           - APPLICATION
           - WEBSITE
-      - description: entityId
+      - description: Application or Website ID
         example: XIZGGVT1TX2O-0OFeT2Yig
         in: path
         name: entityId
@@ -12658,7 +12730,7 @@ paths:
               example:
               - id: u2MBXtasQoy3reni5-QZgg
                 createdAt: 1657743333352
-                apdexName: "{string}"
+                apdexName: Apdex Configuration One
                 apdexEntity:
                   apdexType: website
                   entityId: XIZGGVT1TX2O-0OFeT2Yig
@@ -12670,7 +12742,7 @@ paths:
                   beaconType: httpRequest
               - id: ShIqRJgpTT69HZHbfQKRGg
                 createdAt: 1693482558276
-                apdexName: "{string}"
+                apdexName: Apdex Configuration Two
                 apdexEntity:
                   apdexType: website
                   entityId: XIZGGVT1TX2O-0OFeT2Yig
@@ -12694,7 +12766,9 @@ paths:
     delete:
       operationId: deleteApdexConfiguration
       parameters:
-      - in: path
+      - description: Apdex Configuration ID
+        example: NCAoNKqySWSK1U5GkmyZgQ
+        in: path
         name: id
         required: true
         schema:
@@ -12713,7 +12787,7 @@ paths:
       description: API to Get Apdex Configuration for specified ID.
       operationId: getApdexConfiguration
       parameters:
-      - description: id
+      - description: Apdex Configuration ID
         example: NCAoNKqySWSK1U5GkmyZgQ
         in: path
         name: id
@@ -12740,6 +12814,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApdexConfiguration"
           description: OK
+        "404":
+          content:
+            application/json:
+              example: "{\"errors\":[\"Apdex Configuration not found\"]}"
+              schema:
+                type: string
+          description: Apdex Configuration not found
       security:
       - ApiKeyAuth: []
       summary: Get Apdex Configuration
@@ -14518,53 +14599,76 @@ paths:
         schema:
           type: integer
           format: int32
+          description: Size of the Page
+          example: 1
       - in: query
         name: page
         schema:
           type: integer
           format: int32
+          description: Page Number
+          example: 1
       - in: query
         name: query
         schema:
           type: string
+          description: Keyword or Query which needs to be searched
+          example: test SLO
       - in: query
         name: tag
         schema:
           type: array
+          description: List of tags which needs to be searched
+          example: Testing
           items:
             type: string
+            description: List of tags which needs to be searched
+            example: Testing
           uniqueItems: true
       - in: query
         name: entityType
         schema:
           type: string
+          description: SLO Entity Type which needs to be filtered
           enum:
           - application
           - website
+          - synthetic
+          example: application
       - in: query
         name: orderBy
         schema:
           type: string
+          description: Order By Value
           enum:
           - name
           - entityType
+          example: name
       - in: query
         name: orderDirection
         schema:
           type: string
+          description: "Order Direction of the Result, it could be ascending or descending"
           enum:
           - ASC
           - DESC
+          example: ASC
       - in: query
         name: sloIds
         schema:
           type: array
+          description: List of SLO IDs for which details need to be fetched
+          example: SLOdCTspkHlS_OzNOATQWgsuw
           items:
             type: string
+            description: List of SLO IDs for which details need to be fetched
+            example: SLOdCTspkHlS_OzNOATQWgsuw
       - in: query
         name: refresh
         schema:
           type: boolean
+          description: Boolean operator which specifies if the cache needs to be refreshed
+          example: false
       responses:
         "200":
           content:
@@ -14630,7 +14734,7 @@ paths:
                 totalHits: 2
               schema:
                 $ref: "#/components/schemas/PaginatedResult"
-          description: List of the Service levels configurations
+          description: Fetched list of the SLO Configurations Successfully
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -14702,7 +14806,14 @@ paths:
                 - testing
               schema:
                 $ref: "#/components/schemas/ServiceLevelObjectiveConfiguration"
-          description: Persisted SLO setting
+          description: New SLO Configuration Created Successfully
+        "400":
+          content:
+            application/json:
+              example: "{\"errors\":[\"Unknown tag filter: call.error\"]}"
+              schema:
+                type: string
+          description: Invalid Tag Filter
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -14718,20 +14829,29 @@ paths:
         name: query
         schema:
           type: string
+          description: Keyword or Query which needs to be searched
+          example: test SLO
       - in: query
         name: tag
         schema:
           type: array
+          description: List of tags which needs to be searched
+          example: Testing
           items:
             type: string
+            description: List of tags which needs to be searched
+            example: Testing
           uniqueItems: true
       - in: query
         name: entityType
         schema:
           type: string
+          description: SLO Entity Type which needs to be filtered
           enum:
           - application
           - website
+          - synthetic
+          example: application
       responses:
         "200":
           content:
@@ -14759,7 +14879,7 @@ paths:
                 type: array
                 items:
                   type: string
-          description: List of SLO setting tags
+          description: Fetched list of SLO Configuration tags Successfully
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -14775,18 +14895,11 @@ paths:
         required: true
         schema:
           type: string
+          description: Service Levels Objective Configuration ID
+          example: SLOdCTspkHlS_OzNOATQWgsuw
       responses:
-        "200":
-          description: Specified SLO seeting is deleted.
-        "404":
-          content:
-            application/json:
-              example:
-                errors:
-                - The sloConfiguration you are looking for does not exist.
-              schema:
-                type: string
-          description: SLO setting is not found
+        "204":
+          description: SLO Configuration Deleted Successfully
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -14801,10 +14914,14 @@ paths:
         required: true
         schema:
           type: string
+          description: Service Levels Objective Configuration ID
+          example: SLOdCTspkHlS_OzNOATQWgsuw
       - in: query
         name: refresh
         schema:
           type: boolean
+          description: Boolean operator which specifies if the cache needs to be refreshed
+          example: false
       responses:
         "200":
           content:
@@ -14838,7 +14955,7 @@ paths:
                 - testing
               schema:
                 $ref: "#/components/schemas/ServiceLevelObjectiveConfiguration"
-          description: Persisted SLO setting
+          description: Fetched SLO Configuration Successfully
         "404":
           content:
             application/json:
@@ -14847,7 +14964,7 @@ paths:
                 - The sloConfiguration you are looking for does not exist.
               schema:
                 type: string
-          description: SLO setting is not found
+          description: SLO Configuration Not Found
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -14862,6 +14979,8 @@ paths:
         required: true
         schema:
           type: string
+          description: Service Levels Objective Configuration ID
+          example: SLOdCTspkHlS_OzNOATQWgsuw
       requestBody:
         content:
           application/json:
@@ -14925,7 +15044,7 @@ paths:
                 - testing
               schema:
                 $ref: "#/components/schemas/ServiceLevelObjectiveConfiguration"
-          description: Persisted SLO setting
+          description: Updated SLO Configuration Successfully
         "404":
           content:
             application/json:
@@ -14934,7 +15053,7 @@ paths:
                 - The sloConfiguration you are looking for does not exist.
               schema:
                 type: string
-          description: SLO setting is not found
+          description: SLO Configuration Not Found
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -15522,7 +15641,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SliConfigurationWithLastUpdated"
-          description: OK
+          description: New SLI Configuration Created Successfully
+        "400":
+          content:
+            application/json:
+              example: "{\"errors\":[\"Unknown tag filter: call.eron\"]}"
+              schema:
+                type: string
+          description: Bad Request
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -15534,7 +15660,8 @@ paths:
     get:
       operationId: getSliConfigsForEntityTypeAndIdV2
       parameters:
-      - in: path
+      - description: "Type of the Entity, whether it is an application or website"
+        in: path
         name: entityType
         required: true
         schema:
@@ -15542,7 +15669,9 @@ paths:
           enum:
           - APPLICATION
           - WEBSITE
-      - in: path
+      - description: Unique ID of the Entity
+        example: DkPX-x9VQuKBKopuilrkYw
+        in: path
         name: entityId
         required: true
         schema:
@@ -15581,16 +15710,16 @@ paths:
     delete:
       operationId: deleteSliConfigV2
       parameters:
-      - in: path
+      - description: ID of the Service Level Indicator (SLI)
+        example: HXcNRWhDSWiZs3HiUAKr7g
+        in: path
         name: id
         required: true
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "204":
+          description: SLI Configuration Deleted Successfully
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -15600,7 +15729,9 @@ paths:
     get:
       operationId: getSliConfigV2
       parameters:
-      - in: path
+      - description: ID of the Service Level Indicator (SLI)
+        example: HXcNRWhDSWiZs3HiUAKr7g
+        in: path
         name: id
         required: true
         schema:
@@ -15627,6 +15758,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/SliConfigurationWithLastUpdated"
           description: OK
+        "404":
+          content:
+            application/json:
+              example:
+                errors:
+                - The SLI Configuration you are looking for does not exist.
+              schema:
+                type: string
+          description: SLI Configuration Not Found
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -15637,14 +15777,14 @@ paths:
     get:
       operationId: getSli
       parameters:
-      - description: sliId
+      - description: ID of the Service Level Indicator (SLI)
         example: nCtEoR6NSPqG61QkIkwwCw
         in: path
         name: sliId
         required: true
         schema:
           type: string
-      - description: slo target
+      - description: Target SLO
         example: 0.99
         in: query
         name: slo
@@ -15652,7 +15792,7 @@ paths:
         schema:
           type: number
           format: double
-      - description: Timestamp milliseconds (13-digit)
+      - description: From Timestamp in milliseconds (13-digit)
         example: 1706713140000
         in: query
         name: from
@@ -15660,7 +15800,7 @@ paths:
         schema:
           type: integer
           format: int64
-      - description: Timestamp milliseconds (13-digit)
+      - description: To Timestamp in milliseconds (13-digit)
         example: 1706713140000
         in: query
         name: to
@@ -15697,16 +15837,24 @@ paths:
     get:
       operationId: getSlo
       parameters:
-      - in: path
+      - description: Service Levels Objective(SLO) Configuration ID
+        example: SLOEANnWh9tQOa2h88kGxK6wQ
+        in: path
         name: sloId
         required: true
         schema:
           type: string
-      - in: query
+      - description: "Starting point for the data retrieval, specified as 13 digit\
+          \ Unix Timestamp milliseconds"
+        example: 1706713140000
+        in: query
         name: from
         schema:
           type: string
-      - in: query
+      - description: "Ending point for the data retrieval, specified as 13 digit Unix\
+          \ Timestamp milliseconds"
+        example: 1706813100000
+        in: query
         name: to
         schema:
           type: string
@@ -16402,7 +16550,20 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SloReport"
-          description: Service Level report
+          description: Fetched SLO Configuration Report Successfully
+        "404":
+          content:
+            application/json:
+              example:
+                errors:
+                - There is no SLO configuration for the given ID or the report hasn't
+                  been generated yet.
+              schema:
+                type: array
+                items:
+                  type: string
+          description: There is no SLO configuration for the given ID or the report
+            hasn't been generated yet.
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -16592,6 +16753,7 @@ paths:
       x-description: getSyntheticTagCatalog
   /api/synthetics/metrics:
     post:
+      description: API request to retrieve Synthetic Metrics.
       operationId: getMetricsResult
       requestBody:
         content:
@@ -16605,7 +16767,7 @@ paths:
                 aggregation: SUM
               timeFrame:
                 to: 0
-                windowSize: 144000000
+                windowSize: 3600000
               groups:
               - groupbyTag: synthetic.applicationId
               - groupbyTag: synthetic.tags
@@ -16660,10 +16822,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/MetricsResult"
           description: OK
+        "400":
+          description: Bad request.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - Default
-      summary: Get Synthetic metrics
+      summary: Get Synthetic Metrics
       tags:
       - Synthetic Metrics
   /api/synthetics/results:
@@ -17221,6 +17389,7 @@ paths:
       - Synthetic Test Playback Results
   /api/synthetics/settings/credentials:
     get:
+      description: API request to retrieve the names of all Synthetic Credentials.
       operationId: getSyntheticCredentialNames
       responses:
         "200":
@@ -17246,6 +17415,14 @@ paths:
                 items:
                   type: string
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canUseSyntheticCredentials
@@ -17254,6 +17431,7 @@ paths:
       tags:
       - Synthetic Settings
     post:
+      description: API request to create Synthetic Credentials.
       operationId: createSyntheticCredential
       requestBody:
         content:
@@ -17269,6 +17447,12 @@ paths:
           content:
             application/json: {}
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticCredentials
@@ -17278,6 +17462,7 @@ paths:
       x-payload: createSyntheticCredential
   /api/synthetics/settings/credentials/associations:
     get:
+      description: API request to retrieve all Synthetic Credentials.
       operationId: getSyntheticCredentialAssociations
       responses:
         "200":
@@ -17299,6 +17484,14 @@ paths:
                 items:
                   $ref: "#/components/schemas/SyntheticCredential"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canUseSyntheticCredentials
@@ -17308,9 +17501,12 @@ paths:
       - Synthetic Settings
   /api/synthetics/settings/credentials/associations/{name}:
     get:
+      description: API request to retrieve a Synthetic Credential with matching name.
       operationId: getOneSyntheticCredentialAssociations
       parameters:
-      - in: path
+      - description: Name of the credential to be retrieved
+        example: password4test
+        in: path
         name: name
         required: true
         schema:
@@ -17320,7 +17516,7 @@ paths:
           content:
             application/json:
               example:
-                credentialName: password4
+                credentialName: password4test
                 applications:
                 - f4KX5zd8RW2pERKKFUCZgQ
                 applicationLabels:
@@ -17330,6 +17526,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/SyntheticCredential"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canUseSyntheticCredentials
@@ -17339,18 +17543,29 @@ paths:
       - Synthetic Settings
   /api/synthetics/settings/credentials/{name}:
     delete:
+      description: API request to delete a Synthetic Credential.
       operationId: deleteSyntheticCredential
       parameters:
-      - in: path
+      - description: Name of the credential to be deleted
+        example: password4test
+        in: path
         name: name
         required: true
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json: {}
-          description: default response
+          description: OK
+        "204":
+          description: Successful - no content to return.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticCredentials
@@ -17358,9 +17573,12 @@ paths:
       tags:
       - Synthetic Settings
     patch:
+      description: API request to patch attributes of a Synthetic Credential.
       operationId: patchSyntheticCredential
       parameters:
-      - in: path
+      - description: Name of the credential to be patched
+        example: password4test
+        in: path
         name: name
         required: true
         schema:
@@ -17369,7 +17587,7 @@ paths:
         content:
           application/json:
             example:
-              credentialValue: newPassword
+              credentialValue: password4test
               applications:
               - f4KX5zd8RW2pERKKFUCZgQ
             schema:
@@ -17380,6 +17598,12 @@ paths:
           content:
             application/json: {}
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canUseSyntheticCredentials
@@ -17389,9 +17613,12 @@ paths:
       - Synthetic Settings
       x-description: patchSyntheticCredential
     put:
+      description: API request to update Synthetic Credentials.
       operationId: updateSyntheticCredential
       parameters:
-      - in: path
+      - description: Name of the credential to be updated
+        example: password4db2
+        in: path
         name: name
         required: true
         schema:
@@ -17400,7 +17627,7 @@ paths:
         content:
           application/json:
             example:
-              credentialName: userPassword
+              credentialName: password4db2
               credentialValue: "123456"
               applications:
               - f4KX5zd8RW2pERKKFUCZgQ
@@ -17412,6 +17639,12 @@ paths:
           content:
             application/json: {}
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticCredentials
@@ -17421,16 +17654,52 @@ paths:
       x-payload: updateSyntheticCredential
   /api/synthetics/settings/datacenters:
     get:
+      description: API request to retrieve all Synthetic Datacenters.
       operationId: getSyntheticDatacenters
       responses:
         "200":
           content:
             application/json:
+              example:
+              - code: us-east-1
+                label: us-east-1(NVirginia)
+                provider: aws
+                countryName: USA
+                cityName: NVirginia
+                latitude: 37.22
+                longitude: -81.44
+                status: Active
+                modifiedAt: 1728096600396
+                configuration:
+                  ipAddress:
+                  - 34.226.13.189
+                locationLabel: instana-test-aws-us-east-1-NVirginia
+                datacenterId: aws-us-east-1-NVirginia
+              - code: eu-central-1
+                label: eu-central-1(Frankfurt)
+                provider: aws
+                countryName: DEU
+                cityName: Frankfurt
+                latitude: 50.11
+                longitude: 8.68
+                status: Active
+                modifiedAt: 1710241599981
+                configuration:
+                  ipAddress:
+                  - 3.122.151.177
+                locationLabel: instana-test-aws-eu-central-1-Frankfurt
+                datacenterId: aws-eu-central-1-Frankfurt
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/SyntheticDatacenter"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticLocations
@@ -17439,9 +17708,12 @@ paths:
       - Synthetic Settings
   /api/synthetics/settings/datacenters/{datacenterId}:
     get:
+      description: API request to retrieve a Synthetic Datacenter with matching id.
       operationId: getSyntheticDatacenter
       parameters:
-      - in: path
+      - description: Id of the datacenter to be retrieved
+        example: aws-us-east-1-NVirginia
+        in: path
         name: datacenterId
         required: true
         schema:
@@ -17450,9 +17722,32 @@ paths:
         "200":
           content:
             application/json:
+              example:
+                code: us-east-1
+                label: us-east-1(NVirginia)
+                provider: aws
+                countryName: USA
+                cityName: NVirginia
+                latitude: 37.22
+                longitude: -81.44
+                status: Active
+                modifiedAt: 1728096600396
+                configuration:
+                  ipAddress:
+                  - 34.226.13.189
+                locationLabel: instana-test-aws-us-east-1-NVirginia
+                datacenterId: aws-us-east-1-NVirginia
               schema:
                 $ref: "#/components/schemas/SyntheticDatacenter"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticLocations
@@ -17461,26 +17756,43 @@ paths:
       - Synthetic Settings
   /api/synthetics/settings/locations:
     get:
+      description: API request to retrieve Synthetic Locations.
       operationId: getSyntheticLocations
       parameters:
-      - in: query
+      - description: Defines the attribute by which the returned synthetic locations
+          will be ordered by. Order using '+' means ASC and '-' means DESC
+        example: +label
+        in: query
         name: sort
         schema:
           type: string
-      - in: query
+          pattern: ' <+|-><attribute name>'
+      - description: Used in conjunction with limit. Defines how many pages will be
+          skipped before returning the synthetic locations
+        example: 1
+        in: query
         name: offset
         schema:
-          type: string
-      - in: query
+          type: integer
+          format: int64
+      - description: Defines the size of a page - the number of synthetic locations
+          that will be returned by the query
+        example: 10
+        in: query
         name: limit
         schema:
-          type: string
-      - in: query
+          type: integer
+          format: int64
+      - description: Defines the attributes by which the returned synthetic locations
+          will be filtered by. Multiple filter parameters are allowed. See 'Supported
+          filter attributes and operators' for complete list of supported attributes
+          and operators.
+        example: "{locationType=Managed}"
+        in: query
         name: filter
         schema:
-          type: array
-          items:
-            type: string
+          type: string
+          pattern: " {<attribute name><operator><attribute value>}"
       responses:
         "200":
           content:
@@ -17547,6 +17859,10 @@ paths:
                 items:
                   $ref: "#/components/schemas/SyntheticLocation"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canViewSyntheticLocations
@@ -17556,18 +17872,23 @@ paths:
       x-description: getSyntheticLocations
   /api/synthetics/settings/locations/{id}:
     delete:
+      description: API request to delete a Synthetic Location with matching id.
       operationId: deleteSyntheticLocation
       parameters:
-      - in: path
+      - description: Identifier of the location to be deleted
+        example: 55bzhnXQ9uqwld4Ha3bD
+        in: path
         name: id
         required: true
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "204":
+          description: Successful - no content to return.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticLocations
@@ -17576,9 +17897,12 @@ paths:
       - Synthetic Settings
       x-description: deleteSyntheticLocation
     get:
+      description: API request to retrieve a Synthetic Location with matching id.
       operationId: getSyntheticLocation
       parameters:
-      - in: path
+      - description: Identifier of the location to be retrieved
+        example: OjJPXWHmsE9deLzanNAW
+        in: path
         name: id
         required: true
         schema:
@@ -17619,6 +17943,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/SyntheticLocation"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canViewSyntheticLocations
@@ -17627,22 +17957,57 @@ paths:
       - Synthetic Settings
   /api/synthetics/settings/tests:
     get:
+      description: API request to retrieve Synthetic Tests.
       operationId: getSyntheticTests
       parameters:
-      - in: query
+      - description: 'Defines the application id by which the returned synthetic tests
+          will be filtered by. '
+        example: pWoK4onRRN-POTz1RU62UQ
+        in: query
         name: applicationId
         schema:
           type: string
-      - in: query
+      - description: 'Defines the location id by which the returned synthetic tests
+          will be filtered by. '
+        example: 18WyhtDb5jpVOsjlNdeV
+        in: query
         name: locationId
         schema:
           type: string
-      - in: query
+      - description: Defines the attribute by which the returned synthetic tests will
+          be ordered by. Order using '+' means ASC and '-' means DESC
+        example: +label
+        in: query
+        name: sort
+        schema:
+          type: string
+          pattern: ' <+|-><attribute name>'
+      - description: Used in conjunction with limit. Defines how many pages will be
+          skipped before returning the synthetic tests
+        example: 1
+        in: query
+        name: offset
+        schema:
+          type: integer
+          format: int64
+      - description: Defines the size of a page - the number of synthetic tests that
+          will be returned by the query
+        example: 10
+        in: query
+        name: limit
+        schema:
+          type: integer
+          format: int64
+      - description: Defines the attributes by which the returned synthetic tests
+          will be filtered by. Multiple filter parameters are allowed. See 'Supported
+          filter attributes and operators' for complete list of supported attributes
+          and operators.
+        example: "{label=MyTest}"
+        in: query
         name: filter
         schema:
-          type: array
-          items:
-            type: string
+          type: string
+          pattern: " {<attribute name><operator><attribute value>}"
       responses:
         "200":
           content:
@@ -17740,6 +18105,12 @@ paths:
                 items:
                   $ref: "#/components/schemas/SyntheticTest"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canViewSyntheticTests
@@ -17748,6 +18119,7 @@ paths:
       - Synthetic Settings
       x-description: getSyntheticTests
     post:
+      description: API request to create a Synthetic Test.
       operationId: createSyntheticTest
       requestBody:
         content:
@@ -17806,6 +18178,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/SyntheticTest"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticTests
@@ -17815,18 +18193,29 @@ paths:
       x-description: createSyntheticTest
   /api/synthetics/settings/tests/{id}:
     delete:
+      description: API request to delete a Synthetic Test.
       operationId: deleteSyntheticTest
       parameters:
-      - in: path
+      - description: Id of the synthetic test to be deleted
+        example: ic25Vt1T5dgKzi0K7812
+        in: path
         name: id
         required: true
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json: {}
-          description: default response
+          description: OK
+        "204":
+          description: Successful - no content to return.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticTests
@@ -17834,9 +18223,12 @@ paths:
       tags:
       - Synthetic Settings
     get:
+      description: API request to retrieve a Synthetic Test with matching id.
       operationId: getSyntheticTest
       parameters:
-      - in: path
+      - description: Id of the synthetic test to be retrieved
+        example: EFNRoPd39SgZBkULeQIf
+        in: path
         name: id
         required: true
         schema:
@@ -17902,6 +18294,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/SyntheticTest"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canViewSyntheticTests
@@ -17909,9 +18309,12 @@ paths:
       tags:
       - Synthetic Settings
     patch:
+      description: API request to update a Synthetic Test.
       operationId: patchSyntheticTest
       parameters:
-      - in: path
+      - description: Id of the synthetic test to be patched
+        example: ic25Vt1T5dgKzi0K7812
+        in: path
         name: id
         required: true
         schema:
@@ -17933,6 +18336,14 @@ paths:
           content:
             application/json: {}
           description: OK
+        "400":
+          description: Bad request.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticTests
@@ -17941,9 +18352,12 @@ paths:
       - Synthetic Settings
       x-description: patchSyntheticTest
     put:
+      description: API request to update a Synthetic Test.
       operationId: updateSyntheticTest
       parameters:
-      - in: path
+      - description: Id of the synthetic test to be updated
+        example: ic25Vt1T5dgKzi0K7812
+        in: path
         name: id
         required: true
         schema:
@@ -17982,6 +18396,14 @@ paths:
           content:
             application/json: {}
           description: OK
+        "400":
+          description: Bad request.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - canConfigureSyntheticTests
@@ -19117,6 +19539,10 @@ components:
         actionName:
           type: string
           description: Action name of the action to run.
+        actionSnapshot:
+          type: string
+          description: Snapshot of the action definition.
+          readOnly: true
         actorId:
           type: string
           description: "User identifier, API token or the policy identifier that started\
@@ -19429,6 +19855,10 @@ components:
           description: ID of the Alert Configuration.
           maxLength: 64
           minLength: 0
+        includeEntityNameInLegacyAlerts:
+          type: boolean
+          description: To include the entity name in a legacy alert based on built-in/custom
+            events.
         integrationIds:
           type: array
           description: List of Alert Channel IDs added in this Alert Configuration.
@@ -19473,6 +19903,10 @@ components:
           description: ID of the Alert Configuration.
           maxLength: 64
           minLength: 0
+        includeEntityNameInLegacyAlerts:
+          type: boolean
+          description: To include the entity name in a legacy alert based on built-in/custom
+            events.
         integrationIds:
           type: array
           description: List of Alert Channel IDs added in this Alert Configuration.
@@ -19537,13 +19971,16 @@ components:
           $ref: "#/components/schemas/ApdexEntity"
         apdexName:
           type: string
+          description: Name of the Apdex Configuration
           maxLength: 256
           minLength: 0
         createdAt:
           type: integer
           format: int64
+          description: Created Date of Apdex Configuration
         id:
           type: string
+          description: Apdex Configuration ID
           maxLength: 64
           minLength: 0
       required:
@@ -19557,6 +19994,7 @@ components:
           $ref: "#/components/schemas/ApdexEntity"
         apdexName:
           type: string
+          description: Name of the Apdex Configuration
           maxLength: 256
           minLength: 0
       required:
@@ -19564,6 +20002,7 @@ components:
       - apdexName
     ApdexEntity:
       type: object
+      description: Entity which holds the information of Apdex Configuration
       discriminator:
         mapping:
           application: "#/components/schemas/ApplicationApdexEntity"
@@ -19589,18 +20028,29 @@ components:
       properties:
         apdexId:
           type: string
+          description: Apdex Configuration ID
         apdexScore:
           type: array
+          description: Apdex Score in different timestamps from starting to the ending
+            point
           items:
             type: array
+            description: Apdex Score in different timestamps from starting to the
+              ending point
             items:
               type: number
+              description: Apdex Score in different timestamps from starting to the
+                ending point
         from:
           type: integer
           format: int64
+          description: "Starting point for the data retrieval, specified as 13 digit\
+            \ Unix Timestamp milliseconds"
         to:
           type: integer
           format: int64
+          description: "Ending point for the data retrieval, specified as 13 digit\
+            \ Unix Timestamp milliseconds"
     ApiCreateGroup:
       type: object
       properties:
@@ -19765,6 +20215,8 @@ components:
         canConfigureAutomationActions:
           type: boolean
         canConfigureAutomationPolicies:
+          type: boolean
+        canConfigureBizops:
           type: boolean
         canConfigureDatabaseManagement:
           type: boolean
@@ -20314,13 +20766,26 @@ components:
         properties:
           boundaryScope:
             type: string
+            description: "Application Boundary Scope, it could be ALL or INBOUND"
             enum:
             - ALL
             - INBOUND
+          entityId:
+            type: string
+            description: Application ID
           includeInternal:
             type: boolean
+            description: A boolean value indicating whether the SLO takes Internal
+              calls into account
           includeSynthetic:
             type: boolean
+            description: A boolean value indicating whether the SLO takes Synthetic
+              calls into account
+          threshold:
+            type: integer
+            format: int32
+            description: Value of the Apdex Threshold
+            minimum: 1
       required:
       - boundaryScope
       - entityId
@@ -20405,6 +20870,7 @@ components:
         page:
           type: integer
           format: int32
+          description: Page Number
           minimum: 1
         pageSize:
           type: integer
@@ -20483,15 +20949,23 @@ components:
         properties:
           applicationId:
             type: string
+            description: Specifies the ID of the Application that is to be monitored
+              by the SLO
           boundaryScope:
             type: string
+            description: "Defines the boundary of calls to be monitored, specifying\
+              \ whether to track all calls or only inbound calls"
             enum:
             - ALL
             - INBOUND
           endpointId:
             type: string
+            description: Specifies the ID of the Endpoint to be monitored by the application
+              SLO
           serviceId:
             type: string
+            description: Identifies the service to be monitored by the application
+              SLO
       required:
       - boundaryScope
     ApplicationSloEntity:
@@ -20502,19 +20976,27 @@ components:
         properties:
           applicationId:
             type: string
+            description: The ID of the Application
           boundaryScope:
             type: string
+            description: The Boundary Scope of the Application
             enum:
             - ALL
             - INBOUND
           endpointId:
             type: string
+            description: The Endpoint ID of the Application
           includeInternal:
             type: boolean
+            description: A boolean value indicating whether the SLO takes Internal
+              calls into account
           includeSynthetic:
             type: boolean
+            description: A boolean value indicating whether the SLO takes Synthetic
+              calls into account
           serviceId:
             type: string
+            description: The Service ID of the Application
       required:
       - applicationId
       - boundaryScope
@@ -20595,6 +21077,7 @@ components:
           threshold:
             type: number
             format: double
+            description: Threshold Value for the Blueprint
             exclusiveMinimum: false
             minimum: 0.0
       required:
@@ -20607,35 +21090,51 @@ components:
         properties:
           applicationId:
             type: string
+            description: Specifies the ID of the Application that is to be monitored
+              by the SLO
           badEventFilterExpression:
             $ref: "#/components/schemas/TagFilterExpressionElement"
           badEventFilters:
             type: array
+            description: Defines the logical expression to filter data and classify
+              events as Bad Events
             items:
               $ref: "#/components/schemas/TagFilter"
             maxItems: 32
             minItems: 1
           boundaryScope:
             type: string
+            description: "Defines the boundary of calls to be monitored, specifying\
+              \ whether to track all calls or only inbound calls"
             enum:
             - ALL
             - INBOUND
           endpointId:
             type: string
+            description: Specifies the ID of the Endpoint to be monitored by the availability-based
+              application SLO
           goodEventFilterExpression:
             $ref: "#/components/schemas/TagFilterExpressionElement"
           goodEventFilters:
             type: array
+            description: Defines the logical expression to filter data and classify
+              events as Good Events
             items:
               $ref: "#/components/schemas/TagFilter"
             maxItems: 32
             minItems: 1
           includeInternal:
             type: boolean
+            description: Boolean value indicating whether internal calls should be
+              included in the monitoring process
           includeSynthetic:
             type: boolean
+            description: Boolean value indicating whether synthetic calls should be
+              included in the monitoring process
           serviceId:
             type: string
+            description: Identifies the service to be monitored by the availability-based
+              application SLO
       required:
       - boundaryScope
     AvailableMetrics:
@@ -21710,6 +22209,7 @@ components:
         page:
           type: integer
           format: int32
+          description: Page Number
           minimum: 1
         pageSize:
           type: integer
@@ -21900,6 +22400,8 @@ components:
         properties:
           metric:
             type: string
+            description: This is the service levels metric type. Error budget alert
+              uses <b>spent</b> or <b>burn rate</b> metric.
             enum:
             - BURN_RATE
             - BURNED_PERCENTAGE
@@ -22262,6 +22764,7 @@ components:
           startTimestamp:
             type: string
             format: date-time
+            description: The timestamp at which the fixed time window of the SLO starts
       required:
       - duration
       - durationUnit
@@ -22768,6 +23271,8 @@ components:
       properties:
         groups:
           type: array
+          description: " Grouping of data under `groupbyTag`, where `groupbyTagEntity`\
+            \ and `groupbyTagSecondLevelKey` are aspects of `groupbyTag`."
           items:
             $ref: "#/components/schemas/SyntheticMetricTagGroup"
         includeAggregatedTestIds:
@@ -22775,18 +23280,17 @@ components:
           writeOnly: true
         metrics:
           type: array
+          description: "A list of objects each of which defines a metric and the (statistical)\
+            \ aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize\
+            \ it for the defined time frame. Eg: `[{ 'metric': 'latency', 'aggregation':\
+            \ 'MEAN'}]`. To know more about supported metrics and its aggregation,\
+            \ See `Get Metric catalog`."
           items:
             $ref: "#/components/schemas/SyntheticMetricConfiguration"
-        order:
-          $ref: "#/components/schemas/Order"
         pagination:
           $ref: "#/components/schemas/Pagination"
         tagFilterExpression:
           $ref: "#/components/schemas/TagFilterExpressionElement"
-        tagFilters:
-          type: array
-          items:
-            $ref: "#/components/schemas/TagFilter"
         timeFrame:
           $ref: "#/components/schemas/TimeFrame"
       required:
@@ -23147,10 +23651,19 @@ components:
           $ref: "#/components/schemas/Group"
         includeInternal:
           type: boolean
+          description: Flag to include Internal Calls. These calls are work done inside
+            a service and correspond to intermediate spans in custom tracing.
         includeSynthetic:
           type: boolean
+          description: "Flag to include Synthetic Calls. These calls have a synthetic\
+            \ endpoint as their destination, such as calls to health-check endpoints."
         metrics:
           type: array
+          description: "A list of objects each of which defines a metric and the (statistical)\
+            \ aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize\
+            \ it for the defined time frame. Eg: `[{ 'metric': 'latency', 'aggregation':\
+            \ 'MEAN'}]`. To know more about supported metrics and its aggregation,\
+            \ See `Get Metric catalog`."
           items:
             $ref: "#/components/schemas/MetricConfig"
           maxItems: 5
@@ -24564,6 +25077,8 @@ components:
           minimum: -1
       required:
       - file
+    Json:
+      type: object
     KubernetesPhysicalContext:
       type: object
       properties:
@@ -24588,6 +25103,7 @@ components:
           threshold:
             type: number
             format: double
+            description: Threshold Value for the Blueprint
             exclusiveMinimum: false
             minimum: 0.0
       required:
@@ -25036,6 +25552,11 @@ components:
           format: int64
         disableEvent:
           type: boolean
+        eventIds:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
         muteAlerts:
           type: boolean
         reasonForClosing:
@@ -25131,6 +25652,11 @@ components:
       - metrics
     MetricConfig:
       type: object
+      description: "A list of objects each of which defines a metric and the (statistical)\
+        \ aggregation -- MEAN, SUM, MAX, etc -- that should be used to summarize it\
+        \ for the defined time frame. Eg: `[{ 'metric': 'latency', 'aggregation':\
+        \ 'MEAN'}]`. To know more about supported metrics and its aggregation, See\
+        \ `Get Metric catalog`."
       properties:
         aggregation:
           type: string
@@ -25167,9 +25693,15 @@ components:
       - metric
     MetricConfiguration:
       type: object
+      description: "Details regarding the metric to be configured, including the metric\
+        \ name, threshold, and aggregation method"
       properties:
         metricAggregation:
           type: string
+          description: |
+            Specifies the types of aggregations that can be applied to a series of values.
+            For example, `P25` refers to the 25th percentile. Note that not all aggregation methods are available for every metric.
+            For instance, the `Call count` metric supports only the `SUM` aggregation, whereas the `Error rate` metric only supports the `MEAN` aggregation.
           enum:
           - SUM
           - MEAN
@@ -25190,9 +25722,12 @@ components:
           - INCREASE
         metricName:
           type: string
+          description: Defines the name of the metric to be monitored. Examples include
+            `calls` and `latency`
         threshold:
           type: number
           format: double
+          description: Specifies the threshold value for the metric being monitored
           exclusiveMinimum: true
           minimum: 0.0
       required:
@@ -25494,6 +26029,12 @@ components:
         ownerType:
           type: string
           description: Type of the entity associated with the metric
+        tags:
+          type: array
+          description: Metric tags
+          items:
+            type: string
+            description: Metric tags
       required:
       - id
       - infraTagCategory
@@ -25535,37 +26076,82 @@ components:
           type: object
           additionalProperties:
             type: string
+            description: A map of custom properties composed of the custom property
+              name and its value.  This information will be included if the custom
+              properties were requested or if the query was grouped and the grouping
+              included one or more custom properties.
+          description: A map of custom properties composed of the custom property
+            name and its value.  This information will be included if the custom properties
+            were requested or if the query was grouped and the grouping included one
+            or more custom properties.
         metrics:
           type: array
+          description: "A map of the requested metrics, composed of the metric name\
+            \ and its value."
           items:
             type: object
             additionalProperties:
               type: object
+              description: "A map of the requested metrics, composed of the metric\
+                \ name and its value."
+            description: "A map of the requested metrics, composed of the metric name\
+              \ and its value."
         tests:
           type: array
+          description: A description of the Synthetic test associated with the result
+            item.  This information will be included if the request was grouped by
+            synthetic.testId or if includeAggregatedTestId was true on the request.
           items:
             $ref: "#/components/schemas/MetricsTestResultItem"
       required:
       - metrics
     MetricsTestResultItem:
       type: object
+      description: A description of the Synthetic test associated with the result
+        item.  This information will be included if the request was grouped by synthetic.testId
+        or if includeAggregatedTestId was true on the request.
       properties:
         applicationId:
           type: string
+          description: An identifier of an application associated with the Synthetic
+            test.  This field is deprecated and will be replace by the applicationIds
+            field.
         applicationIds:
           type: array
+          description: A list of the applications associated with the Synthetic test.
           items:
             type: string
+            description: A list of the applications associated with the Synthetic
+              test.
         locationId:
           type: array
+          description: A list of the locations associated with the Synthetic test.
           items:
             type: string
+            description: A list of the locations associated with the Synthetic test.
+        mobileApplicationIds:
+          type: array
+          description: A list of the mobile applications associated with the Synthetic
+            test.
+          items:
+            type: string
+            description: A list of the mobile applications associated with the Synthetic
+              test.
         serviceId:
           type: string
+          description: A service associated with the Synthetic test.
         testId:
           type: string
+          description: The testId for the Synthetic test.
         testName:
           type: string
+          description: The Synthetic test's name.
+        websiteIds:
+          type: array
+          description: A list of the websites associated with the Synthetic test.
+          items:
+            type: string
+            description: A list of the websites associated with the Synthetic test.
       required:
       - testId
     MobileApp:
@@ -26515,6 +27101,7 @@ components:
         page:
           type: integer
           format: int32
+          description: Page Number
           minimum: 1
         pageSize:
           type: integer
@@ -27097,6 +27684,8 @@ components:
       - service
     ServiceLevelIndicator:
       type: object
+      description: "Indicator of the Service Levels Objective Configuration, it indicates\
+        \ the type of metric by which the SLO should be evaluated"
       discriminator:
         mapping:
           availability: "#/components/schemas/AvailabilityBlueprintIndicator"
@@ -27107,6 +27696,7 @@ components:
       properties:
         aggregation:
           type: string
+          description: Aggregation Type for the Threshold Value
           enum:
           - SUM
           - MEAN
@@ -27134,8 +27724,10 @@ components:
           - custom
         operator:
           type: string
+          description: Operator for the Threshold Value
         serviceLevelsMeasurement:
           type: string
+          description: Defines Measurement Type of SLO
           enum:
           - eventBased
           - timeBased
@@ -27144,6 +27736,7 @@ components:
         threshold:
           type: number
           format: double
+          description: Threshold Value for the Blueprint
         type:
           type: string
           enum:
@@ -27157,6 +27750,8 @@ components:
         properties:
           metric:
             type: string
+            description: This is the service levels metric type. Service levels objective
+              alerts using <b>status</b> metric.
             enum:
             - STATUS
     ServiceLevelObjectiveConfiguration:
@@ -27165,10 +27760,12 @@ components:
         createdDate:
           type: string
           format: date-time
+          description: Created date of Service Levels Objective Configuration
         entity:
           $ref: "#/components/schemas/SloEntity"
         id:
           type: string
+          description: Service Levels Objective Configuration ID
           maxLength: 64
           minLength: 0
         indicator:
@@ -27176,15 +27773,20 @@ components:
         lastUpdated:
           type: string
           format: date-time
+          description: Last updated date of Service Levels Objective Configuration
         name:
           type: string
+          description: Name of the Service Levels Objective Configuration
         tags:
           type: array
+          description: List of tags associated with Service Levels Objective Configuration
           items:
             type: string
+            description: List of tags associated with Service Levels Objective Configuration
         target:
           type: number
           format: double
+          description: Service Levels Objective Configuration Target
           exclusiveMaximum: false
           exclusiveMinimum: true
           maximum: 0.9999
@@ -27203,8 +27805,12 @@ components:
       properties:
         alertChannelIds:
           type: array
+          description: This is the list of channel IDs when alert triggered and sent
+            to.
           items:
             type: string
+            description: This is the list of channel IDs when alert triggered and
+              sent to.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
@@ -27212,16 +27818,21 @@ components:
           $ref: "#/components/schemas/ServiceLevelsBurnRateTimeWindows"
         customPayloadFields:
           type: array
+          description: This is the custom name and value pairs to be sent along with
+            the alert to the alert channels.
           items:
             $ref: "#/components/schemas/CustomPayloadField"
           maxItems: 20
           minItems: 0
         description:
           type: string
+          description: The description of the alert. It is also the alert message
+            content.
           maxLength: 65536
           minLength: 0
         name:
           type: string
+          description: Name of the Service Levels Smart Alerts Configuration.
           maxLength: 256
           minLength: 0
         rule:
@@ -27229,10 +27840,14 @@ components:
         severity:
           type: integer
           format: int32
+          description: "This is the severity of the alert. The value can be: <b>5</b>:\
+            \ warning, <b>10</b>: critical."
         sloIds:
           type: array
+          description: This is the list of SLO configurations related to this alert.
           items:
             type: string
+            description: This is the list of SLO configurations related to this alert.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
@@ -27242,6 +27857,8 @@ components:
           $ref: "#/components/schemas/ServiceLevelsTimeThreshold"
         triggering:
           type: boolean
+          description: "Incident flag. If value is true, this alert will become an\
+            \ accident."
       required:
       - alertChannelIds
       - customPayloadFields
@@ -27253,6 +27870,8 @@ components:
       - timeThreshold
     ServiceLevelsAlertRule:
       type: object
+      description: This is the service levels alert type. It could be error budget
+        alert or service levels object alert.
       discriminator:
         mapping:
           ERROR_BUDGET: "#/components/schemas/ErrorBudgetAlertRule"
@@ -27265,6 +27884,8 @@ components:
       - alertType
     ServiceLevelsBurnRateTimeWindows:
       type: object
+      description: This is the short and long time window setting for the burn rate
+        alerts.
       properties:
         longTimeWindow:
           $ref: "#/components/schemas/AlertingTimeWindow"
@@ -27272,20 +27893,30 @@ components:
           $ref: "#/components/schemas/AlertingTimeWindow"
     ServiceLevelsTimeThreshold:
       type: object
+      description: This is the warm-up and cool-down setting to emit or stop alert
+        event after threshold reached.
       properties:
         expiry:
           type: integer
           format: int64
+          description: This is the cooldown period when the active alert misses threshold
+            and stop emitting notification.
         timeWindow:
           type: integer
           format: int64
+          description: This is the grace period when the threshold is reached and
+            the alert becomes active to emit notification.
     ServiceLevelseAlertConfigWithMetadata:
       type: object
       properties:
         alertChannelIds:
           type: array
+          description: This is the list of channel IDs when alert triggered and sent
+            to.
           items:
             type: string
+            description: This is the list of channel IDs when alert triggered and
+              sent to.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
@@ -27294,42 +27925,60 @@ components:
         created:
           type: integer
           format: int64
+          description: Created Date of the version of Service Levels Smart Alerts
+            Configuration.
           minimum: 1
         customPayloadFields:
           type: array
+          description: This is the custom name and value pairs to be sent along with
+            the alert to the alert channels.
           items:
             $ref: "#/components/schemas/CustomPayloadField"
           maxItems: 20
           minItems: 0
         description:
           type: string
+          description: The description of the alert. It is also the alert message
+            content.
           maxLength: 65536
           minLength: 0
         enabled:
           type: boolean
+          description: Boolean Parameter specifying the enabled state of Service Levels
+            Smart Alerts Configuration.
         id:
           type: string
+          description: Unique ID of the Service Levels Smart Alerts Configuration.
           maxLength: 64
           minLength: 0
         initialCreated:
           type: integer
           format: int64
+          description: Created Date of the Initial version of Service Levels Smart
+            Alerts Configuration.
           minimum: 1
         name:
           type: string
+          description: Name of the Service Levels Smart Alerts Configuration.
           maxLength: 256
           minLength: 0
         readOnly:
           type: boolean
+          description: Boolean Parameter specifying the readonly access to Service
+            Levels Smart Alerts Configuration.
         rule:
           $ref: "#/components/schemas/ServiceLevelsAlertRule"
         severity:
           type: integer
           format: int32
+          description: "This is the severity of the alert. The value can be: <b>5</b>:\
+            \ warning, <b>10</b>: critical."
         sloIds:
           type: array
+          description: This is the list of SLO configurations related to this alert.
           items:
             type: string
+            description: This is the list of SLO configurations related to this alert.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
@@ -27339,6 +27988,8 @@ components:
           $ref: "#/components/schemas/ServiceLevelsTimeThreshold"
         triggering:
           type: boolean
+          description: "Incident flag. If value is true, this alert will become an\
+            \ accident."
       required:
       - alertChannelIds
       - customPayloadFields
@@ -27410,6 +28061,7 @@ components:
         page:
           type: integer
           format: int32
+          description: Page Number
           minimum: 1
         pageSize:
           type: integer
@@ -27607,17 +28259,21 @@ components:
       properties:
         id:
           type: string
+          description: Unique ID for each SLI
           maxLength: 64
           minLength: 0
         initialEvaluationTimestamp:
           type: integer
           format: int64
+          description: Initial evaluation timestamp in milliseconds (13-digit)
         metricConfiguration:
           $ref: "#/components/schemas/MetricConfiguration"
         sliEntity:
           $ref: "#/components/schemas/SliEntity"
         sliName:
           type: string
+          description: The name of the Service Level Indicator (SLI) specified during
+            its creation
           maxLength: 256
           minLength: 0
       required:
@@ -27629,14 +28285,17 @@ components:
       properties:
         id:
           type: string
+          description: Unique ID for each SLI
           maxLength: 64
           minLength: 0
         initialEvaluationTimestamp:
           type: integer
           format: int64
+          description: Initial evaluation timestamp in milliseconds (13-digit)
         lastUpdated:
           type: integer
           format: int64
+          description: Last Updated timestamp in milliseconds (13-digit)
           minimum: 1
         metricConfiguration:
           $ref: "#/components/schemas/MetricConfiguration"
@@ -27644,6 +28303,8 @@ components:
           $ref: "#/components/schemas/SliEntity"
         sliName:
           type: string
+          description: The name of the Service Level Indicator (SLI) specified during
+            its creation
           maxLength: 256
           minLength: 0
       required:
@@ -27652,6 +28313,7 @@ components:
       - sliName
     SliEntity:
       type: object
+      description: Entity Type of the SLI Configuration
       discriminator:
         mapping:
           application: "#/components/schemas/ApplicationSliEntity"
@@ -27670,21 +28332,30 @@ components:
         errorBudgetRemaining:
           type: integer
           format: int64
+          description: This is the error budget remaining compared to the total error
+            budget
         fromTimestamp:
           type: integer
           format: int64
+          description: from timestamp in milliseconds (13-digit)
         sli:
           type: number
           format: double
+          description: "Service Level Indicator: This indicates the actual performance\
+            \ measure of the service"
         slo:
           type: number
           format: double
+          description: "Service Level Objective: This is the target value that should\
+            \ be met by the SLI"
         toTimestamp:
           type: integer
           format: int64
+          description: to timestamp in milliseconds (13-digit)
         totalErrorBudget:
           type: integer
           format: int64
+          description: This is the total error budget available
         violationDistribution:
           type: object
           additionalProperties:
@@ -27692,9 +28363,12 @@ components:
             format: int32
     SloEntity:
       type: object
+      description: "Entity of the Service Levels Objective Configuration, it could\
+        \ be either Application nor Website"
       discriminator:
         mapping:
           application: "#/components/schemas/ApplicationSloEntity"
+          synthetic: "#/components/schemas/SyntheticSloEntity"
           website: "#/components/schemas/WebsiteSloEntity"
         propertyName: type
       properties:
@@ -27712,50 +28386,80 @@ components:
           additionalProperties:
             type: integer
             format: int32
+            description: Value of accumulated bad minutes/events of SLO configuration
+              in different timestamps from starting to ending point
+          description: Value of accumulated bad minutes/events of SLO configuration
+            in different timestamps from starting to ending point
         errorBudgetRemainChart:
           type: object
           additionalProperties:
             type: integer
             format: int32
+            description: Error Budget Remain value of SLO configuration in different
+              timestamps from starting to ending point
+          description: Error Budget Remain value of SLO configuration in different
+            timestamps from starting to ending point
         errorBudgetRemaining:
           type: integer
           format: int32
+          description: Latest Remaining Error Budget value of SLO Configuration
         errorBudgetSpent:
           type: integer
           format: int32
+          description: Spent Error Budget of SLO Configuration
         errorBurnRate:
           type: integer
           format: int32
+          description: Latest Burn Rate value of SLO Configuration
         errorBurnRateChart:
           type: object
           additionalProperties:
             type: integer
             format: int32
+            description: Budget Rate value of SLO configuration in different timestamps
+              from starting to ending point
+          description: Budget Rate value of SLO configuration in different timestamps
+            from starting to ending point
         errorChart:
           type: object
           additionalProperties:
             type: integer
             format: int32
+            description: Value indicating presence of bad minutes/events of SLO configuration
+              in different timestamps from starting to ending point
+          description: Value indicating presence of bad minutes/events of SLO configuration
+            in different timestamps from starting to ending point
         fromTimestamp:
           type: integer
           format: int64
+          description: "Starting point of the data retrieval, specified as 13 digit\
+            \ Unix Timestamp milliseconds"
         sli:
           type: number
           format: double
+          description: Latest Status value of SLO Configuration
         slo:
           type: number
           format: double
+          description: Target status of SLO Configuration
         toTimestamp:
           type: integer
           format: int64
+          description: "Ending point of the data retrieval, specified as 13 digit\
+            \ Unix Timestamp milliseconds"
         totalErrorBudget:
           type: integer
           format: int32
+          description: Latest Available Error Budget value of SLO Configuration
         violationDistribution:
           type: object
           additionalProperties:
             type: integer
             format: int32
+            description: Value indicating violation of SLO configuration in different
+              timestamps from starting to ending point
+          description: Value indicating violation of SLO configuration in different
+            timestamps from starting to ending point
     SlownessApplicationAlertRule:
       type: object
       allOf:
@@ -28214,6 +28918,8 @@ components:
             type: number
             format: double
             minimum: 0
+      description: This threshold defines a static value to be evaluated with a specific
+        operator.
       required:
       - operator
     StaticThresholdRule:
@@ -28769,6 +29475,8 @@ components:
       - metric
     SyntheticMetricTagGroup:
       type: object
+      description: " Grouping of data under `groupbyTag`, where `groupbyTagEntity`\
+        \ and `groupbyTagSecondLevelKey` are aspects of `groupbyTag`."
       properties:
         groupbyTag:
           type: string
@@ -28813,6 +29521,21 @@ components:
       required:
       - browserType
       - syntheticType
+    SyntheticSloEntity:
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/SloEntity"
+      - type: object
+        properties:
+          syntheticTestIds:
+            type: array
+            description: 'List of Unique Synthetic Tests IDs '
+            items:
+              type: string
+              description: 'List of Unique Synthetic Tests IDs '
+            uniqueItems: true
+      required:
+      - syntheticTestIds
     SyntheticTest:
       type: object
       properties:
@@ -29566,6 +30289,7 @@ components:
         page:
           type: integer
           format: int32
+          description: Page Number
           minimum: 1
         pageSize:
           type: integer
@@ -29706,6 +30430,7 @@ components:
           minimum: 0
     TimeWindow:
       type: object
+      description: "Time Window type of the SLO, it could be Fixed or Rolling"
       discriminator:
         mapping:
           fixed: "#/components/schemas/FixedTimeWindow"
@@ -29715,8 +30440,10 @@ components:
         duration:
           type: integer
           format: int32
+          description: Duration of the Time Window
         durationUnit:
           type: string
+          description: Unit of the Time Window Duration
           enum:
           - millisecond
           - second
@@ -29873,15 +30600,33 @@ components:
           type: object
           additionalProperties:
             type: array
+            description: |
+              Grouped metric details like `errors.mean`, `calls.sum`.
+              It is usually a array of key-value pair. Format of key is `metric.aggregation.granularity`, for example: `latency.p75.360`.
+              Format of value is `[earliest timestamp, value of key]`, for example: `[1725602720000, 0.013141001434936938]`.
             items:
               type: array
+              description: |
+                Grouped metric details like `errors.mean`, `calls.sum`.
+                It is usually a array of key-value pair. Format of key is `metric.aggregation.granularity`, for example: `latency.p75.360`.
+                Format of value is `[earliest timestamp, value of key]`, for example: `[1725602720000, 0.013141001434936938]`.
               items:
                 type: number
+                description: |
+                  Grouped metric details like `errors.mean`, `calls.sum`.
+                  It is usually a array of key-value pair. Format of key is `metric.aggregation.granularity`, for example: `latency.p75.360`.
+                  Format of value is `[earliest timestamp, value of key]`, for example: `[1725602720000, 0.013141001434936938]`.
+          description: |
+            Grouped metric details like `errors.mean`, `calls.sum`.
+            It is usually a array of key-value pair. Format of key is `metric.aggregation.granularity`, for example: `latency.p75.360`.
+            Format of value is `[earliest timestamp, value of key]`, for example: `[1725602720000, 0.013141001434936938]`.
         name:
           type: string
+          description: Name of the group.
         timestamp:
           type: integer
           format: int64
+          description: Earliest timestamp of the trace from the group
           minimum: 0
       required:
       - cursor
@@ -29989,6 +30734,7 @@ components:
           threshold:
             type: number
             format: double
+            description: Threshold Value for the Blueprint
             exclusiveMinimum: false
             minimum: 0.0
           trafficType:
@@ -30278,6 +31024,10 @@ components:
           description: ID of the Alert Configuration.
           maxLength: 64
           minLength: 0
+        includeEntityNameInLegacyAlerts:
+          type: boolean
+          description: To include the entity name in a legacy alert based on built-in/custom
+            events.
         integrationIds:
           type: array
           description: List of Alert Channel IDs added in this Alert Configuration.
@@ -30852,6 +31602,7 @@ components:
         properties:
           beaconType:
             type: string
+            description: Website Beacon Type
             enum:
             - pageLoad
             - resourceLoad
@@ -30859,6 +31610,14 @@ components:
             - error
             - custom
             - pageChange
+          entityId:
+            type: string
+            description: Website ID
+          threshold:
+            type: integer
+            format: int32
+            description: Value of the Apdex Threshold
+            minimum: 1
       required:
       - beaconType
       - entityId
@@ -31011,6 +31770,7 @@ components:
             $ref: "#/components/schemas/TagFilterExpressionElement"
           beaconType:
             type: string
+            description: Enum value to specify the type of beacons to be monitored
             enum:
             - pageLoad
             - resourceLoad
@@ -31022,6 +31782,7 @@ components:
             $ref: "#/components/schemas/TagFilterExpressionElement"
           websiteId:
             type: string
+            description: Specifies the ID of the Website
       required:
       - badEventFilterExpression
       - beaconType
@@ -31507,6 +32268,7 @@ components:
         properties:
           beaconType:
             type: string
+            description: Type of Website Beacon to be considered for the SLO
             enum:
             - pageLoad
             - resourceLoad
@@ -31516,6 +32278,7 @@ components:
             - pageChange
           websiteId:
             type: string
+            description: The ID of the Website
       required:
       - beaconType
       - websiteId
@@ -31527,6 +32290,7 @@ components:
         properties:
           beaconType:
             type: string
+            description: Enum value to specify the type of beacons to be monitored
             enum:
             - pageLoad
             - resourceLoad
@@ -31538,6 +32302,7 @@ components:
             $ref: "#/components/schemas/TagFilterExpressionElement"
           websiteId:
             type: string
+            description: Specifies the ID of the Website
       required:
       - beaconType
     WebsiteTimeThreshold:
@@ -31775,6 +32540,7 @@ x-tagGroups:
 - name: Synthetic Monitoring
   tags:
   - Synthetic Catalog
+  - Synthetic Metrics
   - Synthetic Settings
   - Synthetic Test Playback Results
   - Synthetic Alert Configuration
