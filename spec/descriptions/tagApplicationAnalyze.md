@@ -1,6 +1,13 @@
-The following four endpoints expose our analyze functionality.
-Part of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. 
-Furthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.
+The API endpoints of this group expose our analyze functionality.
+It includes:
+
+**Grouped Metrics**
+
+Two group endpoints to retrieve metrics for traces and calls. 
+
+**List of traces and its detailed information**
+
+You can also [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTraceDownload) attached to the trace. Furthermore, you can also retrive [all details](#operation/getCallDetails) of a call.
 
 ## Parameters
 ### Mandatory Parameters (only for group Endpoints):
