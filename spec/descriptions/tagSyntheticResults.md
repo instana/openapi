@@ -431,15 +431,3 @@ A payload only needs either tagFilters or tagFilterExpression as a filter, not b
      }
 }
 ```
-
-## Get Synthetic test playback result detail data
-
-### Query Parameters
-**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.
-
-**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES
-
-## Download a Synthetic test playback result detail data file
-
-### Query Parameter
-**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR.
