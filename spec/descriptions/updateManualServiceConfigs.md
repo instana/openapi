@@ -8,7 +8,7 @@ The manual service configuration APIs enables mapping calls to services using ta
 
 There are two use cases on the usage of these APIs:
 
-1. Map to an Unmonitored Service with a Custom Name. For example, Map HTTP calls to different Google domains (`www.google.com`, `www.google.fr`) into a single service named `Google` using the `call.http.host tag`.
+1. Map to an Unmonitored Service with a Custom Name. For example, Map HTTP calls to different Google domains (`www.ibm.com`, `www.ibm.fr`) into a single service named `IBM` using the `call.http.host tag`.
 2. Link Calls to an Existing Monitored Service. For example, Link database calls (`jdbc:mysql://10.128.0.1:3306`) to an existing service like `MySQL@3306` on demo-host by referencing its service ID.
 
 ### Important Note
