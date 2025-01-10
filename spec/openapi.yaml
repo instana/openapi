@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.287.1570
+  version: 1.288.935
   x-description: info
   x-logo:
     altText: instana logo
@@ -22,6 +22,12 @@ servers:
     unit:
       default: unit
       description: Customer tenant name
+- description: Instana Self-Hosted Backend
+  url: "https://{domain}"
+  variables:
+    domain:
+      default: example. com
+      description: Customer Self-Hosted domain
 tags:
 - name: Infrastructure Analyze
   x-description: tagInfrastructureAnalyze
@@ -3325,10 +3331,10 @@ paths:
       - Action Catalog
   /api/automation/ai/action/match:
     post:
-      description: Get automation actions that match the incident or issue data in
-        the request body. When using personal API tokens the the actions returned
-        are also filtered based on the access set in `Limited access` permission settings
-        and the user must have at least `Viewer` access for Automation.
+      description: "Get automation actions that match the incident or issue data in\
+        \ the request body. When using personal API tokens, the actions returned are\
+        \ also filtered based on the access set in `Limited access` permission settings\
+        \ and the user must have at least `Viewer` access for Automation."
       operationId: getActionMatches
       parameters:
       - in: query
@@ -11232,10 +11238,12 @@ paths:
       description: This endpoint retrieves the tag catalog.
       operationId: getTagCatalogAll
       responses:
-        default:
+        "200":
           content:
-            application/json: {}
-          description: default response
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagCatalog"
+          description: OK
       security:
       - ApiKeyAuth:
         - Default
@@ -11255,10 +11263,12 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
-            application/json: {}
-          description: default response
+            applciation/json:
+              schema:
+                $ref: "#/components/schemas/TagCatalog"
+          description: OK
       security:
       - ApiKeyAuth:
         - Default
@@ -11335,6 +11345,9 @@ paths:
       x-description: getInfrastructureMetrics
   /api/infrastructure-monitoring/monitoring-state:
     get:
+      description: "This API endpoint retrieves the current monitoring state of the\
+        \ system, providing details about the number of monitored hosts and serverless\
+        \ entities. It responds with a JSON object containing this information."
       operationId: getMonitoringState
       responses:
         "200":
@@ -11732,7 +11745,8 @@ paths:
     get:
       operationId: getTopology
       parameters:
-      - in: query
+      - description: Include snapshot data in nodes
+        in: query
         name: includeData
         schema:
           type: boolean
@@ -15811,6 +15825,7 @@ paths:
                     operator: EQUALS
                     entity: NOT_APPLICABLE
                 tagFilterExpressionEnabled: true
+                retriggerOpenAlertsEnabled: true
                 lastUpdated: 1698949645163
                 state: SCHEDULED
                 occurrence:
@@ -15948,6 +15963,7 @@ paths:
                     operator: EQUALS
                     entity: NOT_APPLICABLE
                 tagFilterExpressionEnabled: true
+                retriggerOpenAlertsEnabled: true
                 lastUpdated: 1698938631408
                 state: ACTIVE
                 occurrence:
@@ -19326,6 +19342,10 @@ paths:
           description: OK
         "400":
           description: When the combination of beaconType and useCase is unsupported/unknown.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - Default
@@ -19347,31 +19367,48 @@ paths:
                 formatter: LATENCY
                 description: The recorded duration for a beacon.
                 aggregations:
-                - MIN
                 - P25
-                - P90
-                - P50
-                - P98
-                - MAX
                 - MEAN
-                - P75
-                - P99
+                - MAX
                 - P95
+                - P90
                 - SUM
+                - P98
+                - P99
+                - MIN
+                - P75
+                - P50
                 defaultAggregation: null
                 beaconTypes:
                 - pageLoad
-                - custom
                 - resourceLoad
+                - custom
                 - httpRequest
                 pathToValueInBeacon:
                 - duration
                 tagName: beacon.duration
+              - metricId: pageLoads
+                label: Page loads
+                formatter: NUMBER
+                description: How often a full page load occurred. This typically requires
+                  retrieval of an HTML document from a server (unless cached) and
+                  then the full onLoad cycle.
+                aggregations:
+                - SUM
+                defaultAggregation: null
+                beaconTypes:
+                - pageLoad
+                pathToValueInBeacon: null
+                tagName: null
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/WebsiteMonitoringMetricDescription"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - Default
@@ -19399,6 +19436,10 @@ paths:
                 items:
                   $ref: "#/components/schemas/Tag"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - Default
@@ -19786,14 +19827,19 @@ paths:
       - Website Configuration
   /api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}/clear:
     put:
+      description: API request to clear source map files for source map upload configuration.
       operationId: clearSourceMapUploadConfiguration
       parameters:
-      - in: path
+      - description: Website ID
+        example: UhzF-fWORlyVLHDlvutYYQ
+        in: path
         name: websiteId
         required: true
         schema:
           type: string
-      - in: path
+      - description: Source Map Config ID
+        example: 97e0ad312110d3ad
+        in: path
         name: sourceMapConfigId
         required: true
         schema:
@@ -19802,6 +19848,14 @@ paths:
         "204":
           description: Source map files in the source map upload configuration successfully
             cleared
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - CanConfigureEumApplications
@@ -19810,14 +19864,19 @@ paths:
       - Website Configuration
   /api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}/form:
     put:
+      description: API request to upload source map file for a website.
       operationId: uploadSourceMapFile
       parameters:
-      - in: path
+      - description: Website ID
+        example: UhzF-fWORlyVLHDlvutYYQ
+        in: path
         name: websiteId
         required: true
         schema:
           type: string
-      - in: path
+      - description: Source Map Config ID
+        example: 97e0ad312110d3ad
+        in: path
         name: sourceMapConfigId
         required: true
         schema:
@@ -19842,6 +19901,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/SourceMapUploadConfig"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - CanConfigureEumApplications
@@ -20013,6 +20080,7 @@ paths:
       - Website Metrics
   /api/website-monitoring/v2/metrics:
     post:
+      description: API request to get website monitoring beacon metrics.
       operationId: getBeaconMetricsV2
       requestBody:
         content:
@@ -20057,6 +20125,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/MetricAPIResult"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "404":
+          description: Resource not found.
+        "422":
+          description: Unprocessable request - missing/invalid data.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - Default
@@ -23188,8 +23264,10 @@ components:
           type: string
         pluginId:
           type: string
+          description: Plugin name
         steadyId:
           type: string
+          description: Steady identifier for the entity.
       required:
       - host
       - pluginId
@@ -23893,22 +23971,34 @@ components:
       properties:
         metrics:
           type: array
+          description: "Id of the exact metric you want to retrieve, eg. \"cpu.user\"\
+            , \"clientrequests.read.mean\""
           items:
             type: string
+            description: "Id of the exact metric you want to retrieve, eg. \"cpu.user\"\
+              , \"clientrequests.read.mean\""
           maxItems: 5
           minItems: 1
           uniqueItems: true
         plugin:
           type: string
+          description: Plugin name
+          example: host
         query:
           type: string
+          description: Dynamic Focus Query
+          example: entity.selfType:java
         rollup:
           type: integer
           format: int32
+          description: Rollup value in seconds
+          example: 5
         snapshotIds:
           type: array
+          description: Unique identifier the metrics are assigned to
           items:
             type: string
+            description: Unique identifier the metrics are assigned to
           maxItems: 30
           minItems: 1
           uniqueItems: true
@@ -24101,6 +24191,9 @@ components:
     GetMetricsResult:
       type: object
       properties:
+        disableDefaultGroups:
+          type: boolean
+          writeOnly: true
         groups:
           type: array
           description: " Grouping of data under `groupbyTag`, where `groupbyTagEntity`\
@@ -24977,10 +25070,24 @@ components:
       properties:
         destination:
           type: string
+          description: ID of the outgoing GraphEdge.
         relation:
           type: string
+          description: Type of dependency between the source and the destination.
+          enum:
+          - in
+          - is
+          - to
+          - of
+          - connected
+          - describes
+          - of20
+          - to20
+          - dummy
+          - parent
         source:
           type: string
+          description: ID of the incoming GraphEdge.
     GraphNode:
       type: object
       properties:
@@ -24992,10 +25099,13 @@ components:
           $ref: "#/components/schemas/EntityId"
         id:
           type: string
+          description: GraphNode ID.
         label:
           type: string
+          description: Label of the entity
         plugin:
           type: string
+          description: Name of the plugin
     Group:
       type: object
       description: " Grouping of data under `groupbyTag`, where `groupbyTagEntity`\
@@ -26278,6 +26388,11 @@ components:
             Window configuration.
           maxLength: 2048
           minLength: 0
+        retriggerOpenAlertsEnabled:
+          type: boolean
+          description: "Boolean flag to determine if we should retrigger open alerts\
+            \ to be sent out for any events that opened during this maintenance window,\
+            \ and continues to remain open after the window expires"
         scheduling:
           $ref: "#/components/schemas/MaintenanceConfigScheduling"
         tagFilterExpression:
@@ -26319,6 +26434,11 @@ components:
             Window configuration.
           maxLength: 2048
           minLength: 0
+        retriggerOpenAlertsEnabled:
+          type: boolean
+          description: "Boolean flag to determine if we should retrigger open alerts\
+            \ to be sent out for any events that opened during this maintenance window,\
+            \ and continues to remain open after the window expires"
         scheduling:
           $ref: "#/components/schemas/MaintenanceConfigScheduling"
         state:
@@ -26750,10 +26870,13 @@ components:
         from:
           type: integer
           format: int64
+          description: Start of timeframe expressed as the Unix epoch time in milliseconds
         host:
           type: string
+          description: Host name
         label:
           type: string
+          description: Entitiy label
         metrics:
           type: object
           additionalProperties:
@@ -26764,15 +26887,21 @@ components:
                 type: number
         plugin:
           type: string
+          description: Plugin name
         snapshotId:
           type: string
+          description: "Id of the exact metric you want to retrieve, eg. \"cpu.user\"\
+            , \"clientrequests.read.mean\""
         tags:
           type: array
+          description: Entitiy tags
           items:
             type: string
+            description: Entitiy tags
         to:
           type: integer
           format: int64
+          description: End of timeframe expressed as the Unix epoch time in milliseconds
     MetricMetadata:
       type: object
       properties:
@@ -27786,12 +27915,15 @@ components:
       properties:
         hasEntities:
           type: boolean
+          description: Has entities
         hostCount:
           type: integer
           format: int32
+          description: Count of hosts
         serverlessCount:
           type: integer
           format: int32
+          description: Count of serverless
     MultipleScriptsConfiguration:
       type: object
       properties:
@@ -29005,6 +29137,9 @@ components:
             type: boolean
           serviceNowUrl:
             type: string
+          snowStatusOnCloseEvent:
+            type: integer
+            format: int32
           tenant:
             type: string
           unit:
@@ -29377,21 +29512,30 @@ components:
         from:
           type: integer
           format: int64
+          description: Start of timeframe expressed as the Unix epoch time in milliseconds
         host:
           type: string
+          description: Host name
         label:
           type: string
+          description: Friendly label for the entity
         plugin:
           type: string
+          description: Plugin name
+          example: host
         snapshotId:
           type: string
+          description: Snapshot ID
         tags:
           type: array
+          description: Tags which can be used to search for this entity
           items:
             type: string
+            description: Tags which can be used to search for this entity
         to:
           type: integer
           format: int64
+          description: End of timeframe expressed as the Unix epoch time in milliseconds
     SnapshotPreview:
       type: object
       properties:
@@ -30666,7 +30810,7 @@ components:
             - SYNTHETICS_DETAIL
             - APDEX
             - BIZOPS
-            - SUBTRACES
+            - SUBTRACE
             - UNKNOWN
           uniqueItems: true
         canApplyToDestination:
@@ -32005,6 +32149,11 @@ components:
             Window configuration.
           maxLength: 2048
           minLength: 0
+        retriggerOpenAlertsEnabled:
+          type: boolean
+          description: "Boolean flag to determine if we should retrigger open alerts\
+            \ to be sent out for any events that opened during this maintenance window,\
+            \ and continues to remain open after the window expires"
         scheduling:
           $ref: "#/components/schemas/MaintenanceConfigScheduling"
         state:
