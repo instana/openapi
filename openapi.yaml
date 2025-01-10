@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Instana REST API documentation
-  version: 1.287.1570
+  version: 1.288.935
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -22,6 +22,12 @@ servers:
       unit:
         default: unit
         description: Customer tenant name
+  - description: Instana Self-Hosted Backend
+    url: 'https://{domain}'
+    variables:
+      domain:
+        default: example. com
+        description: Customer Self-Hosted domain
 tags:
   - name: Infrastructure Analyze
     description: |-
@@ -64,12 +70,57 @@ tags:
   - name: Application Metrics
     description: "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n### Mandatory Parameters\r\n\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalog endpoint](#operation/getApplicationCatalogMetrics)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\r\n\r\n### Optional Parameters\r\n\r\n**metrics** Default you will get an aggregated metric with for the selected timeframe \r\n\r\n* *granularity* \r\n   * If it is not set you will get a an aggregated value for the selected timeframe\r\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\r\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\r\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n\r\n### Defaults\r\n\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
   - name: Application Catalog
-    description: |
-      The endpoints of this group retrieve all available resources to query application metrics.
+    description: |-
+      The endpoints of this group retrieve all available resources to query application metrics. It includes:
+
+
+      **Catalog for Application Tags**
+
+      Showing a list of tags which is used for building a query in various use cases within Instana, for example, subset of tags which are available for grouping in traces in Unbounded Analytics for Traces.
+
+      **Catalog for metrics**
+
+      Showing a list of metrics that are available for aggregations. For example, Call count can have 2 types of aggrgations: sum and per second.
   - name: Application Resources
+    description: |-
+      The API endpoints of this group provides insights into resources created and discovered. It includes:
+
+      **Application Perspectives**
+
+      Returns a list of predefined application perspectives, offering an organized view of application perspectives within the system.
+
+      **Discovered Services Inside Application Perspectives**
+
+      Fetches services identified within the context of specific application perspectives.
+
+      **Discovered Services and Endpoints**
+
+      Provides a detailed list of endpoints associated with services, enabling deeper visibility into service dependencies and interactions.
+
+      It also provides a detailed list of services.
+
+      These API endpoints collectively serve as a crucial tool for managing and analyzing application-level resource structures.
   - name: Application Analyze
-    description: "The following four endpoints expose our analyze functionality.\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Parameters\n### Mandatory Parameters (only for group Endpoints):\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from the [application tag catalog](#operation/getApplicationTagCatalog)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n### Optional Parameters\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [application tag catalog](#operation/getApplicationTagCatalog)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * If it is not set you will get a an aggregated value for the selected timeframe\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n\n### Defaults:\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
+    description: "The API endpoints of this group expose our analyze functionality.\nIt includes:\n\n**Grouped Metrics**\n\nTwo group endpoints to retrieve metrics for traces and calls. \n\n**List of traces and its detailed information**\n\nYou can also [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTraceDownload) attached to the trace. Furthermore, you can also retrive [all details](#operation/getCallDetails) of a call.\n\n## Parameters\n### Mandatory Parameters (only for group Endpoints):\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from the [application tag catalog](#operation/getApplicationTagCatalog)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n### Optional Parameters\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [application tag catalog](#operation/getApplicationTagCatalog)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * If it is not set you will get a an aggregated value for the selected timeframe\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n\n### Defaults:\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
   - name: Application Settings
+    description: |-
+      The API endpoints of this group provides a way to create, read, update, delete (CRUD) for various configuration settings. It includes:
+
+      **Application Perspectives Configuration**
+
+      Set of APIs which perform CRUD operations for Application Perspectives.
+
+      **Endpoint Mapping Configuration**
+
+      Set of APIs which perform CRUD operations when user wants to customise the endpoint mapping rules.
+
+      **Service Mapping Configuration**
+
+      Set of APIs which perform CRUD operations when user wants to customise the service mapping rules.
+
+      **Manual Service Mapping Configuration**
+
+      Set of **experimental** APIS which perform CRUD operations when user wants to tweak the service mapping rules when automatic service mapping rules gives undesired results.
   - name: Application Topology
   - name: Website Metrics
   - name: Website Catalog
@@ -2563,9 +2614,22 @@ paths:
       tags:
         - Application Settings
       description: |-
-        Get all manual service configurations.
+        Use this API Endpoint if one wants to retrieve a list of all manual service configurations. This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
 
         **This is an experimental endpoint to workaround service mapping issues.**
+
+        ### Use cases
+
+        The manual service configuration APIs enables mapping calls to services using tag filter expressions based on call tags.
+
+        There are two use cases on the usage of these APIs:
+
+        1. Map to an Unmonitored Service with a Custom Name. For example, Map HTTP calls to different Google domains (`www.ibm.com`, `www.ibm.fr`) into a single service named `IBM` using the `call.http.host tag`.
+        2. Link Calls to an Existing Monitored Service. For example, Link database calls (`jdbc:mysql://10.128.0.1:3306`) to an existing service like `MySQL@3306` on demo-host by referencing its service ID.
     post:
       operationId: addManualServiceConfig
       requestBody:
@@ -2619,27 +2683,28 @@ paths:
       tags:
         - Application Settings
       description: |-
-        Add a manual service configuration.
+        Use this API endpoint if one wants to add a manual service configuration. This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
 
         **This is an experimental endpoint to workaround service mapping issues.**
 
-        ### Mandatory Parameters:
+        ### Use cases
 
-        **tagFilterExpression** A tag filter expression to match calls on which the manual service configuration will be applied. Only call tags are allowed in the expression.
+        The manual service configuration APIs enables mapping calls to services using tag filter expressions based on call tags.
 
-        ### Optional Parameters:
-        **unmonitoredServiceName** Specify a service name if you want to map calls to an unmonitored service.
+        There are two use cases on the usage of these APIs:
 
-        **existingServiceId** Specify a service id if you want to map calls to an existing service.
+        1. Map to an Unmonitored Service with a Custom Name. For example, Map HTTP calls to different Google domains (`www.ibm.com`, `www.ibm.fr`) into a single service named `IBM` using the `call.http.host tag`.
+        2. Link Calls to an Existing Monitored Service. For example, Link database calls (`jdbc:mysql://10.128.0.1:3306`) to an existing service like `MySQL@3306` on demo-host by referencing its service ID.
 
-        **description** A description of the configuration.
+        ### Important Note
 
-        **enabled** Enable or disable the configuration.
+        1. Use `tagfilterExpression` to match calls on which the manual service configuration will be applied. **Only call tags are allowed** in the tag filter expression.
 
-        Note: Either unmonitoredServiceName or existingServiceId should be specified in a configuration.
-
-        ### Defaults
-        **enabled** `true`
+        2.  Either `unmonitoredServiceName` or `existingServiceId` should be specified in a configuration.
     put:
       operationId: replaceAllManualServiceConfigs
       requestBody:
@@ -2697,27 +2762,28 @@ paths:
       tags:
         - Application Settings
       description: |-
-        Replace all manual service configurations.
+        Use this API endpoint if one wants to update more than 1 manual service configurations. This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
 
         **This is an experimental endpoint to workaround service mapping issues.**
 
-        ### Mandatory Parameters:
+        ### Use cases
 
-        **tagFilterExpression** A tag filter expression to match calls on which the manual service configuration will be applied. Only call tags are allowed in the expression.
+        The manual service configuration APIs enables mapping calls to services using tag filter expressions based on call tags.
 
-        ### Optional Parameters:
-        **unmonitoredServiceName** Specify a service name if you want to map calls to an unmonitored service.
+        There are two use cases on the usage of these APIs:
 
-        **existingServiceId** Specify a service id if you want to map calls to an existing service.
+        1. Map to an Unmonitored Service with a Custom Name. For example, Map HTTP calls to different Google domains (`www.ibm.com`, `www.ibm.fr`) into a single service named `IBM` using the `call.http.host tag`.
+        2. Link Calls to an Existing Monitored Service. For example, Link database calls (`jdbc:mysql://10.128.0.1:3306`) to an existing service like `MySQL@3306` on demo-host by referencing its service ID.
 
-        **description** A description of the configuration.
+        ### Important Note
 
-        **enabled** Enable or disable the configuration.
+        1. Use `tagfilterExpression` to match calls on which the manual service configuration will be applied. **Only call tags are allowed** in the tag filter expression.
 
-        Note: Either unmonitoredServiceName or existingServiceId should be specified in a configuration.
-
-        ### Defaults
-        **enabled** `true`
+        2.  Either `unmonitoredServiceName` or `existingServiceId` should be specified in a configuration.
   '/api/application-monitoring/settings/manual-service/{id}':
     delete:
       operationId: deleteManualServiceConfig
@@ -2739,9 +2805,22 @@ paths:
       tags:
         - Application Settings
       description: |-
-        Delete a manual service configuration.
+        Use this API endpoint if one wants to delete a manual service configuration. This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
 
         **This is an experimental endpoint to workaround service mapping issues.**
+
+        ### Use cases
+
+        The manual service configuration APIs enables mapping calls to services using tag filter expressions based on call tags.
+
+        There are two use cases on the usage of these APIs:
+
+        1. Map to an Unmonitored Service with a Custom Name. For example, Map HTTP calls to different Google domains (`www.ibm.com`, `www.ibm.fr`) into a single service named `IBM` using the `call.http.host tag`.
+        2. Link Calls to an Existing Monitored Service. For example, Link database calls (`jdbc:mysql://10.128.0.1:3306`) to an existing service like `MySQL@3306` on demo-host by referencing its service ID.
     put:
       operationId: updateManualServiceConfig
       parameters:
@@ -2802,27 +2881,24 @@ paths:
       tags:
         - Application Settings
       description: |-
-        Update a manual service configuration.
+        Use this API endpoint if one wants to update a manual service configuration.
 
         **This is an experimental endpoint to workaround service mapping issues.**
 
-        ### Mandatory Parameters:
+        ### Use cases
 
-        **tagFilterExpression** A tag filter expression to match calls on which the manual service configuration will be applied. Only call tags are allowed in the expression.
+        The manual service configuration APIs enables mapping calls to services using tag filter expressions based on call tags.
 
-        ### Optional Parameters:
-        **unmonitoredServiceName** Specify a service name if you want to map calls to an unmonitored service.
+        There are two use cases on the usage of these APIs:
 
-        **existingServiceId** Specify a service id if you want to map calls to an existing service.
+        1. Map to an Unmonitored Service with a Custom Name. For example, Map HTTP calls to different Google domains (`www.ibm.com`, `www.ibm.fr`) into a single service named `IBM` using the `call.http.host tag`.
+        2. Link Calls to an Existing Monitored Service. For example, Link database calls (`jdbc:mysql://10.128.0.1:3306`) to an existing service like `MySQL@3306` on demo-host by referencing its service ID.
 
-        **description** A description of the configuration.
+        ### Important Note
 
-        **enabled** Enable or disable the configuration.
+        1. Use `tagfilterExpression` to match calls on which the manual service configuration will be applied. **Only call tags are allowed** in the tag filter expression.
 
-        Note: Either unmonitoredServiceName or existingServiceId should be specified in a configuration.
-
-        ### Defaults
-        **enabled** `true`
+        2.  Either `unmonitoredServiceName` or `existingServiceId` should be specified in a configuration.
   /api/application-monitoring/settings/service:
     get:
       operationId: getServiceConfigs
@@ -3807,7 +3883,7 @@ paths:
         - Action Catalog
   /api/automation/ai/action/match:
     post:
-      description: Get automation actions that match the incident or issue data in the request body. When using personal API tokens the the actions returned are also filtered based on the access set in `Limited access` permission settings and the user must have at least `Viewer` access for Automation.
+      description: 'Get automation actions that match the incident or issue data in the request body. When using personal API tokens, the actions returned are also filtered based on the access set in `Limited access` permission settings and the user must have at least `Viewer` access for Automation.'
       operationId: getActionMatches
       parameters:
         - in: query
@@ -11725,10 +11801,12 @@ paths:
       description: This endpoint retrieves the tag catalog.
       operationId: getTagCatalogAll
       responses:
-        default:
+        '200':
           content:
-            application/json: {}
-          description: default response
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagCatalog'
+          description: OK
       security:
         - ApiKeyAuth:
             - Default
@@ -11748,10 +11826,12 @@ paths:
           schema:
             type: string
       responses:
-        default:
+        '200':
           content:
-            application/json: {}
-          description: default response
+            applciation/json:
+              schema:
+                $ref: '#/components/schemas/TagCatalog'
+          description: OK
       security:
         - ApiKeyAuth:
             - Default
@@ -11826,6 +11906,7 @@ paths:
       description: "- The **offline** parameter is used to allow deeper visibility into snapshots. Set to `false`, the query will return all snapshots that are still available on the given **to** timestamp. However, set to `true`, the query will return all snapshots that have been active within the time window, this must at least include the online result and snapshots terminated within this time.\r\n"
   /api/infrastructure-monitoring/monitoring-state:
     get:
+      description: 'This API endpoint retrieves the current monitoring state of the system, providing details about the number of monitored hosts and serverless entities. It responds with a JSON object containing this information.'
       operationId: getMonitoringState
       responses:
         '200':
@@ -12216,7 +12297,8 @@ paths:
     get:
       operationId: getTopology
       parameters:
-        - in: query
+        - description: Include snapshot data in nodes
+          in: query
           name: includeData
           schema:
             type: boolean
@@ -16546,6 +16628,7 @@ paths:
                         operator: EQUALS
                         entity: NOT_APPLICABLE
                   tagFilterExpressionEnabled: true
+                  retriggerOpenAlertsEnabled: true
                   lastUpdated: 1698949645163
                   state: SCHEDULED
                   occurrence:
@@ -16729,6 +16812,7 @@ paths:
                       operator: EQUALS
                       entity: NOT_APPLICABLE
                 tagFilterExpressionEnabled: true
+                retriggerOpenAlertsEnabled: true
                 lastUpdated: 1698938631408
                 state: ACTIVE
                 occurrence:
@@ -18152,7 +18236,6 @@ paths:
         - Synthetic Catalog
   /api/synthetics/catalog/metrics:
     get:
-      description: API to get catalog of synthetic metrics.
       operationId: getSyntheticCatalogMetrics
       responses:
         '200':
@@ -18844,7 +18927,6 @@ paths:
         - Synthetic Test Playback Results
   '/api/synthetics/results/{testid}/{testresultid}/file':
     get:
-      description: Download a Synthetic the playback result detail data file matching the specified file type
       operationId: getSyntheticResultDetailDataFile
       parameters:
         - description: Test id of the test result detailed file to be retrieved
@@ -20300,6 +20382,10 @@ paths:
           description: OK
         '400':
           description: When the combination of beaconType and useCase is unsupported/unknown.
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '500':
+          description: Internal server error.
       security:
         - ApiKeyAuth:
             - Default
@@ -20319,31 +20405,46 @@ paths:
                   formatter: LATENCY
                   description: The recorded duration for a beacon.
                   aggregations:
-                    - MIN
                     - P25
-                    - P90
-                    - P50
-                    - P98
-                    - MAX
                     - MEAN
-                    - P75
-                    - P99
+                    - MAX
                     - P95
+                    - P90
                     - SUM
+                    - P98
+                    - P99
+                    - MIN
+                    - P75
+                    - P50
                   defaultAggregation: null
                   beaconTypes:
                     - pageLoad
-                    - custom
                     - resourceLoad
+                    - custom
                     - httpRequest
                   pathToValueInBeacon:
                     - duration
                   tagName: beacon.duration
+                - metricId: pageLoads
+                  label: Page loads
+                  formatter: NUMBER
+                  description: How often a full page load occurred. This typically requires retrieval of an HTML document from a server (unless cached) and then the full onLoad cycle.
+                  aggregations:
+                    - SUM
+                  defaultAggregation: null
+                  beaconTypes:
+                    - pageLoad
+                  pathToValueInBeacon: null
+                  tagName: null
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/WebsiteMonitoringMetricDescription'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '500':
+          description: Internal server error.
       security:
         - ApiKeyAuth:
             - Default
@@ -20371,6 +20472,10 @@ paths:
                 items:
                   $ref: '#/components/schemas/Tag'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '500':
+          description: Internal server error.
       security:
         - ApiKeyAuth:
             - Default
@@ -20754,14 +20859,19 @@ paths:
         - Website Configuration
   '/api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}/clear':
     put:
+      description: API request to clear source map files for source map upload configuration.
       operationId: clearSourceMapUploadConfiguration
       parameters:
-        - in: path
+        - description: Website ID
+          example: UhzF-fWORlyVLHDlvutYYQ
+          in: path
           name: websiteId
           required: true
           schema:
             type: string
-        - in: path
+        - description: Source Map Config ID
+          example: 97e0ad312110d3ad
+          in: path
           name: sourceMapConfigId
           required: true
           schema:
@@ -20769,6 +20879,14 @@ paths:
       responses:
         '204':
           description: Source map files in the source map upload configuration successfully cleared
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
+        '404':
+          description: Resource not found.
+        '500':
+          description: Internal server error.
       security:
         - ApiKeyAuth:
             - CanConfigureEumApplications
@@ -20777,14 +20895,19 @@ paths:
         - Website Configuration
   '/api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}/form':
     put:
+      description: API request to upload source map file for a website.
       operationId: uploadSourceMapFile
       parameters:
-        - in: path
+        - description: Website ID
+          example: UhzF-fWORlyVLHDlvutYYQ
+          in: path
           name: websiteId
           required: true
           schema:
             type: string
-        - in: path
+        - description: Source Map Config ID
+          example: 97e0ad312110d3ad
+          in: path
           name: sourceMapConfigId
           required: true
           schema:
@@ -20809,6 +20932,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/SourceMapUploadConfig'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
+        '404':
+          description: Resource not found.
+        '500':
+          description: Internal server error.
       security:
         - ApiKeyAuth:
             - CanConfigureEumApplications
@@ -20979,6 +21110,7 @@ paths:
         - Website Metrics
   /api/website-monitoring/v2/metrics:
     post:
+      description: API request to get website monitoring beacon metrics.
       operationId: getBeaconMetricsV2
       requestBody:
         content:
@@ -21022,6 +21154,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/MetricAPIResult'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '404':
+          description: Resource not found.
+        '422':
+          description: Unprocessable request - missing/invalid data.
+        '500':
+          description: Internal server error.
       security:
         - ApiKeyAuth:
             - Default
@@ -24035,8 +24175,10 @@ components:
           type: string
         pluginId:
           type: string
+          description: Plugin name
         steadyId:
           type: string
+          description: Steady identifier for the entity.
       required:
         - host
         - pluginId
@@ -24716,22 +24858,32 @@ components:
       properties:
         metrics:
           type: array
+          description: 'Id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"'
           items:
             type: string
+            description: 'Id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"'
           maxItems: 5
           minItems: 1
           uniqueItems: true
         plugin:
           type: string
+          description: Plugin name
+          example: host
         query:
           type: string
+          description: Dynamic Focus Query
+          example: 'entity.selfType:java'
         rollup:
           type: integer
           format: int32
+          description: Rollup value in seconds
+          example: 5
         snapshotIds:
           type: array
+          description: Unique identifier the metrics are assigned to
           items:
             type: string
+            description: Unique identifier the metrics are assigned to
           maxItems: 30
           minItems: 1
           uniqueItems: true
@@ -24912,6 +25064,9 @@ components:
     GetMetricsResult:
       type: object
       properties:
+        disableDefaultGroups:
+          type: boolean
+          writeOnly: true
         groups:
           type: array
           description: ' Grouping of data under `groupbyTag`, where `groupbyTagEntity` and `groupbyTagSecondLevelKey` are aspects of `groupbyTag`.'
@@ -25720,10 +25875,24 @@ components:
       properties:
         destination:
           type: string
+          description: ID of the outgoing GraphEdge.
         relation:
           type: string
+          description: Type of dependency between the source and the destination.
+          enum:
+            - in
+            - is
+            - to
+            - of
+            - connected
+            - describes
+            - of20
+            - to20
+            - dummy
+            - parent
         source:
           type: string
+          description: ID of the incoming GraphEdge.
     GraphNode:
       type: object
       properties:
@@ -25735,10 +25904,13 @@ components:
           $ref: '#/components/schemas/EntityId'
         id:
           type: string
+          description: GraphNode ID.
         label:
           type: string
+          description: Label of the entity
         plugin:
           type: string
+          description: Name of the plugin
     Group:
       type: object
       description: ' Grouping of data under `groupbyTag`, where `groupbyTagEntity` and `groupbyTagSecondLevelKey` are aspects of `groupbyTag`.'
@@ -26990,6 +27162,9 @@ components:
           description: Dynamic Focus Query that determines the scope of the Maintenance Window configuration.
           maxLength: 2048
           minLength: 0
+        retriggerOpenAlertsEnabled:
+          type: boolean
+          description: 'Boolean flag to determine if we should retrigger open alerts to be sent out for any events that opened during this maintenance window, and continues to remain open after the window expires'
         scheduling:
           $ref: '#/components/schemas/MaintenanceConfigScheduling'
         tagFilterExpression:
@@ -27029,6 +27204,9 @@ components:
           description: Dynamic Focus Query that determines the scope of the Maintenance Window configuration.
           maxLength: 2048
           minLength: 0
+        retriggerOpenAlertsEnabled:
+          type: boolean
+          description: 'Boolean flag to determine if we should retrigger open alerts to be sent out for any events that opened during this maintenance window, and continues to remain open after the window expires'
         scheduling:
           $ref: '#/components/schemas/MaintenanceConfigScheduling'
         state:
@@ -27439,10 +27617,13 @@ components:
         from:
           type: integer
           format: int64
+          description: Start of timeframe expressed as the Unix epoch time in milliseconds
         host:
           type: string
+          description: Host name
         label:
           type: string
+          description: Entitiy label
         metrics:
           type: object
           additionalProperties:
@@ -27453,15 +27634,20 @@ components:
                 type: number
         plugin:
           type: string
+          description: Plugin name
         snapshotId:
           type: string
+          description: 'Id of the exact metric you want to retrieve, eg. "cpu.user", "clientrequests.read.mean"'
         tags:
           type: array
+          description: Entitiy tags
           items:
             type: string
+            description: Entitiy tags
         to:
           type: integer
           format: int64
+          description: End of timeframe expressed as the Unix epoch time in milliseconds
     MetricMetadata:
       type: object
       properties:
@@ -28431,12 +28617,15 @@ components:
       properties:
         hasEntities:
           type: boolean
+          description: Has entities
         hostCount:
           type: integer
           format: int32
+          description: Count of hosts
         serverlessCount:
           type: integer
           format: int32
+          description: Count of serverless
     MultipleScriptsConfiguration:
       type: object
       properties:
@@ -29610,6 +29799,9 @@ components:
               type: boolean
             serviceNowUrl:
               type: string
+            snowStatusOnCloseEvent:
+              type: integer
+              format: int32
             tenant:
               type: string
             unit:
@@ -29962,21 +30154,30 @@ components:
         from:
           type: integer
           format: int64
+          description: Start of timeframe expressed as the Unix epoch time in milliseconds
         host:
           type: string
+          description: Host name
         label:
           type: string
+          description: Friendly label for the entity
         plugin:
           type: string
+          description: Plugin name
+          example: host
         snapshotId:
           type: string
+          description: Snapshot ID
         tags:
           type: array
+          description: Tags which can be used to search for this entity
           items:
             type: string
+            description: Tags which can be used to search for this entity
         to:
           type: integer
           format: int64
+          description: End of timeframe expressed as the Unix epoch time in milliseconds
     SnapshotPreview:
       type: object
       properties:
@@ -31224,7 +31425,7 @@ components:
               - SYNTHETICS_DETAIL
               - APDEX
               - BIZOPS
-              - SUBTRACES
+              - SUBTRACE
               - UNKNOWN
           uniqueItems: true
         canApplyToDestination:
@@ -32526,6 +32727,9 @@ components:
           description: Dynamic Focus Query that determines the scope of the Maintenance Window configuration.
           maxLength: 2048
           minLength: 0
+        retriggerOpenAlertsEnabled:
+          type: boolean
+          description: 'Boolean flag to determine if we should retrigger open alerts to be sent out for any events that opened during this maintenance window, and continues to remain open after the window expires'
         scheduling:
           $ref: '#/components/schemas/MaintenanceConfigScheduling'
         state:
