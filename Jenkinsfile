@@ -76,7 +76,7 @@ pipeline {
 
                     build job: '/tests/rest-api-e2e-tests', parameters: [
                         string(name: 'BRANCH_NAME', value: "release-${releaseNumber}"),
-                        string(name: 'ENVIRONMENT', value: 'preview-instana')
+                        string(name: 'ENVIRONMENT', value: 'release-instana')
                     ]
                 }
             }
