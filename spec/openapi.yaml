@@ -3,10 +3,10 @@ info:
   contact:
     email: support@instana.com
     name: © Instana
-    url: https://www.ibm.com/products/instana
-  termsOfService: https://www.ibm.com/legal/terms
+    url: http://instana.com
+  termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.288.935
+  version: 1.0.0-SNAPSHOT
   x-description: info
   x-logo:
     altText: instana logo
@@ -646,7 +646,7 @@ paths:
       summary: Get applications
       tags:
       - Application Resources
-  /api/application-monitoring/applications/services:
+  /api/application-monitoring/applications;id={application-id}/services/:
     get:
       description: |
         Use this API endpoint if one wants to retrieve a list of Application/Services.
@@ -922,19 +922,29 @@ paths:
       deprecated: true
       operationId: getApplicationTags
       parameters:
-      - in: query
+      - description: |
+          The start of the timestamp expreseed in Unix epoch time in milliseconds which will fetch list of queryable tags until current timestamp.
+          Eg: `1719875833000` (1 July 2024 23:17:13 GMT) will fetch list of queryable tags from that time till current time.
+        in: query
         name: from
         schema:
           type: integer
           format: int64
-      - in: query
+      - description: "The source from where queryable tags should be fetched from.\
+          \ In Unbounded Analytics, Application Perspectives has 2 sources; `Calls`\
+          \ and `Traces`."
+        in: query
         name: dataSource
         schema:
           type: string
           enum:
           - CALLS
           - TRACES
-      - in: query
+      - description: |
+          The subset of queryable tags that is available for a particular use case.
+          For eg: If you select `dataSource` as `TRACES` and useCase as `Grouping`. The tags available for querying are `trace.endpoint.name` and `trace.service.name`.
+          useCase is helpful when one wants to know which tags are supported for querying.
+        in: query
         name: useCase
         schema:
           type: string
@@ -2206,6 +2216,7 @@ paths:
         required: true
         schema:
           type: string
+          description: A unique id of the manual service configuration.
       responses:
         default:
           content:
@@ -2226,6 +2237,7 @@ paths:
         required: true
         schema:
           type: string
+          description: A unique id of the manual service configuration.
       requestBody:
         content:
           application/json:
@@ -2280,6 +2292,13 @@ paths:
       x-description: updateManualServiceConfigs
   /api/application-monitoring/settings/service:
     get:
+      description: "Use this API endpoint if one wants to retrive a list of all service\
+        \ configurations.\nThis endpoint requires `CanConfigureServiceMapping` permission.\
+        \ \n\nOne can use `Create or update an API token` endpoint to update the permission\
+        \ by setting `canConfigureServiceMapping` to `true`.\nIf one wants to enable\
+        \ the permission from Instana UI, go to Settings -> Security & Access -> Access\
+        \ Control -> API Token.\nThere one can update the existing token or create\
+        \ a new token and set `Customize service rules and endpoint mapping` to `true`.\n"
       operationId: getServiceConfigs
       responses:
         "200":
@@ -2306,6 +2325,17 @@ paths:
       tags:
       - Application Settings
     post:
+      description: "Use this API endpoint if one wants to create a custom service\
+        \ rule.\nThis endpoint requires `CanConfigureServiceMapping` permission. \n\
+        \nOne can use `Create or update an API token` endpoint to update the permission\
+        \ by setting `canConfigureServiceMapping` to `true`.\nIf one wants to enable\
+        \ the permission from Instana UI, go to Settings -> Security & Access -> Access\
+        \ Control -> API Token.\nThere one can update the existing token or create\
+        \ a new token and set `Customize service rules and endpoint mapping` to `true`.\
+        \ \n\n\n## Errata: \n\n\nThe following field is documented in the request\
+        \ schema:\n- The `id` field is not mandatory and one can't have a service\
+        \ configuration id before creating one configuration.\nInstana creates it\
+        \ automatically.\n"
       operationId: addServiceConfig
       requestBody:
         content:
@@ -2349,6 +2379,14 @@ paths:
       tags:
       - Application Settings
     put:
+      description: "Use this API endpoint if one wants to modify 1 or more existing\
+        \ service configuration.\nThis endpoint requires `CanConfigureServiceMapping`\
+        \ permission. \n\nOne can use `Create or update an API token` endpoint to\
+        \ update the permission by setting `canConfigureServiceMapping` to `true`.\n\
+        If one wants to enable the permission from Instana UI, go to Settings -> Security\
+        \ & Access -> Access Control -> API Token.\nThere one can update the existing\
+        \ token or create a new token and set `Customize service rules and endpoint\
+        \ mapping` to `true`.\n"
       operationId: replaceAll
       requestBody:
         content:
@@ -2393,6 +2431,15 @@ paths:
       - Application Settings
   /api/application-monitoring/settings/service/order:
     put:
+      description: "Use this API endpoint if one wants to change the order of service\
+        \ configurations aka custom service rules.\nNote that all service configuration\
+        \ IDs have to be passed in the request to re-order the configurations.\nThis\
+        \ endpoint requires `CanConfigureServiceMapping` permission. \n\nOne can use\
+        \ `Create or update an API token` endpoint to update the permission by setting\
+        \ `canConfigureServiceMapping` to `true`.\nIf one wants to enable the permission\
+        \ from Instana UI, go to Settings -> Security & Access -> Access Control ->\
+        \ API Token.\nThere one can update the existing token or create a new token\
+        \ and set `Customize service rules and endpoint mapping` to `true`.\n"
       operationId: orderServiceConfig
       requestBody:
         content:
@@ -2418,6 +2465,13 @@ paths:
       - Application Settings
   /api/application-monitoring/settings/service/{id}:
     delete:
+      description: "Use this API endpoint if one wants to delete a service configuration.\n\
+        This endpoint requires `CanConfigureServiceMapping` permission. \n\nOne can\
+        \ use `Create or update an API token` endpoint to update the permission by\
+        \ setting `canConfigureServiceMapping` to `true`.\nIf one wants to enable\
+        \ the permission from Instana UI, go to Settings -> Security & Access -> Access\
+        \ Control -> API Token.\nThere one can update the existing token or create\
+        \ a new token and set `Customize service rules and endpoint mapping` to `true`.\n"
       operationId: deleteServiceConfig
       parameters:
       - in: path
@@ -2425,6 +2479,7 @@ paths:
         required: true
         schema:
           type: string
+          description: "A unique string for the service configuration. Eg: `G510hmXYSDysLZ5kuj0BaQ`"
       responses:
         default:
           content:
@@ -2437,6 +2492,13 @@ paths:
       tags:
       - Application Settings
     get:
+      description: "Use this API endpoint if one wants to retrieve a particular custom\
+        \ service rule.\nThis endpoint requires `CanConfigureServiceMapping` permission.\
+        \ \n\nOne can use `Create or update an API token` endpoint to update the permission\
+        \ by setting `canConfigureServiceMapping` to `true`.\nIf one wants to enable\
+        \ the permission from Instana UI, go to Settings -> Security & Access -> Access\
+        \ Control -> API Token.\nThere one can update the existing token or create\
+        \ a new token and set `Customize service rules and endpoint mapping` to `true`.\n"
       operationId: getServiceConfig
       parameters:
       - in: path
@@ -2444,6 +2506,7 @@ paths:
         required: true
         schema:
           type: string
+          description: "A unique string for the service configuration. Eg: `G510hmXYSDysLZ5kuj0BaQ`"
       responses:
         "200":
           content:
@@ -2467,6 +2530,13 @@ paths:
       tags:
       - Application Settings
     put:
+      description: "Use this API endpoint if one wants to update a particular custom\
+        \ service rule.\nThis endpoint requires `CanConfigureServiceMapping` permission.\
+        \ \n\nOne can use `Create or update an API token` endpoint to update the permission\
+        \ by setting `canConfigureServiceMapping` to `true`.\nIf one wants to enable\
+        \ the permission from Instana UI, go to Settings -> Security & Access -> Access\
+        \ Control -> API Token.\nThere one can update the existing token or create\
+        \ a new token and set `Customize service rules and endpoint mapping` to `true`.\n"
       operationId: putServiceConfig
       parameters:
       - in: path
@@ -2474,6 +2544,7 @@ paths:
         required: true
         schema:
           type: string
+          description: "A unique string for the service configuration. Eg: `G510hmXYSDysLZ5kuj0BaQ`"
       requestBody:
         content:
           application/json:
@@ -2517,6 +2588,14 @@ paths:
       - Application Settings
   /api/application-monitoring/topology/services:
     get:
+      description: |
+        Use this API endpoint if one wants to retrieve services and connections (call paths) between them for calls in the scope given by the parameters.
+
+        ## Errata:
+
+        The following fields are unsupported but documented in the schema for the result `services`:
+        - The `applications` field is always missing and the `snapshotIds` field is always empty, despite being declared as required in the result schema.
+        - The `maxSeverity` and `numberOfOpenIssues` fields are always missing.
       operationId: getServicesMap
       parameters:
       - description: Size of time window in milliseconds
@@ -3505,6 +3584,11 @@ paths:
           parameter.  Valid values are automatic or manual
         in: query
         name: executionType
+        schema:
+          type: string
+      - description: Filter policies by action ID. This is an optional parameter.
+        in: query
+        name: actionId
         schema:
           type: string
       responses:
@@ -11169,6 +11253,11 @@ paths:
                 items:
                   $ref: "#/components/schemas/GetPayloadKeysResult"
           description: OK
+          links:
+            payload for snapshot:
+              operationId: getPluginPayload
+              parameters:
+                payloadKey: "$response.body#/[*]"
       security:
       - ApiKeyAuth:
         - Default
@@ -11277,6 +11366,7 @@ paths:
       - Infrastructure Catalog
   /api/infrastructure-monitoring/graph/related-hosts/{snapshotId}:
     get:
+      description: Gets the Related Hosts
       operationId: getRelatedHosts
       parameters:
       - description: Snapshot ID running on the host
@@ -11308,7 +11398,7 @@ paths:
                 type: array
                 items:
                   type: string
-          description: OK
+          description: Returns the snapshot ID of the hosts
       security:
       - ApiKeyAuth:
         - Default
@@ -11377,8 +11467,8 @@ paths:
         required: true
         schema:
           type: string
-      - description: Payload key. Use `/api/infrastructure-monitoring/catalog/payloads`
-          to retrieve the list of possible keys.
+      - description: "Payload key. Use [getAvailablePayloadKeysByPluginId](/#operation/getAvailablePayloadKeysByPluginId)\
+          \ to retrieve the list of possible keys."
         example: topqueries
         in: path
         name: payloadKey
@@ -14163,6 +14253,9 @@ paths:
                 infraDfqFilter:
                   scopeId: ""
                   scopeRoleId: "-1"
+                actionFilter:
+                  scopeId: ""
+                  scopeRoleId: "-1"
             schema:
               $ref: "#/components/schemas/ApiCreateGroup"
         required: true
@@ -14202,6 +14295,9 @@ paths:
                       entity: DESTINATION
                     scope: INCLUDE_NO_DOWNSTREAM
                   infraDfqFilter:
+                    scopeId: ""
+                    scopeRoleId: "-1"
+                  actionFilter:
                     scopeId: ""
                     scopeRoleId: "-1"
               schema:
@@ -14263,6 +14359,9 @@ paths:
                       entity: DESTINATION
                     scope: INCLUDE_NO_DOWNSTREAM
                   infraDfqFilter:
+                    scopeId: ""
+                    scopeRoleId: "-1"
+                  actionFilter:
                     scopeId: ""
                     scopeRoleId: "-1"
               schema:
@@ -14327,6 +14426,9 @@ paths:
                   infraDfqFilter:
                     scopeId: ""
                     scopeRoleId: "-1"
+                  actionFilter:
+                    scopeId: ""
+                    scopeRoleId: "-1"
               schema:
                 $ref: "#/components/schemas/ApiGroup"
           description: OK
@@ -14383,6 +14485,9 @@ paths:
                   mobileAppIds: []
                   syntheticTestIds: []
                   infraDfqFilter:
+                    scopeId: ""
+                    scopeRoleId: "-1"
+                  actionFilter:
                     scopeId: ""
                     scopeRoleId: "-1"
               schema:
@@ -14491,6 +14596,9 @@ paths:
                   infraDfqFilter:
                     scopeId: ""
                     scopeRoleId: "-1"
+                  actionFilter:
+                    scopeId: ""
+                    scopeRoleId: "-1"
               schema:
                 $ref: "#/components/schemas/ApiGroup"
           description: OK
@@ -14548,6 +14656,9 @@ paths:
                 infraDfqFilter:
                   scopeId: ""
                   scopeRoleId: "-1"
+                actionFilter:
+                  scopeId: ""
+                  scopeRoleId: "-1"
             schema:
               $ref: "#/components/schemas/ApiGroup"
         required: true
@@ -14587,6 +14698,9 @@ paths:
                       entity: DESTINATION
                     scope: INCLUDE_NO_DOWNSTREAM
                   infraDfqFilter:
+                    scopeId: ""
+                    scopeRoleId: "-1"
+                  actionFilter:
                     scopeId: ""
                     scopeRoleId: "-1"
               schema:
@@ -20614,7 +20728,7 @@ components:
     AdaptiveThresholdRule:
       type: object
       allOf:
-      - $ref: "#/components/schemas/Threshold"
+      - $ref: "#/components/schemas/ThresholdConfigRule"
       - type: object
         properties:
           deviationFactor:
@@ -21083,6 +21197,8 @@ components:
           type: boolean
         canConfigureSessionSettings:
           type: boolean
+        canConfigureSubtraces:
+          type: boolean
         canConfigureSyntheticCredentials:
           type: boolean
         canConfigureSyntheticLocations:
@@ -21108,6 +21224,8 @@ components:
         canEditAllAccessibleCustomDashboards:
           type: boolean
         canInstallNewAgents:
+          type: boolean
+        canInvokeAlertChannel:
           type: boolean
         canManuallyCloseIssue:
           type: boolean
@@ -21324,6 +21442,12 @@ components:
           - PER_AP
           - PER_AP_SERVICE
           - PER_AP_ENDPOINT
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -21480,6 +21604,12 @@ components:
           - PER_AP
           - PER_AP_SERVICE
           - PER_AP_ENDPOINT
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -23553,6 +23683,7 @@ components:
       - type
     ExtendedService:
       type: object
+      description: List of services in the topology.
       properties:
         applications:
           type: array
@@ -24833,6 +24964,12 @@ components:
           - PER_AP
           - PER_AP_SERVICE
           - PER_AP_ENDPOINT
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -24983,6 +25120,12 @@ components:
           - PER_AP
           - PER_AP_SERVICE
           - PER_AP_ENDPOINT
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -25500,6 +25643,12 @@ components:
             Alert configuration.
           maxLength: 65536
           minLength: 0
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -25607,6 +25756,12 @@ components:
           minLength: 0
         enabled:
           type: boolean
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -26109,6 +26264,12 @@ components:
           type: string
           maxLength: 65536
           minLength: 0
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -26172,6 +26333,12 @@ components:
           minLength: 0
         enabled:
           type: boolean
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -26553,18 +26720,25 @@ components:
       properties:
         description:
           type: string
+          description: A description of the manual service configuration.
         enabled:
           type: boolean
+          description: Enable or disable the manual service configuration. By default
+            it is enabled.
         existingServiceId:
           type: string
+          description: The service ID of the existing monitored service to which the
+            calls should be linked.
         id:
           type: string
+          description: A unique id of the manual service configuration.
           maxLength: 128
           minLength: 1
         tagFilterExpression:
           $ref: "#/components/schemas/TagFilterExpressionElement"
         unmonitoredServiceName:
           type: string
+          description: A service name if you want to map calls to an unmonitored service.
       required:
       - id
       - tagFilterExpression
@@ -27165,15 +27339,27 @@ components:
       properties:
         alertChannelIds:
           type: array
+          deprecated: true
           description: List of IDs of alert channels defined in Instana. Can be left
             empty.
           items:
             type: string
+            deprecated: true
             description: List of IDs of alert channels defined in Instana. Can be
               left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        alertChannels:
+          type: object
+          additionalProperties:
+            type: array
+            description: Set of alert channel IDs associated with the severity.
+            items:
+              type: string
+              description: Set of alert channel IDs associated with the severity.
+            uniqueItems: true
+          description: Set of alert channel IDs associated with the severity.
         completeTagFilterExpression:
           $ref: "#/components/schemas/TagFilterExpression"
         customPayloadFields:
@@ -27191,6 +27377,12 @@ components:
             by this Smart Alert configuration.
           maxLength: 65536
           minLength: 0
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -27219,9 +27411,20 @@ components:
           minLength: 0
         rule:
           $ref: "#/components/schemas/MobileAppAlertRule"
+        rules:
+          type: array
+          description: A list of rules where each rule is associated with multiple
+            thresholds and their corresponding severity levels. This enables more
+            complex alert configurations with validations to ensure consistent and
+            logical threshold-severity combinations.
+          items:
+            $ref: "#/components/schemas/RuleWithThresholdMobileAppAlertRule"
+          maxItems: 1
+          minItems: 1
         severity:
           type: integer
           format: int32
+          deprecated: true
           description: "The severity of the alert when triggered, which is either\
             \ 5 (Warning), or 10 (Critical)."
           maximum: 10
@@ -27237,19 +27440,15 @@ components:
           description: Optional flag to indicate whether an Incident is also triggered
             or not.
       required:
-      - alertChannelIds
       - customPayloadFields
       - description
       - granularity
       - mobileAppId
       - name
-      - rule
       - tagFilterExpression
-      - threshold
       - timeThreshold
     MobileAppAlertRule:
       type: object
-      description: Indicates the type of rule this alert configuration is about.
       discriminator:
         mapping:
           crash: "#/components/schemas/CrashMobileAppAlertRule"
@@ -28005,14 +28204,20 @@ components:
       properties:
         description:
           type: string
+          description: A description of the manual service configuration.
         enabled:
           type: boolean
+          description: Enable or disable the manual service configuration. By default
+            it is enabled.
         existingServiceId:
           type: string
+          description: The service ID of the existing monitored service to which the
+            calls should be linked.
         tagFilterExpression:
           $ref: "#/components/schemas/TagFilterExpressionElement"
         unmonitoredServiceName:
           type: string
+          description: A service name if you want to map calls to an unmonitored service.
       required:
       - tagFilterExpression
     Occurrence:
@@ -28469,7 +28674,7 @@ components:
         thresholds:
           type: object
           additionalProperties:
-            $ref: "#/components/schemas/Threshold"
+            $ref: "#/components/schemas/ThresholdConfigRule"
       required:
       - rule
       - thresholdOperator
@@ -28492,7 +28697,53 @@ components:
         thresholds:
           type: object
           additionalProperties:
-            $ref: "#/components/schemas/Threshold"
+            $ref: "#/components/schemas/ThresholdConfigRule"
+      required:
+      - rule
+      - thresholdOperator
+      - thresholds
+    RuleWithThresholdMobileAppAlertRule:
+      type: object
+      description: A list of rules where each rule is associated with multiple thresholds
+        and their corresponding severity levels. This enables more complex alert configurations
+        with validations to ensure consistent and logical threshold-severity combinations.
+      properties:
+        rule:
+          $ref: "#/components/schemas/MobileAppAlertRule"
+        thresholdOperator:
+          type: string
+          enum:
+          - '>'
+          - '>='
+          - <
+          - <=
+        thresholds:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ThresholdConfigRule"
+      required:
+      - rule
+      - thresholdOperator
+      - thresholds
+    RuleWithThresholdWebsiteAlertRule:
+      type: object
+      description: A list of rules where each rule is associated with multiple thresholds
+        and their corresponding severity levels. This enables more complex alert configurations
+        with validations to ensure consistent and logical threshold-severity combinations.
+      properties:
+        rule:
+          $ref: "#/components/schemas/WebsiteAlertRule"
+        thresholdOperator:
+          type: string
+          enum:
+          - '>'
+          - '>='
+          - <
+          - <=
+        thresholds:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ThresholdConfigRule"
       required:
       - rule
       - thresholdOperator
@@ -28646,22 +28897,33 @@ components:
       properties:
         comment:
           type: string
+          description: |
+            A small description of the service configuration would be present in this field if it was provided during creation of the custom service rule.
+            If it was not provided, this field will remain empty. It is considered as best practice to add a comment to document the reasoning behind creating the rule.
           maxLength: 2048
           minLength: 0
         enabled:
           type: boolean
+          description: "If enabled, calls will be mapped to the rule."
         id:
           type: string
+          description: "A unique string for the service configuration. Eg: `G510hmXYSDysLZ5kuj0BaQ`"
         label:
           type: string
+          description: |
+            It contains the tags defined in `matchSpecification` concatenated with a dash.
+            Eg: if the `matchSpecification` contains keys `kubernetes.namespace.name` and `docker.label`, `label` would be `kubernetes.namespace.name-docker.label`.
         matchSpecification:
           type: array
+          description: Calls will be matched with the array of key-value tags present
+            in this field.
           items:
             $ref: "#/components/schemas/ServiceMatchingRule"
           maxItems: 20
           minItems: 0
         name:
           type: string
+          description: "The name of the service configuration. Eg: `Rule ABC`"
           maxLength: 128
           minLength: 1
       required:
@@ -29029,11 +29291,14 @@ components:
       properties:
         connections:
           type: array
+          description: A list which indicates which services are consumers and which
+            are providers in the communication chain.
           items:
             $ref: "#/components/schemas/ServiceMapConnection"
           uniqueItems: true
         services:
           type: array
+          description: List of services in the topology.
           items:
             $ref: "#/components/schemas/ExtendedService"
           uniqueItems: true
@@ -29042,34 +29307,68 @@ components:
       - services
     ServiceMapConnection:
       type: object
+      description: A list which indicates which services are consumers and which are
+        providers in the communication chain.
       properties:
         calls:
           type: integer
           format: int64
+          description: "The number of calls between the 2 services.\nEg: The number\
+            \ of calls from `24558242fdeb52571cfb9fa42f1b334aa65d7e61` service to\
+            \ `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa` service over the mentioned\
+            \ timeframe is `200`. \n\nIf no timeframe (`to` and `windowSize` in query\
+            \ paramter) is mentioned, the timeframe is taken as last hour.\n"
           minimum: 0
         errorRate:
           type: number
           format: double
+          description: "The error rate of the calls between the 2 services.\nEg: The\
+            \ error rate of calls from `24558242fdeb52571cfb9fa42f1b334aa65d7e61`\
+            \ service to `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa` service over the\
+            \ mentioned timeframe is `0.1`. \n\nThe value is between 0 and 1. \n\n\
+            If no timeframe (`to` and `windowSize` in query paramter) is mentioned,\
+            \ the timeframe is taken as last hour.\n"
           maximum: 1
           minimum: 0
         from:
           type: string
+          description: |
+            The service that initiates a request to another service.
+            It contains a unique service id. Eg: `24558242fdeb52571cfb9fa42f1b334aa65d7e61`.
         latency:
           type: number
           format: double
+          description: "The mean latency of the calls between the 2 services.\nEg:\
+            \ The mean latency of calls from `24558242fdeb52571cfb9fa42f1b334aa65d7e61`\
+            \ service to `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa` service over the\
+            \ mentioned timeframe is `4.46`. \n\nThe value is in milliseconds. \n\n\
+            If no timeframe (`to` and `windowSize` in query paramter) is mentioned,\
+            \ the timeframe is taken as last hour.\n"
           minimum: 0
         to:
           type: string
+          description: |
+            The service that receives the request sent by the source service.
+            It contains a unique service id. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
       required:
       - from
       - to
     ServiceMatchingRule:
       type: object
+      description: Calls will be matched with the array of key-value tags present
+        in this field.
       properties:
         key:
           type: string
+          description: |
+            In Instana UI, this is shown as `Tag`.
+            One can select a variety of pre-defined tags. Eg: `host.fqdn`, `container.label` etc.
         value:
           type: string
+          description: |
+            In Instana UI, this is known as 'key`.
+            Eg: if one labels Docker containers such as com.acme.service-name:myservice, to map services from this label,
+            the `key` aka `tag` would be `docker.label` and `value` aka `key` would be `com.acme.service-name`.
       required:
       - key
       - value
@@ -29905,7 +30204,7 @@ components:
     StaticBaselineThresholdRule:
       type: object
       allOf:
-      - $ref: "#/components/schemas/Threshold"
+      - $ref: "#/components/schemas/ThresholdConfigRule"
       - type: object
         properties:
           baseline:
@@ -29961,7 +30260,7 @@ components:
     StaticThresholdRule:
       type: object
       allOf:
-      - $ref: "#/components/schemas/Threshold"
+      - $ref: "#/components/schemas/ThresholdConfigRule"
       - type: object
         properties:
           value:
@@ -30075,6 +30374,12 @@ components:
             this Smart Alert configuration.
           maxLength: 65536
           minLength: 0
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         name:
           type: string
           description: Name of the synthetic alert configuration. Used as a template
@@ -30150,6 +30455,12 @@ components:
         enabled:
           type: boolean
           description: Flag to indicate whether or not the configuration is enabled.
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         id:
           type: string
           description: 'ID of this Synthetic Alert Config. '
@@ -31370,6 +31681,7 @@ components:
       - properties
     Threshold:
       type: object
+      deprecated: true
       description: Indicates the type of threshold this alert rule is evaluated on.
       discriminator:
         mapping:
@@ -31389,6 +31701,19 @@ components:
           type: string
       required:
       - operator
+      - type
+    ThresholdConfigRule:
+      type: object
+      discriminator:
+        mapping:
+          adaptiveBaseline: "#/components/schemas/AdaptiveThresholdRule"
+          historicBaseline: "#/components/schemas/StaticBaselineThresholdRule"
+          staticThreshold: "#/components/schemas/StaticThresholdRule"
+        propertyName: type
+      properties:
+        type:
+          type: string
+      required:
       - type
     ThresholdRule:
       type: object
@@ -32409,15 +32734,27 @@ components:
       properties:
         alertChannelIds:
           type: array
+          deprecated: true
           description: List of IDs of alert channels defined in Instana. Can be left
             empty.
           items:
             type: string
+            deprecated: true
             description: List of IDs of alert channels defined in Instana. Can be
               left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        alertChannels:
+          type: object
+          additionalProperties:
+            type: array
+            description: Set of alert channel IDs associated with the severity.
+            items:
+              type: string
+              description: Set of alert channel IDs associated with the severity.
+            uniqueItems: true
+          description: Set of alert channel IDs associated with the severity.
         customPayloadFields:
           type: array
           description: Custom payload fields to send additional information in the
@@ -32433,6 +32770,12 @@ components:
             Alert configuration.
           maxLength: 65536
           minLength: 0
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -32455,9 +32798,20 @@ components:
           minLength: 0
         rule:
           $ref: "#/components/schemas/WebsiteAlertRule"
+        rules:
+          type: array
+          description: A list of rules where each rule is associated with multiple
+            thresholds and their corresponding severity levels. This enables more
+            complex alert configurations with validations to ensure consistent and
+            logical threshold-severity combinations.
+          items:
+            $ref: "#/components/schemas/RuleWithThresholdWebsiteAlertRule"
+          maxItems: 1
+          minItems: 1
         severity:
           type: integer
           format: int32
+          deprecated: true
           description: "The severity of the alert when triggered, which is either\
             \ 5 (Warning), or 10 (Critical)."
           maximum: 10
@@ -32485,14 +32839,11 @@ components:
           maxLength: 64
           minLength: 0
       required:
-      - alertChannelIds
       - customPayloadFields
       - description
       - granularity
       - name
-      - rule
       - tagFilterExpression
-      - threshold
       - timeThreshold
       - websiteId
     WebsiteAlertConfigWithMetadata:
@@ -32500,15 +32851,27 @@ components:
       properties:
         alertChannelIds:
           type: array
+          deprecated: true
           description: List of IDs of alert channels defined in Instana. Can be left
             empty.
           items:
             type: string
+            deprecated: true
             description: List of IDs of alert channels defined in Instana. Can be
               left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        alertChannels:
+          type: object
+          additionalProperties:
+            type: array
+            description: Set of alert channel IDs associated with the severity.
+            items:
+              type: string
+              description: Set of alert channel IDs associated with the severity.
+            uniqueItems: true
+          description: Set of alert channel IDs associated with the severity.
         created:
           type: integer
           format: int64
@@ -32532,6 +32895,12 @@ components:
         enabled:
           type: boolean
           description: Flag to indicate whether or not the configuration is enabled.
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -32568,9 +32937,20 @@ components:
             Read-only access restricts modification of the config.
         rule:
           $ref: "#/components/schemas/WebsiteAlertRule"
+        rules:
+          type: array
+          description: A list of rules where each rule is associated with multiple
+            thresholds and their corresponding severity levels. This enables more
+            complex alert configurations with validations to ensure consistent and
+            logical threshold-severity combinations.
+          items:
+            $ref: "#/components/schemas/RuleWithThresholdWebsiteAlertRule"
+          maxItems: 1
+          minItems: 1
         severity:
           type: integer
           format: int32
+          deprecated: true
           description: "The severity of the alert when triggered, which is either\
             \ 5 (Warning), or 10 (Critical)."
           maximum: 10
@@ -32598,20 +32978,16 @@ components:
           maxLength: 64
           minLength: 0
       required:
-      - alertChannelIds
       - customPayloadFields
       - description
       - granularity
       - id
       - name
-      - rule
       - tagFilterExpression
-      - threshold
       - timeThreshold
       - websiteId
     WebsiteAlertRule:
       type: object
-      description: Indicates the type of rule this alert configuration is about.
       discriminator:
         mapping:
           customEvent: "#/components/schemas/CustomEventWebsiteAlertRule"
@@ -33417,15 +33793,27 @@ components:
       properties:
         alertChannelIds:
           type: array
+          deprecated: true
           description: List of IDs of alert channels defined in Instana. Can be left
             empty.
           items:
             type: string
+            deprecated: true
             description: List of IDs of alert channels defined in Instana. Can be
               left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        alertChannels:
+          type: object
+          additionalProperties:
+            type: array
+            description: Set of alert channel IDs associated with the severity.
+            items:
+              type: string
+              description: Set of alert channel IDs associated with the severity.
+            uniqueItems: true
+          description: Set of alert channel IDs associated with the severity.
         completeTagFilterExpression:
           $ref: "#/components/schemas/TagFilterExpression"
         created:
@@ -33451,6 +33839,12 @@ components:
         enabled:
           type: boolean
           description: Flag to indicate whether or not the configuration is enabled.
+        gracePeriod:
+          type: integer
+          format: int64
+          description: "The duration for which an alert remains open after conditions\
+            \ are no longer violated, with the alert auto-closing once the grace period\
+            \ expires."
         granularity:
           type: integer
           format: int32
@@ -33493,9 +33887,20 @@ components:
             Read-only access restricts modification of the config.
         rule:
           $ref: "#/components/schemas/MobileAppAlertRule"
+        rules:
+          type: array
+          description: A list of rules where each rule is associated with multiple
+            thresholds and their corresponding severity levels. This enables more
+            complex alert configurations with validations to ensure consistent and
+            logical threshold-severity combinations.
+          items:
+            $ref: "#/components/schemas/RuleWithThresholdMobileAppAlertRule"
+          maxItems: 1
+          minItems: 1
         severity:
           type: integer
           format: int32
+          deprecated: true
           description: "The severity of the alert when triggered, which is either\
             \ 5 (Warning), or 10 (Critical)."
           maximum: 10
@@ -33511,16 +33916,13 @@ components:
           description: Optional flag to indicate whether an Incident is also triggered
             or not.
       required:
-      - alertChannelIds
       - customPayloadFields
       - description
       - granularity
       - id
       - mobileAppId
       - name
-      - rule
       - tagFilterExpression
-      - threshold
       - timeThreshold
     WithResolvedName:
       type: object
