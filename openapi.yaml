@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Instana REST API documentation
-  version: 1.289.1357
+  version: 1.290.688
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -635,6 +635,7 @@ tags:
   - name: Action History
   - name: Policies
   - name: Authentication
+  - name: Log Alert Configuration
 paths:
   '/api/apdex/report/{apdexId}':
     get:
@@ -1451,19 +1452,27 @@ paths:
       deprecated: true
       operationId: getApplicationTags
       parameters:
-        - in: query
+        - description: |
+            The start of the timestamp expreseed in Unix epoch time in milliseconds which will fetch list of queryable tags until current timestamp.
+            Eg: `1719875833000` (1 July 2024 23:17:13 GMT) will fetch list of queryable tags from that time till current time.
+          in: query
           name: from
           schema:
             type: integer
             format: int64
-        - in: query
+        - description: 'The source from where queryable tags should be fetched from. In Unbounded Analytics, Application Perspectives has 2 sources; `Calls` and `Traces`.'
+          in: query
           name: dataSource
           schema:
             type: string
             enum:
               - CALLS
               - TRACES
-        - in: query
+        - description: |
+            The subset of queryable tags that is available for a particular use case.
+            For eg: If you select `dataSource` as `TRACES` and useCase as `Grouping`. The tags available for querying are `trace.endpoint.name` and `trace.service.name`.
+            useCase is helpful when one wants to know which tags are supported for querying.
+          in: query
           name: useCase
           schema:
             type: string
@@ -2394,6 +2403,13 @@ paths:
   /api/application-monitoring/settings/http-endpoint:
     get:
       deprecated: true
+      description: |
+        This is a deprecated endpoint. Use `All Endpoint configurations` instead.
+        This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
       operationId: getHttpEndpointConfigs
       responses:
         '200':
@@ -2426,6 +2442,13 @@ paths:
         - Application Settings
     post:
       deprecated: true
+      description: |
+        This is a deprecated endpoint. Use `Create endpoint configuration` instead.
+        This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
       operationId: createHttpEndpointConfig
       requestBody:
         content:
@@ -2469,6 +2492,13 @@ paths:
   '/api/application-monitoring/settings/http-endpoint/{id}':
     delete:
       deprecated: true
+      description: |
+        This is a deprecated endpoint. Use `Delete endpoint configuration` instead.
+        This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
       operationId: deleteHttpEndpointConfig
       parameters:
         - in: path
@@ -2476,6 +2506,10 @@ paths:
           required: true
           schema:
             type: string
+            description: |
+              An Instana generated unique identifier for a Service. If specified, the list of results will be filtered for the specified Service ID. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+              One can see the service id from Instana UI by going to a Service page. In the URL, there will be `serviceId=3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+              Alternatively, one can use `Get services` API endpoint to get the service id in `id` parameter.
       responses:
         default:
           content:
@@ -2489,6 +2523,13 @@ paths:
         - Application Settings
     get:
       deprecated: true
+      description: |
+        This is a deprecated endpoint. Use `Endpoint configuration` instead.
+        This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
       operationId: getHttpEndpointConfig
       parameters:
         - in: path
@@ -2496,6 +2537,10 @@ paths:
           required: true
           schema:
             type: string
+            description: |
+              An Instana generated unique identifier for a Service. If specified, the list of results will be filtered for the specified Service ID. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+              One can see the service id from Instana UI by going to a Service page. In the URL, there will be `serviceId=3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+              Alternatively, one can use `Get services` API endpoint to get the service id in `id` parameter.
       responses:
         '200':
           content:
@@ -2525,6 +2570,13 @@ paths:
         - Application Settings
     put:
       deprecated: true
+      description: |
+        This is a deprecated endpoint. Use `Update endpoint configuration` instead.
+        This endpoint requires `CanConfigureServiceMapping` permission. 
+
+        One can use `Create or update an API token` endpoint to update the permission by setting `canConfigureServiceMapping` to `true`.
+        If one wants to enable the permission from Instana UI, go to Settings -> Security & Access -> Access Control -> API Token.
+        There one can update the existing token or create a new token and set `Customize service rules and endpoint mapping` to `true`.
       operationId: updateHttpEndpointConfig
       parameters:
         - in: path
@@ -2532,6 +2584,10 @@ paths:
           required: true
           schema:
             type: string
+            description: |
+              An Instana generated unique identifier for a Service. If specified, the list of results will be filtered for the specified Service ID. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+              One can see the service id from Instana UI by going to a Service page. In the URL, there will be `serviceId=3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+              Alternatively, one can use `Get services` API endpoint to get the service id in `id` parameter.
       requestBody:
         content:
           application/json:
@@ -3267,6 +3323,7 @@ paths:
         - Application Topology
   '/api/application-monitoring/v2/analyze/traces/{id}':
     get:
+      description: ' Use this API endpoint if one wants to retrive comprehensive details of a particular trace.'
       operationId: getTraceDownload
       parameters:
         - in: path
@@ -3274,11 +3331,16 @@ paths:
           required: true
           schema:
             type: string
+            description: An Instana generated unique identifier for a trace.
         - in: query
           name: retrievalSize
           schema:
             type: integer
             format: int32
+            description: |
+              The number of records to retrieve in a single request.
+              For example, when retrievalSize is set to 30, offset is 20, and ingestionTime is 1725519793, the API request will fetch 30 records starting from the 21st record after the specified `ingestionTime`.
+              Minimum value is 1 and maximum value is 10000.
             maximum: 10000
             minimum: 1
         - in: query
@@ -3286,11 +3348,19 @@ paths:
           schema:
             type: integer
             format: int32
+            description: |
+              The number of records to be skipped from the `ingestionTime`.
+              For example: when `offset` is 20 and `ingestionTime` is 1725519793, the API response should have records starting from the 21st record after the specified `ingestionTime`.
+              Note that if `offset` value is not empty, `ingestionTime` can't be empty.
         - in: query
           name: ingestionTime
           schema:
             type: integer
             format: int64
+            description: |
+              The timestamp indicating the starting point from which data was ingested.
+              The format of the timestamp is in Unix epoch Time.
+              For example, `Thursday, 5 September 2024 07:03:13 GMT` can be represented as `1725519793`.
       responses:
         '200':
           content:
@@ -5674,6 +5744,35 @@ paths:
         - ApiKeyAuth:
             - CanConfigureIntegrations
       summary: Get Overview of Alerting Channels
+      tags:
+        - Event Settings
+  '/api/events/settings/alertingChannels/notify/{id}':
+    post:
+      description: 'Sends alert for a specific event to an alerting channel.Provided the event Id, an alert could be sent to the alerting channel.'
+      operationId: sendTestAlertingById
+      parameters:
+        - description: ID of the alerting channel to be notified on.
+          example: YbcFlaG8k5oIkxD0
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualAlertingChannelConfiguration'
+        required: true
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - CanConfigureIntegrations
+      summary: Notify manually to Alerting Channel
       tags:
         - Event Settings
   /api/events/settings/alertingChannels/test:
@@ -23373,6 +23472,7 @@ components:
         - items
     CallRelation:
       type: object
+      description: 'It shows from where the call is destined to. It includes destination service, its endpoint and list of technologies of the service.'
       properties:
         endpoint:
           $ref: '#/components/schemas/EndpointSimple'
@@ -23380,8 +23480,10 @@ components:
           $ref: '#/components/schemas/ServiceSimple'
         technologies:
           type: array
+          description: 'List of technologies: `Eg:["springbootApplicationContainer"]`'
           items:
             type: string
+            description: 'List of technologies: `Eg:["springbootApplicationContainer"]`'
     ChangeSummary:
       type: object
       description: Brief summary of changes made in this config version.
@@ -23507,6 +23609,8 @@ components:
           type: integer
           format: int32
           description: number of values to return
+      required:
+        - retrievalSize
     CustomBlueprintIndicator:
       type: object
       allOf:
@@ -23806,32 +23910,15 @@ components:
               type: integer
               format: int32
             queryTime:
-              type: integer
-              format: int64
+              $ref: '#/components/schemas/DNSActionFilterQueryTime'
             queryType:
               type: string
               enum:
                 - A
                 - AAAA
                 - ANY
-                - AXFR
                 - CNAME
-                - HINFO
-                - MAILB
-                - MAILA
-                - MINFO
-                - MB
-                - MD
-                - MF
-                - MG
-                - MR
-                - MX
-                - 'NULL'
                 - NS
-                - PTR
-                - SOA
-                - TXT
-                - WKS
             recursiveLookups:
               type: boolean
             server:
@@ -23842,12 +23929,61 @@ components:
             targetValues:
               type: array
               items:
-                type: string
+                $ref: '#/components/schemas/DNSActionFilterTargetValue'
       required:
         - lookup
         - markSyntheticCall
         - server
         - syntheticType
+    DNSActionFilterQueryTime:
+      type: object
+      properties:
+        key:
+          type: string
+        operator:
+          type: string
+          enum:
+            - CONTAINS
+            - EQUALS
+            - GREATER_THAN
+            - IS
+            - LESS_THAN
+            - MATCHES
+            - NOT_MATCHES
+        value:
+          type: integer
+          format: int64
+      required:
+        - key
+        - operator
+        - value
+    DNSActionFilterTargetValue:
+      type: object
+      properties:
+        key:
+          type: string
+          enum:
+            - A
+            - AAAA
+            - ANY
+            - CNAME
+            - NS
+        operator:
+          type: string
+          enum:
+            - CONTAINS
+            - EQUALS
+            - GREATER_THAN
+            - IS
+            - LESS_THAN
+            - MATCHES
+            - NOT_MATCHES
+        value:
+          type: string
+      required:
+        - key
+        - operator
+        - value
     DashboardApiToken:
       type: object
       properties:
@@ -24191,13 +24327,17 @@ components:
           description: 'The number of results returned. For eg: If `items` has 5 elements, `totalhits` will be 5'
     EndpointSimple:
       type: object
+      description: The destination service's endpoint where the call enters.
       properties:
         id:
           type: string
+          description: 'Unique ID of the Service. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`.'
         label:
           type: string
+          description: 'Name of the Endpoint. Eg: `GET /api/fetch`.'
         type:
           type: string
+          description: The type of the Endpoint.
           enum:
             - UNDEFINED
             - RPC
@@ -25519,6 +25659,7 @@ components:
         callCount:
           type: integer
           format: int64
+          description: Number of calls in a trace.
         cursor:
           $ref: '#/components/schemas/IngestionOffsetCursor'
         destination:
@@ -25526,26 +25667,34 @@ components:
         duration:
           type: integer
           format: int64
+          description: 'The total time taken for the entire operation of a call, from the moment the request was initiated to when the response was received. The time measured is in milliseconds. This is also known as latency of a call.'
         errorCount:
           type: integer
           format: int64
+          description: Represents whether the call is erroneous or not. 0 is not erroneous and 1 is erroneous.
         foreignParentId:
           type: string
         id:
           type: string
+          description: 'The unique call id. For example: `1bcad5c82338deaf`.'
         minSelfTime:
           type: integer
           format: int64
+          description: The smallest self time in the batch. May be null to indicate that `minSelfTime` is unknown when this node has only an exit span and no children. The time measured is in milliseconds.
         name:
           type: string
+          description: 'Name of the call. For example: `GET /articles/:id`.'
         networkTime:
           type: integer
           format: int64
+          description: exit span duration - entry span duration
         parentId:
           type: string
+          description: 'The parent call id, referring to another call in the same trace which triggered the processing associated with this call.'
         timestamp:
           type: integer
           format: int64
+          description: 'The timestamp when the call or request was initiated. For example, Unix epoch time in milliseconds `1735532879870` is `Monday, 30 December 2024 04:27:59.870 GMT`'
     GetTraceGroups:
       type: object
       properties:
@@ -26212,21 +26361,42 @@ components:
       properties:
         endpointNameByCollectedPathTemplateRuleEnabled:
           type: boolean
+          description: |
+            The highest default precedence of endpoint rule is creating endpoint is based on path template. For example,
+            ```
+            /hospital/1948/patient/291148
+            /hospital/728/patient/924892
+            /hospital/47/patient/25978
+            /hospital/108429/patient/1847
+            ```
+            can be considered as `/hospital/{hid}/patient/{pid}` if this rule is enabled. For most of the use cases, this rule should be enabled.
         endpointNameByFirstPathSegmentRuleEnabled:
           type: boolean
+          description: |
+            There are endpoint extraction rules in Instana which take the first path segment from the HTTP request and turn this into an endpoint name.
+            For example, given the following URLs `/users/123/profile` and `/users/123/settings`, the extraction rule will only take the first segment. As a result endpoint name will be `users`.
+            Although this is useful in cases where broad overview of monitoring is required, lot of use cases are more specified.
+            Considering the above example, if this rule is enabled, Instana can't distinguish between `profile` or `settings` as endpoints.
+            For use cases where endpoints has to be monitored at fine granular level, this flag should be set to `false`.
         rules:
           type: array
+          description: Specify custom rule configuration apart from Instana predefined rules. This rule has the highest precedence. This is only available for HTTP endpoints.
           items:
             $ref: '#/components/schemas/HttpEndpointRule'
           maxItems: 500
           minItems: 0
         serviceId:
           type: string
+          description: |
+            An Instana generated unique identifier for a Service. If specified, the list of results will be filtered for the specified Service ID. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+            One can see the service id from Instana UI by going to a Service page. In the URL, there will be `serviceId=3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.
+            Alternatively, one can use `Get services` API endpoint to get the service id in `id` parameter.
       required:
         - rules
         - serviceId
     HttpEndpointRule:
       type: object
+      description: Specify custom rule configuration apart from Instana predefined rules. This rule has the highest precedence. This is only available for HTTP endpoints.
       properties:
         enabled:
           type: boolean
@@ -26426,6 +26596,12 @@ components:
           description: Description of the Infrastructure Smart Alert. Used as a template for the description of alert/event notifications triggered by this Smart Alert configuration.
           maxLength: 65536
           minLength: 0
+        evaluationType:
+          type: string
+          description: Determines whether we evaluate each infra entity independently or group of entities will be evaluated together.
+          enum:
+            - PER_ENTITY
+            - CUSTOM
         gracePeriod:
           type: integer
           format: int64
@@ -26525,6 +26701,12 @@ components:
           minLength: 0
         enabled:
           type: boolean
+        evaluationType:
+          type: string
+          description: Determines whether we evaluate each infra entity independently or group of entities will be evaluated together.
+          enum:
+            - PER_ENTITY
+            - CUSTOM
         gracePeriod:
           type: integer
           format: int64
@@ -27424,6 +27606,24 @@ components:
           minimum: 0
       required:
         - id
+    ManualAlertingChannelConfiguration:
+      type: object
+      properties:
+        customPayloadFields:
+          type: array
+          description: Custom payload fields to send additional information in the alert notifications. Can be left empty.
+          items:
+            $ref: '#/components/schemas/StaticStringField'
+          maxItems: 20
+          minItems: 0
+        eventId:
+          type: string
+          description: Id of the event to be notified about.
+          maxLength: 256
+          minLength: 0
+      required:
+        - customPayloadFields
+        - eventId
     ManualCloseInfo:
       type: object
       properties:
@@ -28041,13 +28241,25 @@ components:
       properties:
         alertChannelIds:
           type: array
+          deprecated: true
           description: List of IDs of alert channels defined in Instana. Can be left empty.
           items:
             type: string
+            deprecated: true
             description: List of IDs of alert channels defined in Instana. Can be left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        alertChannels:
+          type: object
+          additionalProperties:
+            type: array
+            description: Set of alert channel IDs associated with the severity.
+            items:
+              type: string
+              description: Set of alert channel IDs associated with the severity.
+            uniqueItems: true
+          description: Set of alert channel IDs associated with the severity.
         completeTagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpression'
         customPayloadFields:
@@ -28114,7 +28326,6 @@ components:
           type: boolean
           description: Optional flag to indicate whether an Incident is also triggered or not.
       required:
-        - alertChannelIds
         - customPayloadFields
         - description
         - granularity
@@ -29082,8 +29293,10 @@ components:
       properties:
         label:
           type: string
+          description: Plugin name
         plugin:
           type: string
+          description: Plugin ID
     Policy:
       type: object
       properties:
@@ -29460,16 +29673,38 @@ components:
       properties:
         context:
           type: string
+          description: Field context
+          enum:
+            - entities
+            - events
+            - applications
+            - services
+            - endpoints
+            - appdata_shared
+            - default_field
+          example: 'Entity data, trace data, even data'
         description:
           type: string
+          description: Description of the keyword
         fixedValues:
           type: array
+          description: Fixed value associated to the keyword
           items:
             type: string
+            description: Fixed value associated to the keyword
         keyword:
           type: string
+          description: Retrieved keyword
         termType:
           type: string
+          description: Term type
+          enum:
+            - string
+            - long
+            - double
+            - bool
+            - key_value
+            - id
     Service:
       type: object
       description: Returns a list of Services.
@@ -30153,11 +30388,14 @@ components:
         - applications
     ServiceSimple:
       type: object
+      description: The destination service.
       properties:
         id:
           type: string
+          description: 'Unique ID of the Service. Eg: `3feb3dcd206c166ef2b41c707e0cd38d7cd325aa`.'
         label:
           type: string
+          description: 'Name of the Service. Eg: `payment`.'
     SessionSettings:
       type: object
       properties:
@@ -33251,13 +33489,25 @@ components:
       properties:
         alertChannelIds:
           type: array
+          deprecated: true
           description: List of IDs of alert channels defined in Instana. Can be left empty.
           items:
             type: string
+            deprecated: true
             description: List of IDs of alert channels defined in Instana. Can be left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        alertChannels:
+          type: object
+          additionalProperties:
+            type: array
+            description: Set of alert channel IDs associated with the severity.
+            items:
+              type: string
+              description: Set of alert channel IDs associated with the severity.
+            uniqueItems: true
+          description: Set of alert channel IDs associated with the severity.
         customPayloadFields:
           type: array
           description: Custom payload fields to send additional information in the alert notifications. Can be left empty.
@@ -33328,7 +33578,6 @@ components:
           maxLength: 64
           minLength: 0
       required:
-        - alertChannelIds
         - customPayloadFields
         - description
         - granularity
@@ -33341,13 +33590,25 @@ components:
       properties:
         alertChannelIds:
           type: array
+          deprecated: true
           description: List of IDs of alert channels defined in Instana. Can be left empty.
           items:
             type: string
+            deprecated: true
             description: List of IDs of alert channels defined in Instana. Can be left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        alertChannels:
+          type: object
+          additionalProperties:
+            type: array
+            description: Set of alert channel IDs associated with the severity.
+            items:
+              type: string
+              description: Set of alert channel IDs associated with the severity.
+            uniqueItems: true
+          description: Set of alert channel IDs associated with the severity.
         created:
           type: integer
           format: int64
@@ -33439,7 +33700,6 @@ components:
           maxLength: 64
           minLength: 0
       required:
-        - alertChannelIds
         - customPayloadFields
         - description
         - granularity
@@ -34240,13 +34500,25 @@ components:
       properties:
         alertChannelIds:
           type: array
+          deprecated: true
           description: List of IDs of alert channels defined in Instana. Can be left empty.
           items:
             type: string
+            deprecated: true
             description: List of IDs of alert channels defined in Instana. Can be left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        alertChannels:
+          type: object
+          additionalProperties:
+            type: array
+            description: Set of alert channel IDs associated with the severity.
+            items:
+              type: string
+              description: Set of alert channel IDs associated with the severity.
+            uniqueItems: true
+          description: Set of alert channel IDs associated with the severity.
         completeTagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpression'
         created:
@@ -34334,7 +34606,6 @@ components:
           type: boolean
           description: Optional flag to indicate whether an Incident is also triggered or not.
       required:
-        - alertChannelIds
         - customPayloadFields
         - description
         - granularity
@@ -34422,6 +34693,9 @@ x-tagGroups:
       - Synthetic Settings
       - Synthetic Test Playback Results
       - Synthetic Alert Configuration
+  - name: Logs
+    tags:
+      - Log Alert Configuration
   - name: Events
     tags:
       - Events
