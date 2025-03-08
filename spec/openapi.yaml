@@ -6,7 +6,7 @@ info:
     url: http://instana.com
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.290.688
+  version: 1.291.1002
   x-description: info
   x-logo:
     altText: instana logo
@@ -651,8 +651,8 @@ paths:
   /api/application-monitoring/applications/services:
     get:
       description: |
-        Use this API endpoint if one wants to retrieve a list of Application/Services.
-        A use case could be to view the application id or service ID of an Application Perspective or a Service.
+        Use this API endpoint if one wants to retrieve a list of services in an Application Perspective.
+        A use case could be to retrieve all service ids present in an Application Perspective.
       operationId: getApplicationServices
       parameters:
       - description: Name of application/service
@@ -6538,6 +6538,7 @@ paths:
       - Event Settings
   /api/events/settings/event-specifications/built-in:
     get:
+      description: Get all built-in event specifications
       operationId: getBuiltInEventSpecifications
       parameters:
       - in: query
@@ -6551,11 +6552,82 @@ paths:
         "200":
           content:
             application/json:
+              example:
+              - id: 5J-4V_gLWm-pofGW8BEoFU7C_6s
+                shortPluginId: otelHost
+                name: CPU spends significant time waiting for input/output
+                description: Assesses whether the system is spending a significant
+                  amount of time waiting for input/output operations.
+                hyperParams:
+                - id: CsSGNuJ9MCsYvN5tXoWOPIWGiyM
+                  name: Sliding Window
+                  description: Sliding window
+                  defaultValue: 60000
+                  minValue: 60000
+                  maxValue: 72000000
+                  valueFormat: MILLIS
+                - id: dfLU7K_vx1Qd8FrR4M1XAmiSM0w
+                  name: Maximum wait percentage
+                  description: Specifies the maximum allowable CPU wait percentage.
+                    Metric values that exceed this threshold are deemed violations.
+                  defaultValue: 0.25
+                  minValue: 0
+                  maxValue: 1
+                  valueFormat: PERCENTAGE
+                - id: eq_Y3yLA37aralhMCV1AYuEVVoA
+                  name: Allowed CPU Wait violations
+                  description: Specifies the number of permitted CPU Wait violations
+                    within the given time window.
+                  defaultValue: 9
+                  minValue: 0
+                  maxValue: 9223372036854776000
+                  valueFormat: NUMBER
+                ruleInputs:
+                - inputKind: METRIC
+                  inputName: cpu.wait
+                severity: 5
+                triggering: false
+                enabled: true
+                hidden: false
+                lastUpdated: 1729198411351
+              - id: kLC5kTFUUM4HiMWEkqlggo6dF-s
+                shortPluginId: ibmCloudEventStream
+                name: Event Stream has more than the recommended number of connected
+                  Kafka clients
+                description: Checks whether the number of connected Kafka clients
+                  exceeds the recommended maximum
+                hyperParams:
+                - id: qkxsXUDoELI6cHEoWSXQ4FR8-8M
+                  name: Kafka Max Connectd Clients Percent Severe
+                  description: Kafka max connected clients percent critical threshold
+                  defaultValue: 0.95
+                  minValue: 0
+                  maxValue: 1
+                  valueFormat: PERCENTAGE
+                - id: x00McJfR0Y2twIIE8Hf3oxoUEoE
+                  name: Kafka Max Connectd Clients Percent Warning
+                  description: Kafka max connected clients percent warning threshold
+                  defaultValue: 0.9
+                  minValue: 0
+                  maxValue: 1
+                  valueFormat: PERCENTAGE
+                ruleInputs:
+                - inputKind: METRIC
+                  inputName: kafka_recommended_max_connected_clients_percent
+                severity: 5
+                triggering: false
+                enabled: true
+                hidden: false
+                lastUpdated: 1729198411681
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/BuiltInEventSpecificationWithLastUpdated"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
       security:
       - ApiKeyAuth:
         - CanConfigureCustomAlerts
@@ -22313,28 +22385,35 @@ components:
       properties:
         description:
           type: string
+          description: Description of Built-in Event Specification
           maxLength: 2048
           minLength: 0
         enabled:
           type: boolean
+          description: Flag to show whether the Built-in Event Specification is enabled
         hidden:
           type: boolean
+          description: Flag to show whether the Built-in Event Specification is hidden
         hyperParams:
           type: array
+          description: List of hyper parameters of the Built-in Event Specification
           items:
             $ref: "#/components/schemas/HyperParam"
           maxItems: 32
           minItems: 0
         id:
           type: string
+          description: ID of Built-in Event Specification
           maxLength: 2048
           minLength: 0
         name:
           type: string
+          description: Name of Built-in Event Specification
           maxLength: 256
           minLength: 0
         ruleInputs:
           type: array
+          description: List of input rules of the Built-in Event Specification
           items:
             $ref: "#/components/schemas/RuleInput"
           maxItems: 32
@@ -22342,12 +22421,15 @@ components:
         severity:
           type: integer
           format: int32
+          description: Severity level of Built-in Event Specification
         shortPluginId:
           type: string
+          description: ID of short plugin of Built-in Event Specification
           maxLength: 64
           minLength: 0
         triggering:
           type: boolean
+          description: Flag to show whether the Built-in Event Specification is triggering
       required:
       - hyperParams
       - id
@@ -22359,20 +22441,25 @@ components:
       properties:
         description:
           type: string
+          description: Description of Built-in Event Specification
           maxLength: 2048
           minLength: 0
         enabled:
           type: boolean
+          description: Flag to show whether the Built-in Event Specification is enabled
         hidden:
           type: boolean
+          description: Flag to show whether the Built-in Event Specification is hidden
         hyperParams:
           type: array
+          description: List of hyper parameters of the Built-in Event Specification
           items:
             $ref: "#/components/schemas/HyperParam"
           maxItems: 32
           minItems: 0
         id:
           type: string
+          description: ID of Built-in Event Specification
           maxLength: 2048
           minLength: 0
         lastUpdated:
@@ -22381,10 +22468,12 @@ components:
           minimum: 1
         name:
           type: string
+          description: Name of Built-in Event Specification
           maxLength: 256
           minLength: 0
         ruleInputs:
           type: array
+          description: List of input rules of the Built-in Event Specification
           items:
             $ref: "#/components/schemas/RuleInput"
           maxItems: 32
@@ -22392,12 +22481,15 @@ components:
         severity:
           type: integer
           format: int32
+          description: Severity level of Built-in Event Specification
         shortPluginId:
           type: string
+          description: ID of short plugin of Built-in Event Specification
           maxLength: 64
           minLength: 0
         triggering:
           type: boolean
+          description: Flag to show whether the Built-in Event Specification is triggering
       required:
       - hyperParams
       - id
@@ -23731,6 +23823,9 @@ components:
         eventId:
           type: string
           description: ID of this Event.
+        eventSpecificationId:
+          type: string
+          description: ID of the configuration that created this event.
         fixSuggestion:
           type: string
           deprecated: true
@@ -24524,6 +24619,8 @@ components:
           - CRASH
           - CUSTOM
           - VIEW_CHANGE
+          - DROP_BEACON
+          - PERF
       required:
       - group
       - metrics
@@ -24549,6 +24646,8 @@ components:
           - CRASH
           - CUSTOM
           - VIEW_CHANGE
+          - DROP_BEACON
+          - PERF
       required:
       - type
     GetMobileAppMetrics:
@@ -24576,6 +24675,8 @@ components:
           - CRASH
           - CUSTOM
           - VIEW_CHANGE
+          - DROP_BEACON
+          - PERF
       required:
       - metrics
       - type
@@ -24600,6 +24701,8 @@ components:
           - CRASH
           - CUSTOM
           - VIEW_CHANGE
+          - DROP_BEACON
+          - PERF
       required:
       - metrics
       - type
@@ -25440,6 +25543,7 @@ components:
       - groupbyTagEntity
     GroupByTag:
       type: object
+      description: The grouping tags used to group the metric results.
       properties:
         key:
           type: string
@@ -25717,6 +25821,7 @@ components:
       - syntheticType
     HyperParam:
       type: object
+      description: List of hyper parameters of the Built-in Event Specification
       properties:
         defaultValue:
           type: number
@@ -26446,19 +26551,28 @@ components:
       properties:
         alertChannelIds:
           type: array
+          description: List of IDs of alert channels defined in Instana. Can be left
+            empty.
           items:
             type: string
+            description: List of IDs of alert channels defined in Instana. Can be
+              left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
         customPayloadFields:
           type: array
+          description: Custom payload fields to send additional information in the
+            alert notifications. Can be left empty.
           items:
             $ref: "#/components/schemas/StaticStringField"
           maxItems: 20
           minItems: 0
         description:
           type: string
+          description: Description of the Log Smart Alert. Used as a template for
+            the description of alert/event notifications triggered by this Smart Alert
+            configuration.
           maxLength: 65536
           minLength: 0
         gracePeriod:
@@ -26471,6 +26585,8 @@ components:
           type: integer
           format: int32
           default: 600000
+          description: The evaluation granularity used for detection of violations
+            of the defined threshold. Defines the size of the tumbling window used.
           enum:
           - 60000
           - 300000
@@ -26480,17 +26596,33 @@ components:
           - 1800000
         groupBy:
           type: array
+          description: The grouping tags used to group the metric results.
           items:
             $ref: "#/components/schemas/GroupByTag"
           maxItems: 1
           minItems: 0
         name:
           type: string
+          description: Name of the Log Smart Alert. Used as a template for the title
+            of alert/event notifications triggered by this Smart Alert configuration.
           maxLength: 256
           minLength: 0
+        rules:
+          type: array
+          description: A list of rules where each rule is associated with multiple
+            thresholds and their corresponding severity levels. This enables more
+            complex alert configurations with validations to ensure consistent and
+            logical threshold-severity combinations.
+          items:
+            $ref: "#/components/schemas/RuleWithThresholdLogAlertRule"
+          maxItems: 1
+          minItems: 1
         severity:
           type: integer
           format: int32
+          deprecated: true
+          description: "The severity of the alert when triggered, which is either\
+            \ 5 (Warning), or 10 (Critical)."
         tagFilterExpression:
           $ref: "#/components/schemas/TagFilterExpressionElement"
         threshold:
@@ -26502,15 +26634,18 @@ components:
       - granularity
       - name
       - tagFilterExpression
-      - threshold
       - timeThreshold
     LogAlertConfigWithMetadata:
       type: object
       properties:
         alertChannelIds:
           type: array
+          description: List of IDs of alert channels defined in Instana. Can be left
+            empty.
           items:
             type: string
+            description: List of IDs of alert channels defined in Instana. Can be
+              left empty.
           maxItems: 1024
           minItems: 0
           uniqueItems: true
@@ -26520,12 +26655,17 @@ components:
           minimum: 1
         customPayloadFields:
           type: array
+          description: Custom payload fields to send additional information in the
+            alert notifications. Can be left empty.
           items:
             $ref: "#/components/schemas/StaticStringField"
           maxItems: 20
           minItems: 0
         description:
           type: string
+          description: Description of the Log Smart Alert. Used as a template for
+            the description of alert/event notifications triggered by this Smart Alert
+            configuration.
           maxLength: 65536
           minLength: 0
         enabled:
@@ -26540,6 +26680,8 @@ components:
           type: integer
           format: int32
           default: 600000
+          description: The evaluation granularity used for detection of violations
+            of the defined threshold. Defines the size of the tumbling window used.
           enum:
           - 60000
           - 300000
@@ -26549,6 +26691,7 @@ components:
           - 1800000
         groupBy:
           type: array
+          description: The grouping tags used to group the metric results.
           items:
             $ref: "#/components/schemas/GroupByTag"
           maxItems: 1
@@ -26563,13 +26706,28 @@ components:
           minimum: 1
         name:
           type: string
+          description: Name of the Log Smart Alert. Used as a template for the title
+            of alert/event notifications triggered by this Smart Alert configuration.
           maxLength: 256
           minLength: 0
         readOnly:
           type: boolean
+        rules:
+          type: array
+          description: A list of rules where each rule is associated with multiple
+            thresholds and their corresponding severity levels. This enables more
+            complex alert configurations with validations to ensure consistent and
+            logical threshold-severity combinations.
+          items:
+            $ref: "#/components/schemas/RuleWithThresholdLogAlertRule"
+          maxItems: 1
+          minItems: 1
         severity:
           type: integer
           format: int32
+          deprecated: true
+          description: "The severity of the alert when triggered, which is either\
+            \ 5 (Warning), or 10 (Critical)."
         tagFilterExpression:
           $ref: "#/components/schemas/TagFilterExpressionElement"
         threshold:
@@ -26582,8 +26740,47 @@ components:
       - id
       - name
       - tagFilterExpression
-      - threshold
       - timeThreshold
+    LogAlertRule:
+      type: object
+      discriminator:
+        mapping:
+          logCount: "#/components/schemas/LogCountAlertRule"
+        propertyName: alertType
+      properties:
+        aggregation:
+          type: string
+          enum:
+          - SUM
+          - MEAN
+          - MAX
+          - MIN
+          - P25
+          - P50
+          - P75
+          - P90
+          - P95
+          - P98
+          - P99
+          - P99_9
+          - P99_99
+          - DISTINCT_COUNT
+          - SUM_POSITIVE
+          - PER_SECOND
+          - INCREASE
+        alertType:
+          type: string
+        metricName:
+          type: string
+      required:
+      - alertType
+      - metricName
+    LogCountAlertRule:
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/LogAlertRule"
+      required:
+      - metricName
     LogEntryActor:
       type: object
       properties:
@@ -26618,6 +26815,8 @@ components:
             type: string
     LogTimeThreshold:
       type: object
+      description: The type of threshold to define the criteria when the event and
+        alert triggers and resolves.
       discriminator:
         mapping:
           violationsInSequence: "#/components/schemas/ViolationsInSequenceLogTimeThreshold"
@@ -27879,6 +28078,10 @@ components:
           type: integer
           format: int64
           minimum: -1
+        availableMb:
+          type: integer
+          format: int64
+          minimum: -1
         backendTraceId:
           type: string
           maxLength: 128
@@ -27907,6 +28110,10 @@ components:
           type: integer
           format: int64
           minimum: 0
+        coldStartTimeMs:
+          type: integer
+          format: int64
+          minimum: -1
         connectionType:
           type: string
           maxLength: 16
@@ -27984,6 +28191,10 @@ components:
           minLength: 0
         googlePlayServicesMissing:
           type: boolean
+        hotStartTimeMs:
+          type: integer
+          format: int64
+          minimum: -1
         httpCallHeaders:
           type: object
           additionalProperties:
@@ -28023,6 +28234,10 @@ components:
         longitude:
           type: number
           format: double
+        maxMb:
+          type: integer
+          format: int64
+          minimum: -1
         meta:
           type: object
           additionalProperties:
@@ -28048,6 +28263,10 @@ components:
         parsedStackTrace:
           type: string
           maxLength: 16384
+          minLength: 0
+        performanceSubtype:
+          type: string
+          maxLength: 24
           minLength: 0
         platform:
           type: string
@@ -28119,6 +28338,10 @@ components:
             type: string
           maxItems: 15
           minItems: 0
+        usedMb:
+          type: integer
+          format: int64
+          minimum: -1
         userEmail:
           type: string
           maxLength: 128
@@ -28157,9 +28380,14 @@ components:
           type: integer
           format: int32
           minimum: -1
+        warmStartTimeMs:
+          type: integer
+          format: int64
+          minimum: -1
       required:
       - beaconId
       - mobileAppId
+      - performanceSubtype
       - sessionId
       - type
     MobileAppMonitoringMetricDescription:
@@ -28858,6 +29086,7 @@ components:
       - durationUnit
     RuleInput:
       type: object
+      description: List of input rules of the Built-in Event Specification
       properties:
         inputKind:
           type: string
@@ -28905,6 +29134,29 @@ components:
       properties:
         rule:
           $ref: "#/components/schemas/InfraAlertRule"
+        thresholdOperator:
+          type: string
+          enum:
+          - '>'
+          - '>='
+          - <
+          - <=
+        thresholds:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ThresholdConfigRule"
+      required:
+      - rule
+      - thresholdOperator
+      - thresholds
+    RuleWithThresholdLogAlertRule:
+      type: object
+      description: A list of rules where each rule is associated with multiple thresholds
+        and their corresponding severity levels. This enables more complex alert configurations
+        with validations to ensure consistent and logical threshold-severity combinations.
+      properties:
+        rule:
+          $ref: "#/components/schemas/LogAlertRule"
         thresholdOperator:
           type: string
           enum:
