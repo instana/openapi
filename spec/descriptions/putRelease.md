@@ -1,0 +1,1 @@
+Use this API endpoint if one wants to update a release.
