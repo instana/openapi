@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Instana REST API documentation",
-    "version": "1.291.1002",
+    "version": "1.292.2300",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -4364,6 +4364,17 @@
             }
           },
           {
+            "description": "Action IDs filter to get the action run result details for only these actions",
+            "in": "query",
+            "name": "actionIds",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
             "description": "Action run result column to order the result set.",
             "example": "Name of the action run result column. Default is action run result start date.",
             "in": "query",
@@ -7413,7 +7424,7 @@
     },
     "/api/events/settings/alertingChannels": {
       "get": {
-        "description": "Gets all the alerting channels.",
+        "description": "Gets all the alerting channels. Requires the permission called CanConfigureIntegrations.",
         "operationId": "getAlertingChannels",
         "parameters": [
           {
@@ -7480,7 +7491,7 @@
     },
     "/api/events/settings/alertingChannels/infos": {
       "get": {
-        "description": "Gets the overview information of all alerting channels.",
+        "description": "Gets the overview information of all alerting channels. Requires the permission called CanConfigureIntegrations.",
         "operationId": "getAlertingChannelsOverview",
         "parameters": [
           {
@@ -7544,7 +7555,7 @@
     },
     "/api/events/settings/alertingChannels/notify/{id}": {
       "post": {
-        "description": "Sends alert for a specific event to an alerting channel.Provided the event Id, an alert could be sent to the alerting channel.",
+        "description": "Sends alert for a specific event to an alerting channel.  Provided the event Id, an alert could be sent to the alerting channel. This endpoint requires `canInvokeAlertChannel` permission.",
         "operationId": "sendTestAlertingById",
         "parameters": [
           {
@@ -7583,7 +7594,7 @@
             ]
           }
         ],
-        "summary": "Notify manually to Alerting Channel",
+        "summary": "Notify manually to Alerting Channel. Requires the permission called CanConfigureIntegrations.",
         "tags": [
           "Event Settings"
         ]
@@ -7591,7 +7602,7 @@
     },
     "/api/events/settings/alertingChannels/test": {
       "put": {
-        "description": "Sends a test alert to an alert channel. This is for testing if an potential alert channel is able to receive alerts from Instana.",
+        "description": "Sends a test alert to an alert channel. This is for testing if an potential alert channel is able to receive alerts from Instana. Requires the permission called CanConfigureIntegrations.",
         "operationId": "sendTestAlerting",
         "requestBody": {
           "content": {
@@ -7627,7 +7638,7 @@
     },
     "/api/events/settings/alertingChannels/{id}": {
       "delete": {
-        "description": "Deletes an alert channel.",
+        "description": "Deletes an alert channel. Requires the permission called CanConfigureIntegrations.",
         "operationId": "deleteAlertingChannel",
         "parameters": [
           {
@@ -7659,7 +7670,7 @@
         ]
       },
       "get": {
-        "description": "Gets an alerting channel.",
+        "description": "Gets an alerting channel. Requires the permission called CanConfigureIntegrations.",
         "operationId": "getAlertingChannel",
         "parameters": [
           {
@@ -7707,7 +7718,7 @@
         ]
       },
       "put": {
-        "description": "Updates an alerting channel.",
+        "description": "Updates an alerting channel. Requires the permission called CanConfigureIntegrations.",
         "operationId": "putAlertingChannel",
         "parameters": [
           {
@@ -7750,6 +7761,9 @@
               }
             },
             "description": "Updated the alert channel setting"
+          },
+          "302": {
+            "description": "Redirect to the integration service for continuing the configuration with the 3rd party system "
           },
           "400": {
             "content": {
@@ -18542,7 +18556,7 @@
         ]
       }
     },
-    "/api/mobile-app-monitoring/session": {
+    "/api/mobile-app-monitoring/session{id}{timestamp}": {
       "get": {
         "description": "API request to get a mobile app monitoring session.",
         "operationId": "getSession",
@@ -20494,6 +20508,45 @@
         "description": "Creates a group on the tenant. Each group entry also needs a `Permission Set` per unit.\n\nThe `Permission Set` object contains a set of permissions applied to the group.\n\nIn case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.\n\nPossible access permissions values are:\n\n- `ACCESS_APPLICATIONS`\n- `ACCESS_INFRASTRUCTURE`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_WEBSITES`\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n\nThe `id` value for the group is ignored, a new id is generated.\n\nThe `scopeRoleId` is ignored, the id corresponding to the area is used.\n\nThe `scopeId` is the id for the corresponding resource."
       }
     },
+    "/api/settings/rbac/groups/delete": {
+      "put": {
+        "description": "Delete multiple groups",
+        "operationId": "deleteGroups",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureTeams"
+            ]
+          }
+        ],
+        "summary": "Delete groups",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
     "/api/settings/rbac/groups/user/{email}": {
       "get": {
         "operationId": "getGroupsByUser",
@@ -21406,6 +21459,45 @@
         "description": "See [creating group mapping](#operation/createGroupMapping)"
       }
     },
+    "/api/settings/rbac/teams/delete": {
+      "put": {
+        "description": "Delete multiple teams",
+        "operationId": "deleteTeams",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureTeams"
+            ]
+          }
+        ],
+        "summary": "Delete teams",
+        "tags": [
+          "Teams"
+        ]
+      }
+    },
     "/api/settings/session": {
       "delete": {
         "description": "Delete tenant unit session settings.",
@@ -21896,6 +21988,20 @@
                 "type": "string",
                 "description": "List of SLO IDs for which details need to be fetched",
                 "example": "SLOdCTspkHlS_OzNOATQWgsuw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "entityIds",
+            "schema": {
+              "type": "array",
+              "description": "List of entity IDs for which details need to be fetched",
+              "example": "adsewby312sdfd1",
+              "items": {
+                "type": "string",
+                "description": "List of entity IDs for which details need to be fetched",
+                "example": "adsewby312sdfd1"
               }
             }
           },
@@ -22577,6 +22683,45 @@
           }
         ],
         "summary": "All users (without invitations)",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/api/settings/users/delete": {
+      "put": {
+        "description": "Remove multiple users access to the tenant. Removing a user from a tenant does not delete their user account.",
+        "operationId": "removeUsersFromTenant",
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureUsers"
+            ]
+          }
+        ],
+        "summary": "Remove users from tenant",
         "tags": [
           "User"
         ]
@@ -28561,7 +28706,7 @@
         ]
       }
     },
-    "/api/website-monitoring/page-load": {
+    "/api/website-monitoring/page-load{id}{timestamp}": {
       "get": {
         "description": "API request to get website monitoring beacons for a page load.",
         "operationId": "getPageLoad",
@@ -28831,6 +28976,7 @@
         "type": "object",
         "discriminator": {
           "mapping": {
+            "BIDIRECTIONAL_SLACK": "#/components/schemas/BidirectionalSlackAppIntegration",
             "EMAIL": "#/components/schemas/EmailIntegration",
             "GOOGLE_CHAT": "#/components/schemas/GoogleChatIntegration",
             "OFFICE_365": "#/components/schemas/Office365Integration",
@@ -28862,6 +29008,14 @@
           "name": {
             "type": "string",
             "description": "The name of the Alerting Channel."
+          },
+          "rbacTags": {
+            "type": "array",
+            "description": "The assigned team tags of the Alerting Channel.",
+            "items": {
+              "$ref": "#/components/schemas/ApiTag"
+            },
+            "uniqueItems": true
           }
         },
         "required": [
@@ -29942,6 +30096,26 @@
           }
         }
       },
+      "ApiTag": {
+        "type": "object",
+        "description": "The assigned team tags of the Alerting Channel.",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "displayName",
+          "id"
+        ]
+      },
       "ApiToken": {
         "type": "object",
         "properties": {
@@ -30786,14 +30960,8 @@
             "type": "object",
             "properties": {
               "applicationId": {
-                "type": "string"
-              },
-              "probableRootCause": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object"
-                },
-                "writeOnly": true
+                "type": "string",
+                "description": "ID of the application."
               }
             }
           }
@@ -31238,6 +31406,45 @@
           "traceId"
         ]
       },
+      "BidirectionalSlackAppIntegration": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractIntegration"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string"
+              },
+              "appId": {
+                "type": "string"
+              },
+              "channelId": {
+                "type": "string"
+              },
+              "channelName": {
+                "type": "string"
+              },
+              "emojiRendering": {
+                "type": "boolean"
+              },
+              "teamId": {
+                "type": "string"
+              },
+              "teamName": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "required": [
+          "id",
+          "kind",
+          "name"
+        ]
+      },
       "BinaryOperatorDTO": {
         "type": "object",
         "allOf": [
@@ -31488,6 +31695,12 @@
           "callId": {
             "type": "string",
             "writeOnly": true
+          },
+          "endpointIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "processDefinitionId": {
             "type": "string",
@@ -32200,7 +32413,7 @@
           "fields"
         ]
       },
-      "DNSActionConfiguration": {
+      "DNSConfiguration": {
         "type": "object",
         "allOf": [
           {
@@ -32223,14 +32436,14 @@
                 "format": "int32"
               },
               "queryTime": {
-                "$ref": "#/components/schemas/DNSActionFilterQueryTime"
+                "$ref": "#/components/schemas/DNSFilterQueryTime"
               },
               "queryType": {
                 "type": "string",
                 "enum": [
+                  "ANY",
                   "A",
                   "AAAA",
-                  "ANY",
                   "CNAME",
                   "NS"
                 ]
@@ -32248,8 +32461,15 @@
               "targetValues": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/DNSActionFilterTargetValue"
+                  "$ref": "#/components/schemas/DNSFilterTargetValue"
                 }
+              },
+              "transport": {
+                "type": "string",
+                "enum": [
+                  "TCP",
+                  "UDP"
+                ]
               }
             }
           }
@@ -32261,7 +32481,7 @@
           "syntheticType"
         ]
       },
-      "DNSActionFilterQueryTime": {
+      "DNSFilterQueryTime": {
         "type": "object",
         "properties": {
           "key": {
@@ -32290,15 +32510,15 @@
           "value"
         ]
       },
-      "DNSActionFilterTargetValue": {
+      "DNSFilterTargetValue": {
         "type": "object",
         "properties": {
           "key": {
             "type": "string",
             "enum": [
+              "ANY",
               "A",
               "AAAA",
-              "ANY",
               "CNAME",
               "NS"
             ]
@@ -32654,20 +32874,16 @@
             "type": "object",
             "properties": {
               "applicationId": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the application this endpoint is in scope of."
               },
               "endpointId": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the endpoint."
               },
               "endpointServiceId": {
-                "type": "string"
-              },
-              "probableRootCause": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object"
-                },
-                "writeOnly": true
+                "type": "string",
+                "description": "ID service related to this endpoint."
               }
             }
           }
@@ -36042,22 +36258,19 @@
             "properties": {
               "ibmMqFileTransfer": {
                 "type": "array",
+                "description": "IBM MQ file transfer information, if relevant for this entity and event.",
                 "items": {
                   "type": "object",
                   "additionalProperties": {
-                    "type": "object"
-                  }
+                    "type": "object",
+                    "description": "IBM MQ file transfer information, if relevant for this entity and event."
+                  },
+                  "description": "IBM MQ file transfer information, if relevant for this entity and event."
                 }
               },
-              "probableRootCause": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object"
-                },
-                "writeOnly": true
-              },
               "snapshotId": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the snapshot."
               }
             }
           }
@@ -36342,6 +36555,14 @@
               "description": "Properties of the alert channel in pairs of key/value"
             },
             "description": "Properties of the alert channel in pairs of key/value"
+          },
+          "rbacTags": {
+            "type": "array",
+            "description": "Team Tags that's assigned to the Alerting Channel",
+            "items": {
+              "$ref": "#/components/schemas/ApiTag"
+            },
+            "uniqueItems": true
           }
         },
         "required": [
@@ -36529,14 +36750,29 @@
         "properties": {
           "alertChannelIds": {
             "type": "array",
+            "deprecated": true,
             "description": "List of IDs of alert channels defined in Instana. Can be left empty.",
             "items": {
               "type": "string",
+              "deprecated": true,
               "description": "List of IDs of alert channels defined in Instana. Can be left empty."
             },
             "maxItems": 1024,
             "minItems": 0,
             "uniqueItems": true
+          },
+          "alertChannels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "description": "Set of alert channel IDs associated with the severity.",
+              "items": {
+                "type": "string",
+                "description": "Set of alert channel IDs associated with the severity."
+              },
+              "uniqueItems": true
+            },
+            "description": "Set of alert channel IDs associated with the severity."
           },
           "customPayloadFields": {
             "type": "array",
@@ -36625,14 +36861,29 @@
         "properties": {
           "alertChannelIds": {
             "type": "array",
+            "deprecated": true,
             "description": "List of IDs of alert channels defined in Instana. Can be left empty.",
             "items": {
               "type": "string",
+              "deprecated": true,
               "description": "List of IDs of alert channels defined in Instana. Can be left empty."
             },
             "maxItems": 1024,
             "minItems": 0,
             "uniqueItems": true
+          },
+          "alertChannels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "description": "Set of alert channel IDs associated with the severity.",
+              "items": {
+                "type": "string",
+                "description": "Set of alert channel IDs associated with the severity."
+              },
+              "uniqueItems": true
+            },
+            "description": "Set of alert channel IDs associated with the severity."
           },
           "created": {
             "type": "integer",
@@ -36828,15 +37079,9 @@
           {
             "type": "object",
             "properties": {
-              "probableRootCause": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object"
-                },
-                "writeOnly": true
-              },
               "snapshotId": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the snapshot."
               }
             }
           }
@@ -38243,14 +38488,8 @@
             "type": "object",
             "properties": {
               "mobileAppId": {
-                "type": "string"
-              },
-              "probableRootCause": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object"
-                },
-                "writeOnly": true
+                "type": "string",
+                "description": "ID of the mobile app."
               }
             }
           }
@@ -38389,6 +38628,11 @@
           "deviceModel": {
             "type": "string",
             "maxLength": 128,
+            "minLength": 0
+          },
+          "dropView": {
+            "type": "string",
+            "maxLength": 256,
             "minLength": 0
           },
           "duration": {
@@ -38539,6 +38783,33 @@
             "maxLength": 32,
             "minLength": 0
           },
+          "rateLimitBeaconType": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 0
+          },
+          "rateLimitCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "rateLimitCustomMetricVal": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "rateLimitTimeMax": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "rateLimitTimeMin": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
           "region": {
             "type": "string",
             "maxLength": 256,
@@ -38686,6 +38957,7 @@
           "beaconId",
           "mobileAppId",
           "performanceSubtype",
+          "rateLimitBeaconType",
           "sessionId",
           "type"
         ]
@@ -39763,6 +40035,9 @@
           {
             "type": "object",
             "properties": {
+              "acceptSelfSignedCertificate": {
+                "type": "boolean"
+              },
               "daysRemainingCheck": {
                 "type": "integer",
                 "format": "int32",
@@ -40011,17 +40286,12 @@
             "type": "object",
             "properties": {
               "applicationId": {
-                "type": "string"
-              },
-              "probableRootCause": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object"
-                },
-                "writeOnly": true
+                "type": "string",
+                "description": "ID of the application this service is in scope of."
               },
               "serviceId": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the service."
               }
             }
           }
@@ -42718,7 +42988,7 @@
         "discriminator": {
           "mapping": {
             "BrowserScript": "#/components/schemas/BrowserScriptConfiguration",
-            "DNSAction": "#/components/schemas/DNSActionConfiguration",
+            "DNS": "#/components/schemas/DNSConfiguration",
             "HTTPAction": "#/components/schemas/HttpActionConfiguration",
             "HTTPScript": "#/components/schemas/HttpScriptConfiguration",
             "NotConfigured": "#/components/schemas/EmptyConfiguration",
@@ -42748,7 +43018,7 @@
             "type": "string",
             "enum": [
               "BrowserScript",
-              "DNSAction",
+              "DNS",
               "HTTPAction",
               "HTTPScript",
               "SSLCertificate",
@@ -42777,19 +43047,15 @@
             "properties": {
               "locationIds": {
                 "type": "array",
+                "description": "IDs of the locations.",
                 "items": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "IDs of the locations."
                 }
               },
-              "probableRootCause": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object"
-                },
-                "writeOnly": true
-              },
               "syntheticTestId": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the synthetic test."
               }
             }
           }
@@ -42906,6 +43172,7 @@
               "STRING_SET",
               "STRING_LIST",
               "KEY_VALUE_PAIR",
+              "FLOAT_LIST",
               "KEY_NUMBER_PAIR"
             ]
           }
@@ -43367,6 +43634,12 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "dnsQueryType": {
+            "type": "string"
+          },
+          "dnsServerName": {
+            "type": "string"
           },
           "errors": {
             "type": "array",
@@ -44169,6 +44442,10 @@
         "type": "object",
         "description": "The trigger is the Instana event or Smart Alert that defines the initial conditions that must be met for the policy to apply on the actions in `typeConfiguration`.",
         "properties": {
+          "description": {
+            "type": "string",
+            "description": "A description for the trigger."
+          },
           "id": {
             "type": "string",
             "description": "Trigger (Instana event or Smart Alert) identifier."
@@ -45604,15 +45881,9 @@
           {
             "type": "object",
             "properties": {
-              "probableRootCause": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object"
-                },
-                "writeOnly": true
-              },
               "websiteId": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the website."
               }
             }
           }
@@ -46611,7 +46882,10 @@
         "SLI Settings",
         "SLI Report",
         "Apdex Settings",
-        "Apdex Report"
+        "Apdex Report",
+        "Service Levels Objective(SLO) Configurations",
+        "Service Levels Objective(SLO) Report",
+        "Service Levels Alert Configuration"
       ]
     },
     {
@@ -46632,10 +46906,7 @@
     {
       "name": "Open Beta Features",
       "tags": [
-        "Infrastructure Analyze",
-        "Service Levels Objective(SLO) Configurations",
-        "Service Levels Objective(SLO) Report",
-        "Service Levels Alert Configuration"
+        "Infrastructure Analyze"
       ]
     },
     {
