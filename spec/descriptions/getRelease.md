@@ -1,0 +1,1 @@
+Use this API endpoint to retrieve a particular release.
