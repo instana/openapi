@@ -1,1 +1,1 @@
-Use this API endpoint if one wants to retrieve a list of all releases.
+Use this API endpoint to retrieve a list of all releases.

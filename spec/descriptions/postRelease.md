@@ -1,4 +1,4 @@
-Use this API endpoint if one wants to create a release. Release can be created with four different scopes: 
+Use this API endpoint to create a release. Release can be created with four different scopes: 
 
 1. Global
     - Release marker is shown on all dashboard pages for Application perspectives, Services, and Endpoints.

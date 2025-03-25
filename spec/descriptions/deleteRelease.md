@@ -1,1 +1,1 @@
-Use this API endpoint if one wants to delete a release.
+Use this API endpoint to delete a release.

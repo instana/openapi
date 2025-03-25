@@ -3,10 +3,10 @@ These APIs can be used to create, update, delete and fetch releases.
 ## Mandatory Parameters when sending a request:
 
 1. **Create release**
-    - If one wants to create a release with Global scope, then `name` and `start` are mandatory parameters.
-    - If one wants to create a release with Application Perspective scope, then `applications` is mandatory **along with** Global scope mandatory parameters.
-    - If one wants to create a release with Service scope, then `services.name` is mandatory **along with** Global scope mandatory parameters.
-    - If one wants to create a release with Service within an Application Perspective scope, then `services.scopedTo.applications` is mandatory **along with Service scope** mandatory parameters.
+    - `name` and `start` are mandatory parameters to create a release with Global scope.
+    - `applications` is a mandatory parameter **along with** Global scope mandatory parameters to create a release with Application Perspective scope.
+    - `services.name` is a mandatory parameter **along with** Global scope mandatory parameters to create a release with Service scope.
+    - `services.scopedTo.applications` is a mandatory parameter **along with Service scope** mandatory parameters to create a release with Service within an Application Perspective scope.
 
 2. **Delete release**
     - `releaseId` is a mandatory path parameter.
@@ -16,4 +16,4 @@ These APIs can be used to create, update, delete and fetch releases.
 
 4. **Update release**
     - `releaseId` is a mandatory path parameter.
-    - Mandatory parameters as **Create release**
+    - Same mandatory parameters as **Create release**.
