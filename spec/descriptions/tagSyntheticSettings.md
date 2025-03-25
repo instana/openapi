@@ -100,18 +100,20 @@ The API endpoints of this group can be used to manage Synthetic Locations, Synth
           - **port** The DNS server listening port, set to 53 by default.
           - **queryTime** An optional filter to be used to validate the test response time. 
             Syntax: \<key\>\<operator\>\<value\>, where:
-              - **key** is the name of the property to be validated
-              - **operator** is one of EQUALS, GREATER_THAN, LESS_THAN
-              - **value** is the expected value
-          - **queryType** The DNS query type used in the test. Value must be one of ALL, ALL_CONDITIONS, ANY, A, AAAA, CNAME, NS. By default, it is ANY.
+              - **key** is the name of the property to be validated. Only **responseTime** is supported.
+              - **operator** is one of EQUALS, GREATER_THAN, LESS_THAN.
+              - **value** is a numeric value, in milliseconds, Default is 10000.
+          - **queryType** The DNS query type used in the test. Value must be one of ALL, ALL_CONDITIONS, ANY, A, AAAA, CNAME, NS. Default value is A.
+              - If **ALL** is defined, all available query types will be executed.
+              - If **ALL_CONDITIONS** is defined, only the query types defined in **targetValues** will be executed.
           - **recursiveLookups** A boolean type, false by default, that enables recursive DNS lookups.
           - **server** The IP address of the DNS server.
           - **serverRetries** The number of times to try a timed-out DNS lookup before returning failure. Default is 1. 
           - **targetValues** An optional list of filters to be used to validate the test response.
             Syntax: [\<key\>\<operator\>\<value\>, ...], where:
-              - **key** is the name of the property to be validated
-              - **operator** is one of CONTAINS, IS, MATCHES, NOT_MATCHES
-              - **value** is the expected value
+              - **key** is the name of the property to be validated.
+              - **operator** is one of CONTAINS, IS, MATCHES, NOT_MATCHES.
+              - **value** is the expected property value.
           - **transport** The protocol used to do DNS check. Only UDP is supported.
 - **createdAt** The test created time, following RFC3339 standard.
 - **createdBy** The user identifier who created the test resource.
