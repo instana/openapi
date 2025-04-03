@@ -10,7 +10,7 @@ The endpoints of this group retrieve metrics for Synthetic test results.
    The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),
    synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).
 
-   The metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate tests.
+   The metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate and DNS tests.  For SSLCertificate, the custom metrics are returned as metrics.  For DNS, the custom metrics are returned in the *ismDetails* field.
 
    The metric synthetic.tags adds the latest list of custom properties to the response.
 
