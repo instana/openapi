@@ -1,11 +1,3 @@
-This endpoint retrieves the metrics for traces.
+Use the endpoint to retrieve a list of traces.
 
-**Manditory Paramters:**
-
-**Optional Paramters:**
-
-**Defaults:**
-
-**Limits:**
-
-**Tips:**
+**Deprecated Parameter:** `tagFilters` is deprecated. It is replaced by `tagFilterExpression`.
