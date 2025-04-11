@@ -1,7 +1,5 @@
 This API endpoint creates a Synthetic Test.
 
-**Note:** The **DNSAction** Synthetic type is not supported.
-
 ## Optional Parameters:
 
 - **id** Users are allowed to specify their own id for the test. A test id can contain letters, numbers, underscores, colons and hyphens. Maximum length is 128.
