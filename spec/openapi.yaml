@@ -4,9 +4,10 @@ info:
     email: support@instana.com
     name: © Instana
     url: http://instana.com
+  description: Documentation for INSTANA REST API
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.293.1072
+  version: 1.294.1053
   x-description: info
   x-logo:
     altText: instana logo
@@ -26,7 +27,7 @@ servers:
   url: "https://{domain}"
   variables:
     domain:
-      default: example. com
+      default: example.com
       description: Customer Self-Hosted domain
 tags:
 - name: Infrastructure Analyze
@@ -4744,44 +4745,58 @@ paths:
         "200":
           content:
             application/json:
-              example:
-                id: alHaYV5aSkKku_wcg53teQ
-                title: "{string}"
-                accessRules:
-                - accessType: READ_WRITE
-                  relationType: USER
-                  relatedId: 5ee8a3e8cd70020001ecb007
-                - accessType: READ
-                  relationType: GLOBAL
-                  relatedId: null
-                widgets:
-                - id: dIxxq0LCdqZomve2
-                  title: SUM of bytes received for a particular container
-                  width: 2
-                  height: 4
-                  x: 0
-                  "y": 0
-                  type: bigNumber
-                  config:
-                    formatter: bytes.detailed
-                    comparisonDecreaseColor: greenish
-                    metricConfiguration:
-                      metric: network.rx.bytes
-                      timeShift: 0
-                      tagFilterExpression:
-                        name: docker.containerId
-                        type: TAG_FILTER
-                        value: faaa7f1732d16faa7fc27a0cb49fdf5c07716f3d3be1315e20f24d099657bbe0
-                        entity: NOT_APPLICABLE
-                        operator: EQUALS
-                      aggregation: SUM
-                      source: INFRASTRUCTURE_METRICS
-                      crossSeriesAggregation: SUM
-                      type: docker
-                    comparisonIncreaseColor: redish
-                writable: true
+              example: |
+                {
+                  "id": "alHaYV5aSkKku_wcg53teQ",
+                  "title": "{string}",
+                  "accessRules": [
+                    {
+                      "accessType": "READ_WRITE",
+                      "relationType": "USER",
+                      "relatedId": "5ee8a3e8cd70020001ecb007"
+                    },
+                    {
+                      "accessType": "READ",
+                      "relationType": "GLOBAL",
+                      "relatedId": null
+                    }
+                  ],
+                  "widgets": [
+                    {
+                      "id": "dIxxq0LCdqZomve2",
+                      "title": "SUM of bytes received for a particular container",
+                      "width": 2,
+                      "height": 4,
+                      "x": 0,
+                      "y": 0,
+                      "type": "bigNumber",
+                      "config": {
+                        "formatter": "bytes.detailed",
+                        "comparisonDecreaseColor": "greenish",
+                        "metricConfiguration": {
+                          "metric": "network.rx.bytes",
+                          "timeShift": 0,
+                          "tagFilterExpression": {
+                            "name": "docker.containerId",
+                            "type": "TAG_FILTER",
+                            "value": "faaa7f1732d16faa7fc27a0cb49fdf5c07716f3d3be1315e20f24d099657bbe0",
+                            "entity": "NOT_APPLICABLE",
+                            "operator": "EQUALS"
+                          },
+                          "aggregation": "SUM",
+                          "source": "INFRASTRUCTURE_METRICS",
+                          "crossSeriesAggregation": "SUM",
+                          "type": "docker"
+                        },
+                        "comparisonIncreaseColor": "redish"
+                      }
+                    }
+                  ],
+                  "writable": true,
+                  "ownerId": {string}
+                }
               schema:
-                $ref: "#/components/schemas/CustomDashboard"
+                $ref: "#/components/schemas/CustomDashboardWithUserSpecificInformation"
           description: OK
       security:
       - ApiKeyAuth:
@@ -6588,7 +6603,7 @@ paths:
                   value: 42+1
                 lastUpdated: 1723212859513
               schema:
-                $ref: "#/components/schemas/CustomPayloadWithLastUpdated"
+                $ref: "#/components/schemas/CustomPayloadWithVersion"
           description: OK
         "401":
           description: Unauthorized access - requires user authentication.
@@ -14710,6 +14725,7 @@ paths:
         required: true
         schema:
           type: string
+        style: simple
       responses:
         "200":
           content:
@@ -14778,6 +14794,7 @@ paths:
         required: true
         schema:
           type: string
+        style: simple
       requestBody:
         content:
           application/json:
@@ -14839,6 +14856,7 @@ paths:
         required: true
         schema:
           type: string
+        style: simple
       requestBody:
         content:
           application/json:
@@ -16290,6 +16308,7 @@ paths:
         required: true
         schema:
           type: string
+        style: simple
       responses:
         "200":
           content:
@@ -21766,6 +21785,8 @@ components:
         lastUsedOn:
           type: integer
           format: int64
+        limitedAlertChannelsScope:
+          type: boolean
         limitedApplicationsScope:
           type: boolean
         limitedAutomationScope:
@@ -23203,6 +23224,37 @@ components:
       - id
       - ownerId
       - title
+    CustomDashboardWithUserSpecificInformation:
+      type: object
+      properties:
+        accessRules:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessRule"
+          maxItems: 64
+          minItems: 1
+        id:
+          type: string
+        ownerId:
+          type: string
+        title:
+          type: string
+        widgets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Widget"
+          maxItems: 128
+          minItems: 0
+          uniqueItems: true
+        writable:
+          type: boolean
+      required:
+      - accessRules
+      - id
+      - ownerId
+      - title
+      - widgets
+      - writable
     CustomEmailSubjectPrefix:
       type: object
       properties:
@@ -23479,6 +23531,29 @@ components:
           minimum: 1
       required:
       - fields
+    CustomPayloadWithVersion:
+      type: object
+      properties:
+        fields:
+          type: array
+          description: Required parameters for custom payload configuration.
+          items:
+            $ref: "#/components/schemas/CustomPayloadField"
+          maxItems: 20
+          minItems: 0
+        lastUpdated:
+          type: integer
+          format: int64
+          description: Unix timestamp representing the time (in milliseconds) the
+            configuration was last updated.
+          minimum: 1
+        version:
+          type: integer
+          format: int32
+          description: Global custom payloads version.
+      required:
+      - fields
+      - version
     DNSConfiguration:
       type: object
       allOf:
@@ -28300,6 +28375,7 @@ components:
         mapping:
           crash: "#/components/schemas/CrashMobileAppAlertRule"
           customEvent: "#/components/schemas/CustomEventMobileAppAlertRule"
+          slowness: "#/components/schemas/SlownessMobileAppAlertRule"
           statusCode: "#/components/schemas/StatusCodeMobileAppAlertRule"
           throughput: "#/components/schemas/ThroughputMobileAppAlertRule"
         propertyName: alertType
@@ -30769,6 +30845,13 @@ components:
       required:
       - aggregation
       - metricName
+    SlownessMobileAppAlertRule:
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/MobileAppAlertRule"
+      required:
+      - aggregation
+      - metricName
     SlownessWebsiteAlertRule:
       type: object
       allOf:
@@ -31995,7 +32078,7 @@ components:
       type: object
       description: |-
         Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript,
-        HTTPAction, HTTPScript, SSLCertificate, WebpageAction, and WebpageScript.
+        DNS, HTTPAction, HTTPScript, SSLCertificate, WebpageAction, and WebpageScript.
       discriminator:
         mapping:
           BrowserScript: "#/components/schemas/BrowserScriptConfiguration"
@@ -32516,6 +32599,10 @@ components:
             type: string
         id:
           type: string
+        ismDetails:
+          type: object
+          additionalProperties:
+            type: string
         locationDisplayLabel:
           type: string
         locationId:
@@ -34956,7 +35043,6 @@ components:
         \ API token management can found in Settings → Access Control → API Tokens."
       in: header
       name: authorization
-      scheme: apiToken
       type: apiKey
       x-description: authorization
 x-tagGroups:
