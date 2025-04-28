@@ -14,7 +14,7 @@ The endpoints of this group retrieve metrics for Synthetic test results.
 
    The metric synthetic.tags adds the latest list of custom properties to the response.
 
-2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags. Metric synthetic.successRate only accepts MEAN (SUM is deprecated).
+2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags. Metric synthetic.successRate only accepts MEAN.
 
 **timeFrame** As in our UI you can specify the timeframe for metrics retrieval.
 ```
