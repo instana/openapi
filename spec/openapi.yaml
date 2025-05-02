@@ -7,7 +7,7 @@ info:
   description: Documentation for INSTANA REST API
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.294.1053
+  version: 1.295.830
   x-description: info
   x-logo:
     altText: instana logo
@@ -2790,6 +2790,8 @@ paths:
       - Application Analyze
   /api/application-monitoring/v2/analyze/traces/{traceId}/calls/{callId}/details:
     get:
+      description: |
+        Use this API endpoint to retrieve a vast information about a call present in a trace.
       operationId: getCallDetails
       parameters:
       - in: path
@@ -2797,11 +2799,14 @@ paths:
         required: true
         schema:
           type: string
+          description: An Instana generated unique identifier for a trace.
       - in: path
         name: callId
         required: true
         schema:
           type: string
+          description: "The call ID. A unique identifier for an individual call. For\
+            \ example: `1bcad5c82338deaf`."
       responses:
         "200":
           content:
@@ -6709,6 +6714,71 @@ paths:
       - ApiKeyAuth:
         - CanConfigureGlobalAlertPayload
       summary: Get Tag Catalog for Custom Payload
+      tags:
+      - Event Settings
+  /api/events/settings/custom-payload-configurations/v2:
+    put:
+      description: Creates or Updates Global Custom Payload Configuration.
+      operationId: upsertCustomPayloadConfigurationV2
+      requestBody:
+        content:
+          application/json:
+            example: |2
+                    "fields":
+                    [
+                      {
+                          "type": "staticString",
+                          "key": "string",
+                          "value": "customValue"
+                      },
+                      {
+                          "type": "dynamic",
+                          "key": "string",
+                          "value": {
+                              "tagName": "agent.zone",
+                              "key": "string"
+                          }
+                      }
+                    ],
+                    "version": 1
+            schema:
+              $ref: "#/components/schemas/CustomPayloadConfiguration"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - fields:
+                - type: staticString
+                  key: string
+                  value: customValue
+                - type: dynamic
+                  key: string
+                  value:
+                    tagName: agent.zone
+                    key: string
+                lastUpdated: 1723212859513
+                version: 1
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomPayloadWithVersion"
+          description: OK
+        "400":
+          description: Bad request.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "409":
+          description: Version conflict.
+        "422":
+          description: "Unable to process request, request data is invalid."
+      security:
+      - ApiKeyAuth:
+        - CanConfigureGlobalAlertPayload
+      summary: Create/Update Global Custom Payload Configuration
       tags:
       - Event Settings
   /api/events/settings/event-specifications/built-in:
@@ -15663,6 +15733,10 @@ paths:
           enum:
           - name
           - entityType
+          - sloStatus
+          - sloWindowRemain
+          - timeWindow
+          - "null"
           example: name
       - in: query
         name: orderDirection
@@ -15684,15 +15758,21 @@ paths:
             description: List of SLO IDs for which details need to be fetched
             example: SLOdCTspkHlS_OzNOATQWgsuw
       - in: query
+        name: sloStatus
+        schema:
+          type: string
+          description: List of entity IDs for which details need to be fetched
+          example: adsewby312sdfd1
+      - in: query
         name: entityIds
         schema:
           type: array
-          description: List of entity IDs for which details need to be fetched
-          example: adsewby312sdfd1
+          description: Filter by the SLO status
+          example: green
           items:
             type: string
-            description: List of entity IDs for which details need to be fetched
-            example: adsewby312sdfd1
+            description: Filter by the SLO status
+            example: green
       - in: query
         name: refresh
         schema:
@@ -21532,6 +21612,8 @@ components:
       properties:
         email:
           type: string
+        name:
+          type: string
         userId:
           type: string
       required:
@@ -23052,11 +23134,19 @@ components:
       - changeType
     CloudfoundryPhysicalContext:
       type: object
+      description: |
+        Contains physical context of Cloudfoundry. It contains the following information:
+        1. `application`: Application running within Cloud Foundry environment.
+        2. `cfInstanceIndex`: A unique ID of the container created and managed by Garden in the Cloud Foundry environment.
+        3. `organization`: Organization in the Cloud Foundry environment.
+        4. `space`: Space within an organization in Cloud Foundry environment.
       properties:
         application:
           $ref: "#/components/schemas/SnapshotPreview"
         cfInstanceIndex:
           type: string
+          description: A unique ID of the container created and managed by Garden
+            in the Cloud Foundry environment.
         organization:
           $ref: "#/components/schemas/SnapshotPreview"
         space:
@@ -23700,6 +23790,7 @@ components:
           - ENDS_WITH
           - NOT_STARTS_WITH
           - NOT_ENDS_WITH
+          - REGEX_MATCH
         value:
           type: string
       required:
@@ -23795,7 +23886,6 @@ components:
       - syntheticType
     Endpoint:
       type: object
-      description: Returns a list of Endpoints.
       properties:
         entityType:
           type: string
@@ -23806,7 +23896,7 @@ components:
           - ENDPOINT
         id:
           type: string
-          description: "Unique ID of the Service. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`."
+          description: "Unique ID of the Endpoint. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`."
         isSynthetic:
           type: boolean
           writeOnly: true
@@ -23981,7 +24071,6 @@ components:
       properties:
         items:
           type: array
-          description: Returns a list of Endpoints.
           items:
             $ref: "#/components/schemas/Endpoint"
         page:
@@ -24004,7 +24093,7 @@ components:
       properties:
         id:
           type: string
-          description: "Unique ID of the Service. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`."
+          description: "Unique ID of the Endpoint. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`."
         label:
           type: string
           description: "Name of the Endpoint. Eg: `GET /api/fetch`."
@@ -24155,6 +24244,7 @@ components:
             enum:
             - BURN_RATE
             - BURNED_PERCENTAGE
+            - BURN_RATE_V2
       required:
       - metric
     ErrorsApplicationAlertRule:
@@ -25417,7 +25507,8 @@ components:
           type: string
         id:
           type: string
-          description: "The unique call id. For example: `1bcad5c82338deaf`."
+          description: "The call ID. A unique identifier for an individual call. For\
+            \ example: `1bcad5c82338deaf`."
         minSelfTime:
           type: integer
           format: int64
@@ -25487,8 +25578,12 @@ components:
       properties:
         includeInternal:
           type: boolean
+          description: Flag to include Internal Calls. These calls are work done inside
+            a service and correspond to intermediate spans in custom tracing.
         includeSynthetic:
           type: boolean
+          description: "Flag to include Synthetic Calls. These calls have a synthetic\
+            \ endpoint as their destination, such as calls to health-check endpoints."
         order:
           $ref: "#/components/schemas/Order"
         pagination:
@@ -26989,6 +27084,8 @@ components:
       type: object
     KubernetesPhysicalContext:
       type: object
+      description: "Contains physical context of Kubernetes which contains information\
+        \ about the cluster, namespace, node and pod."
       properties:
         cluster:
           $ref: "#/components/schemas/SnapshotPreview"
@@ -27377,6 +27474,7 @@ components:
             - ENDS_WITH
             - NOT_STARTS_WITH
             - NOT_ENDS_WITH
+            - REGEX_MATCH
       required:
       - level
       - metricName
@@ -28184,6 +28282,9 @@ components:
                 \ name and its value."
             description: "A map of the requested metrics, composed of the metric name\
               \ and its value."
+        runType:
+          type: string
+          description: Indicates whether the test was scheduled to run or run now
         tests:
           type: array
           description: A description of the Synthetic test associated with the result
@@ -29387,6 +29488,14 @@ components:
       - type
     PhysicalContext:
       type: object
+      description: |
+        The physical context of an entity. This is typically used to describe where a host, container or process fits into the infrastructure.
+        1. `cloudfoundry`: Contains physical context of Cloudfoundry.
+        2. `cluster`: Contains physical context of cluster like Hazelcast, Elasticsearch.
+        3. `container`: Contains physical context of container.
+        4. `host`: Contains physical context of host.
+        5. `kubernetes`: Contains physical context of Kubernetes.
+        6. `process`: Contains physical context of a process.
       properties:
         cloudfoundry:
           $ref: "#/components/schemas/CloudfoundryPhysicalContext"
@@ -29797,11 +29906,36 @@ components:
           port:
             type: integer
             format: int32
+          validationRules:
+            type: array
+            items:
+              $ref: "#/components/schemas/SSLCertificateValidation"
       required:
       - daysRemainingCheck
       - hostname
       - markSyntheticCall
       - syntheticType
+    SSLCertificateValidation:
+      type: object
+      properties:
+        key:
+          type: string
+        operator:
+          type: string
+          enum:
+          - CONTAINS
+          - EQUALS
+          - GREATER_THAN
+          - IS
+          - LESS_THAN
+          - MATCHES
+          - NOT_MATCHES
+        value:
+          type: object
+      required:
+      - key
+      - operator
+      - value
     SalesforceIntegration:
       type: object
       allOf:
@@ -29873,7 +30007,6 @@ components:
           - id
     Service:
       type: object
-      description: Returns a list of Services.
       properties:
         entityType:
           type: string
@@ -30139,6 +30272,13 @@ components:
           maxItems: 1024
           minItems: 0
           uniqueItems: true
+        burnRateConfig:
+          type: array
+          description: This is the burn rate alert configuration which defines alerting
+            windows and corresponding thresholds.
+          items:
+            $ref: "#/components/schemas/ServiceLevelsBurnRateConfig"
+          uniqueItems: true
         burnRateTimeWindows:
           $ref: "#/components/schemas/ServiceLevelsBurnRateTimeWindows"
         customPayloadFields:
@@ -30191,7 +30331,6 @@ components:
       - name
       - rule
       - sloIds
-      - threshold
       - timeThreshold
     ServiceLevelsAlertRule:
       type: object
@@ -30207,6 +30346,35 @@ components:
           type: string
       required:
       - alertType
+    ServiceLevelsBurnRateConfig:
+      type: object
+      description: This is the burn rate alert configuration which defines alerting
+        windows and corresponding thresholds.
+      properties:
+        alertingWindowName:
+          type: string
+          writeOnly: true
+        duration:
+          type: integer
+          format: int32
+        durationType:
+          type: string
+          enum:
+          - millisecond
+          - second
+          - minute
+          - hour
+          - day
+          - week
+          - month
+        name:
+          type: string
+        threshold:
+          $ref: "#/components/schemas/StaticThreshold"
+      required:
+      - duration
+      - durationType
+      - threshold
     ServiceLevelsBurnRateTimeWindows:
       type: object
       description: This is the short and long time window setting for the burn rate
@@ -30244,6 +30412,13 @@ components:
               sent to.
           maxItems: 1024
           minItems: 0
+          uniqueItems: true
+        burnRateConfig:
+          type: array
+          description: This is the burn rate alert configuration which defines alerting
+            windows and corresponding thresholds.
+          items:
+            $ref: "#/components/schemas/ServiceLevelsBurnRateConfig"
           uniqueItems: true
         burnRateTimeWindows:
           $ref: "#/components/schemas/ServiceLevelsBurnRateTimeWindows"
@@ -30323,7 +30498,6 @@ components:
       - name
       - rule
       - sloIds
-      - threshold
       - timeThreshold
     ServiceMap:
       type: object
@@ -30519,7 +30693,6 @@ components:
       properties:
         items:
           type: array
-          description: Returns a list of Services.
           items:
             $ref: "#/components/schemas/Service"
         page:
@@ -30901,15 +31074,25 @@ components:
           type: object
           additionalProperties:
             type: object
+            description: Subset of the data section of the plugin. In most cases this
+              field will be null.
+          description: Subset of the data section of the plugin. In most cases this
+            field will be null.
         id:
           type: string
+          description: This is a snapshot ID. A unique identifier the metrics are
+            assigned to.
         label:
           type: string
+          description: Name of the entity.
         plugin:
           type: string
+          description: "A short plugin ID. For example, `containerd`, `nginx` etc."
         time:
           type: integer
           format: int64
+          description: "Specifies the exact point at which the id, label and plugin\
+            \ are valid."
           minimum: 1
       required:
       - id
@@ -31120,11 +31303,18 @@ components:
       - stackTrace
     SpanExcerpt:
       type: object
+      description: "Information about the logs attached to the call, if available."
       properties:
         data:
           type: object
           additionalProperties:
             type: object
+            description: "Some information about the span, like service name, if it\
+              \ is an http call, then some information about it like, path, method,\
+              \ host, errors etc."
+          description: "Some information about the span, like service name, if it\
+            \ is an http call, then some information about it like, path, method,\
+            \ host, errors etc."
         databaseIntegrations:
           type: array
           items:
@@ -31132,17 +31322,31 @@ components:
         duration:
           type: integer
           format: int64
+          description: "The total time taken for the entire operation of a call, from\
+            \ the moment the request was initiated to when the response was received.\
+            \ The time measured is in milliseconds. This is also known as latency\
+            \ of a call."
           minimum: 0
         errorCount:
           type: integer
           format: int32
+          description: Represents whether the span is erroneous or not. 0 is not erroneous
+            and 1 is erroneous.
           minimum: 0
         foreignParentId:
           type: string
         id:
           type: string
+          description: "The call ID. A unique identifier for an individual call. For\
+            \ example: `1bcad5c82338deaf`."
         kind:
           type: string
+          description: |
+            There are 4 types of span kind:
+            1. `ENTRY`: An entry span represents an incoming request into a traced service.
+            2. `EXIT`: An exit span represents an outgoing request that a service makes to some other service.
+            3. `INTERMEDIATE`: An intermediate span represents anything that happens inside a traced service where the flow of control neither enters nor leaves that service, but stays inside it.
+            4. `UNKNOWN`: Instana can't determine the span kind.
           enum:
           - UNKNOWN
           - ENTRY
@@ -31150,15 +31354,25 @@ components:
           - INTERMEDIATE
         name:
           type: string
+          description: "The technical type of the span. For example, `node.http.client`\
+            \ or `jdbc`."
         parentId:
           type: string
+          description: "The parent call id, referring to another call in the same\
+            \ trace which triggered the processing associated with this call."
         stackTrace:
           type: array
+          description: "For an erroneous call, if stack trace is available it will\
+            \ show a list of items containing file, method and line number of the\
+            \ code."
           items:
             $ref: "#/components/schemas/StackTraceItem"
         start:
           type: integer
           format: int64
+          description: "The timestamp when the call or request was initiated. For\
+            \ example, Unix epoch time in milliseconds `1735532879870` is `Monday,\
+            \ 30 December 2024 04:27:59.870 GMT`"
           minimum: 1
       required:
       - data
@@ -31168,6 +31382,11 @@ components:
       - stackTrace
     SpanRelation:
       type: object
+      description: |
+        It shows from where the call is destined to. It includes the following information:
+        1. List of Application Perspectives from which the call is destined to.
+        2. Destination service and destination endpoint.
+        3. Physical context from the infrastructure point of view.
       properties:
         applications:
           type: array
@@ -31207,6 +31426,7 @@ components:
             - ENDS_WITH
             - NOT_STARTS_WITH
             - NOT_ENDS_WITH
+            - REGEX_MATCH
           value:
             type: string
       required:
@@ -31230,13 +31450,19 @@ components:
       - url
     StackTraceItem:
       type: object
+      description: "For an erroneous call, if stack trace is available it will show\
+        \ a list of items containing file, method and line number of the code."
       properties:
         file:
           type: string
+          description: The name of the file where the executed code resides.
         line:
           type: string
+          description: The line number within the file where the error was thrown.
         method:
           type: string
+          description: The name of the method or function being executed at the time
+            the stack trace item was generated.
     StackTraceLine:
       type: object
       properties:
@@ -31367,6 +31593,7 @@ components:
             - ENDS_WITH
             - NOT_STARTS_WITH
             - NOT_ENDS_WITH
+            - REGEX_MATCH
           value:
             type: string
       required:
@@ -31398,6 +31625,7 @@ components:
             - ENDS_WITH
             - NOT_STARTS_WITH
             - NOT_ENDS_WITH
+            - REGEX_MATCH
           value:
             type: string
       required:
@@ -32301,6 +32529,7 @@ components:
             - ENDS_WITH
             - NOT_STARTS_WITH
             - NOT_ENDS_WITH
+            - REGEX_MATCH
           value:
             type: object
             description: "Tag value to filter on. Can be a string, number, or boolean\
@@ -32568,6 +32797,16 @@ components:
       - id
       - label
       - type
+    TestLastError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+        startTime:
+          type: integer
+          format: int64
     TestResult:
       type: object
       properties:
@@ -32603,14 +32842,22 @@ components:
           type: object
           additionalProperties:
             type: string
+        lastErrors:
+          $ref: "#/components/schemas/TestLastError"
         locationDisplayLabel:
           type: string
         locationId:
+          type: string
+        runType:
+          type: string
+        sslDaysRemaining:
           type: string
         testCommonProperties:
           $ref: "#/components/schemas/TestCommonProperties"
         testId:
           type: string
+        testLastError:
+          $ref: "#/components/schemas/TestLastError"
         testName:
           type: string
       required:
@@ -32914,24 +33161,33 @@ components:
             $ref: "#/components/schemas/GraphNode"
     Trace:
       type: object
+      description: |
+        1. `service`: The service from where trace started.
+        2. `endpoint`: Endpoint of the service.
       properties:
         duration:
           type: integer
           format: int64
+          description: Total time taken for a trace to finish.
           minimum: 0
         endpoint:
           $ref: "#/components/schemas/Endpoint"
         erroneous:
           type: boolean
+          description: Flag which tells whether the trace is erroneous or not
         id:
           type: string
+          description: "The trace ID. All spans of the same trace must have the same\
+            \ trace ID. For example, `e93282c0d5018320`."
         label:
           type: string
+          description: Name of the trace.
         service:
           $ref: "#/components/schemas/Service"
         startTime:
           type: integer
           format: int64
+          description: The start time of the trace.
           minimum: 1
       required:
       - id
@@ -32942,44 +33198,66 @@ components:
         batchSelfTime:
           type: integer
           format: int64
+          description: |
+            Sum of all self times in a batch of calls.
+            For example, if 5 calls are in a batch and its self times are : `[1,2,3,4,5]` in milliseconds, then the batch self time would be sum of the self times,
+            in this case, it will be 15 milliseconds.
         batchSize:
           type: integer
           format: int32
+          description: Number of calls in a batch.
           minimum: 0
         destination:
           $ref: "#/components/schemas/SpanRelation"
         duration:
           type: integer
           format: int64
+          description: "The total time taken for the entire operation of a call, from\
+            \ the moment the request was initiated to when the response was received.\
+            \ The time measured is in milliseconds. This is also known as latency\
+            \ of a call."
           minimum: 0
         errorCount:
           type: integer
           format: int32
+          description: Represents whether the call is erroneous or not. 0 is not erroneous
+            and 1 is erroneous.
           minimum: 0
         id:
           type: string
+          description: "The call ID. A unique identifier for an individual call. For\
+            \ example: `1bcad5c82338deaf`."
         isSynthetic:
           type: boolean
           writeOnly: true
         label:
           type: string
+          description: "Name of the call. For example: `GET /articles/:id`."
           maxLength: 128
           minLength: 0
         logs:
           type: array
+          description: "Information about the logs attached to the call, if available."
           items:
             $ref: "#/components/schemas/SpanExcerpt"
           uniqueItems: true
         minSelfTime:
           type: integer
           format: int64
+          description: The smallest self time in the batch. May be null to indicate
+            that `minSelfTime` is unknown when this node has only an exit span and
+            no children. The time measured is in milliseconds.
         networkTime:
           type: integer
           format: int64
+          description: The time difference between the Exit Span Time of the caller
+            and the Entry Span Time of the call. This value is measured in milliseconds
+            and may be null if network time is not applicable.
         source:
           $ref: "#/components/schemas/SpanRelation"
         spans:
           type: array
+          description: Information about the spans from which the call is composed.
           items:
             $ref: "#/components/schemas/SpanExcerpt"
           maxItems: 2
@@ -32988,6 +33266,9 @@ components:
         start:
           type: integer
           format: int64
+          description: "The timestamp when the call or request was initiated. For\
+            \ example, Unix epoch time in milliseconds `1735532879870` is `Monday,\
+            \ 30 December 2024 04:27:59.870 GMT`"
           minimum: 1
         synthetic:
           type: boolean
