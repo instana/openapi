@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Instana REST API documentation",
-    "version": "1.294.1053",
+    "version": "1.295.830",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -186,7 +186,7 @@
     },
     {
       "name": "Synthetic Metrics",
-      "description": "The endpoints of this group retrieve metrics for Synthetic test results.\n### Mandatory Parameters\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests:\n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), synthetic.successRate, and synthetic.tags (list of custom properties and values).\n\n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate and DNS tests.  For SSLCertificate, the custom metrics are returned as metrics.  For DNS, the custom metrics are returned in the *ismDetails* field.\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags. Metric synthetic.successRate only accepts SUM.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment. \n\nIf **groups** includes a groupbyTag that is an array, such as synthetic.tags, the maximum windowSize is *3600000* (1 hour).\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n  * If it is not set you will get an aggregated value for the selected timeframe\n  * If the granularity is set you will get data points with the specified granularity **in seconds**\n  * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n  * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n  * The granularity values are the same for all metrics\n\n**pagination** if you use pagination, fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**groups** You can group test results by one or more tags.\n1. *groupbyTag* use the metric or tag name, e.g. \"synthetic.applicationId\", to group by its value\n2. *groupbyTagSecondLevelTag* is optional.  It is used to further qualify values when the *groupbyTag* is an array of key/value pairs, such as \"synthetic.tags\".\n3. *groupbyTagEntity* is ignored and therefore does not need to be specified.\n\nIf *groups* is not specified, the default grouping is *synthetic.testId*.\n\nAn example of grouping by the custom property \"region\":\n```\n  \"groups\": [\n    {\n      \"groupbyTag\": \"synthetic.tags\",\n      \"groupbyTagSecondLevelTag\": \"region\"\n    }\n  ]\n```\n\n**includeAggregatedTestIds** Optionally used when not grouping by testId.  Specifying *true* will return a list of tests that were included in the aggregated result for each row returned.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators \"AND\" or \"OR\".\n\nA tagFilterExpression can specify a custom property by its key and value.\n```\n  \"tagFilterExpression\": {\n    \"type\": \"EXPRESSION\",\n    \"logicalOperator\": \"AND\",\n    \"elements\": [\n      {\n        \"name\": \"synthetic.tags\",\n        \"key\": \"region\",\n        \"value\": \"Denver\",\n        \"operator\": \"EQUALS\"\n      },\n      {\n        \"name\": \"synthetic.locationId\",\n        \"operator\": \"EQUALS\",\n        \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n      }\n    ]\n  }\n```\n\n### Defaults\n\n**groups**\n```\n  \"groups\": [\n    \"groupbyTag\": \"synthetic.testId\"\n  ]\n```\n\n**includeAggregatedTestIds**\n* *includeAggregatedTestIds:* *true* when grouping by synthetic.testId, otherwise *false*.\n\n**metrics**\n* *granularity:* 0\n\n**pagination**\n* If **pagination** is not specified, the entire result set is returned.\n\n**timeFrame**\n```\n  \"timeFrame\": {\n    \"to\": {current timestamp},\n    \"windowSize\": 60000\n  }\n```\n\n### Sample payload to get the mean synthetic.metricsResponseTIme for each Synthetic test within the specified timeFrame\n```json\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n} \n```\n\n### Sample payload to get the mean synthetic.metricsResponseTIme for each Synthetic test within the specified timeFrame grouped by applicationId\n```json\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     },\n     \"groups\": [{\n       \"groupbyTag\": \"synthetic.applicationId\"\n     }]\n} \n```\n\n### Sample payload to get the synthetic.successRate for the Synthetic tests within the specified timeFrame grouped by the two custom properties region and cluster.\n```json\n{\n    \"metrics\": [\n    {\n        \"aggregation\": \"SUM\",\n        \"metric\": \"synthetic.successRate\"\n    }],\n    \"timeFrame\": {\n        \"to\": 0,\n        \"windowSize\": 1800000\n    },\n    \"groups\": [\n    {\n        \"groupbyTag\": \"synthetic.tags\",\n        \"groupbyTagSecondLevelKey\": \"region\"\n    },\n    {\n        \"groupbyTag\": \"synthetic.tags\",\n        \"groupbyTagSecondLevelKey\": \"cluster\"\n    }]\n}\n```\n"
+      "description": "The endpoints of this group retrieve metrics for Synthetic test results.\n### Mandatory Parameters\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests:\n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), synthetic.successRate, and synthetic.tags (list of custom properties and values).\n\n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.customMetrics (list of custom metrics and values) is only available for SSLCertificate and DNS tests.  For SSLCertificate, the custom metrics are returned as metrics.  For DNS, the custom metrics are returned in the *ismDetails* field.\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags. Metric synthetic.successRate only accepts MEAN.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment. \n\nIf **groups** includes a groupbyTag that is an array, such as synthetic.tags, the maximum windowSize is *3600000* (1 hour).\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n  * If it is not set you will get an aggregated value for the selected timeframe\n  * If the granularity is set you will get data points with the specified granularity **in seconds**\n  * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n  * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n  * The granularity values are the same for all metrics\n\n**pagination** if you use pagination, fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**groups** You can group test results by one or more tags.\n1. *groupbyTag* use the metric or tag name, e.g. \"synthetic.applicationId\", to group by its value\n2. *groupbyTagSecondLevelTag* is optional.  It is used to further qualify values when the *groupbyTag* is an array of key/value pairs, such as \"synthetic.tags\".\n3. *groupbyTagEntity* is ignored and therefore does not need to be specified.\n\nIf *groups* is not specified, the default grouping is *synthetic.testId*.\n\nAn example of grouping by the custom property \"region\":\n```\n  \"groups\": [\n    {\n      \"groupbyTag\": \"synthetic.tags\",\n      \"groupbyTagSecondLevelTag\": \"region\"\n    }\n  ]\n```\n\n**includeAggregatedTestIds** Optionally used when not grouping by testId.  Specifying *true* will return a list of tests that were included in the aggregated result for each row returned.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators \"AND\" or \"OR\".\n\nA tagFilterExpression can specify a custom property by its key and value.\n```\n  \"tagFilterExpression\": {\n    \"type\": \"EXPRESSION\",\n    \"logicalOperator\": \"AND\",\n    \"elements\": [\n      {\n        \"name\": \"synthetic.tags\",\n        \"key\": \"region\",\n        \"value\": \"Denver\",\n        \"operator\": \"EQUALS\"\n      },\n      {\n        \"name\": \"synthetic.locationId\",\n        \"operator\": \"EQUALS\",\n        \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n      }\n    ]\n  }\n```\n\n### Defaults\n\n**groups**\n```\n  \"groups\": [\n    \"groupbyTag\": \"synthetic.testId\"\n  ]\n```\n\n**includeAggregatedTestIds**\n* *includeAggregatedTestIds:* *true* when grouping by synthetic.testId, otherwise *false*.\n\n**metrics**\n* *granularity:* 0\n\n**pagination**\n* If **pagination** is not specified, the entire result set is returned.\n\n**timeFrame**\n```\n  \"timeFrame\": {\n    \"to\": {current timestamp},\n    \"windowSize\": 60000\n  }\n```\n\n### Sample payload to get the mean synthetic.metricsResponseTIme for each Synthetic test within the specified timeFrame\n```json\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n} \n```\n\n### Sample payload to get the mean synthetic.metricsResponseTIme for each Synthetic test within the specified timeFrame grouped by applicationId\n```json\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     },\n     \"groups\": [{\n       \"groupbyTag\": \"synthetic.applicationId\"\n     }]\n} \n```\n\n### Sample payload to get the synthetic.successRate for the Synthetic tests within the specified timeFrame grouped by the two custom properties region and cluster.\n```json\n{\n    \"metrics\": [\n    {\n        \"aggregation\": \"MEAN\",\n        \"metric\": \"synthetic.successRate\"\n    }],\n    \"timeFrame\": {\n        \"to\": 0,\n        \"windowSize\": 1800000\n    },\n    \"groups\": [\n    {\n        \"groupbyTag\": \"synthetic.tags\",\n        \"groupbyTagSecondLevelKey\": \"region\"\n    },\n    {\n        \"groupbyTag\": \"synthetic.tags\",\n        \"groupbyTagSecondLevelKey\": \"cluster\"\n    }]\n}\n```\n"
     },
     {
       "name": "Synthetic Settings",
@@ -3929,6 +3929,7 @@
     },
     "/api/application-monitoring/v2/analyze/traces/{traceId}/calls/{callId}/details": {
       "get": {
+        "description": "Use this API endpoint to retrieve a vast information about a call present in a trace.\n",
         "operationId": "getCallDetails",
         "parameters": [
           {
@@ -3936,7 +3937,8 @@
             "name": "traceId",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "An Instana generated unique identifier for a trace."
             }
           },
           {
@@ -3944,7 +3946,8 @@
             "name": "callId",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "The call ID. A unique identifier for an individual call. For example: `1bcad5c82338deaf`."
             }
           }
         ],
@@ -9573,6 +9576,85 @@
           }
         ],
         "summary": "Get Tag Catalog for Custom Payload",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
+    "/api/events/settings/custom-payload-configurations/v2": {
+      "put": {
+        "description": "Creates or Updates Global Custom Payload Configuration.",
+        "operationId": "upsertCustomPayloadConfigurationV2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": "      \"fields\":\n      [\n        {\n            \"type\": \"staticString\",\n            \"key\": \"string\",\n            \"value\": \"customValue\"\n        },\n        {\n            \"type\": \"dynamic\",\n            \"key\": \"string\",\n            \"value\": {\n                \"tagName\": \"agent.zone\",\n                \"key\": \"string\"\n            }\n        }\n      ],\n      \"version\": 1\n",
+              "schema": {
+                "$ref": "#/components/schemas/CustomPayloadConfiguration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "fields": [
+                      {
+                        "type": "staticString",
+                        "key": "string",
+                        "value": "customValue"
+                      },
+                      {
+                        "type": "dynamic",
+                        "key": "string",
+                        "value": {
+                          "tagName": "agent.zone",
+                          "key": "string"
+                        }
+                      }
+                    ],
+                    "lastUpdated": 1723212859513,
+                    "version": 1
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomPayloadWithVersion"
+                  }
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Unable to process request, request data is invalid."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertPayload"
+            ]
+          }
+        ],
+        "summary": "Create/Update Global Custom Payload Configuration",
         "tags": [
           "Event Settings"
         ]
@@ -22233,7 +22315,11 @@
               "description": "Order By Value",
               "enum": [
                 "name",
-                "entityType"
+                "entityType",
+                "sloStatus",
+                "sloWindowRemain",
+                "timeWindow",
+                "null"
               ],
               "example": "name"
             }
@@ -22267,15 +22353,24 @@
           },
           {
             "in": "query",
+            "name": "sloStatus",
+            "schema": {
+              "type": "string",
+              "description": "List of entity IDs for which details need to be fetched",
+              "example": "adsewby312sdfd1"
+            }
+          },
+          {
+            "in": "query",
             "name": "entityIds",
             "schema": {
               "type": "array",
-              "description": "List of entity IDs for which details need to be fetched",
-              "example": "adsewby312sdfd1",
+              "description": "Filter by the SLO status",
+              "example": "green",
               "items": {
                 "type": "string",
-                "description": "List of entity IDs for which details need to be fetched",
-                "example": "adsewby312sdfd1"
+                "description": "Filter by the SLO status",
+                "example": "green"
               }
             }
           },
@@ -30237,6 +30332,9 @@
           "email": {
             "type": "string"
           },
+          "name": {
+            "type": "string"
+          },
           "userId": {
             "type": "string"
           }
@@ -32164,12 +32262,14 @@
       },
       "CloudfoundryPhysicalContext": {
         "type": "object",
+        "description": "Contains physical context of Cloudfoundry. It contains the following information:\n1. `application`: Application running within Cloud Foundry environment.\n2. `cfInstanceIndex`: A unique ID of the container created and managed by Garden in the Cloud Foundry environment.\n3. `organization`: Organization in the Cloud Foundry environment.\n4. `space`: Space within an organization in Cloud Foundry environment.\n",
         "properties": {
           "application": {
             "$ref": "#/components/schemas/SnapshotPreview"
           },
           "cfInstanceIndex": {
-            "type": "string"
+            "type": "string",
+            "description": "A unique ID of the container created and managed by Garden in the Cloud Foundry environment."
           },
           "organization": {
             "$ref": "#/components/schemas/SnapshotPreview"
@@ -33025,7 +33125,8 @@
               "STARTS_WITH",
               "ENDS_WITH",
               "NOT_STARTS_WITH",
-              "NOT_ENDS_WITH"
+              "NOT_ENDS_WITH",
+              "REGEX_MATCH"
             ]
           },
           "value": {
@@ -33171,7 +33272,6 @@
       },
       "Endpoint": {
         "type": "object",
-        "description": "Returns a list of Endpoints.",
         "properties": {
           "entityType": {
             "type": "string",
@@ -33184,7 +33284,7 @@
           },
           "id": {
             "type": "string",
-            "description": "Unique ID of the Service. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`."
+            "description": "Unique ID of the Endpoint. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`."
           },
           "isSynthetic": {
             "type": "boolean",
@@ -33389,7 +33489,6 @@
         "properties": {
           "items": {
             "type": "array",
-            "description": "Returns a list of Endpoints.",
             "items": {
               "$ref": "#/components/schemas/Endpoint"
             }
@@ -33417,7 +33516,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique ID of the Service. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`."
+            "description": "Unique ID of the Endpoint. Eg: `NCRq5oYnan5x-PkdTPQwLLUdu5M`."
           },
           "label": {
             "type": "string",
@@ -33626,7 +33725,8 @@
                 "description": "This is the service levels metric type. Error budget alert uses <b>spent</b> or <b>burn rate</b> metric.",
                 "enum": [
                   "BURN_RATE",
-                  "BURNED_PERCENTAGE"
+                  "BURNED_PERCENTAGE",
+                  "BURN_RATE_V2"
                 ]
               }
             }
@@ -35220,7 +35320,7 @@
           },
           "id": {
             "type": "string",
-            "description": "The unique call id. For example: `1bcad5c82338deaf`."
+            "description": "The call ID. A unique identifier for an individual call. For example: `1bcad5c82338deaf`."
           },
           "minSelfTime": {
             "type": "integer",
@@ -35300,10 +35400,12 @@
         "type": "object",
         "properties": {
           "includeInternal": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Flag to include Internal Calls. These calls are work done inside a service and correspond to intermediate spans in custom tracing."
           },
           "includeSynthetic": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Flag to include Synthetic Calls. These calls have a synthetic endpoint as their destination, such as calls to health-check endpoints."
           },
           "order": {
             "$ref": "#/components/schemas/Order"
@@ -37097,6 +37199,7 @@
       },
       "KubernetesPhysicalContext": {
         "type": "object",
+        "description": "Contains physical context of Kubernetes which contains information about the cluster, namespace, node and pod.",
         "properties": {
           "cluster": {
             "$ref": "#/components/schemas/SnapshotPreview"
@@ -37578,7 +37681,8 @@
                   "STARTS_WITH",
                   "ENDS_WITH",
                   "NOT_STARTS_WITH",
-                  "NOT_ENDS_WITH"
+                  "NOT_ENDS_WITH",
+                  "REGEX_MATCH"
                 ]
               }
             }
@@ -38483,6 +38587,10 @@
               },
               "description": "A map of the requested metrics, composed of the metric name and its value."
             }
+          },
+          "runType": {
+            "type": "string",
+            "description": "Indicates whether the test was scheduled to run or run now"
           },
           "tests": {
             "type": "array",
@@ -39942,6 +40050,7 @@
       },
       "PhysicalContext": {
         "type": "object",
+        "description": "The physical context of an entity. This is typically used to describe where a host, container or process fits into the infrastructure.\n1. `cloudfoundry`: Contains physical context of Cloudfoundry.\n2. `cluster`: Contains physical context of cluster like Hazelcast, Elasticsearch.\n3. `container`: Contains physical context of container.\n4. `host`: Contains physical context of host.\n5. `kubernetes`: Contains physical context of Kubernetes.\n6. `process`: Contains physical context of a process.\n",
         "properties": {
           "cloudfoundry": {
             "$ref": "#/components/schemas/CloudfoundryPhysicalContext"
@@ -40485,6 +40594,12 @@
               "port": {
                 "type": "integer",
                 "format": "int32"
+              },
+              "validationRules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SSLCertificateValidation"
+                }
               }
             }
           }
@@ -40494,6 +40609,34 @@
           "hostname",
           "markSyntheticCall",
           "syntheticType"
+        ]
+      },
+      "SSLCertificateValidation": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "CONTAINS",
+              "EQUALS",
+              "GREATER_THAN",
+              "IS",
+              "LESS_THAN",
+              "MATCHES",
+              "NOT_MATCHES"
+            ]
+          },
+          "value": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "key",
+          "operator",
+          "value"
         ]
       },
       "SalesforceIntegration": {
@@ -40593,7 +40736,6 @@
       },
       "Service": {
         "type": "object",
-        "description": "Returns a list of Services.",
         "properties": {
           "entityType": {
             "type": "string",
@@ -40926,6 +41068,14 @@
             "minItems": 0,
             "uniqueItems": true
           },
+          "burnRateConfig": {
+            "type": "array",
+            "description": "This is the burn rate alert configuration which defines alerting windows and corresponding thresholds.",
+            "items": {
+              "$ref": "#/components/schemas/ServiceLevelsBurnRateConfig"
+            },
+            "uniqueItems": true
+          },
           "burnRateTimeWindows": {
             "$ref": "#/components/schemas/ServiceLevelsBurnRateTimeWindows"
           },
@@ -40987,7 +41137,6 @@
           "name",
           "rule",
           "sloIds",
-          "threshold",
           "timeThreshold"
         ]
       },
@@ -41008,6 +41157,43 @@
         },
         "required": [
           "alertType"
+        ]
+      },
+      "ServiceLevelsBurnRateConfig": {
+        "type": "object",
+        "description": "This is the burn rate alert configuration which defines alerting windows and corresponding thresholds.",
+        "properties": {
+          "alertingWindowName": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "durationType": {
+            "type": "string",
+            "enum": [
+              "millisecond",
+              "second",
+              "minute",
+              "hour",
+              "day",
+              "week",
+              "month"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/StaticThreshold"
+          }
+        },
+        "required": [
+          "duration",
+          "durationType",
+          "threshold"
         ]
       },
       "ServiceLevelsBurnRateTimeWindows": {
@@ -41050,6 +41236,14 @@
             },
             "maxItems": 1024,
             "minItems": 0,
+            "uniqueItems": true
+          },
+          "burnRateConfig": {
+            "type": "array",
+            "description": "This is the burn rate alert configuration which defines alerting windows and corresponding thresholds.",
+            "items": {
+              "$ref": "#/components/schemas/ServiceLevelsBurnRateConfig"
+            },
             "uniqueItems": true
           },
           "burnRateTimeWindows": {
@@ -41140,7 +41334,6 @@
           "name",
           "rule",
           "sloIds",
-          "threshold",
           "timeThreshold"
         ]
       },
@@ -41381,7 +41574,6 @@
         "properties": {
           "items": {
             "type": "array",
-            "description": "Returns a list of Services.",
             "items": {
               "$ref": "#/components/schemas/Service"
             }
@@ -41875,21 +42067,27 @@
           "data": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
-            }
+              "type": "object",
+              "description": "Subset of the data section of the plugin. In most cases this field will be null."
+            },
+            "description": "Subset of the data section of the plugin. In most cases this field will be null."
           },
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "This is a snapshot ID. A unique identifier the metrics are assigned to."
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Name of the entity."
           },
           "plugin": {
-            "type": "string"
+            "type": "string",
+            "description": "A short plugin ID. For example, `containerd`, `nginx` etc."
           },
           "time": {
             "type": "integer",
             "format": "int64",
+            "description": "Specifies the exact point at which the id, label and plugin are valid.",
             "minimum": 1
           }
         },
@@ -42181,12 +42379,15 @@
       },
       "SpanExcerpt": {
         "type": "object",
+        "description": "Information about the logs attached to the call, if available.",
         "properties": {
           "data": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
-            }
+              "type": "object",
+              "description": "Some information about the span, like service name, if it is an http call, then some information about it like, path, method, host, errors etc."
+            },
+            "description": "Some information about the span, like service name, if it is an http call, then some information about it like, path, method, host, errors etc."
           },
           "databaseIntegrations": {
             "type": "array",
@@ -42197,21 +42398,25 @@
           "duration": {
             "type": "integer",
             "format": "int64",
+            "description": "The total time taken for the entire operation of a call, from the moment the request was initiated to when the response was received. The time measured is in milliseconds. This is also known as latency of a call.",
             "minimum": 0
           },
           "errorCount": {
             "type": "integer",
             "format": "int32",
+            "description": "Represents whether the span is erroneous or not. 0 is not erroneous and 1 is erroneous.",
             "minimum": 0
           },
           "foreignParentId": {
             "type": "string"
           },
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The call ID. A unique identifier for an individual call. For example: `1bcad5c82338deaf`."
           },
           "kind": {
             "type": "string",
+            "description": "There are 4 types of span kind:\n1. `ENTRY`: An entry span represents an incoming request into a traced service.\n2. `EXIT`: An exit span represents an outgoing request that a service makes to some other service.\n3. `INTERMEDIATE`: An intermediate span represents anything that happens inside a traced service where the flow of control neither enters nor leaves that service, but stays inside it.\n4. `UNKNOWN`: Instana can't determine the span kind.\n",
             "enum": [
               "UNKNOWN",
               "ENTRY",
@@ -42220,13 +42425,16 @@
             ]
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "The technical type of the span. For example, `node.http.client` or `jdbc`."
           },
           "parentId": {
-            "type": "string"
+            "type": "string",
+            "description": "The parent call id, referring to another call in the same trace which triggered the processing associated with this call."
           },
           "stackTrace": {
             "type": "array",
+            "description": "For an erroneous call, if stack trace is available it will show a list of items containing file, method and line number of the code.",
             "items": {
               "$ref": "#/components/schemas/StackTraceItem"
             }
@@ -42234,6 +42442,7 @@
           "start": {
             "type": "integer",
             "format": "int64",
+            "description": "The timestamp when the call or request was initiated. For example, Unix epoch time in milliseconds `1735532879870` is `Monday, 30 December 2024 04:27:59.870 GMT`",
             "minimum": 1
           }
         },
@@ -42247,6 +42456,7 @@
       },
       "SpanRelation": {
         "type": "object",
+        "description": "It shows from where the call is destined to. It includes the following information:\n1. List of Application Perspectives from which the call is destined to.\n2. Destination service and destination endpoint.\n3. Physical context from the infrastructure point of view.\n",
         "properties": {
           "applications": {
             "type": "array",
@@ -42296,7 +42506,8 @@
                   "STARTS_WITH",
                   "ENDS_WITH",
                   "NOT_STARTS_WITH",
-                  "NOT_ENDS_WITH"
+                  "NOT_ENDS_WITH",
+                  "REGEX_MATCH"
                 ]
               },
               "value": {
@@ -42338,15 +42549,19 @@
       },
       "StackTraceItem": {
         "type": "object",
+        "description": "For an erroneous call, if stack trace is available it will show a list of items containing file, method and line number of the code.",
         "properties": {
           "file": {
-            "type": "string"
+            "type": "string",
+            "description": "The name of the file where the executed code resides."
           },
           "line": {
-            "type": "string"
+            "type": "string",
+            "description": "The line number within the file where the error was thrown."
           },
           "method": {
-            "type": "string"
+            "type": "string",
+            "description": "The name of the method or function being executed at the time the stack trace item was generated."
           }
         }
       },
@@ -42541,7 +42756,8 @@
                   "STARTS_WITH",
                   "ENDS_WITH",
                   "NOT_STARTS_WITH",
-                  "NOT_ENDS_WITH"
+                  "NOT_ENDS_WITH",
+                  "REGEX_MATCH"
                 ]
               },
               "value": {
@@ -42583,7 +42799,8 @@
                   "STARTS_WITH",
                   "ENDS_WITH",
                   "NOT_STARTS_WITH",
-                  "NOT_ENDS_WITH"
+                  "NOT_ENDS_WITH",
+                  "REGEX_MATCH"
                 ]
               },
               "value": {
@@ -43714,7 +43931,8 @@
                   "STARTS_WITH",
                   "ENDS_WITH",
                   "NOT_STARTS_WITH",
-                  "NOT_ENDS_WITH"
+                  "NOT_ENDS_WITH",
+                  "REGEX_MATCH"
                 ]
               },
               "value": {
@@ -44066,6 +44284,21 @@
           "type"
         ]
       },
+      "TestLastError": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "startTime": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "TestResult": {
         "type": "object",
         "properties": {
@@ -44117,10 +44350,19 @@
               "type": "string"
             }
           },
+          "lastErrors": {
+            "$ref": "#/components/schemas/TestLastError"
+          },
           "locationDisplayLabel": {
             "type": "string"
           },
           "locationId": {
+            "type": "string"
+          },
+          "runType": {
+            "type": "string"
+          },
+          "sslDaysRemaining": {
             "type": "string"
           },
           "testCommonProperties": {
@@ -44128,6 +44370,9 @@
           },
           "testId": {
             "type": "string"
+          },
+          "testLastError": {
+            "$ref": "#/components/schemas/TestLastError"
           },
           "testName": {
             "type": "string"
@@ -44568,23 +44813,28 @@
       },
       "Trace": {
         "type": "object",
+        "description": "1. `service`: The service from where trace started.\n2. `endpoint`: Endpoint of the service.\n",
         "properties": {
           "duration": {
             "type": "integer",
             "format": "int64",
+            "description": "Total time taken for a trace to finish.",
             "minimum": 0
           },
           "endpoint": {
             "$ref": "#/components/schemas/Endpoint"
           },
           "erroneous": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Flag which tells whether the trace is erroneous or not"
           },
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The trace ID. All spans of the same trace must have the same trace ID. For example, `e93282c0d5018320`."
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Name of the trace."
           },
           "service": {
             "$ref": "#/components/schemas/Service"
@@ -44592,6 +44842,7 @@
           "startTime": {
             "type": "integer",
             "format": "int64",
+            "description": "The start time of the trace.",
             "minimum": 1
           }
         },
@@ -44605,11 +44856,13 @@
         "properties": {
           "batchSelfTime": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Sum of all self times in a batch of calls.\nFor example, if 5 calls are in a batch and its self times are : `[1,2,3,4,5]` in milliseconds, then the batch self time would be sum of the self times,\nin this case, it will be 15 milliseconds.\n"
           },
           "batchSize": {
             "type": "integer",
             "format": "int32",
+            "description": "Number of calls in a batch.",
             "minimum": 0
           },
           "destination": {
@@ -44618,15 +44871,18 @@
           "duration": {
             "type": "integer",
             "format": "int64",
+            "description": "The total time taken for the entire operation of a call, from the moment the request was initiated to when the response was received. The time measured is in milliseconds. This is also known as latency of a call.",
             "minimum": 0
           },
           "errorCount": {
             "type": "integer",
             "format": "int32",
+            "description": "Represents whether the call is erroneous or not. 0 is not erroneous and 1 is erroneous.",
             "minimum": 0
           },
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The call ID. A unique identifier for an individual call. For example: `1bcad5c82338deaf`."
           },
           "isSynthetic": {
             "type": "boolean",
@@ -44634,11 +44890,13 @@
           },
           "label": {
             "type": "string",
+            "description": "Name of the call. For example: `GET /articles/:id`.",
             "maxLength": 128,
             "minLength": 0
           },
           "logs": {
             "type": "array",
+            "description": "Information about the logs attached to the call, if available.",
             "items": {
               "$ref": "#/components/schemas/SpanExcerpt"
             },
@@ -44646,17 +44904,20 @@
           },
           "minSelfTime": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "The smallest self time in the batch. May be null to indicate that `minSelfTime` is unknown when this node has only an exit span and no children. The time measured is in milliseconds."
           },
           "networkTime": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "The time difference between the Exit Span Time of the caller and the Entry Span Time of the call. This value is measured in milliseconds and may be null if network time is not applicable."
           },
           "source": {
             "$ref": "#/components/schemas/SpanRelation"
           },
           "spans": {
             "type": "array",
+            "description": "Information about the spans from which the call is composed.",
             "items": {
               "$ref": "#/components/schemas/SpanExcerpt"
             },
@@ -44667,6 +44928,7 @@
           "start": {
             "type": "integer",
             "format": "int64",
+            "description": "The timestamp when the call or request was initiated. For example, Unix epoch time in milliseconds `1735532879870` is `Monday, 30 December 2024 04:27:59.870 GMT`",
             "minimum": 1
           },
           "synthetic": {
