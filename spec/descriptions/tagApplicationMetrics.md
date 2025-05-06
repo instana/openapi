@@ -2,8 +2,10 @@ The endpoints of this group retrieve the metrics for defined applications, disco
 ### Mandatory Parameters
 
 **metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:
-1. *metric* select a particular metric to get a list of available metrics query the [catalog endpoint](#operation/getApplicationCatalogMetrics)
+1. *metric* select a particular metric to get a list of available metrics query the [catalog endpoint](#operation/getApplicationCatalogMetrics).
 2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.
+
+**Note**: The above mentioned list of available metrics with its supported metrics can also be found in the section **Supported Aggregation on Application metrics** below.
 
 ### Optional Parameters
 
@@ -61,3 +63,21 @@ To narrow down the result set you have four options to search for an application
 ```
 **nameFilter | applicationId | serviceId | endpointId**
 * no filters are applied in the default call
+
+
+## Supported Aggregation on Application Metrics
+
+| Metric           | Description                                                                                | Allowed Aggregations |
+|------------------|--------------------------------------------------------------------------------------------|----------------------|
+| `calls`          | Number of received calls                                                                   | `PER_SECOND`, `SUM`  |
+| `erroneousCalls` | The number of erroneous calls                                                              |`PER_SECOND`, `SUM`   |
+| `latency`        | Latency of received calls in milliseconds                                                  | `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `SUM`, `MEAN`, `MAX`, `MIN`        |
+| `errors`         | Error rate of received calls. A value between 0 and 1                                      | `MEAN`               |
+| `applications`   | The number of Application Perspectives                                                     |`DISTINCT_COUNT`      |
+| `services`       | The number of Services                                                                     |`DISTINCT_COUNT`      |
+| `endpoints`      | The number of Endpoints                                                                    |`DISTINCT_COUNT`      |
+| `http.1xx`       | Counts the number of occurrences of HTTP status codes where 100 <= status code <= 199      |`PER_SECOND`, `SUM`   |
+| `http.2xx`       | Counts the number of occurrences of HTTP status codes where 200 <= status code <= 299      |`PER_SECOND`, `SUM`   |
+| `http.3xx`       | Counts the number of occurrences of HTTP status codes where 300 <= status code <= 399      |`PER_SECOND`, `SUM`   |
+| `http.4xx`       | Counts the number of occurrences of HTTP status codes where 400 <= status code <= 499      |`PER_SECOND`, `SUM`   |
+| `http.5xx`       | Counts the number of occurrences of HTTP status codes where 500 <= status code <= 599      |`PER_SECOND`, `SUM`   |
