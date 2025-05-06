@@ -65,7 +65,7 @@ To narrow down the result set you have four options to search for an application
 * no filters are applied in the default call
 
 
-### Supported Aggregation on Application Metrics
+## Supported Aggregation on Application Metrics
 
 | Metric           | Description                                                                                | Allowed Aggregations |
 |------------------|--------------------------------------------------------------------------------------------|----------------------|
@@ -81,4 +81,3 @@ To narrow down the result set you have four options to search for an application
 | `http.3xx`       | Counts the number of occurrences of HTTP status codes where 300 <= status code <= 399      |`PER_SECOND`, `SUM`   |
 | `http.4xx`       | Counts the number of occurrences of HTTP status codes where 400 <= status code <= 499      |`PER_SECOND`, `SUM`   |
 | `http.5xx`       | Counts the number of occurrences of HTTP status codes where 500 <= status code <= 599      |`PER_SECOND`, `SUM`   |
-

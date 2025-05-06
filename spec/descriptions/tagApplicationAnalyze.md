@@ -46,6 +46,9 @@ The timeFrame might be adjusted to fit the metric granularity so that there is n
    * Error Rate
    * Traces Sum
 2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalog endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.
+
+**Note**: The above mentioned list of available metrics with its supported metrics can also be found in [Get grouped call metrics](#operation/getCallGroup) and [Get grouped trace metrics](#operation/getTraceGroups).
+
 3. *granularity* 
    * If it is not set you will get a an aggregated value for the selected timeframe
    * If the granularity is set you will get data points with the specified granularity **in seconds**
