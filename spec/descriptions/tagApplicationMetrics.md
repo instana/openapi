@@ -73,7 +73,6 @@ To narrow down the result set you have four options to search for an application
 | `erroneousCalls` | The number of erroneous calls                                                              |`PER_SECOND`, `SUM`   |
 | `latency`        | Latency of received calls in milliseconds                                                  | `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `SUM`, `MEAN`, `MAX`, `MIN`        |
 | `errors`         | Error rate of received calls. A value between 0 and 1                                      | `MEAN`               |
-| `traces`         | Number of traces                                                                           |`SUM`                 |
 | `applications`   | The number of Application Perspectives                                                     |`DISTINCT_COUNT`      |
 | `services`       | The number of Services                                                                     |`DISTINCT_COUNT`      |
 | `endpoints`      | The number of Endpoints                                                                    |`DISTINCT_COUNT`      |
@@ -82,5 +81,4 @@ To narrow down the result set you have four options to search for an application
 | `http.3xx`       | Counts the number of occurrences of HTTP status codes where 300 <= status code <= 399      |`PER_SECOND`, `SUM`   |
 | `http.4xx`       | Counts the number of occurrences of HTTP status codes where 400 <= status code <= 499      |`PER_SECOND`, `SUM`   |
 | `http.5xx`       | Counts the number of occurrences of HTTP status codes where 500 <= status code <= 599      |`PER_SECOND`, `SUM`   |
-| `call.metric`    | Custom-key metric explicitly set on the monitored call                                     |`SUM`, `MEAN`, `MAX`, `MIN`   |
 
