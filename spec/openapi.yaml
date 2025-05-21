@@ -7,7 +7,7 @@ info:
   description: Documentation for INSTANA REST API
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.295.830
+  version: 1.296.895
   x-description: info
   x-logo:
     altText: instana logo
@@ -475,106 +475,7 @@ paths:
       responses:
         "200":
           content:
-            application/json:
-              example:
-                id: c606ccf3578135c6
-                totalErrorCount: 0
-                rootSpan:
-                  id: 7757e58f78fff3c8
-                  parentId: ""
-                  foreignParentId: ""
-                  callId: 7757e58f78fff3c8
-                  name: node.http.server
-                  label: GET /products
-                  start: 1688365739882
-                  duration: 22
-                  calculatedSelfTime: 4
-                  errorCount: 0
-                  batchSize: 1
-                  batchSelfTime: 22
-                  kind: ENTRY
-                  isSynthetic: false
-                  data:
-                    http:
-                      rawUrl: /products
-                      path: /products
-                      method: GET
-                      host: localhost:8000
-                      path_tpl: /products
-                      status: 200
-                  source:
-                    applications: []
-                    service:
-                      id: ROOT
-                      label: ""
-                      types: []
-                      technologies: []
-                      snapshotIds: []
-                      entityType: SERVICE
-                    endpoint:
-                      id: kVZuxJ7SE8F89iXn6dJ6rdEjQzY
-                      label: Robot-Shop
-                      type: HTTP
-                      serviceId: ""
-                      technologies: []
-                      syntheticType: NON_SYNTHETIC
-                      entityType: ENDPOINT
-                    physicalContext: {}
-                  destination:
-                    applications:
-                    - id: Jv83WpUmSKiiCWIpi-reSQ
-                      label: Robot-Shop
-                      boundaryScope: INBOUND
-                      entityType: APPLICATION
-                    - id: sYoqGlu8SVy2ILv-4lh5aw
-                      label: All Services
-                      boundaryScope: INBOUND
-                      entityType: APPLICATION
-                    - id: R0ZWCcK1ShiFXEW4JHjTZg
-                      label: node.js Services
-                      boundaryScope: INBOUND
-                      entityType: APPLICATION
-                    service:
-                      id: 8939fc2f4b7a964c5c7d40e881daa9d883478be7
-                      label: eum-sim
-                      types: []
-                      technologies: []
-                      snapshotIds: []
-                      entityType: SERVICE
-                    endpoint:
-                      id: dIgIisQFGd-eVZmYaAwhM5sesPA
-                      label: GET /products
-                      type: HTTP
-                      serviceId: ""
-                      technologies: []
-                      syntheticType: NON_SYNTHETIC
-                      entityType: ENDPOINT
-                    physicalContext:
-                      process:
-                        id: dzP4kVCxYu9o8pcesl2WRAc_lJc
-                        time: 1687520911000
-                        label: eum-sim v2.0.0
-                        plugin: nodeJsRuntimePlatform
-                        data: null
-                      container:
-                        id: 3w4-kfSCVJeSsYv5VFf9OCL0s4I
-                        time: 1687520634000
-                        label: eum-sim (eum/eum-sim-7549958c6d-pkx98)
-                        plugin: docker
-                        data: null
-                      host:
-                        id: dHBz3ZRZdpsKcXGd-cNuwej-j6Y
-                        time: 1688187888000
-                        label: Host-1
-                        plugin: host
-                        data:
-                          cpu.count: 4
-                          os.name: Linux
-                          memory.total: 15729750016
-                  stackTrace: []
-                  childSpans: []
-              schema:
-                $ref: "#/components/schemas/FullTrace"
+            application/json: {}
           description: OK
       security:
       - ApiKeyAuth:
@@ -3007,6 +2908,12 @@ paths:
           type: array
           items:
             type: string
+      - description: Policy ID filter to look up the action run results to delete
+        example: bCtEoR6NSPqG61QkIkwwCw
+        in: query
+        name: policyId
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -3125,6 +3032,12 @@ paths:
           type: array
           items:
             type: string
+      - description: Policy ID filter to get the action run result details
+        example: nCtEoR6NSPqG61QkIkwwCw
+        in: query
+        name: policyId
+        schema:
+          type: string
       - description: Action run result column to order the result set.
         example: Name of the action run result column. Default is action run result
           start date.
@@ -5107,8 +5020,6 @@ paths:
           description: OK
         "400":
           description: Bad request.
-        "403":
-          description: Insufficient permissions.
       security:
       - ApiKeyAuth:
         - Default
@@ -5180,10 +5091,8 @@ paths:
                 items:
                   $ref: "#/components/schemas/EventResult"
           description: OK
-        "403":
-          description: Insufficient permissions.
-        "404":
-          description: The requested events do not exist.
+        "206":
+          description: Some of the requested events do not exist.
         "422":
           description: Unprocessable entity.
       security:
@@ -5268,10 +5177,8 @@ paths:
                 items:
                   $ref: "#/components/schemas/EventResult"
           description: OK
-        "400":
-          description: Bad request.
-        "403":
-          description: Insufficient permissions.
+        "404":
+          description: The events do not exist in the timeframe.
       security:
       - ApiKeyAuth:
         - Default
@@ -5350,10 +5257,8 @@ paths:
                 items:
                   $ref: "#/components/schemas/EventResult"
           description: OK
-        "400":
-          description: Bad request.
-        "403":
-          description: Insufficient permissions.
+        "404":
+          description: The events do not exist in the timeframe.
       security:
       - ApiKeyAuth:
         - Default
@@ -11120,8 +11025,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/EventResult"
           description: OK
-        "403":
-          description: Insufficient permissions.
         "404":
           description: The requested event does not exist.
       security:
@@ -11901,7 +11804,8 @@ paths:
       - Infrastructure Resources
   /api/infrastructure-monitoring/payloads/{snapshotId}/{payloadKey}:
     get:
-      description: This endpoint retrieves the payload for a snapshot.
+      description: This endpoint retrieves the payload for a snapshot. Please note
+        that this endpoint is only available for instances of db2.
       operationId: getPluginPayload
       parameters:
       - description: Snapshot id.
@@ -11910,7 +11814,7 @@ paths:
         required: true
         schema:
           type: string
-      - description: "Payload key. Use [getAvailablePayloadKeysByPluginId](/#operation/getAvailablePayloadKeysByPluginId)\
+      - description: "Payload key. Use [getAvailablePayloadKeysByPluginId](/openapi/#operation/getAvailablePayloadKeysByPluginId)\
           \ to retrieve the list of possible keys."
         example: topqueries
         in: path
@@ -15699,33 +15603,6 @@ paths:
           description: Page Number
           example: 1
       - in: query
-        name: query
-        schema:
-          type: string
-          description: Keyword or Query which needs to be searched
-          example: test SLO
-      - in: query
-        name: tag
-        schema:
-          type: array
-          description: List of tags which needs to be searched
-          example: Testing
-          items:
-            type: string
-            description: List of tags which needs to be searched
-            example: Testing
-          uniqueItems: true
-      - in: query
-        name: entityType
-        schema:
-          type: string
-          description: SLO Entity Type which needs to be filtered
-          enum:
-          - application
-          - website
-          - synthetic
-          example: application
-      - in: query
         name: orderBy
         schema:
           type: string
@@ -15748,6 +15625,58 @@ paths:
           - DESC
           example: ASC
       - in: query
+        name: query
+        schema:
+          type: string
+          description: Keyword or Query which needs to be searched
+          example: test SLO
+      - in: query
+        name: tag
+        schema:
+          type: array
+          description: List of tags which needs to be searched
+          example: Testing
+          items:
+            type: string
+            description: List of tags which needs to be searched
+            example: Testing
+          uniqueItems: true
+      - in: query
+        name: entityType
+        schema:
+          type: array
+          description: SLO Entity Type which needs to be filtered. (This filter could
+            occurs multiple times.)
+          example: application
+          items:
+            type: string
+            description: SLO Entity Type which needs to be filtered. (This filter
+              could occurs multiple times.)
+            enum:
+            - application
+            - website
+            - synthetic
+            example: application
+          uniqueItems: true
+      - in: query
+        name: blueprint
+        schema:
+          type: array
+          description: SLO blueprint Type which needs to be filtered. (This filter
+            could occurs multiple times.)
+          example: latency
+          items:
+            type: string
+            description: SLO blueprint Type which needs to be filtered. (This filter
+              could occurs multiple times.)
+            enum:
+            - latency
+            - availability
+            - traffic
+            - custom
+            example: latency
+          uniqueItems: true
+      - in: query
         name: sloIds
         schema:
           type: array
@@ -15761,18 +15690,24 @@ paths:
         name: sloStatus
         schema:
           type: string
-          description: List of entity IDs for which details need to be fetched
-          example: adsewby312sdfd1
+          description: Filter by the SLO status
+          example: green
       - in: query
         name: entityIds
         schema:
           type: array
-          description: Filter by the SLO status
-          example: green
+          description: List of entity IDs for which details need to be fetched
+          example: adsewby312sdfd1
           items:
             type: string
-            description: Filter by the SLO status
-            example: green
+            description: List of entity IDs for which details need to be fetched
+            example: adsewby312sdfd1
+      - in: query
+        name: grouped
+        schema:
+          type: boolean
+          description: Boolean operator which specifies if the results are grouped
+          example: false
       - in: query
         name: refresh
         schema:
@@ -20858,12 +20793,6 @@ components:
         name:
           type: string
           description: The name of the Alerting Channel.
-        rbacTags:
-          type: array
-          description: The assigned team tags of the Alerting Channel.
-          items:
-            $ref: "#/components/schemas/ApiTag"
-          uniqueItems: true
       required:
       - id
       - kind
@@ -21718,7 +21647,7 @@ components:
           $ref: "#/components/schemas/TagFilterExpressionElement"
     ApiTag:
       type: object
-      description: The assigned team tags of the Alerting Channel.
+      description: Team Tags that's assigned to the Alerting Channel
       properties:
         displayName:
           type: string
@@ -21771,6 +21700,8 @@ components:
         canConfigureGlobalSyntheticSmartAlerts:
           type: boolean
         canConfigureIntegrations:
+          type: boolean
+        canConfigureLLM:
           type: boolean
         canConfigureLogManagement:
           type: boolean
@@ -21898,6 +21829,8 @@ components:
         limitedVsphereScope:
           type: boolean
         limitedWebsitesScope:
+          type: boolean
+        limitedWindowsHypervisorScope:
           type: boolean
         limitedXenServerScope:
           type: boolean
@@ -24239,8 +24172,9 @@ components:
         properties:
           metric:
             type: string
-            description: This is the service levels metric type. Error budget alert
-              uses <b>spent</b> or <b>burn rate</b> metric.
+            description: "This is the service levels metric type. Error budget alert\
+              \ uses <b>BURNED_PERCENTAGE</b>, <b>BURN_RATE</b> (<i>Deprecated</i>)\
+              \ or <B>BURN_RATE_V2</B> metric."
             enum:
             - BURN_RATE
             - BURNED_PERCENTAGE
@@ -24615,20 +24549,6 @@ components:
       - duration
       - durationUnit
       - startTimestamp
-    FullTrace:
-      type: object
-      properties:
-        id:
-          type: string
-        rootSpan:
-          $ref: "#/components/schemas/Span"
-        totalErrorCount:
-          type: integer
-          format: int32
-          minimum: 0
-      required:
-      - id
-      - rootSpan
     GenericInfraAlertRule:
       type: object
       allOf:
@@ -26571,6 +26491,10 @@ components:
           $ref: "#/components/schemas/Threshold"
         timeThreshold:
           $ref: "#/components/schemas/InfraTimeThreshold"
+        triggering:
+          type: boolean
+          description: Optional flag to indicate whether an Incident is also triggered
+            or not.
       required:
       - customPayloadFields
       - description
@@ -26701,6 +26625,10 @@ components:
           $ref: "#/components/schemas/Threshold"
         timeThreshold:
           $ref: "#/components/schemas/InfraTimeThreshold"
+        triggering:
+          type: boolean
+          description: Optional flag to indicate whether an Incident is also triggered
+            or not.
       required:
       - customPayloadFields
       - description
@@ -28739,6 +28667,10 @@ components:
           type: string
           maxLength: 64
           minLength: 0
+        currentAppState:
+          type: string
+          maxLength: 24
+          minLength: 0
         customEventName:
           type: string
           maxLength: 256
@@ -30275,7 +30207,8 @@ components:
         burnRateConfig:
           type: array
           description: This is the burn rate alert configuration which defines alerting
-            windows and corresponding thresholds.
+            windows and corresponding thresholds. This configuration must to specified
+            for BURN_RATE_V2 Alerts.
           items:
             $ref: "#/components/schemas/ServiceLevelsBurnRateConfig"
           uniqueItems: true
@@ -30349,16 +30282,25 @@ components:
     ServiceLevelsBurnRateConfig:
       type: object
       description: This is the burn rate alert configuration which defines alerting
-        windows and corresponding thresholds.
+        windows and corresponding thresholds. This configuration must to specified
+        for BURN_RATE_V2 Alerts.
       properties:
-        alertingWindowName:
+        alertWindowType:
           type: string
-          writeOnly: true
+          description: "Specifies the Burn Rate Alerting Window type: SINGLE for single\
+            \ window/threshold alerts, or LONG and SHORT for multi-window/threshold\
+            \ alerts."
+          enum:
+          - SINGLE
+          - LONG
+          - SHORT
         duration:
           type: integer
           format: int32
-        durationType:
+          description: Duration of the Burn Rate Alerting Window.
+        durationUnitType:
           type: string
+          description: Duration Unit Type of the Burn Rate Alerting Window.
           enum:
           - millisecond
           - second
@@ -30367,16 +30309,15 @@ components:
           - day
           - week
           - month
-        name:
-          type: string
         threshold:
-          $ref: "#/components/schemas/StaticThreshold"
+          $ref: "#/components/schemas/ServiceLevelsStaticThresholdConfig"
       required:
       - duration
-      - durationType
+      - durationUnitType
       - threshold
     ServiceLevelsBurnRateTimeWindows:
       type: object
+      deprecated: true
       description: This is the short and long time window setting for the burn rate
         alerts.
       properties:
@@ -30384,6 +30325,28 @@ components:
           $ref: "#/components/schemas/AlertingTimeWindow"
         shortTimeWindow:
           $ref: "#/components/schemas/AlertingTimeWindow"
+    ServiceLevelsStaticThresholdConfig:
+      type: object
+      description: This threshold defines a static value to be evaluated with a specific
+        operator for burn rate v2 alerts.
+      properties:
+        lastUpdated:
+          type: integer
+          format: int64
+          minimum: 0
+        operator:
+          type: string
+          enum:
+          - '>'
+          - '>='
+          - <
+          - <=
+        value:
+          type: number
+          format: double
+          minimum: 0
+      required:
+      - operator
     ServiceLevelsTimeThreshold:
       type: object
       description: This is the warm-up and cool-down setting to emit or stop alert
@@ -30416,7 +30379,8 @@ components:
         burnRateConfig:
           type: array
           description: This is the burn rate alert configuration which defines alerting
-            windows and corresponding thresholds.
+            windows and corresponding thresholds. This configuration must to specified
+            for BURN_RATE_V2 Alerts.
           items:
             $ref: "#/components/schemas/ServiceLevelsBurnRateConfig"
           uniqueItems: true
@@ -31227,80 +31191,6 @@ components:
       required:
       - id
       - metadata
-    Span:
-      type: object
-      properties:
-        batchSelfTime:
-          type: integer
-          format: int64
-        batchSize:
-          type: integer
-          format: int32
-          minimum: 0
-        calculatedSelfTime:
-          type: integer
-          format: int64
-          minimum: 0
-        callId:
-          type: string
-        childSpans:
-          type: array
-          items:
-            $ref: "#/components/schemas/Span"
-        data:
-          type: object
-          additionalProperties:
-            type: object
-        destination:
-          $ref: "#/components/schemas/SpanRelation"
-        duration:
-          type: integer
-          format: int64
-          minimum: 0
-        errorCount:
-          type: integer
-          format: int32
-          minimum: 0
-        foreignParentId:
-          type: string
-        id:
-          type: string
-        isSynthetic:
-          type: boolean
-        kind:
-          type: string
-          enum:
-          - UNKNOWN
-          - ENTRY
-          - EXIT
-          - INTERMEDIATE
-        label:
-          type: string
-          maxLength: 128
-          minLength: 0
-        name:
-          type: string
-        parentId:
-          type: string
-        source:
-          $ref: "#/components/schemas/SpanRelation"
-        stackTrace:
-          type: array
-          items:
-            $ref: "#/components/schemas/StackTraceItem"
-        start:
-          type: integer
-          format: int64
-          minimum: 1
-      required:
-      - callId
-      - childSpans
-      - data
-      - id
-      - kind
-      - label
-      - name
-      - stackTrace
     SpanExcerpt:
       type: object
       description: "Information about the logs attached to the call, if available."
@@ -32411,6 +32301,7 @@ components:
             - WEBSITE
             - MOBILE_APP
             - EUM
+            - EUM_IMPACTED_BEACON
             - EVENT
             - SLI
             - SLO
