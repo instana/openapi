@@ -6,7 +6,7 @@ info:
     url: 'http://instana.com'
   termsOfService: 'https://www.instana.com/terms-of-use/'
   title: Instana REST API documentation
-  version: 1.296.895
+  version: 1.297.1215
   x-logo:
     altText: instana logo
     backgroundColor: '#FAFBFC'
@@ -5811,6 +5811,43 @@ paths:
         - ApiKeyAuth:
             - CanConfigureIntegrations
       summary: Get all Alerting Channels
+      tags:
+        - Event Settings
+    post:
+      description: Creates an alerting channel. Requires the permission called CanConfigureIntegrations.
+      operationId: postAlertingChannel
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbstractIntegration'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                id: 18iiwkDxHD7_A4mIlouise
+                name: Email Alert Channel
+                customEmailSubjectPrefix: null
+                emails:
+                  - youremail@email.com
+                kind: EMAIL
+              schema:
+                $ref: '#/components/schemas/AbstractIntegration'
+          description: created the alert channel setting
+        '302':
+          description: 'Redirect to the integration service for continuing the configuration with the 3rd party system '
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Failed creating the alert channel setting
+      security:
+        - ApiKeyAuth:
+            - CanConfigureIntegrations
+      summary: Create Alert Channel
       tags:
         - Event Settings
   /api/events/settings/alertingChannels/infos:
@@ -11713,6 +11750,32 @@ paths:
       description: |+
         This endpoint can be used to initialize or change configuration management settings for all agents selected by the given Dynamic Focus Query.
 
+  '/api/host-agent/{hostId}/clr-logs':
+    get:
+      operationId: getAgentClrLogs
+      parameters:
+        - in: path
+          name: hostId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: download
+          schema:
+            type: boolean
+      responses:
+        default:
+          content:
+            application/octet-stream: {}
+          description: default response
+      security:
+        - ApiKeyAuth:
+            - Default
+        - ApiKeyAuth:
+            - canConfigureAgents
+      summary: Agent CLR download logs
+      tags:
+        - Host Agent
   '/api/host-agent/{hostId}/configuration':
     post:
       operationId: updateConfigurationByHost
@@ -12124,6 +12187,15 @@ paths:
           name: filter
           schema:
             type: string
+        - in: query
+          name: label
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int32
       responses:
         '200':
           content:
@@ -17010,6 +17082,10 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserResult'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - CanConfigureUsers
@@ -17030,10 +17106,12 @@ paths:
               uniqueItems: true
         required: true
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        '204':
+          description: Successful - no content to return.
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - CanConfigureUsers
@@ -17063,6 +17141,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/UsersResult'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - CanConfigureUsers
@@ -17087,10 +17169,14 @@ paths:
             schema:
               $ref: '#/components/schemas/EditUser'
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        '204':
+          description: Successful - no content to return.
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
+        '404':
+          description: Resource not found.
       security:
         - ApiKeyAuth:
             - CanConfigureUsers
@@ -17110,10 +17196,12 @@ paths:
           schema:
             type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        '204':
+          description: Successful - no content to return.
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - CanConfigureUsers
@@ -17162,6 +17250,10 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserResult'
           description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
       security:
         - ApiKeyAuth:
             - CanConfigureUsers
@@ -19647,11 +19739,11 @@ paths:
         - ApiKeyAuth:
             - canUseSyntheticCredentials
             - canConfigureSyntheticTests
-      summary: All Synthetic Credential Names
+      summary: All Synthetic credential names
       tags:
         - Synthetic Settings
     post:
-      description: API request to create Synthetic Credentials.
+      description: API request to create a Synthetic Credential.
       operationId: createSyntheticCredential
       requestBody:
         content:
@@ -19676,7 +19768,7 @@ paths:
       security:
         - ApiKeyAuth:
             - canConfigureSyntheticCredentials
-      summary: Create a Synthetic Credential
+      summary: Create a Synthetic credential
       tags:
         - Synthetic Settings
   /api/synthetics/settings/credentials/associations:
@@ -19715,7 +19807,7 @@ paths:
         - ApiKeyAuth:
             - canUseSyntheticCredentials
             - canConfigureSyntheticTests
-      summary: All Synthetic Credential Names and Associations
+      summary: All Synthetic credentials
       tags:
         - Synthetic Settings
   '/api/synthetics/settings/credentials/associations/{name}':
@@ -19757,7 +19849,7 @@ paths:
         - ApiKeyAuth:
             - canUseSyntheticCredentials
             - canConfigureSyntheticTests
-      summary: A Synthetic Credential with Name and Associations
+      summary: A Synthetic credential
       tags:
         - Synthetic Settings
   '/api/synthetics/settings/credentials/{name}':
@@ -19788,7 +19880,7 @@ paths:
       security:
         - ApiKeyAuth:
             - canConfigureSyntheticCredentials
-      summary: Delete Synthetic credential
+      summary: Delete a Synthetic credential
       tags:
         - Synthetic Settings
     patch:
@@ -19826,11 +19918,11 @@ paths:
         - ApiKeyAuth:
             - canUseSyntheticCredentials
             - canConfigureSyntheticTests
-      summary: Patch a Synthetic Credential
+      summary: Patch a Synthetic credential
       tags:
         - Synthetic Settings
     put:
-      description: API request to update Synthetic Credentials.
+      description: API request to update a Synthetic Credential.
       operationId: updateSyntheticCredential
       parameters:
         - description: Name of the credential to be updated
@@ -19865,7 +19957,7 @@ paths:
       security:
         - ApiKeyAuth:
             - canConfigureSyntheticCredentials
-      summary: Update a Synthetic Credential
+      summary: Update a Synthetic credential
       tags:
         - Synthetic Settings
   /api/synthetics/settings/datacenters:
@@ -19967,7 +20059,7 @@ paths:
       security:
         - ApiKeyAuth:
             - canConfigureSyntheticLocations
-      summary: Synthetic datacenter
+      summary: A Synthetic datacenter
       tags:
         - Synthetic Settings
   /api/synthetics/settings/locations:
@@ -20126,7 +20218,7 @@ paths:
       security:
         - ApiKeyAuth:
             - canConfigureSyntheticLocations
-      summary: Delete Synthetic location
+      summary: Delete a Synthetic location
       tags:
         - Synthetic Settings
       description: |-
@@ -20189,7 +20281,7 @@ paths:
       security:
         - ApiKeyAuth:
             - canViewSyntheticLocations
-      summary: Synthetic location
+      summary: A Synthetic location
       tags:
         - Synthetic Settings
   /api/synthetics/settings/tests:
@@ -20493,6 +20585,232 @@ paths:
             }
           }'
         ```
+  /api/synthetics/settings/tests/ci-cd:
+    get:
+      operationId: getSyntheticTestCICDs
+      parameters:
+        - description: Defines the attributes by which the returned synthetic test CI/CDs will be filtered by. Multiple filter parameters are allowed. See 'Supported filter attributes and operators' for complete list of supported attributes and operators.
+          example: '{runType=CI/CD}'
+          in: query
+          name: filter
+          schema:
+            type: string
+            pattern: ' {<attribute name><operator><attribute value>}'
+        - description: Used in conjunction with limit. Defines how many pages will be skipped before returning the synthetic test CI/CDs
+          example: 1
+          in: query
+          name: offset
+          schema:
+            type: integer
+            format: int64
+        - description: Defines the size of a page - the number of synthetic test CI/CDs that will be returned by the query
+          example: 10
+          in: query
+          name: limit
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                - testResultId: e22aba08-e630-422d-8d7a-19b8a1c75d32
+                  locationId: r4zo4DjbORqEAES2c8xj
+                  locationLabel: SynTest
+                  testId: 5ufGW4jOnZNhViGmIbnx
+                  testLabel: test
+                  testType: HTTPAction
+                  runType: TEST
+                  completed: false
+                  customization:
+                    configuration:
+                      retries: 1
+                      timeout: 15s
+                    customProperties:
+                      tag: test
+                - testResultId: 0cf1324b-3022-4116-ae03-6c868daa43d4
+                  locationId: r4zo4DjbORqEAES2c8xj
+                  locationLabel: SynTest
+                  testId: 5ufGW4jOnZNhViGmIbnx
+                  testLabel: test
+                  testType: HTTPAction
+                  runType: CI/CD
+                  completed: false
+                  customization:
+                    configuration:
+                      retries: 2
+                      timeout: 5s
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SyntheticTestCICDItem'
+          description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
+        '500':
+          description: Internal server error.
+      security:
+        - ApiKeyAuth:
+            - canConfigureSyntheticTests
+      summary: All Synthetic test CI/CDs
+      tags:
+        - Synthetic Settings
+      description: |
+        This endpoint retrieves Synthetic Test CI/CDs.
+
+        ## Optional Parameters:
+
+        - **filter** Filters the Synthetic Test CI/CDs to retrieve only the ones that match the specified filter condition.
+          Users are allowed to specify more than one filter parameter, and they will be combined in a single expression using logical operator 'AND'.
+          The filter parameter is formatted as '**_{\<attribute>\<operator>\<value}_**'. For example, '_{runType=CI/CD}_'
+
+        ### Supported filter attributes and operators:
+
+        | | = | != | \> | < | \>= | <= | Example                                                                     |
+        |-|---|----|---|---|---|-|-----------------------------------------------------------------------------|
+        | locationId | &check; | &check; | - | - | - | - | /api/synthetics/settings/locations?filter={locationId=9xblOq15RyzLj2koBWwc} |
+        | testId | &check; | &check; | - | - | - | - | /api/synthetics/settings/locations?filter={testId=m3P10zF5up6HJqp8JeVp}     |
+        | runType | &check; | &check; | - | - | - | - | /api/synthetics/settings/tests?filter={runType=CI/CD}                       |
+        | completed | &check; | &check; | - | - | - | - | /api/synthetics/settings/tests?filter={completed=true}                      |
+    post:
+      operationId: createSyntheticTestCICD
+      requestBody:
+        content:
+          application/json:
+            example:
+              - testId: K331gkuCbelN1HI5y1wl
+                customization:
+                  locations:
+                    - 8mCxCPOI7oEmMSee4ec0
+                    - lalQTzq7MwO6hZ6c6xDd
+                  configuration:
+                    timeout: 100ms
+                    retries: 2
+                  customProperties:
+                    Team: DevTeam
+                    Purpose: Demo
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SyntheticTestCICD'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                - testResultId: f078443e-468c-4e35-b614-979ad9200fe4
+                  testId: K331gkuCbelN1HI5y1wl
+                  locationId: 8mCxCPOI7oEmMSee4ec0
+                - testResultId: 2cba4974-c73a-45ea-ad63-77c44c19bd36
+                  testId: K331gkuCbelN1HI5y1wl
+                  locationId: lalQTzq7MwO6hZ6c6xDd
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SyntheticTestCICDResponse'
+          description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
+        '500':
+          description: Internal server error.
+      security:
+        - ApiKeyAuth:
+            - canConfigureSyntheticTests
+      summary: Create a Synthetic test CI/CD
+      tags:
+        - Synthetic Settings
+      description: |-
+        This API endpoint creates an OnDemand Execution of Synthetic Tests to be used on CI/CD Integrations.
+
+        ## Mandatory Parameters:
+
+        - **testId** The id of the test to be executed upon request.
+        - **customization.locations** The ids of the locations where the test needs to be executed.
+        - 
+        ## Optional Parameters:
+
+        - **customization.configuration** An configuration object with properties timeout, retries and retryInterval, used to override the test defined configuration. 
+        - **customization.customProperties** An object with name/value pairs to provide additional information to this Synthetic Test CI/CD execution.
+        - 
+        ## Sample script and payload: 
+        - A sample script to create a Synthetic Test CI/CD
+
+        ```
+        curl -k -v -X POST \
+        https://<Host>/api/synthetics/settings/tests/ci-cd \
+        -H 'authorization: apiToken <Token>' \
+        -H 'content-type: application/json' \
+        -d '[
+          {
+            "testId":"pdVai8bqov1ta9Wq0Fnw", 
+            "customization":{
+              "locations":[
+                "DNCYizgM3cju2Xnap24Z"
+              ], 
+              "configuration":{
+                "timeout":"5s", 
+                "retryInterval":1,
+                "retries":2
+              }, 
+              "customProperties" : {
+                "type":"Build"
+              }
+            }
+          }
+        ]'
+        ```
+  '/api/synthetics/settings/tests/ci-cd/{testResultId}':
+    get:
+      description: API request to retrieve the Synthetic Test CI/CD identified by the given test result id.
+      operationId: getSyntheticTestCICD
+      parameters:
+        - description: The synthetic test result id of the CI/CD to be retrieved
+          example: 0cf1324b-3022-4116-ae03-6c868daa43d4
+          in: path
+          name: testResultId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                testResultId: 0cf1324b-3022-4116-ae03-6c868daa43d4
+                locationId: r4zo4DjbORqEAES2c8xj
+                locationLabel: SynTest
+                testId: 5ufGW4jOnZNhViGmIbnx
+                testLabel: test
+                testType: HTTPAction
+                runType: CI/CD
+                completed: false
+                customization:
+                  configuration:
+                    retries: 2
+                    timeout: 5s
+              schema:
+                $ref: '#/components/schemas/SyntheticTestCICDItem'
+          description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
+        '404':
+          description: Resource not found.
+        '500':
+          description: Internal server error.
+      security:
+        - ApiKeyAuth:
+            - canConfigureSyntheticTests
+      summary: A Synthetic test CI/CD.
+      tags:
+        - Synthetic Settings
   '/api/synthetics/settings/tests/{id}':
     delete:
       description: API request to delete a Synthetic Test.
@@ -24993,7 +25311,7 @@ components:
               format: double
             matchingEntityLabel:
               type: string
-              maxLength: 256
+              maxLength: 2048
               minLength: 0
             matchingEntityType:
               type: string
@@ -25049,7 +25367,7 @@ components:
           properties:
             matchingEntityLabel:
               type: string
-              maxLength: 256
+              maxLength: 2048
               minLength: 0
             matchingEntityType:
               type: string
@@ -26839,6 +27157,10 @@ components:
           type: string
           maxLength: 65536
           minLength: 0
+        teamId:
+          type: string
+          maxLength: 64
+          minLength: 5
         value:
           type: string
           maxLength: 65536
@@ -31300,7 +31622,7 @@ components:
           type: integer
           format: int64
           maximum: 28800000
-          minimum: 60000
+          minimum: 900000
         tokenLifeTimeInMillis:
           type: integer
           format: int64
@@ -32274,6 +32596,21 @@ components:
       required:
         - customRules
         - defaultRules
+    SyntheticConfiguration:
+      type: object
+      properties:
+        retries:
+          type: integer
+          format: int32
+          maximum: 2
+          minimum: 0
+        retryInterval:
+          type: integer
+          format: int32
+          maximum: 10
+          minimum: 1
+        timeout:
+          type: string
     SyntheticCredential:
       type: object
       properties:
@@ -32533,6 +32870,12 @@ components:
             enum:
               - chrome
               - firefox
+        executionType:
+          type: array
+          items:
+            type: string
+            enum:
+              - CI/CD
         syntheticType:
           type: array
           items:
@@ -32654,6 +32997,88 @@ components:
         - label
         - locations
         - testFrequency
+    SyntheticTestCICD:
+      type: object
+      properties:
+        customization:
+          $ref: '#/components/schemas/SyntheticTestCICDCustomization'
+        runType:
+          type: string
+        testId:
+          type: string
+      required:
+        - customization
+        - testId
+    SyntheticTestCICDCustomization:
+      type: object
+      properties:
+        configuration:
+          $ref: '#/components/schemas/SyntheticConfiguration'
+        customProperties:
+          type: object
+          additionalProperties:
+            type: string
+        locations:
+          type: array
+          items:
+            type: string
+      required:
+        - configuration
+    SyntheticTestCICDItem:
+      type: object
+      properties:
+        applications:
+          type: array
+          items:
+            type: string
+        completed:
+          type: boolean
+        customization:
+          $ref: '#/components/schemas/SyntheticTestCICDCustomization'
+        locationId:
+          type: string
+        locationLabel:
+          type: string
+        mobileApps:
+          type: array
+          items:
+            type: string
+        runType:
+          type: string
+        testId:
+          type: string
+        testLabel:
+          type: string
+        testResultId:
+          type: string
+        testType:
+          type: string
+        websites:
+          type: array
+          items:
+            type: string
+      required:
+        - completed
+        - customization
+        - locationId
+        - locationLabel
+        - testId
+        - testLabel
+        - testResultId
+        - testType
+    SyntheticTestCICDResponse:
+      type: object
+      properties:
+        locationId:
+          type: string
+        testId:
+          type: string
+        testResultId:
+          type: string
+      required:
+        - locationId
+        - testId
+        - testResultId
     SyntheticTimeThreshold:
       type: object
       description: The type of threshold to define the criteria when the event and alert triggers and resolves.
@@ -32791,6 +33216,7 @@ components:
               - SYNTHETICS_DETAIL
               - APDEX
               - BIZOPS
+              - BUSINESS_METRICS
               - SUBTRACE
               - UNKNOWN
           uniqueItems: true
