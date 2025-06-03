@@ -1,5 +1,7 @@
 Searching for answers and best pratices? Check our [IBM Instana Community](https://community.ibm.com/community/user/aiops/communities/community-home?CommunityKey=58f324a3-3104-41be-9510-5b7c413cc48f).
 
+The API documentation is also available on IBM API Hub and can be accessed [here](https://developer.ibm.com/apis/catalog/instana--instana-rest-api/Introduction).
+
 ## Overview
 The Instana REST API provides programmatic access to the Instana platform. It can be used to retrieve data available through the Instana UI Dashboard -- metrics, events, traces, etc -- and also to automate configuration tasks such as user management.
 
