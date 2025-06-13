@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Instana REST API documentation",
-    "version": "1.297.1215",
+    "version": "1.299.602",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -60,6 +60,9 @@
     },
     {
       "name": "Infrastructure Topology"
+    },
+    {
+      "name": "Logging Analyze"
     },
     {
       "name": "Application Metrics",
@@ -730,11 +733,11 @@
           }
         ],
         "responses": {
-          "200": {
+          "404": {
             "content": {
               "application/json": {}
             },
-            "description": "OK"
+            "description": "This API is not supported anymore"
           }
         },
         "security": [
@@ -2097,6 +2100,12 @@
               }
             },
             "description": "OK"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "No config found for provided application id"
           }
         },
         "security": [
@@ -6787,7 +6796,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CustomEntity"
+                "$ref": "#/components/schemas/CustomEntityModel"
               }
             }
           },
@@ -6875,7 +6884,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CustomEntity"
+                "$ref": "#/components/schemas/CustomEntityModel"
               }
             }
           },
@@ -6959,7 +6968,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CustomEntity"
+                "$ref": "#/components/schemas/CustomEntityModel"
               }
             }
           },
@@ -6988,6 +6997,50 @@
         "tags": [
           "Custom Entities"
         ]
+      }
+    },
+    "/api/eum/impact/report/{eventId}": {
+      "get": {
+        "description": "Gets a report of users impacted by an event which was created from a smart alert violation",
+        "operationId": "getImpactedUsersReport",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {}
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get impacted users report"
       }
     },
     "/api/events": {
@@ -17869,6 +17922,277 @@
         ]
       }
     },
+    "/api/logging/licensed": {
+      "get": {
+        "operationId": "checkLoggingAddonLicense",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/logging/logs": {
+      "delete": {
+        "operationId": "deleteLogs_1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "upToTime",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reason",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "triggeredByUser",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/logging/logs/getLogVolumeUsage": {
+      "get": {
+        "description": "Returns aggregated log volume usage data for a specified time range and optional grouping tag.\n`fromTs` and `toTs` are required and must define a valid time range (i.e., `fromTs` <= `toTs`).\nValid groupingTag`s are: kubernetes_cluster_name, kubernetes_daemonset_name, kubernetes_namespace_name,\nkubernetes_deployment_name, host_name, zone.\n",
+        "operationId": "getLogVolumeUsage",
+        "parameters": [
+          {
+            "description": "Start timestamp in seconds. Must be <= `toTs`.",
+            "example": 1682899200,
+            "in": "query",
+            "name": "fromTs",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "description": "End timestamp in seconds. Must be >= `fromTs`.",
+            "example": 1682899201,
+            "in": "query",
+            "name": "toTs",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "description": "Optional tag to group volume usage by.",
+            "example": "zone",
+            "in": "query",
+            "name": "groupingTag",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Full Data": {
+                    "description": "Full Data",
+                    "value": {
+                      "logVolumeUsageItems": [
+                        {
+                          "numberOfMonth": 11,
+                          "logVolume": 278141339215,
+                          "retentionPeriods": [
+                            {
+                              "retentionDays": 7,
+                              "logVolume": 7253402,
+                              "logVolumeGroups": [
+                                {
+                                  "label": "",
+                                  "logVolume": 7253402
+                                },
+                                {
+                                  "label": "demo-us-cluster",
+                                  "logVolume": 0
+                                },
+                                {
+                                  "label": "demo-us-eks",
+                                  "logVolume": 0
+                                }
+                              ]
+                            },
+                            {
+                              "retentionDays": 90,
+                              "logVolume": 13319384221,
+                              "logVolumeGroups": [
+                                {
+                                  "label": "",
+                                  "logVolume": 13004387032
+                                },
+                                {
+                                  "label": "demo-us-cluster",
+                                  "logVolume": 265176702
+                                },
+                                {
+                                  "label": "demo-us-eks",
+                                  "logVolume": 22645862
+                                },
+                                {
+                                  "label": "k8s-demo-cluster",
+                                  "logVolume": 27142175
+                                },
+                                {
+                                  "label": "rci-robotshop",
+                                  "logVolume": 32450
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "Zero Volume": {
+                    "description": "Zero Volume",
+                    "value": {
+                      "logVolumeUsageItems": [
+                        {
+                          "numberOfMonth": 1,
+                          "logVolume": 0,
+                          "retentionPeriods": []
+                        },
+                        {
+                          "numberOfMonth": 2,
+                          "logVolume": 0,
+                          "retentionPeriods": []
+                        },
+                        {
+                          "numberOfMonth": 3,
+                          "logVolume": 0,
+                          "retentionPeriods": []
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/LogVolumeUsageResult"
+                }
+              }
+            },
+            "description": "Successfully retrieved log volume usage data"
+          },
+          "400": {
+            "description": "Invalid request (e.g., missing or incorrect time parameters)"
+          },
+          "500": {
+            "description": "Unexpected server error"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get Log Volume Usage",
+        "tags": [
+          "Logging Analyze"
+        ]
+      }
+    },
+    "/api/logging/logs/v3": {
+      "delete": {
+        "operationId": "deleteLogs",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/logging/retention/v1": {
+      "get": {
+        "operationId": "getLogsRetention",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "operationId": "updateLogsRetentionPerTenant",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/mobile-app-monitoring/analyze/beacon-groups": {
       "post": {
         "description": "API request to get grouped mobile app beacon metrics.",
@@ -18231,7 +18555,12 @@
                       "crash"
                     ],
                     "pathToValueInBeacon": null,
-                    "tagName": null
+                    "tagName": null,
+                    "secondaryBeaconTypes": [
+                      "sessionStart",
+                      "viewChange",
+                      "custom"
+                    ]
                   }
                 ],
                 "schema": {
@@ -18524,8 +18853,6 @@
         "operationId": "getMobileAppGeoLocationConfiguration",
         "parameters": [
           {
-            "description": "Mobile App ID",
-            "example": "iiLxP1zaTuCS7fyk9m4W0W",
             "in": "path",
             "name": "mobileAppId",
             "required": true,
@@ -18641,8 +18968,6 @@
         "operationId": "getMobileAppGeoMappingRules",
         "parameters": [
           {
-            "description": "Mobile App ID",
-            "example": "iiLxP1zaTuCS7fyk9m4W0W",
             "in": "path",
             "name": "mobileAppId",
             "required": true,
@@ -18688,8 +19013,6 @@
         "operationId": "setMobileAppGeoMappingRules",
         "parameters": [
           {
-            "description": "Mobile App ID",
-            "example": "K3bP-bmCRkyimNai9vvq8o",
             "in": "path",
             "name": "mobileAppId",
             "required": true,
@@ -18749,8 +19072,6 @@
         "operationId": "getMobileAppIpMaskingConfiguration",
         "parameters": [
           {
-            "description": "Mobile App ID",
-            "example": "iiLxP1zaTuCS7fyk9m4W0W",
             "in": "path",
             "name": "mobileAppId",
             "required": true,
@@ -18854,6 +19175,557 @@
           }
         ],
         "summary": "Update IP masking configuration for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload": {
+      "get": {
+        "description": "API request to get all sourcemap configurations for mobile app.",
+        "operationId": "getMobileAppSourceMapFiles",
+        "parameters": [
+          {
+            "description": "Mobile App ID",
+            "example": "K3bP-bmCRkyimNai9vvq8o",
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "configs": [
+                    {
+                      "id": "26ae11a865ec8c24",
+                      "description": "InstanaAgentExample_v1",
+                      "createdAt": 1739864150.9596016,
+                      "modifiedAt": 1739864314.1402564,
+                      "metadata": [
+                        {
+                          "type": "DWARF",
+                          "format": "TGZ",
+                          "url": "com.instana.ios.InstanaAgentExample/dwarf",
+                          "size": 2332564,
+                          "sizeOnDisk": 2324096,
+                          "blobs": [
+                            {
+                              "blobIndex": 1,
+                              "size": 2332564,
+                              "sizeOnDisk": 2324096
+                            }
+                          ],
+                          "meta": null
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SourceMapUploadConfigs"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get all sourcemap configurations for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      },
+      "post": {
+        "description": "API request to add sourcemap configuration for mobile app.",
+        "operationId": "postMobileAppSourceMapConfig",
+        "parameters": [
+          {
+            "description": "Mobile App ID",
+            "example": "K3bP-bmCRkyimNai9vvq8o",
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "1f4acfd2da7c53f1",
+                  "description": "InstanaAgentExample_v2",
+                  "createdAt": 1747892306.8642304,
+                  "modifiedAt": 1747892306.8642304,
+                  "metadata": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SourceMapUploadConfig"
+                }
+              }
+            },
+            "description": "Mobile App sourcemap configuration added successfully"
+          },
+          "400": {
+            "description": "Missing description or description already used for a configuration."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "422": {
+            "description": "Unprocessable request - missing/invalid data."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Add new sourcemap configuration for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}": {
+      "delete": {
+        "description": "API request to delete sourcemap configuration for mobile app.",
+        "operationId": "deleteMobileAppSourceMapUploadConfiguration",
+        "parameters": [
+          {
+            "description": "Mobile App ID",
+            "example": "K3bP-bmCRkyimNai9vvq8o",
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Source Map Config ID",
+            "example": "97e0ad312110d3ad",
+            "in": "path",
+            "name": "sourceMapConfigId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sourcemap configuration successfully deleted or sourcemap not found"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Delete sourcemap configuration for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      },
+      "get": {
+        "description": "API request to get sourcemap configuration for mobile app.",
+        "operationId": "getMobileAppSourceMapFile",
+        "parameters": [
+          {
+            "description": "Mobile App ID",
+            "example": "K3bP-bmCRkyimNai9vvq8o",
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Source Map Config ID",
+            "example": "97e0ad312110d3ad",
+            "in": "path",
+            "name": "sourceMapConfigId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "53467e4fb60c1ba2",
+                  "description": "InstanaAgentExample_v1",
+                  "createdAt": 1721697722.7669933,
+                  "modifiedAt": 1721698308.4051073,
+                  "metadata": [
+                    {
+                      "type": "DWARF",
+                      "format": "TGZ",
+                      "url": "com.instana.ios.InstanaAgentExample/dwarf",
+                      "size": 3301023,
+                      "sizeOnDisk": 3287984,
+                      "blobs": [
+                        {
+                          "blobIndex": 1,
+                          "size": 3301023,
+                          "sizeOnDisk": 3287984
+                        }
+                      ],
+                      "meta": null
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SourceMapUploadConfig"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get sourcemap configuration for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/clear": {
+      "put": {
+        "description": "API request to clear sourcemap files of a configuration for mobile app.",
+        "operationId": "clearMobileAppSourceMapUploadConfiguration",
+        "parameters": [
+          {
+            "description": "Mobile App ID",
+            "example": "K3bP-bmCRkyimNai9vvq8o",
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Source Map Config ID",
+            "example": "97e0ad312110d3ad",
+            "in": "path",
+            "name": "sourceMapConfigId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sourcemap files in the sourcemap configuration successfully cleared"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Clear sourcemap files for sourcemap upload configuration",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/commit": {
+      "put": {
+        "description": "API request to commit sourcemap file upload for mobile app.",
+        "operationId": "commitMobileAppSourceMapFile",
+        "parameters": [
+          {
+            "description": "Mobile App ID",
+            "example": "K3bP-bmCRkyimNai9vvq8o",
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Source Map Config ID",
+            "example": "97e0ad312110d3ad",
+            "in": "path",
+            "name": "sourceMapConfigId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fileId": {
+                    "type": "string"
+                  },
+                  "fileType": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "fb3e868cd69f0647",
+                  "description": "InstanaAgentExample_v2",
+                  "createdAt": 1747954318.3628924,
+                  "modifiedAt": 1747955097.0266616,
+                  "metadata": [
+                    {
+                      "type": "DWARF",
+                      "format": "TGZ",
+                      "url": "com.instana.ios.InstanaAgentExample/dwarf",
+                      "size": 3454658,
+                      "sizeOnDisk": 3442288,
+                      "blobs": [
+                        {
+                          "blobIndex": 1,
+                          "size": 3454658,
+                          "sizeOnDisk": 3442288
+                        }
+                      ],
+                      "meta": null
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SourceMapUploadConfig"
+                }
+              }
+            },
+            "description": "Successfully committed sourcemap file upload."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Commit sourcemap file upload for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/config/{mobileAppId}/sourcemap-upload/{sourceMapConfigId}/form": {
+      "put": {
+        "description": "API request to upload sourcemap file for mobile app.",
+        "operationId": "uploadMobileAppSourceMapFile",
+        "parameters": [
+          {
+            "description": "Mobile App ID",
+            "example": "K3bP-bmCRkyimNai9vvq8o",
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Source Map Config ID",
+            "example": "97e0ad312110d3ad",
+            "in": "path",
+            "name": "sourceMapConfigId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "blobIndex": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "Blob index which starts from 1"
+                  },
+                  "fileFormat": {
+                    "type": "string",
+                    "description": "File format. Example tgz"
+                  },
+                  "fileId": {
+                    "type": "string",
+                    "description": "Identifier of your app. For example, com.instana.ios.InstanaExampleApp"
+                  },
+                  "fileType": {
+                    "type": "string",
+                    "description": "dSYM stands for iOS symbol file, R8PG_MAP stands for Android java mapping file"
+                  },
+                  "sourceMap": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Path to your local symbol file"
+                  }
+                },
+                "required": [
+                  "blobIndex",
+                  "fileFormat",
+                  "fileId",
+                  "fileType",
+                  "sourceMap"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "77e4c6c8c9855973",
+                  "description": "InstanaAgentExample_v2",
+                  "createdAt": 1747947350.8836377,
+                  "modifiedAt": 1747948462.2585921,
+                  "metadata": [
+                    {
+                      "type": "DWARF",
+                      "format": "TGZ",
+                      "url": "com.instana.ios.InstanaAgentExample/dwarf",
+                      "size": 3455633,
+                      "sizeOnDisk": 3443584,
+                      "blobs": [
+                        {
+                          "blobIndex": 1,
+                          "size": 3455633,
+                          "sizeOnDisk": 3443584
+                        }
+                      ],
+                      "meta": null
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SourceMapUploadConfig"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Upload sourcemap file for mobile app",
         "tags": [
           "Mobile App Configuration"
         ]
@@ -20282,6 +21154,330 @@
         ]
       }
     },
+    "/api/settings/correction": {
+      "get": {
+        "operationId": "getAllSloCorrectionWindowConfigs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "Size of the Page",
+              "example": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "Page Number",
+              "example": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "orderBy",
+            "schema": {
+              "type": "string",
+              "description": "Order By Value",
+              "enum": [
+                "name",
+                "start",
+                "nextStart",
+                "duration",
+                "null"
+              ],
+              "example": "name"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orderDirection",
+            "schema": {
+              "type": "string",
+              "description": "Order Direction of the Result, it could be ascending or descending",
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
+              "example": "ASC"
+            }
+          },
+          {
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "type": "string",
+              "description": "Keyword or Query which needs to be searched",
+              "example": "test Correction"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "schema": {
+              "type": "array",
+              "description": "List of tags which needs to be searched",
+              "example": "Testing",
+              "items": {
+                "type": "string",
+                "description": "List of tags which needs to be searched",
+                "example": "Testing"
+              },
+              "uniqueItems": true
+            }
+          },
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "array",
+              "description": "List of Correction Configuration IDs for which details need to be fetched",
+              "example": "SSPTkTWoT1W0OpE_iQbfaA",
+              "items": {
+                "type": "string",
+                "description": "List of Correction Configuration IDs for which details need to be fetched",
+                "example": "SSPTkTWoT1W0OpE_iQbfaA"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "sloId",
+            "schema": {
+              "type": "array",
+              "description": "List of SLO IDs for which details need to be fetched",
+              "example": "SLOdCTspkHlS_OzNOATQWgsuw",
+              "items": {
+                "type": "string",
+                "description": "List of SLO IDs for which details need to be fetched",
+                "example": "SLOdCTspkHlS_OzNOATQWgsuw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "refresh",
+            "schema": {
+              "type": "boolean",
+              "description": "Boolean operator which specifies if the cache needs to be refreshed",
+              "example": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResult"
+                }
+              }
+            },
+            "description": "Fetched list of the SLO Correction Window Configurations Successfully"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Get All SLO Correction Window Configs",
+        "tags": [
+          "SLO Correction Configurations"
+        ]
+      },
+      "post": {
+        "operationId": "createSloCorrectionWindowConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionConfiguration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionConfiguration"
+                }
+              }
+            },
+            "description": "New SLO Correction Window Configuration Created Successfully"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Create a new SLO Correction Window Config",
+        "tags": [
+          "SLO Correction Configurations"
+        ]
+      }
+    },
+    "/api/settings/correction/{id}": {
+      "delete": {
+        "operationId": "deleteSloCorrectionWindowConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "SLO Correction Window Configuration ID",
+              "example": "cvLxfzNJQriV86MQTqOu1g"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "SLO Correction Window Configuration Deleted Successfully"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Delete an existing SLO Correction Window Configuration",
+        "tags": [
+          "SLO Correction Configurations"
+        ]
+      },
+      "get": {
+        "operationId": "getSloCorrectionWindowConfigById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "SLO Correction Window Configuration ID",
+              "example": "dCTspkffgHlS_OzNOATQWgsuw"
+            }
+          },
+          {
+            "in": "query",
+            "name": "refresh",
+            "schema": {
+              "type": "boolean",
+              "description": "Boolean operator which specifies if the cache needs to be refreshed",
+              "example": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionConfiguration"
+                }
+              }
+            },
+            "description": "Fetched SLO Correction Window Configuration Successfully"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "SLO Correction Window Configuration Not Found"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Get an existing SLO Correction Window Config",
+        "tags": [
+          "SLO Correction Configurations"
+        ]
+      },
+      "put": {
+        "operationId": "updateSloCorrectionWindowConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "SLO Correction Window Configuration ID",
+              "example": "cvLxfzNJQriV86MQTqOu1g"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionConfiguration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionConfiguration"
+                }
+              }
+            },
+            "description": "Updated SLO Correction Window Configuration Successfully"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "SLO Correction Window Configuration Not Found"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Update an existing SLO Correction Window Config",
+        "tags": [
+          "SLO Correction Configurations"
+        ]
+      }
+    },
     "/api/settings/invitation/share": {
       "post": {
         "operationId": "shareAndInviteUsers",
@@ -21647,6 +22843,44 @@
         "description": "Creates a mapping between a group from the IdP (LDAP, OIDC, SAML) and an Instana group.\n\nIf the IdP is configured and mappings are enabled, the `key` `value` pairs a user sent by the idp will be evaluated every time this user logs in.\n\nIf they match the mapping, the user will be assigned to the group corresponding to the `groupId`.\n\nInside the payload, the `id` for the mapping is ignored, and instead, Instana generates a new id."
       }
     },
+    "/api/settings/rbac/mappings/delete": {
+      "put": {
+        "operationId": "deleteGroupMappings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": [
+                "firstid",
+                "secondid"
+              ],
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "422": {
+            "description": "invalid request"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureAuthenticationMethods"
+            ]
+          }
+        ],
+        "summary": "Delete multiple group mappings",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
     "/api/settings/rbac/mappings/identityProvider/restrictEmptyIdpGroups": {
       "get": {
         "operationId": "getIdentityProviderPatch",
@@ -22278,6 +23512,8 @@
               "enum": [
                 "name",
                 "entityType",
+                "entityName",
+                "blueprint",
                 "sloStatus",
                 "sloWindowRemain",
                 "timeWindow",
@@ -24291,6 +25527,122 @@
         "summary": "Generate SLI report (Limitation: the Classic Edition API report can be available one hour after the SLI configuration created; other editions are around one minute.)",
         "tags": [
           "SLI Report"
+        ]
+      }
+    },
+    "/api/slo/correction": {
+      "get": {
+        "operationId": "getSloCorrection",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sloId",
+            "schema": {
+              "type": "array",
+              "description": "List of SLO IDs for which Correction Windows needs to be fetched",
+              "example": "SLOdCTspkHlS_OzNOATQWgsuw",
+              "items": {
+                "type": "string",
+                "description": "List of SLO IDs for which Correction Windows needs to be fetched",
+                "example": "SLOdCTspkHlS_OzNOATQWgsuw"
+              },
+              "uniqueItems": true
+            }
+          },
+          {
+            "in": "query",
+            "name": "excludeCorrectionId",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeCorrectionId",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          {
+            "in": "query",
+            "name": "tags",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          {
+            "description": "From Timestamp in milliseconds (13-digit)",
+            "example": 1706713140000,
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "description": "To Timestamp in milliseconds (13-digit)",
+            "example": 1706713140000,
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Correction"
+                  }
+                }
+              }
+            },
+            "description": "Fetched SLO Correction Windows Successfully"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "There is no SLO Correction Window"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Generate SLO Correction Windows",
+        "tags": [
+          "SLO Correction Windows"
         ]
       }
     },
@@ -26530,7 +27882,13 @@
             "application/json": {
               "example": {
                 "credentialName": "userPassword",
-                "credentialValue": "123456"
+                "credentialValue": "123456",
+                "rbacTags": [
+                  {
+                    "id": "test",
+                    "displayName": "test"
+                  }
+                ]
               },
               "schema": {
                 "$ref": "#/components/schemas/SyntheticCredential"
@@ -26766,6 +28124,12 @@
                 "credentialValue": "password4test",
                 "applications": [
                   "f4KX5zd8RW2pERKKFUCZgQ"
+                ],
+                "rbacTags": [
+                  {
+                    "id": "test",
+                    "displayName": "test"
+                  }
                 ]
               },
               "schema": {
@@ -26828,6 +28192,12 @@
                 "credentialValue": "123456",
                 "applications": [
                   "f4KX5zd8RW2pERKKFUCZgQ"
+                ],
+                "rbacTags": [
+                  {
+                    "id": "test",
+                    "displayName": "test"
+                  }
                 ]
               },
               "schema": {
@@ -27426,7 +28796,13 @@
                     },
                     "createdAt": 1696625954210,
                     "modifiedAt": 1701216106812,
-                    "modifiedBy": "Internal"
+                    "modifiedBy": "Internal",
+                    "rbacTags": [
+                      {
+                        "id": "test",
+                        "displayName": "test"
+                      }
+                    ]
                   }
                 ],
                 "schema": {
@@ -27491,7 +28867,13 @@
                 "customProperties": {
                   "Team": "DevTeam",
                   "Purpose": "Demo"
-                }
+                },
+                "rbacTags": [
+                  {
+                    "id": "test",
+                    "displayName": "test"
+                  }
+                ]
               },
               "schema": {
                 "$ref": "#/components/schemas/SyntheticTest"
@@ -27529,7 +28911,13 @@
                   "customProperties": {
                     "Team": "DevTeam",
                     "Purpose": "Demo"
-                  }
+                  },
+                  "rbacTags": [
+                    {
+                      "id": "test",
+                      "displayName": "test"
+                    }
+                  ]
                 },
                 "schema": {
                   "$ref": "#/components/schemas/SyntheticTest"
@@ -27757,7 +29145,6 @@
     },
     "/api/synthetics/settings/tests/ci-cd/{testResultId}": {
       "get": {
-        "description": "API request to retrieve the Synthetic Test CI/CD identified by the given test result id.",
         "operationId": "getSyntheticTestCICD",
         "parameters": [
           {
@@ -27923,7 +29310,13 @@
                   },
                   "createdAt": 1696625954210,
                   "modifiedAt": 1701216106812,
-                  "modifiedBy": "Internal"
+                  "modifiedBy": "Internal",
+                  "rbacTags": [
+                    {
+                      "id": "test",
+                      "displayName": "test"
+                    }
+                  ]
                 },
                 "schema": {
                   "$ref": "#/components/schemas/SyntheticTest"
@@ -27979,7 +29372,13 @@
                 "configuration": {
                   "scripts": null,
                   "script": "//script goes here"
-                }
+                },
+                "rbacTags": [
+                  {
+                    "id": "test",
+                    "displayName": "test"
+                  }
+                ]
               },
               "schema": {
                 "$ref": "#/components/schemas/SyntheticTest"
@@ -28063,7 +29462,13 @@
                 "customProperties": {
                   "Team": "DevTeam",
                   "Purpose": "Demo"
-                }
+                },
+                "rbacTags": [
+                  {
+                    "id": "JxrVZtRtTUGug71K1oYMcw",
+                    "displayName": "tests"
+                  }
+                ]
               },
               "schema": {
                 "$ref": "#/components/schemas/SyntheticTest"
@@ -28737,7 +30142,7 @@
         "operationId": "deleteWebsite",
         "parameters": [
           {
-            "description": "websiteId",
+            "description": "Website ID",
             "example": "K3bP-bmCRkyimNai9vvq8o",
             "in": "path",
             "name": "websiteId",
@@ -28778,7 +30183,7 @@
         "operationId": "getWebsite",
         "parameters": [
           {
-            "description": "websiteId",
+            "description": "Website ID",
             "example": "1ELrNt-eQ9SlK4D_EgLMiA",
             "in": "path",
             "name": "websiteId",
@@ -28828,7 +30233,7 @@
         "operationId": "renameWebsite",
         "parameters": [
           {
-            "description": "websiteId",
+            "description": "Website ID",
             "example": "K3bP-bmCRkyimNai9vvq8o",
             "in": "path",
             "name": "websiteId",
@@ -28893,7 +30298,7 @@
         "operationId": "getWebsiteGeoLocationConfiguration",
         "parameters": [
           {
-            "description": "websiteId",
+            "description": "Website ID",
             "example": "1ELrNt-eQ9SlK4D_EgLMiA",
             "in": "path",
             "name": "websiteId",
@@ -29118,7 +30523,7 @@
         "operationId": "getWebsiteIpMaskingConfiguration",
         "parameters": [
           {
-            "description": "websiteId",
+            "description": "Website ID",
             "example": "1ELrNt-eQ9SlK4D_EgLMiA",
             "in": "path",
             "name": "websiteId",
@@ -29228,9 +30633,213 @@
         ]
       }
     },
+    "/api/website-monitoring/config/{websiteId}/sourcemap-upload": {
+      "get": {
+        "description": "API request to get all sourcemap upload configurations for website.",
+        "operationId": "getWebsiteSourceMapUploadConfigurations",
+        "parameters": [
+          {
+            "description": "Website ID",
+            "example": "1ELrNt-eQ9SlK4D_EgLMiA",
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "configs": [
+                    {
+                      "id": "67f84a0b117c99e",
+                      "description": "websiteSourcemapUploadConfig1",
+                      "createdAt": 1747978171.2347815,
+                      "modifiedAt": 1747978171.2347815,
+                      "metadata": []
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SourceMapUploadConfigs"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "summary": "Get all sourcemap upload configurations for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      },
+      "post": {
+        "description": "API request to add sourcemap upload configuration for website.",
+        "operationId": "postWebsiteSourceMapUploadConfig",
+        "parameters": [
+          {
+            "description": "Website ID",
+            "example": "1ELrNt-eQ9SlK4D_EgLMiA",
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "5894971d635094e7",
+                  "description": "websiteSourcemapConfig2",
+                  "createdAt": 1747980062.6018546,
+                  "modifiedAt": 1747980062.6018546,
+                  "metadata": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SourceMapUploadConfig"
+                }
+              }
+            },
+            "description": "Website sourcemap upload configuration added successfully"
+          },
+          "400": {
+            "description": "Missing description or description already used for a configuration."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "422": {
+            "description": "Unprocessable request - missing/invalid data."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "summary": "Add new sourcemap upload configuration for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      }
+    },
+    "/api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}": {
+      "delete": {
+        "description": "API request to delete sourcemap upload configuration for website.",
+        "operationId": "deleteWebsiteSourceMapUploadConfiguration",
+        "parameters": [
+          {
+            "description": "Website ID",
+            "example": "1ELrNt-eQ9SlK4D_EgLMiA",
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Source Map Config ID",
+            "example": "97e0ad312110d3ad",
+            "in": "path",
+            "name": "sourceMapConfigId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sourcemap configuration successfully deleted or sourcemap not found"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "summary": "Delete sourcemap upload configuration for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      },
+      "get": {
+        "description": "API request to get sourcemap upload configuration for website.",
+        "operationId": "getWebsiteSourceMapUploadConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Source Map Config ID",
+            "example": "97e0ad312110d3ad",
+            "in": "path",
+            "name": "sourceMapConfigId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "67f84a0b117c99e",
+                  "description": "websiteSourcemapUploadConfig1",
+                  "createdAt": 1747978171.2347815,
+                  "modifiedAt": 1747978171.2347815,
+                  "metadata": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SourceMapUploadConfig"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "summary": "Get sourcemap upload configurations for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      }
+    },
     "/api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}/clear": {
       "put": {
-        "description": "API request to clear source map files for source map upload configuration.",
+        "description": "API request to clear source map files for sourcemap upload configuration.",
         "operationId": "clearSourceMapUploadConfiguration",
         "parameters": [
           {
@@ -29278,7 +30887,7 @@
             ]
           }
         ],
-        "summary": "Clear source map files for source map upload configuration",
+        "summary": "Clear source map files for sourcemap upload configuration",
         "tags": [
           "Website Configuration"
         ]
@@ -29286,7 +30895,7 @@
     },
     "/api/website-monitoring/config/{websiteId}/sourcemap-upload/{sourceMapConfigId}/form": {
       "put": {
-        "description": "API request to upload source map file for a website.",
+        "description": "API request to upload sourcemap file for website.",
         "operationId": "uploadSourceMapFile",
         "parameters": [
           {
@@ -29321,12 +30930,18 @@
                   },
                   "sourceMap": {
                     "type": "string",
-                    "format": "binary"
+                    "format": "binary",
+                    "description": "Local Source Map file path"
                   },
                   "url": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "URL of the website"
                   }
-                }
+                },
+                "required": [
+                  "sourceMap",
+                  "url"
+                ]
               }
             }
           }
@@ -29335,12 +30950,22 @@
           "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "67f84a0b117c99e",
+                  "description": "websiteSourcemapUploadConfig1",
+                  "createdAt": 1747978171.2347815,
+                  "modifiedAt": 1747978171.2347815,
+                  "metadata": []
+                },
                 "schema": {
                   "$ref": "#/components/schemas/SourceMapUploadConfig"
                 }
               }
             },
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad request."
           },
           "401": {
             "description": "Unauthorized access - requires user authentication."
@@ -29362,7 +30987,7 @@
             ]
           }
         ],
-        "summary": "Upload source map file for website",
+        "summary": "Upload sourcemap file for website",
         "tags": [
           "Website Configuration"
         ]
@@ -29754,7 +31379,8 @@
               "LOGIN",
               "ACCESS",
               "FAILED_LOGIN",
-              "LOGOUT"
+              "LOGOUT",
+              "CREATE_API_TOKEN_BY_POLICY"
             ]
           },
           "email": {
@@ -30201,10 +31827,21 @@
             "$ref": "#/components/schemas/Action"
           },
           "aiEngine": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "POLICY",
+              "EVENT_SIMILARITY",
+              "NLP",
+              "SUCCESS_RATE",
+              "TURBONOMIC",
+              "WATSONX"
+            ]
           },
           "confidence": {
             "type": "string"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/Policy"
           },
           "score": {
             "type": "number",
@@ -30212,7 +31849,6 @@
           }
         },
         "required": [
-          "action",
           "aiEngine",
           "confidence",
           "score"
@@ -30794,7 +32430,6 @@
       },
       "ApiTag": {
         "type": "object",
-        "description": "Team Tags that's assigned to the Alerting Channel",
         "properties": {
           "displayName": {
             "type": "string",
@@ -31028,10 +32663,16 @@
           "limitedBizOpsScope": {
             "type": "boolean"
           },
+          "limitedCustomDashboardsScope": {
+            "type": "boolean"
+          },
           "limitedInfrastructureScope": {
             "type": "boolean"
           },
           "limitedKubernetesScope": {
+            "type": "boolean"
+          },
+          "limitedLinuxKVMHypervisorScope": {
             "type": "boolean"
           },
           "limitedLogsScope": {
@@ -32651,6 +34292,161 @@
       "ContainerNode": {
         "type": "object"
       },
+      "Correction": {
+        "type": "object",
+        "properties": {
+          "activeCorrectionConfigIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "correctionWindows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CorrectionWindow"
+            }
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "inActiveCorrectionConfigIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CorrectionConfiguration": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "If value is true, then the correction window is active"
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created date of SLO Correction Window Configuration"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the SLO Correction Window Configuration"
+          },
+          "id": {
+            "type": "string",
+            "description": "SLO Correction Window Configuration ID"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last updated date of SLO Correction Window Configuration"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the SLO Correction Window Configuration"
+          },
+          "scheduling": {
+            "$ref": "#/components/schemas/CorrectionScheduling"
+          },
+          "sloIds": {
+            "type": "array",
+            "description": "This is the list of SLO configurations related to this Correction Window.",
+            "items": {
+              "type": "string",
+              "description": "This is the list of SLO configurations related to this Correction Window."
+            },
+            "uniqueItems": true
+          },
+          "tags": {
+            "type": "array",
+            "description": "List of tags associated with SLO Correction Window Configuration",
+            "items": {
+              "type": "string",
+              "description": "List of tags associated with SLO Correction Window Configuration"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "name",
+          "scheduling",
+          "sloIds",
+          "tags"
+        ]
+      },
+      "CorrectionScheduling": {
+        "type": "object",
+        "description": "Time scheduling of the SLO Correction Window configurations.",
+        "properties": {
+          "duration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "durationUnit": {
+            "type": "string",
+            "enum": [
+              "millisecond",
+              "second",
+              "minute",
+              "hour",
+              "day",
+              "week",
+              "month"
+            ]
+          },
+          "recurrent": {
+            "type": "boolean"
+          },
+          "recurrentRule": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "duration",
+          "durationUnit",
+          "startTime"
+        ]
+      },
+      "CorrectionWindow": {
+        "type": "object",
+        "properties": {
+          "correctionConfigs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sloConfigs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CrashMobileAppAlertRule": {
         "type": "object",
         "allOf": [
@@ -32861,6 +34657,49 @@
           "writable"
         ]
       },
+      "CustomDependency": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string",
+            "enum": [
+              "outgoing",
+              "incoming"
+            ]
+          },
+          "entityType": {
+            "type": "string",
+            "description": "If entityType is set, the dependency will be added to the plugin for that entity type. Otherwise, the dependency will be applied to the custom entity itself."
+          },
+          "identifiers": {
+            "type": "array",
+            "description": "Will take the identifiers values for building the key of the dependency.",
+            "items": {
+              "type": "string",
+              "description": "Will take the identifiers values for building the key of the dependency."
+            },
+            "uniqueItems": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "in",
+              "is",
+              "to",
+              "of",
+              "connected",
+              "describes",
+              "of20",
+              "to20",
+              "dummy",
+              "parent"
+            ]
+          }
+        }
+      },
       "CustomEmailSubjectPrefix": {
         "type": "object",
         "properties": {
@@ -32917,13 +34756,20 @@
           }
         }
       },
-      "CustomEntity": {
+      "CustomEntityModel": {
         "type": "object",
         "properties": {
           "dashboards": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CustomDashboard"
+            },
+            "uniqueItems": true
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomDependency"
             },
             "uniqueItems": true
           },
@@ -32949,10 +34795,8 @@
           }
         },
         "required": [
-          "dashboards",
           "identifiers",
           "label",
-          "metrics",
           "tagFilterExpression"
         ]
       },
@@ -32964,7 +34808,7 @@
             "format": "int64"
           },
           "data": {
-            "$ref": "#/components/schemas/CustomEntity"
+            "$ref": "#/components/schemas/CustomEntityModel"
           },
           "id": {
             "type": "string"
@@ -33050,6 +34894,16 @@
             "maxItems": 5,
             "minItems": 1
           },
+          "transientEventAlertMuted": {
+            "type": "boolean"
+          },
+          "transientEventEnabled": {
+            "type": "boolean"
+          },
+          "transientEventThreshold": {
+            "type": "integer",
+            "format": "int64"
+          },
           "triggering": {
             "type": "boolean"
           }
@@ -33132,6 +34986,16 @@
             },
             "maxItems": 5,
             "minItems": 1
+          },
+          "transientEventAlertMuted": {
+            "type": "boolean"
+          },
+          "transientEventEnabled": {
+            "type": "boolean"
+          },
+          "transientEventThreshold": {
+            "type": "integer",
+            "format": "int64"
           },
           "triggering": {
             "type": "boolean"
@@ -33416,6 +35280,32 @@
           },
           "url": {
             "type": "string"
+          }
+        }
+      },
+      "DeleteLogsRequest": {
+        "type": "object",
+        "properties": {
+          "filter": {
+            "$ref": "#/components/schemas/FilterInterface"
+          },
+          "queryContext": {
+            "$ref": "#/components/schemas/QueryContext"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeConfig": {
+            "$ref": "#/components/schemas/TimeConfig"
+          },
+          "triggeredByUser": {
+            "type": "string"
+          },
+          "websocket": {
+            "type": "boolean"
           }
         }
       },
@@ -34496,6 +36386,17 @@
           "name",
           "value"
         ]
+      },
+      "FilterInterface": {
+        "type": "object",
+        "properties": {
+          "rbacRestrictions": {
+            "$ref": "#/components/schemas/RbacRestrictions"
+          },
+          "timeConfig": {
+            "$ref": "#/components/schemas/TimeConfig"
+          }
+        }
       },
       "FixedHttpPathSegmentMatchingRule": {
         "type": "object",
@@ -36739,6 +38640,26 @@
           }
         }
       },
+      "ImpactedBeaconInfo": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "subdivision": {
+            "type": "string"
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          }
+        }
+      },
       "InfraAlertConfig": {
         "type": "object",
         "properties": {
@@ -37931,6 +39852,22 @@
           }
         ]
       },
+      "LogRetentionUpdate": {
+        "type": "object",
+        "properties": {
+          "reasonForChange": {
+            "type": "string"
+          },
+          "retentionDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "reasonForChange",
+          "retentionDays"
+        ]
+      },
       "LogTimeThreshold": {
         "type": "object",
         "description": "The type of threshold to define the criteria when the event and alert triggers and resolves.",
@@ -37951,6 +39888,63 @@
         },
         "required": [
           "type"
+        ]
+      },
+      "LogVolumeGroup": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "logVolume": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "label",
+          "logVolume"
+        ]
+      },
+      "LogVolumeUsageItem": {
+        "type": "object",
+        "properties": {
+          "logVolume": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "numberOfMonth": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 12,
+            "minimum": 1
+          },
+          "retentionPeriods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RetentionPeriod"
+            }
+          }
+        },
+        "required": [
+          "logVolume",
+          "retentionPeriods"
+        ]
+      },
+      "LogVolumeUsageResult": {
+        "type": "object",
+        "properties": {
+          "logVolumeUsageItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogVolumeUsageItem"
+            }
+          }
+        },
+        "required": [
+          "logVolumeUsageItems"
         ]
       },
       "LogsApplicationAlertRule": {
@@ -39321,6 +41315,9 @@
           },
           "cursor": {
             "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "impactedBeaconInfo": {
+            "$ref": "#/components/schemas/ImpactedBeaconInfo"
           }
         },
         "required": [
@@ -39580,6 +41577,9 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "label": {
+            "type": "string"
           },
           "latitude": {
             "type": "number",
@@ -39901,6 +41901,13 @@
             },
             "maxItems": 2147483647,
             "minItems": 1
+          },
+          "secondaryBeaconTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
           },
           "tagName": {
             "type": "string"
@@ -40555,6 +42562,115 @@
           "webhookUrl"
         ]
       },
+      "QueryContext": {
+        "type": "object",
+        "properties": {
+          "querySource": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "WEBSOCKET",
+              "HTTP"
+            ]
+          }
+        }
+      },
+      "RbacRestrictions": {
+        "type": "object",
+        "properties": {
+          "actionFilters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "alertingChannels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "applications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "businessPerspectives": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "customDashboards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "infraDfqFilter": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "kubernetesClusters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "kubernetesNamespaces": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "logFilters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "mobileApps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "syntheticCredentials": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "syntheticTests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "websites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
       "RecurrentMaintenanceWindow": {
         "type": "object",
         "allOf": [
@@ -40692,6 +42808,30 @@
         "required": [
           "id",
           "name"
+        ]
+      },
+      "RetentionPeriod": {
+        "type": "object",
+        "properties": {
+          "logVolume": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "logVolumeGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogVolumeGroup"
+            }
+          },
+          "retentionDays": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 90,
+            "minimum": 7
+          }
+        },
+        "required": [
+          "logVolume"
         ]
       },
       "RollingTimeWindow": {
@@ -42046,13 +44186,13 @@
             "type": "integer",
             "format": "int64",
             "maximum": 28800000,
-            "minimum": 900000
+            "minimum": 600000
           },
           "tokenLifeTimeInMillis": {
             "type": "integer",
             "format": "int64",
             "maximum": 604800000,
-            "minimum": 900000
+            "minimum": 600000
           }
         }
       },
@@ -42632,6 +44772,29 @@
         "required": [
           "id",
           "metadata"
+        ]
+      },
+      "SourceMapUploadConfigs": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceMapUploadConfig"
+            },
+            "writeOnly": true
+          },
+          "configs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceMapUploadConfig"
+            },
+            "maxItems": 32,
+            "minItems": 0
+          }
+        },
+        "required": [
+          "configs"
         ]
       },
       "SpanExcerpt": {
@@ -43448,6 +45611,13 @@
             "maxLength": 128,
             "minLength": 0
           },
+          "rbacTags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiTag"
+            },
+            "uniqueItems": true
+          },
           "websiteLabels": {
             "type": "array",
             "items": {
@@ -43891,6 +46061,13 @@
               "Simultaneous",
               "Staggered"
             ]
+          },
+          "rbacTags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiTag"
+            },
+            "uniqueItems": true
           },
           "tenantId": {
             "type": "string"
@@ -45144,6 +47321,26 @@
         "required": [
           "metricName"
         ]
+      },
+      "TimeConfig": {
+        "type": "object",
+        "properties": {
+          "autoRefresh": {
+            "type": "boolean"
+          },
+          "focusedMoment": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "windowSize": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
       },
       "TimeFrame": {
         "type": "object",
@@ -46963,6 +49160,9 @@
           },
           "cursor": {
             "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "impactedBeaconInfo": {
+            "$ref": "#/components/schemas/ImpactedBeaconInfo"
           }
         },
         "required": [
@@ -47266,6 +49466,9 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "label": {
+            "type": "string"
           },
           "largestContentfulPaintTime": {
             "type": "integer",
@@ -47980,6 +50183,12 @@
         "Infrastructure Resources",
         "Infrastructure Catalog",
         "Infrastructure Topology"
+      ]
+    },
+    {
+      "name": "Logging",
+      "tags": [
+        "Logging Analyze"
       ]
     },
     {
