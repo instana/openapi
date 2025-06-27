@@ -7,7 +7,7 @@ info:
   description: Documentation for INSTANA REST API
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.298.1265
+  version: 1.299.1224
   x-description: info
   x-logo:
     altText: instana logo
@@ -40,6 +40,8 @@ tags:
   x-description: tagInfrastructureCatalog
 - name: Infrastructure Topology
   x-description: tagInfrastructureTopology
+- name: Logging Analyze
+  x-description: tagLoggingAnalyze
 - name: Application Metrics
   x-description: tagApplicationMetrics
 - name: Application Catalog
@@ -4899,6 +4901,34 @@ paths:
       summary: Update a Custom Entity Type
       tags:
       - Custom Entities
+  /api/eum/impact/report/{eventId}:
+    get:
+      description: Gets a report of users impacted by an event which was created from
+        a smart alert violation
+      operationId: getImpactedUsersReport
+      parameters:
+      - in: path
+        name: eventId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            text/csv: {}
+          description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "404":
+          description: Resource not found.
+        "500":
+          description: Internal server error.
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get impacted users report
   /api/events:
     get:
       description: "Get all Events within a timeframe. The timeframe is defined as\
@@ -12487,6 +12517,165 @@ paths:
       tags:
       - Health
       x-description: getVersion
+  /api/logging/licensed:
+    get:
+      operationId: checkLoggingAddonLicense
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - Default
+  /api/logging/logs:
+    delete:
+      operationId: deleteLogs_1
+      parameters:
+      - in: query
+        name: upToTime
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: reason
+        schema:
+          type: string
+      - in: query
+        name: triggeredByUser
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - Default
+  /api/logging/logs/getLogVolumeUsage:
+    get:
+      description: |
+        Returns aggregated log volume usage data for a specified time range and optional grouping tag.
+        `fromTs` and `toTs` are required and must define a valid time range (i.e., `fromTs` <= `toTs`).
+        Valid groupingTag`s are: kubernetes_cluster_name, kubernetes_daemonset_name, kubernetes_namespace_name,
+        kubernetes_deployment_name, host_name, zone.
+      operationId: getLogVolumeUsage
+      parameters:
+      - description: Start timestamp in seconds. Must be <= `toTs`.
+        example: 1682899200
+        in: query
+        name: fromTs
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - description: End timestamp in seconds. Must be >= `fromTs`.
+        example: 1682899201
+        in: query
+        name: toTs
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - description: Optional tag to group volume usage by.
+        example: zone
+        in: query
+        name: groupingTag
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              examples:
+                Full Data:
+                  description: Full Data
+                  value:
+                    logVolumeUsageItems:
+                    - numberOfMonth: 11
+                      logVolume: 278141339215
+                      retentionPeriods:
+                      - retentionDays: 7
+                        logVolume: 7253402
+                        logVolumeGroups:
+                        - label: ""
+                          logVolume: 7253402
+                        - label: demo-us-cluster
+                          logVolume: 0
+                        - label: demo-us-eks
+                          logVolume: 0
+                      - retentionDays: 90
+                        logVolume: 13319384221
+                        logVolumeGroups:
+                        - label: ""
+                          logVolume: 13004387032
+                        - label: demo-us-cluster
+                          logVolume: 265176702
+                        - label: demo-us-eks
+                          logVolume: 22645862
+                        - label: k8s-demo-cluster
+                          logVolume: 27142175
+                        - label: rci-robotshop
+                          logVolume: 32450
+                Zero Volume:
+                  description: Zero Volume
+                  value:
+                    logVolumeUsageItems:
+                    - numberOfMonth: 1
+                      logVolume: 0
+                      retentionPeriods: []
+                    - numberOfMonth: 2
+                      logVolume: 0
+                      retentionPeriods: []
+                    - numberOfMonth: 3
+                      logVolume: 0
+                      retentionPeriods: []
+              schema:
+                $ref: "#/components/schemas/LogVolumeUsageResult"
+          description: Successfully retrieved log volume usage data
+        "400":
+          description: "Invalid request (e.g., missing or incorrect time parameters)"
+        "500":
+          description: Unexpected server error
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get Log Volume Usage
+      tags:
+      - Logging Analyze
+  /api/logging/logs/v3:
+    delete:
+      operationId: deleteLogs
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - Default
+  /api/logging/retention/v1:
+    get:
+      operationId: getLogsRetention
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - Default
+    post:
+      operationId: updateLogsRetentionPerTenant
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      security:
+      - ApiKeyAuth:
+        - Default
   /api/mobile-app-monitoring/analyze/beacon-groups:
     post:
       description: API request to get grouped mobile app beacon metrics.
@@ -14766,6 +14955,7 @@ paths:
           enum:
           - name
           - start
+          - nextStart
           - duration
           - "null"
           example: name
@@ -14827,6 +15017,58 @@ paths:
         "200":
           content:
             application/json:
+              example:
+                items:
+                - id: N9RdTL-WQkSTa3DYZidxzw
+                  name: Correction test 2
+                  description: Correction test 2
+                  active: false
+                  createdDate: 1749638253403
+                  lastUpdated: 1749595053386
+                  scheduling:
+                    startTime: 1749664800000
+                    duration: 2
+                    durationUnit: hour
+                    recurrentRule: FREQ=DAILY;INTERVAL=1
+                    recurrent: true
+                  sloIds:
+                  - SLOBL-EmhZZQRy-19JVEivEdg
+                  tags: []
+                - id: p9kWax0uS7K2Who1WegsSg
+                  name: New test for DST corrections - Test-1
+                  description: This is to minimize impacts from DST
+                  active: true
+                  createdDate: 1749514781416
+                  lastUpdated: 1749514780649
+                  scheduling:
+                    startTime: 1748775600000
+                    duration: 10
+                    durationUnit: hour
+                    recurrentRule: FREQ=DAILY;INTERVAL=1
+                    recurrent: true
+                  sloIds:
+                  - SLOffwtrVkfRmCjOZbdv3Ls9g
+                  tags:
+                  - seasonal
+                  - once
+                - id: b1T4ShnZS-qaORzBTAFRTA
+                  name: test rrule - one time
+                  description: test
+                  active: true
+                  createdDate: 1750161592895
+                  lastUpdated: 1750161592139
+                  scheduling:
+                    startTime: 1750287600000
+                    duration: 24
+                    durationUnit: hour
+                    recurrentRule: ""
+                    recurrent: false
+                  sloIds:
+                  - SLOffwtrVkfRmCjOZbdv3Ls9g
+                  tags: []
+                page: 1
+                pageSize: 10000
+                totalHits: 3
               schema:
                 $ref: "#/components/schemas/PaginatedResult"
           description: Fetched list of the SLO Correction Window Configurations Successfully
@@ -14841,6 +15083,20 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              name: New test for DST corrections Test-9
+              description: This is to check report API
+              active: true
+              scheduling:
+                startTime: 1749607200000
+                duration: 3
+                durationUnit: HOUR
+                recurrentRule: FREQ=DAILY;INTERVAL=1
+              sloIds:
+              - SLO4s-fs-GuT56c3v4KzQKBuQ
+              tags:
+              - test
+              - rrule
             schema:
               $ref: "#/components/schemas/CorrectionConfiguration"
         required: true
@@ -14848,6 +15104,24 @@ paths:
         "200":
           content:
             application/json:
+              example:
+                id: S8rHrE93Rz2TXScTjBw1eg
+                name: New test for DST corrections Test-9
+                description: This is to check report API
+                active: true
+                createdDate: 1750179360429
+                lastUpdated: 1750179359948
+                scheduling:
+                  startTime: 1749607200000
+                  duration: 3
+                  durationUnit: hour
+                  recurrentRule: FREQ=DAILY;INTERVAL=1
+                  recurrent: true
+                sloIds:
+                - SLO4s-fs-GuT56c3v4KzQKBuQ
+                tags:
+                - rrule
+                - test
               schema:
                 $ref: "#/components/schemas/CorrectionConfiguration"
           description: New SLO Correction Window Configuration Created Successfully
@@ -14898,12 +15172,34 @@ paths:
         "200":
           content:
             application/json:
+              example:
+                id: S8rHrE93Rz2TXScTjBw1eg
+                name: New test for DST corrections Test-9
+                description: This is to check report API
+                active: true
+                createdDate: 1750179360429
+                lastUpdated: 1750179359948
+                scheduling:
+                  startTime: 1749607200000
+                  duration: 3
+                  durationUnit: hour
+                  recurrentRule: FREQ=DAILY;INTERVAL=1
+                  recurrent: true
+                sloIds:
+                - SLO4s-fs-GuT56c3v4KzQKBuQ
+                tags:
+                - rrule
+                - test
               schema:
                 $ref: "#/components/schemas/CorrectionConfiguration"
           description: Fetched SLO Correction Window Configuration Successfully
         "404":
           content:
             application/json:
+              example:
+                errors:
+                - The SLO Correction Window Configuration you are looking for does
+                  not exist.
               schema:
                 type: string
           description: SLO Correction Window Configuration Not Found
@@ -14926,6 +15222,20 @@ paths:
       requestBody:
         content:
           application/json:
+            example:
+              name: New test for DST corrections Test-9
+              description: This is to check report API
+              active: true
+              scheduling:
+                startTime: 1749607200000
+                duration: 3
+                durationUnit: HOUR
+                recurrentRule: FREQ=DAILY;INTERVAL=1
+              sloIds:
+              - SLO4s-fs-GuT56c3v4KzQKBuQ
+              tags:
+              - test
+              - rrule
             schema:
               $ref: "#/components/schemas/CorrectionConfiguration"
         required: true
@@ -14933,12 +15243,34 @@ paths:
         "200":
           content:
             application/json:
+              example:
+                id: S8rHrE93Rz2TXScTjBw1eg
+                name: New test for DST corrections Test-9
+                description: This is to check report API
+                active: true
+                createdDate: 1750179360429
+                lastUpdated: 1750179359948
+                scheduling:
+                  startTime: 1749607200000
+                  duration: 3
+                  durationUnit: hour
+                  recurrentRule: FREQ=DAILY;INTERVAL=1
+                  recurrent: true
+                sloIds:
+                - SLO4s-fs-GuT56c3v4KzQKBuQ
+                tags:
+                - rrule
+                - test
               schema:
                 $ref: "#/components/schemas/CorrectionConfiguration"
           description: Updated SLO Correction Window Configuration Successfully
         "404":
           content:
             application/json:
+              example:
+                errors:
+                - The SLO Correction Window Configuration you are looking for does
+                  not exist.
               schema:
                 type: string
           description: SLO Correction Window Configuration Not Found
@@ -16278,6 +16610,7 @@ paths:
           enum:
           - name
           - entityType
+          - entityName
           - blueprint
           - sloStatus
           - sloWindowRemain
@@ -17675,14 +18008,18 @@ paths:
               fetched
             example: SLOdCTspkHlS_OzNOATQWgsuw
           uniqueItems: true
-      - in: query
+      - description: IDs of Correction Configurations to be Excluded from the result
+        example: N1Xj6q8QTZu_cfJOGqy4mg
+        in: query
         name: excludeCorrectionId
         schema:
           type: array
           items:
             type: string
           uniqueItems: true
-      - in: query
+      - description: IDs of Correction Configurations to be Included in the result
+        example: uvP7Z03pSUuybDT8-WHLDA
+        in: query
         name: includeCorrectionId
         schema:
           type: array
@@ -17716,6 +18053,54 @@ paths:
         "200":
           content:
             application/json:
+              example:
+                from: 1750125600000
+                to: 1750176418243
+                correctionWindows:
+                - from: 1750165200000
+                  to: 1750176418243
+                  correctionConfigs:
+                  - CpCe85NeQC2xOKXQluC30g
+                  sloConfigs:
+                  - SLOwfOpxuCJQjauS2IeHDUpAw
+                - from: 1750158000000
+                  to: 1750176418243
+                  correctionConfigs:
+                  - p9kWax0uS7K2Who1WegsSg
+                  sloConfigs:
+                  - SLOffwtrVkfRmCjOZbdv3Ls9g
+                - from: 1750150800000
+                  to: 1750165200000
+                  correctionConfigs:
+                  - uvP7Z03pSUuybDT8-WHLDA
+                  sloConfigs:
+                  - SLOukNGcoooQlev1z7aqONkIg
+                - from: 1750125600000
+                  to: 1750136400000
+                  correctionConfigs:
+                  - S8rHrE93Rz2TXScTjBw1eg
+                  sloConfigs:
+                  - SLO4s-fs-GuT56c3v4KzQKBuQ
+                - from: 1750172400000
+                  to: 1750176418243
+                  correctionConfigs:
+                  - 9Uf9TtvVRgOIMR0DkLB2Ng
+                  sloConfigs: []
+                - from: 1750125600000
+                  to: 1750136400000
+                  correctionConfigs:
+                  - 96MtLg5zRP-lmT4WOUE3Yg
+                  sloConfigs:
+                  - SLO4s-fs-GuT56c3v4KzQKBuQ
+                activeCorrectionConfigIds:
+                - S8rHrE93Rz2TXScTjBw1eg
+                - uvP7Z03pSUuybDT8-WHLDA
+                - CpCe85NeQC2xOKXQluC30g
+                - 9Uf9TtvVRgOIMR0DkLB2Ng
+                - 96MtLg5zRP-lmT4WOUE3Yg
+                - p9kWax0uS7K2Who1WegsSg
+                inActiveCorrectionConfigIds:
+                - nNMSbRwFQEKoQ1Wj0BCWcg
               schema:
                 type: array
                 items:
@@ -17724,6 +18109,10 @@ paths:
         "404":
           content:
             application/json:
+              example:
+                errors:
+                - There is No SLO Correction Windows or Error happened while trying
+                  to fetch SLO Correction Windows.
               schema:
                 type: array
                 items:
@@ -17760,6 +18149,24 @@ paths:
         name: to
         schema:
           type: string
+      - description: IDs of Correction Configurations to be Excluded from the result
+        example: N1Xj6q8QTZu_cfJOGqy4mg
+        in: query
+        name: excludeCorrectionId
+        schema:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+      - description: IDs of Correction Configurations to be Included in the result
+        example: uvP7Z03pSUuybDT8-WHLDA
+        in: query
+        name: includeCorrectionId
+        schema:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
       responses:
         "200":
           content:
@@ -19476,6 +19883,9 @@ paths:
             example:
               credentialName: userPassword
               credentialValue: "123456"
+              rbacTags:
+              - id: test
+                displayName: test
             schema:
               $ref: "#/components/schemas/SyntheticCredential"
         required: true
@@ -19627,6 +20037,9 @@ paths:
               credentialValue: password4test
               applications:
               - f4KX5zd8RW2pERKKFUCZgQ
+              rbacTags:
+              - id: test
+                displayName: test
             schema:
               $ref: "#/components/schemas/SyntheticCredential"
         required: true
@@ -19668,6 +20081,9 @@ paths:
               credentialValue: "123456"
               applications:
               - f4KX5zd8RW2pERKKFUCZgQ
+              rbacTags:
+              - id: test
+                displayName: test
             schema:
               $ref: "#/components/schemas/SyntheticCredential"
         required: true
@@ -20137,6 +20553,9 @@ paths:
                 createdAt: 1696625954210
                 modifiedAt: 1701216106812
                 modifiedBy: Internal
+                rbacTags:
+                - id: test
+                  displayName: test
               schema:
                 type: array
                 items:
@@ -20182,6 +20601,9 @@ paths:
               customProperties:
                 Team: DevTeam
                 Purpose: Demo
+              rbacTags:
+              - id: test
+                displayName: test
             schema:
               $ref: "#/components/schemas/SyntheticTest"
         required: true
@@ -20212,6 +20634,9 @@ paths:
                 customProperties:
                   Team: DevTeam
                   Purpose: Demo
+                rbacTags:
+                - id: test
+                  displayName: test
               schema:
                 $ref: "#/components/schemas/SyntheticTest"
           description: OK
@@ -20509,6 +20934,9 @@ paths:
                 createdAt: 1696625954210
                 modifiedAt: 1701216106812
                 modifiedBy: Internal
+                rbacTags:
+                - id: test
+                  displayName: test
               schema:
                 $ref: "#/components/schemas/SyntheticTest"
           description: OK
@@ -20545,6 +20973,9 @@ paths:
               configuration:
                 scripts: null
                 script: //script goes here
+              rbacTags:
+              - id: test
+                displayName: test
             schema:
               $ref: "#/components/schemas/SyntheticTest"
         required: true
@@ -20583,40 +21014,31 @@ paths:
       requestBody:
         content:
           application/json:
-            example: |
-              {
-                  "id": "ic25Vt1T5dgKzi0K7812",
-                  "label":"Test_SimplePing",
-                  "description":"this is to test a simple ping API",
-                  "serviceId":"serviceId001",
-                  "applicationId":"applicationId001",
-                  "active":true,
-                  "testFrequency":1,
-                  "playbackMode":"Simultaneous",
-                  "locations":[
-                      "saas_instana_test"
-                  ],
-                  "configuration":{
-                      "syntheticType":"HTTPAction",
-                      "url":"https://httpbin.org/post",
-                      "operation":"POST",
-                      "headers":{
-                          "Content-Type":"text/plain"
-                      },
-                      "body":"Hello World!",
-                      "validationString":"Hello World!"
-                  },
-                  "customProperties":{
-                      "Team":"DevTeam",
-                      "Purpose":"Demo"
-                  }
-                  "rbacTags": [
-                    {
-                      "id": "JxrVZtRtTUGug71K1oYMcw",
-                       "displayName": "tests"
-                    }
-                  ],
-              }
+            example:
+              id: ic25Vt1T5dgKzi0K7812
+              label: Test_SimplePing
+              description: this is to test a simple ping API
+              serviceId: serviceId001
+              applicationId: applicationId001
+              active: true
+              testFrequency: 1
+              playbackMode: Simultaneous
+              locations:
+              - saas_instana_test
+              configuration:
+                syntheticType: HTTPAction
+                url: https://httpbin.org/post
+                operation: POST
+                headers:
+                  Content-Type: text/plain
+                body: Hello World!
+                validationString: Hello World!
+              customProperties:
+                Team: DevTeam
+                Purpose: Demo
+              rbacTags:
+              - id: JxrVZtRtTUGug71K1oYMcw
+                displayName: tests
             schema:
               $ref: "#/components/schemas/SyntheticTest"
         required: true
@@ -21062,6 +21484,16 @@ paths:
         name: name
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+            - id: test
+              displayName: test
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/ApiTag"
       responses:
         "200":
           content:
@@ -21938,10 +22370,17 @@ components:
           - FAILED_LOGIN
           - LOGOUT
           - CREATE_API_TOKEN_BY_POLICY
+          - IDP_MAPPING
         email:
           type: string
         fullName:
           type: string
+        message:
+          type: string
+        meta:
+          type: object
+          additionalProperties:
+            type: object
         tenantId:
           type: string
         tenantUnitId:
@@ -21949,12 +22388,12 @@ components:
         timestamp:
           type: integer
           format: int64
+          minimum: 1118583367265
       required:
       - action
       - email
       - fullName
       - tenantId
-      - timestamp
     AccessLogResponse:
       type: object
       properties:
@@ -24702,6 +25141,13 @@ components:
             $ref: "#/components/schemas/AbstractRule"
           maxItems: 5
           minItems: 1
+        transientEventAlertMuted:
+          type: boolean
+        transientEventEnabled:
+          type: boolean
+        transientEventThreshold:
+          type: integer
+          format: int64
         triggering:
           type: boolean
       required:
@@ -24764,6 +25210,13 @@ components:
             $ref: "#/components/schemas/AbstractRule"
           maxItems: 5
           minItems: 1
+        transientEventAlertMuted:
+          type: boolean
+        transientEventEnabled:
+          type: boolean
+        transientEventThreshold:
+          type: integer
+          format: int64
         triggering:
           type: boolean
       required:
@@ -24970,6 +25423,23 @@ components:
           type: string
         url:
           type: string
+    DeleteLogsRequest:
+      type: object
+      properties:
+        filter:
+          $ref: "#/components/schemas/FilterInterface"
+        queryContext:
+          $ref: "#/components/schemas/QueryContext"
+        reason:
+          type: string
+        tagFilterExpression:
+          $ref: "#/components/schemas/TagFilterExpressionElement"
+        timeConfig:
+          $ref: "#/components/schemas/TimeConfig"
+        triggeredByUser:
+          type: string
+        websocket:
+          type: boolean
     DeprecatedTagFilter:
       type: object
       properties:
@@ -25799,6 +26269,13 @@ components:
       - encoding
       - name
       - value
+    FilterInterface:
+      type: object
+      properties:
+        rbacRestrictions:
+          $ref: "#/components/schemas/RbacRestrictions"
+        timeConfig:
+          $ref: "#/components/schemas/TimeConfig"
     FixedHttpPathSegmentMatchingRule:
       type: object
       allOf:
@@ -27666,6 +28143,19 @@ components:
       properties:
         restrictEmptyIdpGroups:
           type: boolean
+    ImpactedBeaconInfo:
+      type: object
+      properties:
+        country:
+          type: string
+        label:
+          type: string
+        subdivision:
+          type: string
+        userEmail:
+          type: string
+        userName:
+          type: string
     InfraAlertConfig:
       type: object
       properties:
@@ -28627,6 +29117,17 @@ components:
           snapshotId:
             type: string
             description: ID of the snapshot.
+    LogRetentionUpdate:
+      type: object
+      properties:
+        reasonForChange:
+          type: string
+        retentionDays:
+          type: integer
+          format: int32
+      required:
+      - reasonForChange
+      - retentionDays
     LogTimeThreshold:
       type: object
       description: The type of threshold to define the criteria when the event and
@@ -28643,6 +29144,46 @@ components:
           type: string
       required:
       - type
+    LogVolumeGroup:
+      type: object
+      properties:
+        label:
+          type: string
+          maxLength: 256
+          minLength: 0
+        logVolume:
+          type: integer
+          format: int64
+      required:
+      - label
+      - logVolume
+    LogVolumeUsageItem:
+      type: object
+      properties:
+        logVolume:
+          type: integer
+          format: int64
+        numberOfMonth:
+          type: integer
+          format: int32
+          maximum: 12
+          minimum: 1
+        retentionPeriods:
+          type: array
+          items:
+            $ref: "#/components/schemas/RetentionPeriod"
+      required:
+      - logVolume
+      - retentionPeriods
+    LogVolumeUsageResult:
+      type: object
+      properties:
+        logVolumeUsageItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogVolumeUsageItem"
+      required:
+      - logVolumeUsageItems
     LogsApplicationAlertRule:
       type: object
       allOf:
@@ -29852,6 +30393,8 @@ components:
           $ref: "#/components/schemas/MobileAppMonitoringBeacon"
         cursor:
           $ref: "#/components/schemas/IngestionOffsetCursor"
+        impactedBeaconInfo:
+          $ref: "#/components/schemas/ImpactedBeaconInfo"
       required:
       - beacon
       - cursor
@@ -30050,6 +30593,8 @@ components:
           type: object
           additionalProperties:
             type: string
+        label:
+          type: string
         latitude:
           type: number
           format: double
@@ -30232,7 +30777,6 @@ components:
       - mobileAppId
       - performanceSubtype
       - rateLimitBeaconType
-      - sessionId
       - type
     MobileAppMonitoringMetricDescription:
       type: object
@@ -30843,6 +31387,83 @@ components:
       - kind
       - name
       - webhookUrl
+    QueryContext:
+      type: object
+      properties:
+        querySource:
+          type: string
+          enum:
+          - UNKNOWN
+          - WEBSOCKET
+          - HTTP
+    RbacRestrictions:
+      type: object
+      properties:
+        actionFilters:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        alertingChannels:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        applications:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        businessPerspectives:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        customDashboards:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        infraDfqFilter:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        kubernetesClusters:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        kubernetesNamespaces:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        logFilters:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        mobileApps:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        syntheticCredentials:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        syntheticTests:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        websites:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
     RecurrentMaintenanceWindow:
       type: object
       allOf:
@@ -30952,6 +31573,23 @@ components:
       required:
       - id
       - name
+    RetentionPeriod:
+      type: object
+      properties:
+        logVolume:
+          type: integer
+          format: int64
+        logVolumeGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogVolumeGroup"
+        retentionDays:
+          type: integer
+          format: int32
+          maximum: 90
+          minimum: 7
+      required:
+      - logVolume
     RollingTimeWindow:
       type: object
       allOf:
@@ -34409,6 +35047,20 @@ components:
       - $ref: "#/components/schemas/WebsiteAlertRule"
       required:
       - metricName
+    TimeConfig:
+      type: object
+      properties:
+        autoRefresh:
+          type: boolean
+        focusedMoment:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
+        windowSize:
+          type: integer
+          format: int64
     TimeFrame:
       type: object
       description: Time range for which the data should be retrieved.
@@ -35860,6 +36512,8 @@ components:
           $ref: "#/components/schemas/WebsiteMonitoringBeacon"
         cursor:
           $ref: "#/components/schemas/IngestionOffsetCursor"
+        impactedBeaconInfo:
+          $ref: "#/components/schemas/ImpactedBeaconInfo"
       required:
       - beacon
       - cursor
@@ -36074,6 +36728,8 @@ components:
           type: object
           additionalProperties:
             type: string
+        label:
+          type: string
         largestContentfulPaintTime:
           type: integer
           format: int64
@@ -36661,6 +37317,9 @@ x-tagGroups:
   - Infrastructure Resources
   - Infrastructure Catalog
   - Infrastructure Topology
+- name: Logging
+  tags:
+  - Logging Analyze
 - name: Synthetic Monitoring
   tags:
   - Synthetic Catalog
