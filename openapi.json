@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Instana REST API documentation",
-    "version": "1.299.1224",
+    "version": "1.300.1120",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -715,42 +715,6 @@
           "Application Analyze"
         ],
         "description": "Use the endpoint to retrieve a list of traces.\r\n\r\n**Deprecated Parameter:** `tagFilters` is deprecated. It is replaced by `tagFilterExpression`.\r\n"
-      }
-    },
-    "/api/application-monitoring/analyze/traces/{id}": {
-      "get": {
-        "deprecated": true,
-        "description": "Replaced by /api/application-monitoring/v2/analyze/traces/{id}",
-        "operationId": "getTrace",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "404": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "This API is not supported anymore"
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ],
-        "summary": "Get trace detail",
-        "tags": [
-          "Application Analyze"
-        ]
       }
     },
     "/api/application-monitoring/applications": {
@@ -2004,11 +1968,14 @@
           }
         ],
         "responses": {
-          "default": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "default response"
+          "204": {
+            "description": "Successful - no content to return."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
           }
         },
         "security": [
@@ -2388,11 +2355,14 @@
           }
         ],
         "responses": {
-          "default": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "default response"
+          "204": {
+            "description": "Successful - no content to return."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
           }
         },
         "security": [
@@ -2438,6 +2408,12 @@
               }
             },
             "description": "OK"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "No config found for provided service id"
           }
         },
         "security": [
@@ -3515,6 +3491,15 @@
               }
             },
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "404": {
+            "description": "Resource not found."
           }
         },
         "security": [
@@ -23131,6 +23116,49 @@
         "description": "Set the RestrictEmptyIdpGroups value as true/false. See [Check user restrictions for empty Idp group mapping](#operation/getIdentityProviderPatch) for more details."
       }
     },
+    "/api/settings/rbac/mappings/overview": {
+      "get": {
+        "operationId": "getGroupMappingsOverview",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": "mappingId",
+                    "key": "roles",
+                    "value": "analyst",
+                    "role": "default",
+                    "team": "testing"
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupMappingOverview"
+                  }
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "description": "No group mapping overviews found"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureAuthenticationMethods"
+            ]
+          }
+        ],
+        "summary": "Get all group mappings overview",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
     "/api/settings/rbac/mappings/{id}": {
       "delete": {
         "operationId": "deleteGroupMapping",
@@ -24449,11 +24477,14 @@
           "required": true
         },
         "responses": {
-          "default": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "default response"
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
           }
         },
         "security": [
@@ -25766,7 +25797,7 @@
             }
           },
           {
-            "description": "From Timestamp in milliseconds (13-digit)",
+            "description": "Correction starting timestamp in milliseconds (13-digit)",
             "example": 1706713140000,
             "in": "query",
             "name": "from",
@@ -25777,7 +25808,7 @@
             }
           },
           {
-            "description": "To Timestamp in milliseconds (13-digit)",
+            "description": "Correction ending timestamp in milliseconds (13-digit)",
             "example": 1706713140000,
             "in": "query",
             "name": "to",
@@ -28361,12 +28392,6 @@
           }
         ],
         "responses": {
-          "200": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "OK"
-          },
           "204": {
             "description": "Successful - no content to return."
           },
@@ -28497,11 +28522,11 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "content": {
               "application/json": {}
             },
-            "description": "OK"
+            "description": "Successful - resource created"
           },
           "401": {
             "description": "Unauthorized access - requires user authentication."
@@ -29172,7 +29197,7 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "content": {
               "application/json": {
                 "example": {
@@ -29213,7 +29238,7 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Successful - resource created"
           },
           "401": {
             "description": "Unauthorized access - requires user authentication."
@@ -29517,12 +29542,6 @@
           }
         ],
         "responses": {
-          "200": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "OK"
-          },
           "204": {
             "description": "Successful - no content to return."
           },
@@ -30336,7 +30355,13 @@
                   {
                     "id": "K3bP-bmCRkyimNai9vvq8o",
                     "name": "example_website",
-                    "appName": "example_website"
+                    "appName": "example_website",
+                    "rbacTags": [
+                      {
+                        "id": "test",
+                        "displayName": "test"
+                      }
+                    ]
                   }
                 ],
                 "schema": {
@@ -30504,11 +30529,7 @@
           "200": {
             "content": {
               "application/json": {
-                "example": {
-                  "id": "1ELrNt-eQ9SlK4D_EgLMiA",
-                  "name": "example_website",
-                  "appName": "example_website"
-                },
+                "example": " {\n   \"id\": \"1ELrNt-eQ9SlK4D_EgLMiA\",\n   \"name\": \"example_website\",\n   \"appName\": \"example_website\"\n   \"rbacTags: [{\n       \"id\": \"test\",\n       \"displayName\": \"test\"\n   }]\n }\n",
                 "schema": {
                   "$ref": "#/components/schemas/Website"
                 }
@@ -31300,6 +31321,84 @@
         ]
       }
     },
+    "/api/website-monitoring/config/{websiteId}/teams": {
+      "put": {
+        "description": "API request to update teams of a website.",
+        "operationId": "updateWebsiteTeams",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": [
+                {
+                  "id": "test",
+                  "displayName": "test"
+                }
+              ],
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ApiTag"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": "test",
+                    "displayName": "test"
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiTag"
+                  }
+                }
+              }
+            },
+            "description": "Website successfully configured"
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "description": "Unauthorized access - requires user authentication."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureEumApplications"
+            ]
+          }
+        ],
+        "summary": "Update teams assigned to the website",
+        "tags": [
+          "Website Configuration"
+        ]
+      }
+    },
     "/api/website-monitoring/metrics": {
       "post": {
         "deprecated": true,
@@ -31609,6 +31708,7 @@
         "type": "object",
         "discriminator": {
           "mapping": {
+            "BIDIRECTIONAL_MS_TEAMS": "#/components/schemas/BidirectionalMsTeamsAppIntegration",
             "BIDIRECTIONAL_SLACK": "#/components/schemas/BidirectionalSlackAppIntegration",
             "EMAIL": "#/components/schemas/EmailIntegration",
             "GOOGLE_CHAT": "#/components/schemas/GoogleChatIntegration",
@@ -32980,9 +33080,6 @@
           "limitedBizOpsScope": {
             "type": "boolean"
           },
-          "limitedCustomDashboardsScope": {
-            "type": "boolean"
-          },
           "limitedInfrastructureScope": {
             "type": "boolean"
           },
@@ -34077,6 +34174,53 @@
           "traceId"
         ]
       },
+      "BidirectionalMsTeamsAppIntegration": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractIntegration"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "apiTokenId": {
+                "type": "string"
+              },
+              "channelId": {
+                "type": "string"
+              },
+              "channelName": {
+                "type": "string"
+              },
+              "serviceUrl": {
+                "type": "string"
+              },
+              "teamId": {
+                "type": "string"
+              },
+              "teamName": {
+                "type": "string"
+              },
+              "tenantId": {
+                "type": "string"
+              },
+              "tenantName": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "required": [
+          "apiTokenId",
+          "channelId",
+          "channelName",
+          "id",
+          "kind",
+          "name",
+          "teamId",
+          "tenantId"
+        ]
+      },
       "BidirectionalSlackAppIntegration": {
         "type": "object",
         "allOf": [
@@ -34614,31 +34758,38 @@
         "properties": {
           "activeCorrectionConfigIds": {
             "type": "array",
+            "description": "IDs of correction configs that are active",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "IDs of correction configs that are active"
             },
             "uniqueItems": true
           },
           "correctionWindows": {
             "type": "array",
+            "description": "List of Correction Windows",
             "items": {
               "$ref": "#/components/schemas/CorrectionWindow"
             }
           },
           "from": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "Correction starting timestamp in milliseconds (13-digit)"
           },
           "inActiveCorrectionConfigIds": {
             "type": "array",
+            "description": "IDs of correction configs that are inactive",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "IDs of correction configs that are inactive"
             },
             "uniqueItems": true
           },
           "to": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "Correction ending timestamp in milliseconds (13-digit)"
           }
         }
       },
@@ -34706,10 +34857,12 @@
         "properties": {
           "duration": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "Duration of the correction window, defined by the count of time units."
           },
           "durationUnit": {
             "type": "string",
+            "description": "Unit for duration. Supported values: `MINUTE`, `HOUR`, `DAY`.",
             "enum": [
               "millisecond",
               "second",
@@ -34724,11 +34877,13 @@
             "type": "boolean"
           },
           "recurrentRule": {
-            "type": "string"
+            "type": "string",
+            "description": "Recurrence Rule defines how the event recurs, using iCalendar RRULE format (e.g., `FREQ=DAILY;INTERVAL=1`).It supports fields like FREQ, INTERVAL, BYDAY, etc. Refer to RFC 5545: https://datatracker.ietf.org/doc/html/rfc5545#section-3.3.10"
           },
           "startTime": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "Start time of the correction window in milliseconds since epoch (UTC) (e.g., `1706713140000`)."
           }
         },
         "required": [
@@ -34739,28 +34894,35 @@
       },
       "CorrectionWindow": {
         "type": "object",
+        "description": "List of Correction Windows",
         "properties": {
           "correctionConfigs": {
             "type": "array",
+            "description": "IDs of the Correction configurations in the Correction Window",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "IDs of the Correction configurations in the Correction Window"
             },
             "uniqueItems": true
           },
           "from": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "Correction Window starting timestamp in milliseconds (13-digit)"
           },
           "sloConfigs": {
             "type": "array",
+            "description": "IDs of the SLO configurations in the Correction Window",
             "items": {
-              "type": "string"
+              "type": "string",
+              "description": "IDs of the SLO configurations in the Correction Window"
             },
             "uniqueItems": true
           },
           "to": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "Correction Window ending timestamp in milliseconds (13-digit)"
           }
         }
       },
@@ -35155,6 +35317,7 @@
           }
         ],
         "required": [
+          "aggregation",
           "customEventName",
           "metricName"
         ]
@@ -35341,6 +35504,7 @@
           }
         ],
         "required": [
+          "aggregation",
           "customEventName",
           "metricName"
         ]
@@ -38603,6 +38767,26 @@
           "value"
         ]
       },
+      "GroupMappingOverview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "team": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
       "HealthState": {
         "type": "object",
         "properties": {
@@ -41720,6 +41904,10 @@
             "maxLength": 128,
             "minLength": 0
           },
+          "bytesIngested": {
+            "type": "integer",
+            "format": "int32"
+          },
           "carrier": {
             "type": "string",
             "maxLength": 256,
@@ -42916,13 +43104,6 @@
             "uniqueItems": true
           },
           "businessPerspectives": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "uniqueItems": true
-          },
-          "customDashboards": {
             "type": "array",
             "items": {
               "type": "string"
@@ -50547,7 +50728,9 @@
         "Apdex Report",
         "Service Levels Objective(SLO) Configurations",
         "Service Levels Objective(SLO) Report",
-        "Service Levels Alert Configuration"
+        "Service Levels Alert Configuration",
+        "SLO Correction Configurations",
+        "SLO Correction Windows"
       ]
     },
     {
