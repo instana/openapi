@@ -151,8 +151,8 @@ The metric synthetic.tags adds the latest list of custom properties to the respo
 
 ### Optional Parameters
 **includeLocationIdGrouping** A boolean.  The default grouping for the API is synthetic.testId.  
-Specify *TRUE* to change the grouping to synthetic.testId, synthetic.locationId.  The default for  
-this parameter is *FALSE*.
+Specify *true* to change the grouping to synthetic.testId, synthetic.locationId.  The default for  
+this parameter is *false*.
 
 **pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics
 1. *page* select the page number you want to retrieve
