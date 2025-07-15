@@ -171,7 +171,7 @@ An example: if there are three tests and their last value status
 are 1, 0, 1 (indicating success, failure, success) and 
 **tagFilters** is not specified, then the API with LAST_VALUE will
 return three tests with the stated statuses. If **tagFilters** is specified with
-synthetic.metricsStatus equal to 0 (failed), then the final result set will the tests that 
+synthetic.metricsStatus equal to 0 (failed), then the final result set will be the tests that 
 failed the last time that they ran and in this example will be one record consisting
 of the test with status 0.
 
