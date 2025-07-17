@@ -3,8 +3,9 @@ Searching for answers and best pratices? Check our [IBM Instana Community](https
 <div style="background-color:#e6f0ff; padding: 12px; border-left: 6px solid #0052cc; font-size: 14px; display: flex; align-items: center;">
   <img src="https://img.icons8.com/ios-filled/50/0052cc/info.png" width="18" height="18" style="margin-right: 8px;" alt="info icon"/>
   <span>
-    <b>This documentation has now moved</b> please access the latest document 
-    <a href="https://developer.ibm.com/apis/catalog/instana--instana-rest-api/Introduction" target="_blank">here</a>.
+    <b>Our API documentation is moving to</b> 
+    <a href="https://developer.ibm.com/apis/catalog/instana--instana-rest-api/Introduction" target="_blank">API Hub</a>
+	 — please update your bookmarks now, as the current site will be deprecated after Release-306.
   </span>
 </div>
 

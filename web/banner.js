@@ -7,11 +7,11 @@ function initBanner() {
       <img src="https://img.icons8.com/ios-filled/50/0052cc/info.png" 
            class="instana-custom-banner-icon" alt="info icon"/>
       <span>
-        <span class="instana-custom-banner-bold">This documentation has now moved</span> - please access the latest document 
+        <span class="instana-custom-banner-bold">Also available on </span>
         <a href="https://developer.ibm.com/apis/catalog/instana--instana-rest-api/Introduction" 
            target="_blank" 
            class="instana-custom-banner-link">
-          here
+          IBM APIHUB
         </a>.
       </span>
     `;
