@@ -7,7 +7,7 @@ info:
   description: Documentation for INSTANA REST API
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.300.1120
+  version: 1.301.1285
   x-description: info
   x-logo:
     altText: instana logo
@@ -3390,7 +3390,7 @@ paths:
         "403":
           description: Automation feature is not enabled or Insufficient permissions.
         "404":
-          description: 'Automation action not found. '
+          description: Automation action not found.
       security:
       - ApiKeyAuth:
         - Default
@@ -3633,8 +3633,6 @@ paths:
           description: Automation policies list filtered by the values in query parameters.
         "403":
           description: Insufficient permissions.
-        "412":
-          description: Invalid input value.
         "500":
           description: Failed to retrieve the automation policies.
       security:
@@ -3669,7 +3667,7 @@ paths:
               $ref: "#/components/schemas/Policy"
         required: true
       responses:
-        "200":
+        "201":
           content:
             application/json:
               example:
@@ -3716,12 +3714,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Policy"
           description: New policy created.
+        "400":
+          description: Bad request.
         "403":
           description: Insufficient permissions.
         "412":
           description: Invalid input value.
         "500":
-          description: Server Error.
+          description: Internal Server Error.
       security:
       - ApiKeyAuth:
         - canConfigureAutomationPolicies
@@ -3742,20 +3742,22 @@ paths:
                 $ref: "#/components/schemas/Policy"
         required: true
       responses:
-        "200":
+        "201":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Policy"
-          description: OK
+          description: Created.
+        "400":
+          description: Bad request.
         "403":
           description: Insufficient permissions.
         "412":
           description: Invalid input value.
         "500":
-          description: Server Error.
+          description: Internal Server Error.
       security:
       - ApiKeyAuth:
         - canConfigureAutomationPolicies
@@ -12994,6 +12996,9 @@ paths:
               example:
               - id: K3bP-bmCRkyimNai9vvq8o
                 name: example_mobile_app
+                rbacTags:
+                - id: test
+                  displayName: test
               schema:
                 type: array
                 items:
@@ -13018,6 +13023,16 @@ paths:
         name: name
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+            - id: test
+              displayName: test
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/ApiTag"
       responses:
         "200":
           content:
@@ -13675,6 +13690,52 @@ paths:
       - ApiKeyAuth:
         - ConfigureMobileAppMonitoring
       summary: Upload sourcemap file for mobile app
+      tags:
+      - Mobile App Configuration
+  /api/mobile-app-monitoring/config/{mobileAppId}/teams:
+    put:
+      description: API request to update teams of a mobile app.
+      operationId: updateMobileAppTeams
+      parameters:
+      - in: path
+        name: mobileAppId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+            - id: test
+              displayName: test
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/ApiTag"
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+              - id: test
+                displayName: test
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiTag"
+          description: Mobile App successfully configured
+        "400":
+          description: Bad request.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
+      security:
+      - ApiKeyAuth:
+        - ConfigureMobileAppMonitoring
+      summary: Update teams assigned to the mobile app
       tags:
       - Mobile App Configuration
   /api/mobile-app-monitoring/metrics:
@@ -16266,6 +16327,35 @@ paths:
       tags:
       - Groups
       x-description: deleteGroupMapping
+    get:
+      operationId: getGroupMapping
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                id: mappingId
+                key: roles
+                value: analyst
+                groupId: "-3"
+              schema:
+                $ref: "#/components/schemas/GroupMapping"
+          description: OK
+        "404":
+          description: No group mapping found
+      security:
+      - ApiKeyAuth:
+        - CanConfigureAuthenticationMethods
+      summary: Get group mapping
+      tags:
+      - Groups
+      x-description: getGroupMapping
     put:
       operationId: updateGroupMapping
       parameters:
@@ -17111,15 +17201,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/ServiceLevelObjectiveConfiguration"
           description: Updated SLO Configuration Successfully
-        "404":
+        "400":
           content:
             application/json:
               example:
                 errors:
-                - The sloConfiguration you are looking for does not exist.
+                - "SloConfiguration with id: GC8r6gbZT4WIhtsMx_YgLg was not found"
               schema:
                 type: string
-          description: SLO Configuration Not Found
+          description: Bad Request
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -17816,6 +17906,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        "422":
+          content:
+            application/json:
+              example: "{\"errors\":[\"sliEntity.entityId must not be blank\"]}"
+              schema:
+                type: string
+          description: Unprocessable Entity
       security:
       - ApiKeyAuth:
         - canConfigureServiceLevelIndicators
@@ -19075,6 +19172,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/TagCatalog"
           description: OK
+        "400":
+          description: Bad request.
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - Default
@@ -19111,6 +19214,10 @@ paths:
                 items:
                   $ref: "#/components/schemas/MetricDescription"
           description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "500":
+          description: Internal server error.
       security:
       - ApiKeyAuth:
         - Default
@@ -19265,6 +19372,137 @@ paths:
       - ApiKeyAuth:
         - Default
       summary: Get Synthetic test playback results
+      tags:
+      - Synthetic Test Playback Results
+  /api/synthetics/results/analytic:
+    post:
+      description: Get a list of playback results metrics for Synthetic tests matching
+        the specified parameters for the specified analytic
+      operationId: getSyntheticResultAnalytic
+      requestBody:
+        content:
+          application/json:
+            example:
+              pagination:
+                page: 1
+                pageSize: 3
+              syntheticMetrics:
+              - synthetic.metricsResponseTime
+              - status
+              - synthetic.errors
+              order:
+                by: start_time
+                direction: DESC
+              timeFrame:
+                to: 0
+                windowSize: 144000000
+              TagFilterExpression:
+                type: EXPRESSION
+                elements:
+                - type: EXPRESSION
+                  elements:
+                  - name: synthetic.errors
+                    stringValue: Exception
+                    operator: CONTAINS
+                  logicalOperator: OR
+                logicalOperator: OR
+              analyticFunction: LAST_VALUE
+            schema:
+              $ref: "#/components/schemas/GetTestResultAnalytic"
+        x-payload: getSyntheticResultAnalytic
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                items:
+                - testResultCommonProperties:
+                    testId: 9i6gpys6whaYtN5k9VeD
+                    testName: My_Test_ReadFile
+                    locationId: DemoPoP1_saas_instana_test
+                    clientId: saas_instana_test
+                    id: 8f3bedbb-e278-4584-81b8-6efe07286a55
+                    errors:
+                    - |-
+                      {timeStamp=1706131087368, errorType=Exception, errorMessage=access to path /etc/pop/redispass/redis-password is denied, stackTrace=Error: access to path /etc/pop/redispass/redis-password is denied
+                          at /opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1750914
+                          at Array.forEach (<anonymous>)
+                          at s (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1750876)
+                          at Object.openSync (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1751693)
+                          at VM Wrapper.apply (vm/bridge.js:468:15)
+                          at /tmp/9i6gpys6whaYtN5k9VeD/script.js:7:13
+                          at /tmp/9i6gpys6whaYtN5k9VeD/script.js:21:3
+                          at VM Wrapper.apply (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1806330)
+                          at k.run (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1771939)
+                          at Object.e.exports.execute (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:1739863)
+                          at process.<anonymous> (/opt/ibm/microservice/javascript-playback/bin/vm/runner.bundle.js:2:2197562)
+                          at Object.onceWrapper (node:events:628:26)
+                          at process.emit (node:events:513:28)
+                          at emit (node:internal/child_process:946:14)
+                          at processTicksAndRejections (node:internal/process/task_queues:84:21)}
+                    locationDisplayLabel: DemoPoP1(vm)
+                  metrics:
+                    response_time:
+                    - - 1706131087358
+                      - 9
+                    status:
+                    - - 1706131087358
+                      - 0
+                - testResultCommonProperties:
+                    testId: QRN50tqvJPnwKIjn2qKx
+                    testName: Demo_IBM_simple_ping
+                    locationId: DemoPoP1_saas_instana_test
+                    clientId: saas_instana_test
+                    id: 7f503812-c428-4ea8-995d-dbdf97c145b7
+                    errors:
+                    - "{timeStamp=1706131070262, errorType=Exception, errorMessage=Ping:\
+                      \ http://httpbin.org/status/200%2C400 -> Expected a success\
+                      \ status (status < 400) but got 400, stackTrace=}"
+                    locationDisplayLabel: DemoPoP1(vm)
+                  metrics:
+                    response_time:
+                    - - 1706131070111
+                      - 149
+                    status:
+                    - - 1706131070111
+                      - 0
+                - testResultCommonProperties:
+                    testId: mfwdxHpvwXM1PGUBAFeP
+                    testName: test-disable-api-simple-jul17
+                    locationId: f7cEoG61DJfVyWcDnWsc
+                    clientId: saas_instana_test
+                    id: a1a4ed1c-7c87-45d5-bf45-3f3c462445d7
+                    errors:
+                    - |-
+                      {timeStamp=1706131069537, errorType=Exception, errorMessage=Unable to parse response body as JSON: Unexpected token < in JSON at position 0, stackTrace=Error: Unable to parse response body as JSON: Unexpected token < in JSON at position 0
+                          at /opt/ibm/microservice/javascript-playback/bin/index.js:2:1057667
+                          at k.<anonymous> (/opt/ibm/microservice/javascript-playback/bin/index.js:2:1058257)
+                          at runMicrotasks (<anonymous>)
+                          at processTicksAndRejections (node:internal/process/task_queues:96:5)}
+                    locationDisplayLabel: Test-Pop-101
+                  metrics:
+                    response_time:
+                    - - 1706131069036
+                      - 490
+                    status:
+                    - - 1706131069036
+                      - 0
+                page: 1
+                pageSize: 3
+                totalHits: 14305
+              schema:
+                $ref: "#/components/schemas/TestResultListResult"
+          description: OK
+        "401":
+          description: Unauthorized access - requires user authentication.
+        "403":
+          description: Insufficient permissions.
+        "500":
+          description: Internal server error.
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get a list of Synthetic tests based on the specified analytic function
       tags:
       - Synthetic Test Playback Results
   /api/synthetics/results/list:
@@ -24338,6 +24576,8 @@ components:
             type: string
           channelName:
             type: string
+          instanaUrl:
+            type: string
           serviceUrl:
             type: string
           teamId:
@@ -24353,6 +24593,7 @@ components:
       - channelId
       - channelName
       - id
+      - instanaUrl
       - kind
       - name
       - teamId
@@ -25998,6 +26239,8 @@ components:
         pluginId:
           type: string
           description: Plugin name
+        snapshotId:
+          type: string
         steadyId:
           type: string
           description: Steady identifier for the entity.
@@ -27212,6 +27455,33 @@ components:
           $ref: "#/components/schemas/TimeFrame"
       required:
       - metrics
+    GetTestResultAnalytic:
+      type: object
+      properties:
+        analyticFunction:
+          type: string
+        includeLocationIdGrouping:
+          type: boolean
+          writeOnly: true
+        order:
+          $ref: "#/components/schemas/Order"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        syntheticMetrics:
+          type: array
+          items:
+            type: string
+        tagFilterExpression:
+          $ref: "#/components/schemas/TagFilterExpressionElement"
+        tagFilters:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagFilter"
+        timeFrame:
+          $ref: "#/components/schemas/TimeFrame"
+      required:
+      - analyticFunction
+      - syntheticMetrics
     GetTestResultBase:
       type: object
       properties:
@@ -34289,6 +34559,7 @@ components:
           type: string
       required:
       - customization
+      - runType
       - testId
     SyntheticTestCICDCustomization:
       type: object
@@ -34343,6 +34614,7 @@ components:
       - customization
       - locationId
       - locationLabel
+      - runType
       - testId
       - testLabel
       - testResultId
