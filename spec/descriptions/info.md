@@ -1,5 +1,14 @@
 Searching for answers and best pratices? Check our [IBM Instana Community](https://community.ibm.com/community/user/aiops/communities/community-home?CommunityKey=58f324a3-3104-41be-9510-5b7c413cc48f).
 
+<div style="background-color:#e6f0ff; padding: 12px; border-left: 6px solid #0052cc; font-size: 14px; display: flex; align-items: center;">
+  <img src="https://img.icons8.com/ios-filled/50/0052cc/info.png" width="18" height="18" style="margin-right: 8px;" alt="info icon"/>
+  <span>
+    <b>Our API documentation is moving to</b> 
+    <a href="https://developer.ibm.com/apis/catalog/instana--instana-rest-api/Introduction" target="_blank">API Hub</a>
+	 — please update your bookmarks now, as the current site will be deprecated after Release-306.
+  </span>
+</div>
+
 ## Overview
 The Instana REST API provides programmatic access to the Instana platform. It can be used to retrieve data available through the Instana UI Dashboard -- metrics, events, traces, etc -- and also to automate configuration tasks such as user management.
 
