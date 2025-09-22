@@ -7,7 +7,7 @@ info:
   description: Documentation for INSTANA REST API
   termsOfService: https://www.instana.com/terms-of-use/
   title: Instana REST API documentation
-  version: 1.304.1059
+  version: 1.305.1259
   x-description: info
   x-ibm-ahub-try: true
   x-logo:
@@ -549,14 +549,14 @@ paths:
       tags:
       - Application Resources
       x-ibm-ahub-byok: true
-  /api/application-monitoring/applications/services:
+  /api/application-monitoring/applications;id=<appId>/services:
     get:
       description: |
         Use this API endpoint if one wants to retrieve a list of services in an Application Perspective.
         A use case could be to retrieve all service ids present in an Application Perspective.
       operationId: getApplicationServices
       parameters:
-      - description: Name of application/service
+      - description: Name of service (partial match allowed)
         in: query
         name: nameFilter
         schema:
@@ -13006,9 +13006,8 @@ paths:
                 items:
                   type: string
                   enum:
-                  - ACTION_GENERATION
-                  - AUTOMATED_INVESTIGATION
                   - INCIDENT_SUMMARIZATION
+                  - MANUAL_ACTION_GENERATION
                   - SCRIPT_GENERATION
           description: OK
         '401':
@@ -13024,8 +13023,20 @@ paths:
       x-ibm-ahub-byok: true
   /api/llm/egress/handler:
     get:
-      description: Retrieve all LLM egress gateways.
+      description: Retrieve all LLM gateways. Optionally filter by enabled status
+        or capability.
       operationId: getLLMEgressGateways
+      parameters:
+      - description: Filter by enabled status (true/false)
+        in: query
+        name: enabled
+        schema:
+          type: boolean
+      - description: Filter by capability name
+        in: query
+        name: capability
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -13069,12 +13080,12 @@ paths:
       security:
       - ApiKeyAuth: [
           ]
-      summary: Get all LLM egress gateways
+      summary: Get all LLM gateways
       tags:
       - AI Management
       x-ibm-ahub-byok: true
     post:
-      description: Create a new LLM egress gateway
+      description: Create a new LLM gateway
       operationId: addLLMEgressGateway
       requestBody:
         content:
@@ -13139,16 +13150,16 @@ paths:
       security:
       - ApiKeyAuth:
         - canConfigureLLM
-      summary: Create a new LLM egress gateway
+      summary: Create a new LLM gateway
       tags:
       - AI Management
       x-ibm-ahub-byok: true
   /api/llm/egress/handler/{id}:
     delete:
-      description: Delete a LLM egress gateway by ID.
+      description: Delete a LLM gateway by ID.
       operationId: deleteLLMEgressGateway
       parameters:
-      - description: LLM egress gateway ID
+      - description: LLM gateway ID
         in: path
         name: id
         required: true
@@ -13168,15 +13179,15 @@ paths:
       security:
       - ApiKeyAuth:
         - canConfigureCustomHandlers
-      summary: Delete a LLM egress gateway
+      summary: Delete a LLM gateway
       tags:
       - AI Management
       x-ibm-ahub-byok: true
     get:
-      description: Retrieve a LLM egress gateway by ID.
+      description: Retrieve a LLM gateway by ID.
       operationId: getLLMEgressGatewayById
       parameters:
-      - description: LLM egress gateway ID
+      - description: LLM gateway ID
         in: path
         name: id
         required: true
@@ -13223,15 +13234,15 @@ paths:
       security:
       - ApiKeyAuth:
         - Default
-      summary: Get a LLM egress gateway by ID
+      summary: Get a LLM gateway by ID
       tags:
       - AI Management
       x-ibm-ahub-byok: true
     put:
-      description: Update an existing LLM egress gateway by ID.
+      description: Update an existing LLM gateway by ID.
       operationId: updateLLMEgressGateway
       parameters:
-      - description: LLM egress handler ID
+      - description: LLM gateway ID
         in: path
         name: id
         required: true
@@ -13302,7 +13313,37 @@ paths:
       security:
       - ApiKeyAuth:
         - canConfigureLLM
-      summary: Update an existing LLM egress gateway.
+      summary: Update an existing LLM gateway.
+      tags:
+      - AI Management
+      x-ibm-ahub-byok: true
+  /api/llm/egress/handler/{id}/enable:
+    put:
+      description: Enable a LLM gateway by ID. Any other enabled gateway for the same
+        capability will be automatically disabled.
+      operationId: enableLLMEgressGateway
+      parameters:
+      - description: LLM gateway ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Successful - no content to return.
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '403':
+          description: Insufficient permissions.
+        '404':
+          description: Resource not found.
+        '500':
+          description: Internal server error.
+      security:
+      - ApiKeyAuth:
+        - canConfigureLLM
+      summary: Set the enabled status of a LLM gateway
       tags:
       - AI Management
       x-ibm-ahub-byok: true
@@ -13311,8 +13352,7 @@ paths:
       description: |
         Returns aggregated log volume usage data for a specified time range and optional grouping tag.
         `fromTs` and `toTs` are required and must define a valid time range (i.e., `fromTs` <= `toTs`).
-        Valid groupingTag`s are: kubernetes_cluster_name, kubernetes_daemonset_name, kubernetes_namespace_name,
-        kubernetes_deployment_name, host_name, zone.
+        Refer to the query parameter description for valid `groupingTag` values.
       operationId: getLogVolumeUsage
       parameters:
       - description: Start timestamp in seconds. Must be <= `toTs`.
@@ -13331,7 +13371,10 @@ paths:
         schema:
           type: integer
           format: int64
-      - description: Optional tag to group volume usage by.
+      - description: |
+          Optional tag to group volume usage by. Valid groupingTag values are:
+          `kubernetes_cluster_name`, `kubernetes_daemonset_name`, `kubernetes_namespace_name`,
+          `kubernetes_deployment_name`, `host_name`, `zone`.
         example: zone
         in: query
         name: groupingTag
@@ -13827,6 +13870,43 @@ paths:
       tags:
       - Mobile App Configuration
       x-ibm-ahub-byok: true
+    get:
+      description: API request to get a specific mobile app configuration by ID.
+      operationId: getSingleMobileAppConfig
+      parameters:
+      - description: Mobile App ID
+        example: K3bP-bmCRkyimNai9vvq8o
+        in: path
+        name: mobileAppId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                id: K3bP-bmCRkyimNai9vvq8o
+                name: example_mobile_app
+                rbacTags:
+                - id: test
+                  displayName: test
+              schema:
+                $ref: '#/components/schemas/MobileApp'
+          description: OK
+        '401':
+          description: Unauthorized access - requires user authentication.
+        '404':
+          description: Resource not found.
+        '500':
+          description: Internal server error.
+      security:
+      - ApiKeyAuth:
+        - Default
+      summary: Get mobile app configuration by ID
+      tags:
+      - Mobile App Configuration
+      x-ibm-ahub-byok: true
     put:
       description: API request to rename mobile app.
       operationId: renameMobileAppConfig
@@ -14140,6 +14220,18 @@ paths:
         required: true
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              description: InstanaAgentExample_v2
+            schema:
+              type: object
+              description: Source map upload configuration
+              properties:
+                description:
+                  type: string
+                  description: Name of configuration
       responses:
         '200':
           content:
@@ -22117,6 +22209,13 @@ paths:
         name: locationId
         schema:
           type: string
+      - description: 'Defines the credential name by which the returned synthetic
+          tests will be filtered by. '
+        example: adminPassword
+        in: query
+        name: credentialName
+        schema:
+          type: string
       - description: Defines the attribute by which the returned synthetic tests will
           be ordered by. Order using '+' means ASC and '-' means DESC
         example: +label
@@ -23203,7 +23302,14 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/ApiTag'
+                type: object
+                properties:
+                  displayName:
+                    type: string
+                    description: Name of team tag
+                  id:
+                    type: string
+                    description: ID of team tag
       responses:
         '200':
           content:
@@ -23614,9 +23720,14 @@ paths:
         content:
           application/json:
             example:
-              description: testConfig1
+              description: websiteSourcemapConfig2
             schema:
-              $ref: '#/components/schemas/SourceMapUploadConfigs'
+              type: object
+              description: Source map upload configuration
+              properties:
+                description:
+                  type: string
+                  description: Name of configuration
       responses:
         '200':
           content:
@@ -27138,13 +27249,12 @@ components:
           type: array
           items:
             type: string
-          uniqueItems: true
         label:
           type: string
         metrics:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/CustomMetric'
           uniqueItems: true
         tagFilterExpression:
           $ref: '#/components/schemas/TagFilterExpressionElement'
@@ -27314,6 +27424,24 @@ components:
       - aggregation
       - customEventName
       - metricName
+    CustomMetric:
+      type: object
+      properties:
+        aggregation:
+          type: string
+          description: Aggregation to apply on the metric for every member.
+          enum:
+          - AVG
+          - SUM
+        destination:
+          type: string
+          description: Name of the destination metric.
+        entityType:
+          type: string
+          description: Type of entity for the source metric.
+        source:
+          type: string
+          description: Name of the source metric.
     CustomPayloadConfiguration:
       type: object
       properties:
@@ -30879,10 +31007,14 @@ components:
       properties:
         aiModel:
           type: string
+        configurations:
+          $ref: '#/components/schemas/JsonNode'
         createdAt:
           type: string
         description:
           type: string
+        enabled:
+          type: boolean
         endpointApiKey:
           type: string
         endpointUrl:
@@ -30902,6 +31034,8 @@ components:
           type: string
         supports:
           $ref: '#/components/schemas/JsonNode'
+        system:
+          type: boolean
         tenantUnitId:
           type: string
         watsonxKey:
@@ -33117,6 +33251,19 @@ components:
           type: string
       required:
       - type
+    MonitoredEntitiesStats:
+      type: object
+      description: Statistics of monitored entities.
+      properties:
+        hostCount:
+          type: integer
+          format: int32
+        otelCount:
+          type: integer
+          format: int32
+        serverlessCount:
+          type: integer
+          format: int32
     MonitoringState:
       type: object
       properties:
@@ -33127,6 +33274,12 @@ components:
           type: integer
           format: int32
           description: Count of hosts
+        monitoredEntitiesStats:
+          $ref: '#/components/schemas/MonitoredEntitiesStats'
+        openTelemetryCount:
+          type: integer
+          format: int32
+          description: Count of open telemetry
         serverlessCount:
           type: integer
           format: int32
@@ -33254,13 +33407,6 @@ components:
           type: string
         clientSecret:
           type: string
-          writeOnly: true
-        fallbackStrategy:
-          type: string
-          enum:
-          - FAIL
-          - SEND_WITHOUT_AUTH
-          - USE_BACKUP_CHANNEL
         grantType:
           type: string
           enum:
@@ -37767,6 +37913,8 @@ components:
           - logSmartAlert
           - sloSmartAlert
           - schedule
+      required:
+      - type
     TypeConfiguration:
       type: object
       description: List of configurations that contains the list of actions to run
